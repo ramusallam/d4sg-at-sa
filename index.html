@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>D4SG @ SA</title>
+<style>
+  :root {
+    --bg-0: #0a0a0a;
+    --bg-1: #141414;
+    --bg-2: #1e1e1e;
+    --ink-hi: #f5f5f5;
+    --ink-mid: #a0a0a0;
+    --ink-low: #6b7280;
+    --accent: #6366f1;
+    --accent-hover: #818cf8;
+    --success: #22c55e;
+    --border: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.18);
+
+    /* Overlay (warm parchment) */
+    --paper: #F1E9DA;
+    --paper-soft: #E8DEC9;
+    --paper-ink: #1A1A1A;
+    --paper-ink-mid: #4a4a4a;
+    --paper-accent: #8B6F47;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    background: var(--bg-0);
+    color: var(--ink-hi);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+  }
+
+  /* ============== STICKY HEADER ============== */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 22px 32px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .header-title {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--ink-hi);
+    margin: 0;
+  }
+  .header-title .at {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .header-meta {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+  }
+
+  /* ============== LAYOUT ============== */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 32px 120px;
+  }
+
+  .project {
+    margin-bottom: 64px;
+  }
+  .project:last-child { margin-bottom: 0; }
+
+  .project-title {
+    font-size: clamp(24px, 3vw, 32px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink-hi);
+    margin: 0 0 6px;
+  }
+  .project-blurb {
+    font-size: 14px;
+    color: var(--ink-mid);
+    margin: 0 0 22px;
+    max-width: 640px;
+  }
+
+  .benchmarks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .benchmark {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 22px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    user-select: none;
+  }
+  .benchmark:hover {
+    background: var(--bg-2);
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+  }
+  .benchmark:active {
+    transform: translateY(0);
+  }
+
+  .checkbox {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-strong);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+  }
+  .checkbox:hover {
+    border-color: var(--accent-hover);
+  }
+  .checkbox.checked {
+    background: var(--success);
+    border-color: var(--success);
+  }
+  .checkbox.checked::after {
+    content: '';
+    width: 6px;
+    height: 11px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) translate(-1px, -1px);
+  }
+
+  .benchmark-label {
+    flex: 1;
+    font-size: clamp(15px, 1.6vw, 17px);
+    font-weight: 500;
+    color: var(--ink-hi);
+    line-height: 1.45;
+  }
+  .benchmark.done .benchmark-label {
+    color: var(--ink-mid);
+    text-decoration: line-through;
+    text-decoration-color: rgba(160, 160, 160, 0.5);
+  }
+
+  .points {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-mid);
+    background: var(--bg-2);
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ============== MODAL ============== */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: backdropIn 0.2s ease-out;
+  }
+  .modal-backdrop.open { display: flex; }
+  @keyframes backdropIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal {
+    background: var(--paper);
+    color: var(--paper-ink);
+    border-radius: 16px;
+    width: min(900px, 95vw);
+    height: min(85vh, 920px);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+      0 40px 80px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
+    animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.94) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-header {
+    flex-shrink: 0;
+    padding: 28px 36px 22px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    background: var(--paper-soft);
+  }
+  .modal-title-wrap { flex: 1; min-width: 0; }
+  .modal-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--paper-accent);
+    margin: 0 0 6px;
+  }
+  .modal-title {
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--paper-ink);
+    margin: 0;
+    line-height: 1.25;
+  }
+  .modal-points {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--paper-ink-mid);
+    background: rgba(0, 0, 0, 0.05);
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-top: 8px;
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+  }
+  .close-btn {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.06);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, transform 0.15s ease;
+    color: var(--paper-ink);
+    font-size: 22px;
+    line-height: 1;
+  }
+  .close-btn:hover {
+    background: rgba(0, 0, 0, 0.12);
+    transform: scale(1.05);
+  }
+
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 36px 36px;
+  }
+  .modal-section {
+    margin-bottom: 28px;
+  }
+  .modal-section:last-child { margin-bottom: 0; }
+  .modal-section h3 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--paper-accent);
+    margin: 0 0 10px;
+  }
+  .modal-section p {
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--paper-ink);
+    margin: 0 0 12px;
+  }
+  .modal-section ul {
+    margin: 0;
+    padding-left: 22px;
+    color: var(--paper-ink);
+  }
+  .modal-section ul li {
+    margin-bottom: 6px;
+    line-height: 1.55;
+  }
+
+  .video-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+  }
+  .video-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .links a {
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--paper-ink);
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 8px 8px 0;
+    transition: background 0.15s ease;
+  }
+  .links a:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .rubric {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 18px 22px;
+  }
+  .rubric-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  .rubric-row:last-child { border-bottom: none; }
+  .rubric-criterion { font-weight: 500; color: var(--paper-ink); flex: 1; }
+  .rubric-points {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--paper-accent);
+    flex-shrink: 0;
+  }
+
+  /* ============== MOBILE ============== */
+  @media (max-width: 640px) {
+    .header-inner { padding: 16px 20px; }
+    main { padding: 28px 20px 80px; }
+    .benchmark { padding: 14px 16px; gap: 12px; }
+    .points { font-size: 12px; padding: 4px 10px; }
+    .modal {
+      width: 100vw;
+      height: 100vh;
+      max-height: 100vh;
+      border-radius: 0;
+    }
+    .modal-header { padding: 20px 22px 16px; }
+    .modal-body { padding: 20px 22px 32px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1 class="header-title">D4SG <span class="at">@</span> SA</h1>
+    <div class="header-meta">Design for Social Good</div>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" id="modalCard">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <p class="modal-eyebrow" id="modalEyebrow">Benchmark</p>
+        <h2 class="modal-title" id="modalTitle">—</h2>
+        <span class="modal-points" id="modalPoints">— pts</span>
+      </div>
+      <button class="close-btn" id="closeBtn" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+  // ============== PLACEHOLDER CONTENT ==============
+  // Swap this PROJECTS array with real D4SG content.
+  const PROJECTS = [
+    {
+      id: 'p1',
+      title: 'Project 1 — Empathy & Discovery',
+      blurb: 'Get inside a real community challenge. Listen, observe, and document what people actually need.',
+      benchmarks: [
+        {
+          id: 'p1b1',
+          title: 'Choose a Community Partner',
+          points: 5,
+          instructions: 'Identify a person, group, or organization in our community whose challenges you want to design for. Write a short paragraph naming them and explaining why their work matters.',
+          videoUrl: '',
+          links: [],
+          rubric: [
+            { criterion: 'Partner clearly identified', points: 2 },
+            { criterion: 'Reason for choosing is specific', points: 2 },
+            { criterion: 'Writing is clear and concise', points: 1 }
+          ]
+        },
+        {
+          id: 'p1b2',
+          title: 'Conduct an Empathy Interview',
+          points: 10,
+          instructions: 'Schedule and complete a 20-minute interview with someone connected to your community partner. Use open-ended questions. Record (with permission) or take detailed notes.',
+          videoUrl: 'https://www.youtube.com/embed/u6XAPnuFjJc',
+          links: [
+            { label: 'Empathy Interview Guide', url: '#' },
+            { label: 'Interview Question Bank', url: '#' }
+          ],
+          rubric: [
+            { criterion: 'Interview completed (20+ min)', points: 4 },
+            { criterion: 'Open-ended questions used', points: 3 },
+            { criterion: 'Notes capture quotes & observations', points: 3 }
+          ]
+        },
+        {
+          id: 'p1b3',
+          title: 'Empathy Map',
+          points: 8,
+          instructions: 'Build an empathy map for your interviewee covering Says / Thinks / Does / Feels. Include at least three observations in each quadrant pulled directly from your interview notes.',
+          videoUrl: '',
+          links: [{ label: 'Empathy Map Template', url: '#' }],
+          rubric: [
+            { criterion: 'All four quadrants populated', points: 4 },
+            { criterion: '3+ items per quadrant', points: 2 },
+            { criterion: 'Direct evidence from interview', points: 2 }
+          ]
+        },
+        {
+          id: 'p1b4',
+          title: 'Problem Statement (How Might We…)',
+          points: 7,
+          instructions: 'Synthesize your discovery into a single "How Might We…" problem statement. The HMW should be specific to a person, framed as an opportunity, and grounded in evidence.',
+          videoUrl: '',
+          links: [],
+          rubric: [
+            { criterion: 'Specific user named', points: 2 },
+            { criterion: 'Framed as opportunity', points: 2 },
+            { criterion: 'Connects to interview evidence', points: 3 }
+          ]
+        },
+        {
+          id: 'p1b5',
+          title: 'Discovery Reflection',
+          points: 5,
+          instructions: 'Write a 1-page reflection: What surprised you? What assumptions got challenged? What feels uncertain heading into ideation?',
+          videoUrl: '',
+          links: [],
+          rubric: [
+            { criterion: 'Surfaces a real surprise', points: 2 },
+            { criterion: 'Names a challenged assumption', points: 2 },
+            { criterion: 'Honest about uncertainty', points: 1 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'p2',
+      title: 'Project 2 — Ideation & Prototype',
+      blurb: 'Generate many ideas, pick the strongest, and build a rough prototype that you can put in front of a real person.',
+      benchmarks: [
+        {
+          id: 'p2b1',
+          title: 'Brainstorm 30 Ideas',
+          points: 5,
+          instructions: 'Generate at least 30 distinct ideas in response to your HMW. Quantity over quality. Sketch, list, mind-map. Capture them all in one document.',
+          videoUrl: '',
+          links: [],
+          rubric: [
+            { criterion: '30+ ideas captured', points: 3 },
+            { criterion: 'Variety in ideas (not 30 versions of one)', points: 2 }
+          ]
+        },
+        {
+          id: 'p2b2',
+          title: 'Idea Selection',
+          points: 5,
+          instructions: 'Use the 2x2 matrix (Impact × Feasibility) to plot your top 10 ideas. Pick the one you will prototype and justify your choice in 3-5 sentences.',
+          videoUrl: '',
+          links: [{ label: '2x2 Matrix Template', url: '#' }],
+          rubric: [
+            { criterion: 'Matrix completed with 10 ideas', points: 2 },
+            { criterion: 'Selection clearly justified', points: 3 }
+          ]
+        },
+        {
+          id: 'p2b3',
+          title: 'Low-Fidelity Prototype',
+          points: 12,
+          instructions: 'Build a rough prototype of your idea. Paper, cardboard, Figma wireframe, role-play script — whatever lets a real person interact with the concept. Done in 1-2 class periods.',
+          videoUrl: 'https://www.youtube.com/embed/JBlFfTsl-Lo',
+          links: [],
+          rubric: [
+            { criterion: 'Prototype is testable by another person', points: 5 },
+            { criterion: 'Captures core idea', points: 4 },
+            { criterion: 'Built in low-cost materials', points: 3 }
+          ]
+        },
+        {
+          id: 'p2b4',
+          title: 'User Test Round 1',
+          points: 10,
+          instructions: 'Test your prototype with 3 users. For each: capture what worked, what confused them, and one direct quote. Bring evidence to the next class.',
+          videoUrl: '',
+          links: [{ label: 'User Test Note Sheet', url: '#' }],
+          rubric: [
+            { criterion: '3+ users tested', points: 4 },
+            { criterion: 'Notes for each user', points: 3 },
+            { criterion: 'Direct quotes captured', points: 3 }
+          ]
+        },
+        {
+          id: 'p2b5',
+          title: 'Iteration Memo',
+          points: 8,
+          instructions: 'Based on testing, write a memo: 3 changes you will make and why. Connect each change to specific user feedback.',
+          videoUrl: '',
+          links: [],
+          rubric: [
+            { criterion: '3 changes named', points: 3 },
+            { criterion: 'Each tied to user feedback', points: 3 },
+            { criterion: 'Reasoning is clear', points: 2 }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'p3',
+      title: 'Project 3 — Launch & Story',
+      blurb: 'Polish your solution, put it into the world, and tell its story so others can learn from your work.',
+      benchmarks: [
+        {
+          id: 'p3b1',
+          title: 'Final Prototype',
+          points: 15,
+          instructions: 'Build your refined version. Quality matters here — this is what you will hand off or demonstrate. Document the build with photos.',
+          videoUrl: '',
+          links: [],
+          rubric: [
+            { criterion: 'Refined from feedback', points: 5 },
+            { criterion: 'Quality of build', points: 6 },
+            { criterion: 'Process photos included', points: 4 }
+          ]
+        },
+        {
+          id: 'p3b2',
+          title: 'Launch Plan',
+          points: 8,
+          instructions: 'Write a 1-page launch plan: who receives the solution, how it gets handed off, what happens after. Include a date.',
+          videoUrl: '',
+          links: [],
+          rubric: [
+            { criterion: 'Recipient(s) named', points: 2 },
+            { criterion: 'Handoff plan is concrete', points: 3 },
+            { criterion: 'Date set', points: 3 }
+          ]
+        },
+        {
+          id: 'p3b3',
+          title: 'Pitch Deck (5 slides)',
+          points: 10,
+          instructions: 'Build a 5-slide pitch: Problem → User → Solution → Evidence → What\'s Next. Designed cleanly, no walls of text.',
+          videoUrl: '',
+          links: [{ label: 'Pitch Slide Template', url: '#' }],
+          rubric: [
+            { criterion: 'All 5 slides present', points: 3 },
+            { criterion: 'Clean visual design', points: 3 },
+            { criterion: 'Story flows', points: 4 }
+          ]
+        },
+        {
+          id: 'p3b4',
+          title: 'Project Story (Blog Post or Video)',
+          points: 10,
+          instructions: 'Tell the full story of your project — discovery, ideation, prototype, test, launch — as a 600-word post or 3-minute video. Audience: someone who has never heard of D4SG.',
+          videoUrl: '',
+          links: [],
+          rubric: [
+            { criterion: 'Covers full arc', points: 4 },
+            { criterion: 'Voice is your own', points: 3 },
+            { criterion: 'Polish & clarity', points: 3 }
+          ]
+        },
+        {
+          id: 'p3b5',
+          title: 'Final Reflection',
+          points: 7,
+          instructions: 'A reflection on your growth across the semester. What changed in how you see design? What will you carry into your next project?',
+          videoUrl: '',
+          links: [],
+          rubric: [
+            { criterion: 'Honest self-assessment', points: 3 },
+            { criterion: 'Names specific growth', points: 2 },
+            { criterion: 'Looks forward', points: 2 }
+          ]
+        }
+      ]
+    }
+  ];
+
+  // ============== STATE ==============
+  const STORAGE_KEY = 'd4sg-checked-v1';
+  const checked = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+
+  function persist() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...checked]));
+  }
+
+  // ============== RENDER ==============
+  const app = document.getElementById('app');
+
+  function renderProjects() {
+    app.innerHTML = '';
+    PROJECTS.forEach(project => {
+      const projEl = document.createElement('section');
+      projEl.className = 'project';
+      projEl.innerHTML = `
+        <h2 class="project-title">${escapeHtml(project.title)}</h2>
+        ${project.blurb ? `<p class="project-blurb">${escapeHtml(project.blurb)}</p>` : ''}
+        <div class="benchmarks"></div>
+      `;
+      const benchEl = projEl.querySelector('.benchmarks');
+      project.benchmarks.forEach(b => {
+        const isChecked = checked.has(b.id);
+        const row = document.createElement('div');
+        row.className = 'benchmark' + (isChecked ? ' done' : '');
+        row.dataset.id = b.id;
+        row.innerHTML = `
+          <div class="checkbox ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" tabindex="0"></div>
+          <div class="benchmark-label">${escapeHtml(b.title)}</div>
+          <div class="points">${b.points} pts</div>
+        `;
+        // open modal on click of row (not checkbox)
+        row.addEventListener('click', (e) => {
+          if (e.target.closest('[data-checkbox]')) return;
+          openModal(b);
+        });
+        // checkbox toggle
+        const cb = row.querySelector('[data-checkbox]');
+        cb.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleChecked(b.id, row, cb);
+        });
+        cb.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            toggleChecked(b.id, row, cb);
+          }
+        });
+        benchEl.appendChild(row);
+      });
+      app.appendChild(projEl);
+    });
+  }
+
+  function toggleChecked(id, row, cb) {
+    if (checked.has(id)) {
+      checked.delete(id);
+      row.classList.remove('done');
+      cb.classList.remove('checked');
+      cb.setAttribute('aria-checked', 'false');
+    } else {
+      checked.add(id);
+      row.classList.add('done');
+      cb.classList.add('checked');
+      cb.setAttribute('aria-checked', 'true');
+    }
+    persist();
+  }
+
+  // ============== MODAL ==============
+  const modal = document.getElementById('modal');
+  const modalCard = document.getElementById('modalCard');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalPoints = document.getElementById('modalPoints');
+  const modalBody = document.getElementById('modalBody');
+  const closeBtn = document.getElementById('closeBtn');
+
+  function openModal(b) {
+    modalTitle.textContent = b.title;
+    modalPoints.textContent = `${b.points} pts`;
+    modalBody.innerHTML = '';
+
+    // Instructions
+    if (b.instructions) {
+      const sec = document.createElement('div');
+      sec.className = 'modal-section';
+      sec.innerHTML = `<h3>Instructions</h3><p>${escapeHtml(b.instructions)}</p>`;
+      modalBody.appendChild(sec);
+    }
+    // Video
+    if (b.videoUrl) {
+      const sec = document.createElement('div');
+      sec.className = 'modal-section';
+      sec.innerHTML = `
+        <h3>Helper Video</h3>
+        <div class="video-wrap">
+          <iframe src="${b.videoUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      `;
+      modalBody.appendChild(sec);
+    }
+    // Links
+    if (b.links && b.links.length) {
+      const sec = document.createElement('div');
+      sec.className = 'modal-section';
+      sec.innerHTML = `<h3>Resources</h3><div class="links">${
+        b.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${escapeHtml(l.label)}</a>`).join('')
+      }</div>`;
+      modalBody.appendChild(sec);
+    }
+    // Rubric
+    if (b.rubric && b.rubric.length) {
+      const sec = document.createElement('div');
+      sec.className = 'modal-section';
+      const total = b.rubric.reduce((s, r) => s + r.points, 0);
+      sec.innerHTML = `
+        <h3>Rubric · ${total} pts total</h3>
+        <div class="rubric">
+          ${b.rubric.map(r => `
+            <div class="rubric-row">
+              <div class="rubric-criterion">${escapeHtml(r.criterion)}</div>
+              <div class="rubric-points">${r.points} pts</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      modalBody.appendChild(sec);
+    }
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+
+  // ============== UTIL ==============
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  // ============== INIT ==============
+  renderProjects();
+</script>
+
+</body>
+</html>
