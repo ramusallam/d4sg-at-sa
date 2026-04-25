@@ -605,6 +605,65 @@
     color: var(--ink-mid);
   }
   .upload-form .upload-status.error { color: #ef4444; }
+  .upload-form .or-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink-low);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 2px 0;
+  }
+  .upload-form .or-divider::before,
+  .upload-form .or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  /* Link tile chrome */
+  .gallery-tile.link-tile .link-chip {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(0, 0, 0, 0.65);
+    color: white;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 5px;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .gallery-tile.link-tile .link-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: linear-gradient(135deg, var(--accent-soft), white);
+    color: var(--accent);
+    padding: 6px;
+    text-align: center;
+  }
+  .gallery-tile.link-tile .link-fallback .link-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+  .gallery-tile.link-tile .link-fallback .link-domain {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-mid);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
 
   .gallery-empty {
     grid-column: 1 / -1;
@@ -1295,12 +1354,24 @@
     grid.innerHTML = '';
     items.forEach(item => {
       const tile = document.createElement('div');
-      tile.className = 'gallery-tile';
+      const isLink = item.type === 'link';
       const isVideo = (item.contentType || '').startsWith('video/');
+      tile.className = 'gallery-tile' + (isLink ? ' link-tile' : '');
+
+      let media;
+      if (isLink) {
+        media = item.linkImage
+          ? `<img src="${item.linkImage}" alt="${escapeHtml(item.linkTitle || item.linkUrl)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'link-fallback',innerHTML:'<div class=\\'link-icon\\'>🔗</div><div class=\\'link-domain\\'>${escapeHtml(item.linkDomain || '')}</div>'}));" />`
+          : `<div class="link-fallback"><div class="link-icon">🔗</div><div class="link-domain">${escapeHtml(item.linkDomain || 'link')}</div></div>`;
+      } else if (isVideo) {
+        media = `<video src="${item.fileUrl}" muted preload="metadata"></video><div class="play-icon">▶</div>`;
+      } else {
+        media = `<img src="${item.fileUrl}" alt="${escapeHtml(item.studentName || '')}" loading="lazy" />`;
+      }
+
       tile.innerHTML = `
-        ${isVideo
-          ? `<video src="${item.fileUrl}" muted preload="metadata"></video><div class="play-icon">▶</div>`
-          : `<img src="${item.fileUrl}" alt="${escapeHtml(item.studentName || '')}" loading="lazy" />`}
+        ${media}
+        ${isLink ? `<span class="link-chip">Link</span>` : ''}
         <div class="tile-caption">
           <span class="tile-name">${escapeHtml(item.studentName || 'Unnamed')}</span>
           <span class="tile-desc">${escapeHtml(item.description || '')}</span>
@@ -1309,7 +1380,11 @@
       `;
       tile.addEventListener('click', (e) => {
         if (e.target.closest('.tile-delete')) return;
-        openLightbox(item);
+        if (isLink) {
+          window.open(item.linkUrl, '_blank', 'noopener');
+        } else {
+          openLightbox(item);
+        }
       });
       tile.querySelector('.tile-delete').addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -1323,24 +1398,14 @@
     addTile.className = 'add-tile';
     addTile.innerHTML = `<div class="plus">+</div><div>Add your work</div>`;
     addTile.addEventListener('click', () => {
-      // replace add-tile with upload form
       const form = buildUploadForm(benchmarkId, () => {
         // re-render handled by snapshot
       }, () => {
-        // cancel: re-render to restore add-tile
         renderGallery(grid, benchmarkId, items);
       });
       grid.replaceChild(form, addTile);
     });
     grid.appendChild(addTile);
-
-    if (items.length === 0) {
-      // pretty empty state floating below the add tile
-      const empty = document.createElement('div');
-      empty.className = 'gallery-empty';
-      empty.textContent = 'No submissions yet. Be the first to drop your work.';
-      grid.appendChild(empty);
-    }
   }
 
   function buildUploadForm(benchmarkId, onSuccess, onCancel) {
@@ -1357,6 +1422,8 @@
         </label>
         <span class="file-name" data-file-name></span>
       </div>
+      <div class="or-divider">or</div>
+      <label>Paste a link<input type="url" data-link maxlength="500" placeholder="https://…" /></label>
       <div class="upload-status" data-status></div>
       <div class="actions">
         <button class="btn-cancel" data-cancel type="button">Cancel</button>
@@ -1365,6 +1432,7 @@
     `;
     const fileInput = form.querySelector('[data-file]');
     const fileNameEl = form.querySelector('[data-file-name]');
+    const linkInput = form.querySelector('[data-link]');
     const statusEl = form.querySelector('[data-status]');
     const submitBtn = form.querySelector('[data-submit]');
     const nameInput = form.querySelector('[data-name]');
@@ -1372,29 +1440,42 @@
 
     fileInput.addEventListener('change', () => {
       fileNameEl.textContent = fileInput.files[0]?.name || '';
+      if (fileInput.files[0]) linkInput.value = '';
+    });
+    linkInput.addEventListener('input', () => {
+      if (linkInput.value.trim()) { fileInput.value = ''; fileNameEl.textContent = ''; }
     });
     form.querySelector('[data-cancel]').addEventListener('click', onCancel);
     submitBtn.addEventListener('click', async () => {
       const name = nameInput.value.trim();
       const desc = descInput.value.trim();
       const file = fileInput.files[0];
+      const link = linkInput.value.trim();
       if (!name) { setErr('Please enter your name.'); return; }
-      if (!file) { setErr('Please choose an image or video.'); return; }
-      if (!file.type.match(/^(image|video)\//)) { setErr('File must be an image or video.'); return; }
-      if (file.size > 50 * 1024 * 1024) { setErr('File too large (50MB max).'); return; }
+      if (!file && !link) { setErr('Choose a file OR paste a link.'); return; }
+      if (file && link) { setErr('Submit a file or a link, not both.'); return; }
       submitBtn.disabled = true;
       statusEl.classList.remove('error');
-      statusEl.textContent = 'Uploading…';
       localStorage.setItem(NAME_KEY, name);
       try {
-        await uploadArtifact({ benchmarkId, name, desc, file, onProgress: (pct) => {
-          statusEl.textContent = `Uploading… ${pct}%`;
-        }});
+        if (file) {
+          if (!file.type.match(/^(image|video)\//)) { throw new Error('File must be an image or video.'); }
+          if (file.size > 50 * 1024 * 1024) { throw new Error('File too large (50MB max).'); }
+          statusEl.textContent = 'Uploading…';
+          await uploadArtifact({ benchmarkId, name, desc, file, onProgress: (pct) => {
+            statusEl.textContent = `Uploading… ${pct}%`;
+          }});
+        } else {
+          if (!/^https?:\/\//i.test(link)) { throw new Error('Link must start with http:// or https://'); }
+          statusEl.textContent = 'Pulling preview…';
+          const preview = await fetchLinkPreview(link);
+          await addLinkArtifact({ benchmarkId, name, desc, link, preview });
+        }
         statusEl.textContent = 'Done.';
         onSuccess();
       } catch (err) {
         console.error(err);
-        setErr('Upload failed. Try again.');
+        setErr(err.message || 'Submit failed. Try again.');
         submitBtn.disabled = false;
       }
     });
@@ -1403,6 +1484,34 @@
       statusEl.textContent = msg;
     }
     return form;
+  }
+
+  async function fetchLinkPreview(url) {
+    try {
+      const r = await fetch(`/api/preview?url=${encodeURIComponent(url)}`);
+      if (!r.ok) throw new Error('preview');
+      return await r.json();
+    } catch (err) {
+      // Graceful degradation — submit the link with no preview metadata
+      let domain = '';
+      try { domain = new URL(url).hostname.replace(/^www\./, ''); } catch (_) {}
+      return { url, title: '', description: '', image: '', domain };
+    }
+  }
+
+  async function addLinkArtifact({ benchmarkId, name, desc, link, preview }) {
+    await addDoc(collection(db, 'artifacts'), {
+      benchmarkId,
+      studentName: name,
+      description: desc,
+      type: 'link',
+      linkUrl: link,
+      linkTitle: preview?.title || '',
+      linkDescription: preview?.description || '',
+      linkImage: preview?.image || '',
+      linkDomain: preview?.domain || '',
+      createdAt: serverTimestamp()
+    });
   }
 
   function uploadArtifact({ benchmarkId, name, desc, file, onProgress }) {
