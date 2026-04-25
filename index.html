@@ -373,12 +373,344 @@
     flex-shrink: 0;
   }
 
+  /* ============== ARTIFACT COUNT BADGE (on benchmark row) ============== */
+  .artifact-count {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    font-variant-numeric: tabular-nums;
+  }
+  .artifact-count svg { width: 12px; height: 12px; }
+
+  /* ============== GALLERY (inside modal) ============== */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .gallery-tile {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .gallery-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+  }
+  .gallery-tile img,
+  .gallery-tile video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .gallery-tile .play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    pointer-events: none;
+  }
+  .gallery-tile .tile-caption {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 10px 12px 8px;
+    background: linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0));
+    color: white;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+  .gallery-tile .tile-caption .tile-name {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .gallery-tile .tile-caption .tile-desc {
+    font-weight: 400;
+    opacity: 0.92;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .gallery-tile .tile-delete {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  body.is-admin .gallery-tile .tile-delete { display: flex; }
+  .gallery-tile .tile-delete:hover {
+    background: #ef4444;
+    transform: scale(1.1);
+  }
+
+  /* Add tile (dashed) */
+  .add-tile {
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    background: transparent;
+    border: 2px dashed var(--border-strong);
+    color: var(--ink-mid);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .add-tile:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .add-tile .plus {
+    font-size: 36px;
+    line-height: 1;
+    font-weight: 300;
+  }
+
+  /* Upload form */
+  .upload-form {
+    grid-column: 1 / -1;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .upload-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--paper-accent);
+  }
+  .upload-form input[type="text"],
+  .upload-form textarea {
+    font-family: inherit;
+    font-size: 15px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    color: var(--paper-ink);
+    outline: none;
+    transition: border-color 0.15s ease;
+    resize: vertical;
+  }
+  .upload-form input[type="text"]:focus,
+  .upload-form textarea:focus {
+    border-color: var(--accent);
+  }
+  .upload-form .file-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .upload-form .file-pick {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--paper-ink);
+    padding: 9px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .upload-form .file-pick:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .upload-form .file-name {
+    font-size: 13px;
+    color: var(--ink-mid);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  .upload-form input[type="file"] { display: none; }
+  .upload-form .actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .upload-form .btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-mid);
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .upload-form .btn-submit {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.15s ease;
+  }
+  .upload-form .btn-submit:hover { background: var(--accent-hover); }
+  .upload-form .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .upload-form .upload-status {
+    font-size: 13px;
+    color: var(--ink-mid);
+  }
+  .upload-form .upload-status.error { color: #ef4444; }
+
+  .gallery-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--ink-low);
+    font-size: 14px;
+    padding: 8px 0 16px;
+  }
+
+  /* ============== LIGHTBOX ============== */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox-media {
+    max-width: min(1100px, 92vw);
+    max-height: 78vh;
+    border-radius: 12px;
+    overflow: hidden;
+    background: black;
+  }
+  .lightbox-media img,
+  .lightbox-media video {
+    display: block;
+    max-width: 100%;
+    max-height: 78vh;
+    object-fit: contain;
+  }
+  .lightbox-meta {
+    color: white;
+    text-align: center;
+    max-width: min(700px, 90vw);
+  }
+  .lightbox-meta .lb-name { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+  .lightbox-meta .lb-desc { font-size: 14px; opacity: 0.85; line-height: 1.5; }
+  .lightbox-close {
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .lightbox-close:hover { background: rgba(255, 255, 255, 0.22); }
+
+  /* ============== ADMIN CONTROLS ============== */
+  .admin-bar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+  body.is-admin .admin-bar { display: inline-flex; }
+  .admin-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 4px 8px;
+    border-radius: 5px;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+  }
+  .archive-btn {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--ink-mid);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .archive-btn:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+  }
+
   /* ============== MOBILE ============== */
   @media (max-width: 640px) {
-    .header-inner { padding: 16px 20px; }
+    .header-inner { padding: 16px 20px; gap: 8px; flex-wrap: wrap; }
     main { padding: 28px 20px 80px; }
     .benchmark { padding: 14px 16px; gap: 12px; }
     .points { font-size: 12px; padding: 4px 10px; }
+    .artifact-count { font-size: 11px; padding: 4px 8px; }
     .modal {
       width: 100vw;
       height: 100vh;
@@ -387,6 +719,7 @@
     }
     .modal-header { padding: 20px 22px 16px; }
     .modal-body { padding: 20px 22px 32px; }
+    .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   }
 </style>
 </head>
@@ -395,7 +728,13 @@
 <header>
   <div class="header-inner">
     <h1 class="header-title">D4SG <span class="at">@</span> SA</h1>
-    <div class="header-meta">Design for Social Good</div>
+    <div class="header-meta">
+      Design for Social Good
+      <span class="admin-bar">
+        <span class="admin-tag">Admin</span>
+        <button class="archive-btn" id="archiveBtn">Archive class</button>
+      </span>
+    </div>
   </div>
 </header>
 
@@ -415,7 +754,45 @@
   </div>
 </div>
 
-<script>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Close">×</button>
+  <div class="lightbox-media" id="lightboxMedia"></div>
+  <div class="lightbox-meta">
+    <div class="lb-name" id="lightboxName"></div>
+    <div class="lb-desc" id="lightboxDesc"></div>
+  </div>
+</div>
+
+<script type="module">
+  // ============== FIREBASE ==============
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+  import {
+    getFirestore, collection, query, where, orderBy, onSnapshot,
+    addDoc, deleteDoc, doc, getDocs, setDoc, serverTimestamp
+  } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
+  import {
+    getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject
+  } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js';
+
+  const firebaseConfig = {
+    apiKey: 'AIzaSyBk_7fY9VbLla_2fePNqFTNehGJxkM3wYk',
+    authDomain: 'd4sg-sa-class.firebaseapp.com',
+    projectId: 'd4sg-sa-class',
+    storageBucket: 'd4sg-sa-class-uploads',
+    messagingSenderId: '348558190261',
+    appId: '1:348558190261:web:45acfd179a20b7343cc0fc'
+  };
+  const fbApp = initializeApp(firebaseConfig);
+  const db = getFirestore(fbApp);
+  const storage = getStorage(fbApp);
+
+  // ============== ADMIN MODE ==============
+  // Visit ?admin=ramsey-d4sg to enable delete buttons & "Archive class".
+  const ADMIN_TOKEN = 'ramsey-d4sg';
+  const urlParams = new URLSearchParams(location.search);
+  const isAdmin = urlParams.get('admin') === ADMIN_TOKEN;
+  if (isAdmin) document.body.classList.add('is-admin');
+
   // ============== CONTENT ==============
   // Placeholder benchmarks — swap text/video/links/rubric in as the curriculum is built.
   const PROJECTS = [
@@ -707,7 +1084,12 @@
 
   // ============== STATE ==============
   const STORAGE_KEY = 'd4sg-checked-v1';
+  const NAME_KEY = 'd4sg-student-name-v1';
   const checked = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+  const benchmarkCounts = {}; // { benchmarkId: count }
+  const countEls = {};        // { benchmarkId: HTMLElement }
+  let currentBenchmark = null;
+  let unsubscribeGallery = null;
 
   function persist() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...checked]));
@@ -715,6 +1097,8 @@
 
   // ============== RENDER ==============
   const app = document.getElementById('app');
+
+  const PAPERCLIP_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>';
 
   function renderProjects() {
     app.innerHTML = '';
@@ -735,6 +1119,7 @@
         row.innerHTML = `
           <div class="checkbox ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" tabindex="0"></div>
           <div class="benchmark-label">${escapeHtml(b.title)}</div>
+          <span class="artifact-count" data-count="${b.id}" style="display:none;">${PAPERCLIP_SVG}<span data-count-num>0</span></span>
           <div class="points">${b.points} pts</div>
         `;
         // open modal on click of row (not checkbox)
@@ -755,10 +1140,34 @@
           }
         });
         benchEl.appendChild(row);
+        countEls[b.id] = row.querySelector(`[data-count="${b.id}"]`);
       });
       app.appendChild(projEl);
     });
   }
+
+  function updateCountBadge(benchmarkId, n) {
+    benchmarkCounts[benchmarkId] = n;
+    const el = countEls[benchmarkId];
+    if (!el) return;
+    if (n > 0) {
+      el.style.display = 'inline-flex';
+      el.querySelector('[data-count-num]').textContent = n;
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  // Subscribe to all artifacts so count badges stay live.
+  onSnapshot(collection(db, 'artifacts'), (snap) => {
+    const counts = {};
+    snap.forEach(d => {
+      const bid = d.data().benchmarkId;
+      counts[bid] = (counts[bid] || 0) + 1;
+    });
+    // reset all known benchmarks then apply
+    Object.keys(countEls).forEach(bid => updateCountBadge(bid, counts[bid] || 0));
+  });
 
   function toggleChecked(id, row, cb) {
     if (checked.has(id)) {
@@ -784,6 +1193,7 @@
   const closeBtn = document.getElementById('closeBtn');
 
   function openModal(b) {
+    currentBenchmark = b;
     modalTitle.textContent = b.title;
     modalPoints.textContent = `${b.points} pts`;
     modalBody.innerHTML = '';
@@ -835,6 +1245,16 @@
       modalBody.appendChild(sec);
     }
 
+    // Gallery (always present — students drop work here, signals to grade)
+    const gallerySec = document.createElement('div');
+    gallerySec.className = 'modal-section';
+    gallerySec.innerHTML = `
+      <h3>Gallery · drop your work here</h3>
+      <div class="gallery-grid" id="galleryGrid"></div>
+    `;
+    modalBody.appendChild(gallerySec);
+    subscribeGallery(b.id);
+
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
     closeBtn.focus();
@@ -843,6 +1263,8 @@
   function closeModal() {
     modal.classList.remove('open');
     document.body.style.overflow = '';
+    currentBenchmark = null;
+    if (unsubscribeGallery) { unsubscribeGallery(); unsubscribeGallery = null; }
   }
 
   closeBtn.addEventListener('click', closeModal);
@@ -851,6 +1273,238 @@
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+
+  // ============== GALLERY ==============
+  function subscribeGallery(benchmarkId) {
+    if (unsubscribeGallery) unsubscribeGallery();
+    const grid = document.getElementById('galleryGrid');
+    if (!grid) return;
+    const q = query(
+      collection(db, 'artifacts'),
+      where('benchmarkId', '==', benchmarkId)
+    );
+    unsubscribeGallery = onSnapshot(q, (snap) => {
+      const items = [];
+      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      // newest first
+      items.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      renderGallery(grid, benchmarkId, items);
+    }, (err) => {
+      console.error('gallery subscribe error', err);
+      grid.innerHTML = `<div class="gallery-empty">Could not load gallery.</div>`;
+    });
+  }
+
+  function renderGallery(grid, benchmarkId, items) {
+    grid.innerHTML = '';
+    items.forEach(item => {
+      const tile = document.createElement('div');
+      tile.className = 'gallery-tile';
+      const isVideo = (item.contentType || '').startsWith('video/');
+      tile.innerHTML = `
+        ${isVideo
+          ? `<video src="${item.fileUrl}" muted preload="metadata"></video><div class="play-icon">▶</div>`
+          : `<img src="${item.fileUrl}" alt="${escapeHtml(item.studentName || '')}" loading="lazy" />`}
+        <div class="tile-caption">
+          <span class="tile-name">${escapeHtml(item.studentName || 'Unnamed')}</span>
+          <span class="tile-desc">${escapeHtml(item.description || '')}</span>
+        </div>
+        <button class="tile-delete" aria-label="Delete">×</button>
+      `;
+      tile.addEventListener('click', (e) => {
+        if (e.target.closest('.tile-delete')) return;
+        openLightbox(item);
+      });
+      tile.querySelector('.tile-delete').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!confirm(`Delete "${item.studentName}" submission?`)) return;
+        await deleteArtifact(item);
+      });
+      grid.appendChild(tile);
+    });
+    // Add tile (always last)
+    const addTile = document.createElement('div');
+    addTile.className = 'add-tile';
+    addTile.innerHTML = `<div class="plus">+</div><div>Add your work</div>`;
+    addTile.addEventListener('click', () => {
+      // replace add-tile with upload form
+      const form = buildUploadForm(benchmarkId, () => {
+        // re-render handled by snapshot
+      }, () => {
+        // cancel: re-render to restore add-tile
+        renderGallery(grid, benchmarkId, items);
+      });
+      grid.replaceChild(form, addTile);
+    });
+    grid.appendChild(addTile);
+
+    if (items.length === 0) {
+      // pretty empty state floating below the add tile
+      const empty = document.createElement('div');
+      empty.className = 'gallery-empty';
+      empty.textContent = 'No submissions yet. Be the first to drop your work.';
+      grid.appendChild(empty);
+    }
+  }
+
+  function buildUploadForm(benchmarkId, onSuccess, onCancel) {
+    const form = document.createElement('div');
+    form.className = 'upload-form';
+    const savedName = localStorage.getItem(NAME_KEY) || '';
+    form.innerHTML = `
+      <label>Your name<input type="text" data-name maxlength="80" placeholder="e.g. Alex Rivera" value="${escapeHtml(savedName)}" /></label>
+      <label>Brief description<textarea data-desc rows="2" maxlength="500" placeholder="What is this and what should we look at?"></textarea></label>
+      <div class="file-row">
+        <label class="file-pick">
+          <input type="file" data-file accept="image/*,video/*" />
+          <span data-file-label>Choose image or video</span>
+        </label>
+        <span class="file-name" data-file-name></span>
+      </div>
+      <div class="upload-status" data-status></div>
+      <div class="actions">
+        <button class="btn-cancel" data-cancel type="button">Cancel</button>
+        <button class="btn-submit" data-submit type="button">Submit</button>
+      </div>
+    `;
+    const fileInput = form.querySelector('[data-file]');
+    const fileNameEl = form.querySelector('[data-file-name]');
+    const statusEl = form.querySelector('[data-status]');
+    const submitBtn = form.querySelector('[data-submit]');
+    const nameInput = form.querySelector('[data-name]');
+    const descInput = form.querySelector('[data-desc]');
+
+    fileInput.addEventListener('change', () => {
+      fileNameEl.textContent = fileInput.files[0]?.name || '';
+    });
+    form.querySelector('[data-cancel]').addEventListener('click', onCancel);
+    submitBtn.addEventListener('click', async () => {
+      const name = nameInput.value.trim();
+      const desc = descInput.value.trim();
+      const file = fileInput.files[0];
+      if (!name) { setErr('Please enter your name.'); return; }
+      if (!file) { setErr('Please choose an image or video.'); return; }
+      if (!file.type.match(/^(image|video)\//)) { setErr('File must be an image or video.'); return; }
+      if (file.size > 50 * 1024 * 1024) { setErr('File too large (50MB max).'); return; }
+      submitBtn.disabled = true;
+      statusEl.classList.remove('error');
+      statusEl.textContent = 'Uploading…';
+      localStorage.setItem(NAME_KEY, name);
+      try {
+        await uploadArtifact({ benchmarkId, name, desc, file, onProgress: (pct) => {
+          statusEl.textContent = `Uploading… ${pct}%`;
+        }});
+        statusEl.textContent = 'Done.';
+        onSuccess();
+      } catch (err) {
+        console.error(err);
+        setErr('Upload failed. Try again.');
+        submitBtn.disabled = false;
+      }
+    });
+    function setErr(msg) {
+      statusEl.classList.add('error');
+      statusEl.textContent = msg;
+    }
+    return form;
+  }
+
+  function uploadArtifact({ benchmarkId, name, desc, file, onProgress }) {
+    return new Promise((resolve, reject) => {
+      const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0];
+      const path = `artifacts/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+      const ref = storageRef(storage, path);
+      const task = uploadBytesResumable(ref, file, { contentType: file.type });
+      task.on('state_changed',
+        (snap) => onProgress?.(Math.round(snap.bytesTransferred / snap.totalBytes * 100)),
+        reject,
+        async () => {
+          try {
+            const url = await getDownloadURL(task.snapshot.ref);
+            await addDoc(collection(db, 'artifacts'), {
+              benchmarkId,
+              studentName: name,
+              description: desc,
+              fileUrl: url,
+              filePath: path,
+              contentType: file.type,
+              createdAt: serverTimestamp()
+            });
+            resolve();
+          } catch (e) { reject(e); }
+        }
+      );
+    });
+  }
+
+  async function deleteArtifact(item) {
+    try {
+      if (item.filePath) {
+        try { await deleteObject(storageRef(storage, item.filePath)); } catch (e) { /* file may already be gone */ }
+      }
+      await deleteDoc(doc(db, 'artifacts', item.id));
+    } catch (err) {
+      console.error('delete failed', err);
+      alert('Could not delete. Try again.');
+    }
+  }
+
+  // ============== LIGHTBOX ==============
+  const lightbox = document.getElementById('lightbox');
+  const lightboxMedia = document.getElementById('lightboxMedia');
+  const lightboxName = document.getElementById('lightboxName');
+  const lightboxDesc = document.getElementById('lightboxDesc');
+  const lightboxClose = document.getElementById('lightboxClose');
+
+  function openLightbox(item) {
+    const isVideo = (item.contentType || '').startsWith('video/');
+    lightboxMedia.innerHTML = isVideo
+      ? `<video src="${item.fileUrl}" controls autoplay></video>`
+      : `<img src="${item.fileUrl}" alt="${escapeHtml(item.studentName || '')}" />`;
+    lightboxName.textContent = item.studentName || 'Unnamed';
+    lightboxDesc.textContent = item.description || '';
+    lightbox.classList.add('open');
+  }
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    lightboxMedia.innerHTML = '';
+  }
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+  });
+
+  // ============== ARCHIVE (admin) ==============
+  document.getElementById('archiveBtn').addEventListener('click', async () => {
+    if (!isAdmin) return;
+    if (!confirm('Archive ALL current submissions and clear the live galleries? Old work stays accessible in Firestore as a snapshot.')) return;
+    try {
+      const snap = await getDocs(collection(db, 'artifacts'));
+      if (snap.empty) { alert('Nothing to archive.'); return; }
+      const archiveId = new Date().toISOString().replace(/[:.]/g, '-');
+      // copy each to archives/{archiveId}/artifacts/{id}
+      const copies = [];
+      snap.forEach(d => {
+        copies.push(setDoc(doc(db, 'archives', archiveId, 'artifacts', d.id), d.data()));
+      });
+      await Promise.all(copies);
+      // delete originals (Firestore doc + Storage file)
+      const deletes = [];
+      snap.forEach(d => {
+        const data = d.data();
+        if (data.filePath) {
+          deletes.push(deleteObject(storageRef(storage, data.filePath)).catch(() => {}));
+        }
+        deletes.push(deleteDoc(doc(db, 'artifacts', d.id)));
+      });
+      await Promise.all(deletes);
+      alert(`Archived ${snap.size} submissions to archives/${archiveId}.`);
+    } catch (err) {
+      console.error(err);
+      alert('Archive failed. Check console.');
+    }
   });
 
   // ============== UTIL ==============

@@ -1,0 +1,11 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": [
+    {
+      "bucket": "d4sg-sa-class-uploads",
+      "rules": "storage.rules"
+    }
+  ]
+}
