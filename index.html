@@ -509,23 +509,24 @@
   /* Upload form */
   .upload-form {
     grid-column: 1 / -1;
-    background: var(--bg-2);
+    background: white;
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 18px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
   }
   .upload-form label {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--paper-accent);
+    letter-spacing: 1.5px;
+    color: var(--ink-low);
   }
   .upload-form input[type="text"],
   .upload-form textarea {
@@ -533,44 +534,218 @@
     font-size: 15px;
     padding: 10px 12px;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    background: white;
+    border-radius: 9px;
+    background: var(--bg-2);
     color: var(--paper-ink);
     outline: none;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease;
     resize: vertical;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
   }
   .upload-form input[type="text"]:focus,
   .upload-form textarea:focus {
     border-color: var(--accent);
+    background: white;
   }
-  .upload-form .file-row {
+  .upload-form input[type="file"] { display: none; }
+
+  /* Smart attachment zone */
+  .attach {
+    position: relative;
+    border: 1.5px dashed var(--border-strong);
+    border-radius: 12px;
+    background: var(--bg-2);
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+    overflow: hidden;
+    min-height: 120px;
     display: flex;
-    gap: 10px;
     align-items: center;
-    flex-wrap: wrap;
+    justify-content: center;
   }
-  .upload-form .file-pick {
+  .attach.is-dragover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: scale(1.005);
+  }
+  .attach.has-content {
+    border-style: solid;
+    background: white;
+    cursor: default;
+    min-height: 0;
+  }
+  .attach-empty {
+    width: 100%;
+    padding: 22px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    color: var(--ink-mid);
+    text-align: center;
+  }
+  .attach-empty:hover { color: var(--accent); }
+  .attach-empty .attach-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     background: white;
     border: 1px solid var(--border);
-    color: var(--paper-ink);
-    padding: 9px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 14px;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
   }
-  .upload-form .file-pick:hover { border-color: var(--accent); background: var(--accent-soft); }
-  .upload-form .file-name {
-    font-size: 13px;
+  .attach-empty:hover .attach-icon { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.18); }
+  .attach-empty .attach-icon svg { width: 18px; height: 18px; }
+  .attach-empty .attach-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--paper-ink);
+  }
+  .attach-empty .attach-sub {
+    font-size: 12px;
+    color: var(--ink-low);
+  }
+  .attach-link-toggle {
+    margin-top: 4px;
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.15s ease;
+  }
+  .attach-link-toggle:hover { background: var(--accent-soft); }
+
+  .attach-link-entry {
+    display: none;
+    padding: 14px;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+  }
+  .attach.is-link-entry .attach-empty { display: none; }
+  .attach.is-link-entry .attach-link-entry { display: flex; }
+  .attach-link-entry input {
+    flex: 1;
+    font-family: inherit;
+    font-size: 15px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: white;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .attach-link-entry input:focus { border-color: var(--accent); }
+  .attach-link-entry .icon-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-mid);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    transition: all 0.15s ease;
+  }
+  .attach-link-entry .icon-btn:hover { border-color: var(--ink-mid); color: var(--paper-ink); }
+
+  /* Preview card (file or link) */
+  .attach-preview {
+    display: none;
+    padding: 12px;
+    width: 100%;
+    align-items: center;
+    gap: 14px;
+  }
+  .attach.has-content .attach-preview { display: flex; }
+  .attach.has-content .attach-empty,
+  .attach.has-content .attach-link-entry { display: none; }
+  .attach-preview .preview-thumb {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 9px;
+    overflow: hidden;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: var(--accent);
+  }
+  .attach-preview .preview-thumb img,
+  .attach-preview .preview-thumb video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .attach-preview .preview-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .attach-preview .preview-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--paper-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .attach-preview .preview-meta {
+    font-size: 12px;
     color: var(--ink-mid);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 100%;
   }
-  .upload-form input[type="file"] { display: none; }
+  .attach-preview .preview-remove {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-mid);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .attach-preview .preview-remove:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+  }
+  .attach-preview .preview-loading {
+    font-size: 13px;
+    color: var(--ink-mid);
+    font-style: italic;
+  }
+
   .upload-form .actions {
     display: flex;
     gap: 10px;
@@ -582,47 +757,33 @@
     border: 1px solid var(--border);
     color: var(--ink-mid);
     padding: 10px 18px;
-    border-radius: 8px;
+    border-radius: 9px;
     cursor: pointer;
     font-weight: 500;
     font-size: 14px;
+    transition: all 0.15s ease;
   }
+  .upload-form .btn-cancel:hover { border-color: var(--border-strong); color: var(--paper-ink); }
   .upload-form .btn-submit {
     background: var(--accent);
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
+    padding: 10px 22px;
+    border-radius: 9px;
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, transform 0.1s ease;
   }
   .upload-form .btn-submit:hover { background: var(--accent-hover); }
-  .upload-form .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .upload-form .btn-submit:active { transform: translateY(1px); }
+  .upload-form .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
   .upload-form .upload-status {
     font-size: 13px;
     color: var(--ink-mid);
+    min-height: 18px;
   }
   .upload-form .upload-status.error { color: #ef4444; }
-  .upload-form .or-divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--ink-low);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin: 2px 0;
-  }
-  .upload-form .or-divider::before,
-  .upload-form .or-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
   /* Link tile chrome */
   .gallery-tile.link-tile .link-chip {
     position: absolute;
@@ -1412,64 +1573,218 @@
     const form = document.createElement('div');
     form.className = 'upload-form';
     const savedName = localStorage.getItem(NAME_KEY) || '';
+    const UPLOAD_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg>';
+    const LINK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.5-1.5"/></svg>';
+
     form.innerHTML = `
       <label>Your name<input type="text" data-name maxlength="80" placeholder="e.g. Alex Rivera" value="${escapeHtml(savedName)}" /></label>
       <label>Brief description<textarea data-desc rows="2" maxlength="500" placeholder="What is this and what should we look at?"></textarea></label>
-      <div class="file-row">
-        <label class="file-pick">
-          <input type="file" data-file accept="image/*,video/*" />
-          <span data-file-label>Choose image or video</span>
-        </label>
-        <span class="file-name" data-file-name></span>
+
+      <div class="attach" data-attach>
+        <div class="attach-empty" data-attach-empty>
+          <div class="attach-icon">${UPLOAD_ICON}</div>
+          <div class="attach-text">Drop a file or click to upload</div>
+          <div class="attach-sub">Image or video, up to 50MB</div>
+          <button type="button" class="attach-link-toggle" data-link-toggle>${LINK_ICON} Or paste a link</button>
+        </div>
+        <div class="attach-link-entry">
+          <input type="url" data-link-input placeholder="Paste a URL and press Enter…" />
+          <button type="button" class="icon-btn" data-link-cancel aria-label="Cancel">×</button>
+        </div>
+        <div class="attach-preview" data-preview></div>
+        <input type="file" data-file accept="image/*,video/*" />
       </div>
-      <div class="or-divider">or</div>
-      <label>Paste a link<input type="url" data-link maxlength="500" placeholder="https://…" /></label>
+
       <div class="upload-status" data-status></div>
       <div class="actions">
         <button class="btn-cancel" data-cancel type="button">Cancel</button>
         <button class="btn-submit" data-submit type="button">Submit</button>
       </div>
     `;
-    const fileInput = form.querySelector('[data-file]');
-    const fileNameEl = form.querySelector('[data-file-name]');
-    const linkInput = form.querySelector('[data-link]');
-    const statusEl = form.querySelector('[data-status]');
-    const submitBtn = form.querySelector('[data-submit]');
+
     const nameInput = form.querySelector('[data-name]');
     const descInput = form.querySelector('[data-desc]');
+    const statusEl = form.querySelector('[data-status]');
+    const submitBtn = form.querySelector('[data-submit]');
+    const attach = form.querySelector('[data-attach]');
+    const attachEmpty = form.querySelector('[data-attach-empty]');
+    const fileInput = form.querySelector('[data-file]');
+    const linkToggle = form.querySelector('[data-link-toggle]');
+    const linkInput = form.querySelector('[data-link-input]');
+    const linkCancel = form.querySelector('[data-link-cancel]');
+    const previewEl = form.querySelector('[data-preview]');
 
+    // Attachment state
+    let attachedFile = null;
+    let attachedLink = null; // { url, preview }
+
+    function setErr(msg) {
+      statusEl.classList.add('error');
+      statusEl.textContent = msg;
+    }
+    function clearStatus() {
+      statusEl.classList.remove('error');
+      statusEl.textContent = '';
+    }
+
+    function clearAttachment() {
+      attachedFile = null;
+      attachedLink = null;
+      attach.classList.remove('has-content', 'is-link-entry');
+      previewEl.innerHTML = '';
+      fileInput.value = '';
+      linkInput.value = '';
+      clearStatus();
+    }
+
+    function attachFile(file) {
+      if (!file.type.match(/^(image|video)\//)) { setErr('File must be an image or video.'); return; }
+      if (file.size > 50 * 1024 * 1024) { setErr('File too large (50MB max).'); return; }
+      attachedFile = file;
+      attachedLink = null;
+      const isVideo = file.type.startsWith('video/');
+      const sizeKb = file.size / 1024;
+      const sizeStr = sizeKb < 1024 ? `${Math.round(sizeKb)} KB` : `${(sizeKb / 1024).toFixed(1)} MB`;
+      const objectUrl = URL.createObjectURL(file);
+      previewEl.innerHTML = `
+        <div class="preview-thumb">${isVideo ? `<video src="${objectUrl}" muted></video>` : `<img src="${objectUrl}" alt="preview" />`}</div>
+        <div class="preview-info">
+          <div class="preview-title">${escapeHtml(file.name)}</div>
+          <div class="preview-meta">${sizeStr} · ${isVideo ? 'Video' : 'Image'}</div>
+        </div>
+        <button type="button" class="preview-remove" data-preview-remove aria-label="Remove">×</button>
+      `;
+      attach.classList.add('has-content');
+      attach.classList.remove('is-link-entry');
+      previewEl.querySelector('[data-preview-remove]').addEventListener('click', clearAttachment);
+      clearStatus();
+    }
+
+    async function attachLink(url) {
+      if (!/^https?:\/\//i.test(url)) { setErr('Link must start with http:// or https://'); return; }
+      attachedFile = null;
+      attachedLink = { url, preview: null };
+      attach.classList.add('has-content');
+      attach.classList.remove('is-link-entry');
+      // loading state
+      previewEl.innerHTML = `
+        <div class="preview-thumb">${LINK_ICON_BIG}</div>
+        <div class="preview-info">
+          <div class="preview-title">${escapeHtml(url)}</div>
+          <div class="preview-meta preview-loading">Pulling preview…</div>
+        </div>
+        <button type="button" class="preview-remove" data-preview-remove aria-label="Remove">×</button>
+      `;
+      previewEl.querySelector('[data-preview-remove]').addEventListener('click', clearAttachment);
+      clearStatus();
+      try {
+        const preview = await fetchLinkPreview(url);
+        if (attachedLink?.url !== url) return; // user changed it
+        attachedLink.preview = preview;
+        const thumb = preview.image
+          ? `<img src="${preview.image}" alt="preview" onerror="this.parentElement.innerHTML='${LINK_ICON_BIG.replace(/'/g, "\\'")}';" />`
+          : LINK_ICON_BIG;
+        previewEl.innerHTML = `
+          <div class="preview-thumb">${thumb}</div>
+          <div class="preview-info">
+            <div class="preview-title">${escapeHtml(preview.title || preview.domain || url)}</div>
+            <div class="preview-meta">${escapeHtml(preview.domain || url)}</div>
+          </div>
+          <button type="button" class="preview-remove" data-preview-remove aria-label="Remove">×</button>
+        `;
+        previewEl.querySelector('[data-preview-remove]').addEventListener('click', clearAttachment);
+      } catch (err) {
+        // keep the basic preview but mark as failed
+        const meta = previewEl.querySelector('.preview-meta');
+        if (meta) meta.textContent = 'Could not pull preview · still submittable';
+      }
+    }
+
+    const LINK_ICON_BIG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.5-1.5"/></svg>';
+
+    // Click empty zone → file picker
+    attachEmpty.addEventListener('click', (e) => {
+      if (e.target.closest('[data-link-toggle]')) return;
+      fileInput.click();
+    });
     fileInput.addEventListener('change', () => {
-      fileNameEl.textContent = fileInput.files[0]?.name || '';
-      if (fileInput.files[0]) linkInput.value = '';
+      if (fileInput.files[0]) attachFile(fileInput.files[0]);
     });
-    linkInput.addEventListener('input', () => {
-      if (linkInput.value.trim()) { fileInput.value = ''; fileNameEl.textContent = ''; }
+
+    // Drag & drop on the attach zone
+    ['dragenter', 'dragover'].forEach(ev => attach.addEventListener(ev, (e) => {
+      e.preventDefault();
+      attach.classList.add('is-dragover');
+    }));
+    ['dragleave', 'drop'].forEach(ev => attach.addEventListener(ev, (e) => {
+      if (ev === 'dragleave' && e.target !== attach) return;
+      attach.classList.remove('is-dragover');
+    }));
+    attach.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const files = e.dataTransfer.files;
+      if (files && files.length) { attachFile(files[0]); return; }
+      const url = (e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain') || '').trim();
+      if (url) attachLink(url);
     });
+
+    // Link toggle: reveal URL entry
+    linkToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      attach.classList.add('is-link-entry');
+      setTimeout(() => linkInput.focus(), 50);
+    });
+    linkCancel.addEventListener('click', () => {
+      attach.classList.remove('is-link-entry');
+      linkInput.value = '';
+    });
+    linkInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const v = linkInput.value.trim();
+        if (v) attachLink(v);
+      } else if (e.key === 'Escape') {
+        linkCancel.click();
+      }
+    });
+    // Paste a URL into the link input → auto-attach
+    linkInput.addEventListener('paste', (e) => {
+      const t = (e.clipboardData?.getData('text/plain') || '').trim();
+      if (/^https?:\/\//i.test(t)) {
+        e.preventDefault();
+        linkInput.value = t;
+        attachLink(t);
+      }
+    });
+    // Paste a URL anywhere else on the form (not in name/desc inputs) → auto-attach
+    form.addEventListener('paste', (e) => {
+      if (e.target === nameInput || e.target === descInput || e.target === linkInput) return;
+      const t = (e.clipboardData?.getData('text/plain') || '').trim();
+      if (/^https?:\/\//i.test(t)) {
+        e.preventDefault();
+        attachLink(t);
+      }
+    });
+
     form.querySelector('[data-cancel]').addEventListener('click', onCancel);
     submitBtn.addEventListener('click', async () => {
       const name = nameInput.value.trim();
       const desc = descInput.value.trim();
-      const file = fileInput.files[0];
-      const link = linkInput.value.trim();
       if (!name) { setErr('Please enter your name.'); return; }
-      if (!file && !link) { setErr('Choose a file OR paste a link.'); return; }
-      if (file && link) { setErr('Submit a file or a link, not both.'); return; }
+      if (!attachedFile && !attachedLink) { setErr('Drop a file or paste a link.'); return; }
       submitBtn.disabled = true;
-      statusEl.classList.remove('error');
+      clearStatus();
       localStorage.setItem(NAME_KEY, name);
       try {
-        if (file) {
-          if (!file.type.match(/^(image|video)\//)) { throw new Error('File must be an image or video.'); }
-          if (file.size > 50 * 1024 * 1024) { throw new Error('File too large (50MB max).'); }
+        if (attachedFile) {
           statusEl.textContent = 'Uploading…';
-          await uploadArtifact({ benchmarkId, name, desc, file, onProgress: (pct) => {
+          await uploadArtifact({ benchmarkId, name, desc, file: attachedFile, onProgress: (pct) => {
             statusEl.textContent = `Uploading… ${pct}%`;
           }});
         } else {
-          if (!/^https?:\/\//i.test(link)) { throw new Error('Link must start with http:// or https://'); }
-          statusEl.textContent = 'Pulling preview…';
-          const preview = await fetchLinkPreview(link);
-          await addLinkArtifact({ benchmarkId, name, desc, link, preview });
+          statusEl.textContent = 'Saving…';
+          const preview = attachedLink.preview || await fetchLinkPreview(attachedLink.url);
+          await addLinkArtifact({ benchmarkId, name, desc, link: attachedLink.url, preview });
         }
         statusEl.textContent = 'Done.';
         onSuccess();
@@ -1479,10 +1794,7 @@
         submitBtn.disabled = false;
       }
     });
-    function setErr(msg) {
-      statusEl.classList.add('error');
-      statusEl.textContent = msg;
-    }
+
     return form;
   }
 
