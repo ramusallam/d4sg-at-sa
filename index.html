@@ -6,24 +6,26 @@
 <title>D4SG @ SA</title>
 <style>
   :root {
-    --bg-0: #0a0a0a;
-    --bg-1: #141414;
-    --bg-2: #1e1e1e;
-    --ink-hi: #f5f5f5;
-    --ink-mid: #a0a0a0;
-    --ink-low: #6b7280;
-    --accent: #6366f1;
-    --accent-hover: #818cf8;
+    /* Spark Learning aesthetic — warm cream page, white cards */
+    --bg-0: #F7F3EE;        /* page */
+    --bg-1: #FFFFFF;        /* cards / panels */
+    --bg-2: #FAFAF7;        /* nested surfaces */
+    --ink-hi: #111111;      /* primary text */
+    --ink-mid: #555555;     /* secondary text */
+    --ink-low: #9CA3AF;     /* muted */
+    --accent: #3b82f6;      /* indigo blue */
+    --accent-hover: #2563eb;
+    --accent-soft: #eff6ff;
     --success: #22c55e;
-    --border: rgba(255, 255, 255, 0.10);
-    --border-strong: rgba(255, 255, 255, 0.18);
+    --border: #E5E7EB;
+    --border-strong: #D1D5DB;
 
-    /* Overlay (warm parchment) */
-    --paper: #F1E9DA;
-    --paper-soft: #E8DEC9;
-    --paper-ink: #1A1A1A;
-    --paper-ink-mid: #4a4a4a;
-    --paper-accent: #8B6F47;
+    /* Modal: white card on dimmed backdrop */
+    --paper: #FFFFFF;
+    --paper-soft: #FAFAF7;
+    --paper-ink: #111111;
+    --paper-ink-mid: #555555;
+    --paper-accent: #3b82f6;
   }
 
   * { box-sizing: border-box; }
@@ -43,7 +45,7 @@
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(10, 10, 10, 0.85);
+    background: rgba(247, 243, 238, 0.85);
     backdrop-filter: saturate(180%) blur(16px);
     -webkit-backdrop-filter: saturate(180%) blur(16px);
     border-bottom: 1px solid var(--border);
@@ -117,13 +119,14 @@
     border: 1px solid var(--border);
     border-radius: 12px;
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.2s ease;
     user-select: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
   .benchmark:hover {
-    background: var(--bg-2);
-    border-color: var(--border-strong);
-    transform: translateY(-1px);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   }
   .benchmark:active {
     transform: translateY(0);
@@ -166,9 +169,9 @@
     line-height: 1.45;
   }
   .benchmark.done .benchmark-label {
-    color: var(--ink-mid);
+    color: var(--ink-low);
     text-decoration: line-through;
-    text-decoration-color: rgba(160, 160, 160, 0.5);
+    text-decoration-color: rgba(107, 114, 128, 0.5);
   }
 
   .points {
@@ -349,8 +352,8 @@
   }
 
   .rubric {
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 18px 22px;
   }
