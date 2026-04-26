@@ -307,12 +307,15 @@
   }
   .modal-section:last-child { margin-bottom: 0; }
   .modal-section h3 {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
-    color: var(--paper-accent);
-    margin: 0 0 10px;
+    color: var(--paper-ink);
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   .modal-section p {
     font-size: 16px;
@@ -433,7 +436,7 @@
     align-items: center;
     gap: 10px;
   }
-  .step-section h3 .step-num {
+  .step-num {
     display: inline-flex;
     width: 24px;
     height: 24px;
@@ -1588,11 +1591,14 @@
     modalBody.classList.remove('is-hw');
     modalBody.innerHTML = '';
 
+    let n = 0;
+    const badge = () => `<span class="step-num">${++n}</span>`;
+
     // Instructions
     if (b.instructions) {
       const sec = document.createElement('div');
       sec.className = 'modal-section';
-      sec.innerHTML = `<h3>Instructions</h3><p>${escapeHtml(b.instructions)}</p>`;
+      sec.innerHTML = `<h3>${badge()}Instructions</h3><p>${escapeHtml(b.instructions)}</p>`;
       modalBody.appendChild(sec);
     }
     // Video
@@ -1600,7 +1606,7 @@
       const sec = document.createElement('div');
       sec.className = 'modal-section';
       sec.innerHTML = `
-        <h3>Helper Video</h3>
+        <h3>${badge()}Helper Video</h3>
         <div class="video-wrap">
           <iframe src="${b.videoUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
@@ -1611,7 +1617,7 @@
     if (b.links && b.links.length) {
       const sec = document.createElement('div');
       sec.className = 'modal-section';
-      sec.innerHTML = `<h3>Resources</h3><div class="links">${
+      sec.innerHTML = `<h3>${badge()}Resources</h3><div class="links">${
         b.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener">${escapeHtml(l.label)}</a>`).join('')
       }</div>`;
       modalBody.appendChild(sec);
@@ -1622,7 +1628,7 @@
       sec.className = 'modal-section';
       const total = b.rubric.reduce((s, r) => s + r.points, 0);
       sec.innerHTML = `
-        <h3>Rubric · ${total} pts total</h3>
+        <h3>${badge()}Rubric · ${total} pts total</h3>
         <div class="rubric">
           ${b.rubric.map(r => `
             <div class="rubric-row">
@@ -1639,7 +1645,7 @@
     const gallerySec = document.createElement('div');
     gallerySec.className = 'modal-section';
     gallerySec.innerHTML = `
-      <h3>Drop evidence of your work here</h3>
+      <h3>${badge()}Drop evidence of your work here</h3>
       <div class="gallery-grid" id="galleryGrid"></div>
     `;
     modalBody.appendChild(gallerySec);
