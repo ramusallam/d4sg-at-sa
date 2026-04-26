@@ -161,6 +161,18 @@
     transform: rotate(45deg) translate(-1px, -1px);
   }
 
+  .benchmark-num {
+    flex-shrink: 0;
+    width: 22px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-low);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+  }
+  .benchmark.done .benchmark-num { color: var(--ink-low); opacity: 0.5; }
+
   .benchmark-label {
     flex: 1;
     font-size: clamp(15px, 1.6vw, 17px);
@@ -1461,13 +1473,14 @@
         <div class="benchmarks"></div>
       `;
       const benchEl = projEl.querySelector('.benchmarks');
-      project.benchmarks.forEach(b => {
+      project.benchmarks.forEach((b, idx) => {
         const isChecked = checked.has(b.id);
         const row = document.createElement('div');
         row.className = 'benchmark' + (isChecked ? ' done' : '');
         row.dataset.id = b.id;
         row.innerHTML = `
           <div class="checkbox ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" tabindex="0"></div>
+          <div class="benchmark-num">${idx + 1}</div>
           <div class="benchmark-label">${escapeHtml(b.title)}</div>
           <span class="artifact-count" data-count="${b.id}" style="display:none;">${PAPERCLIP_SVG}<span data-count-num>0</span></span>
           <div class="points">${b.points} pts</div>
