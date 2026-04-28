@@ -95,7 +95,21 @@
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--ink-hi);
-    margin: 0 0 6px;
+    margin: 0 0 4px;
+  }
+  .project-goal {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink-mid);
+    margin: 0 0 18px;
+    max-width: 640px;
+    line-height: 1.5;
+  }
+  .project-goal .goal-label {
+    color: var(--accent);
+    font-weight: 700;
+    margin-right: 6px;
+    letter-spacing: 0.02em;
   }
   .project-blurb {
     font-size: 14px;
@@ -2037,6 +2051,7 @@
     {
       id: 'p1',
       title: 'Project 1 - CAD',
+      goal: 'Design and 3D-print something that solves a real problem for a real person.',
       benchmarks: [
         {
           id: 'p1b1',
@@ -2108,6 +2123,7 @@
     {
       id: 'p2',
       title: 'Project 2 - MakeyMakey',
+      goal: 'Turn everyday objects into an interactive interface that helps someone do something better.',
       benchmarks: [
         {
           id: 'p2b1',
@@ -2179,6 +2195,7 @@
     {
       id: 'p3',
       title: 'Project 3 - XBAC',
+      goal: 'Adapt a video game or controller so a player with different abilities can play it well.',
       benchmarks: [
         {
           id: 'p3b1',
@@ -2250,6 +2267,7 @@
     {
       id: 'p4',
       title: 'Project 4 - Arduino',
+      goal: 'Sense the world and respond to it with a small embedded system you build yourself.',
       benchmarks: [
         {
           id: 'p4b1',
@@ -2371,6 +2389,7 @@
       projEl.className = 'project';
       projEl.innerHTML = `
         <h2 class="project-title">${escapeHtml(project.title)}</h2>
+        ${project.goal ? `<p class="project-goal"><span class="goal-label">Goal:</span>${escapeHtml(project.goal)}</p>` : ''}
         ${project.blurb ? `<p class="project-blurb">${escapeHtml(project.blurb)}</p>` : ''}
         <div class="benchmarks"></div>
       `;
@@ -4291,7 +4310,7 @@
         const projSec = document.createElement('section');
         projSec.className = 'project';
         projSec.style.marginBottom = '32px';
-        projSec.innerHTML = `<h2 class="project-title">${escapeHtml(project.title)}</h2>`;
+        projSec.innerHTML = `<h2 class="project-title">${escapeHtml(project.title)}</h2>${project.goal ? `<p class="project-goal"><span class="goal-label">Goal:</span>${escapeHtml(project.goal)}</p>` : ''}`;
         const benchWrap = document.createElement('div');
         benchWrap.className = 'benchmarks';
         project.benchmarks.forEach(b => {
