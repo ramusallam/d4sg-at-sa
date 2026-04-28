@@ -1439,13 +1439,29 @@
   ];
 
   // ============== HOMEWORK ==============
-  // 10 weeks of CAD homework. Swap title/videoUrl per week as the curriculum is built.
-  const HOMEWORK = Array.from({ length: 10 }, (_, i) => ({
-    id: `hw-w${i + 1}`,
-    week: i + 1,
-    title: `Week ${i + 1}`,
-    videoUrl: '' // placeholder — fill in YouTube embed URL per week
-  }));
+  // 10 weeks of CAD homework. Add a YouTube video ID per week as Ramsey feeds them in.
+  const HW_VIDEO_IDS = {
+    1: '',
+    2: '',
+    3: '',
+    4: '',
+    5: '',
+    6: '',
+    7: '24ByEWUmJ3g',
+    8: 'fB7eejt7Vw0',
+    9: '',
+    10: ''
+  };
+  const HOMEWORK = Array.from({ length: 10 }, (_, i) => {
+    const week = i + 1;
+    const id = HW_VIDEO_IDS[week];
+    return {
+      id: `hw-w${week}`,
+      week,
+      title: `Week ${week}`,
+      videoUrl: id ? `https://www.youtube.com/embed/${id}` : ''
+    };
+  });
 
   // ============== STATE ==============
   const STORAGE_KEY = 'd4sg-checked-v1';
