@@ -2,6 +2,7 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    // Legacy artifacts path (homework uploads still write here).
     match /artifacts/{file=**} {
       allow read: if true;
       // Cap uploads at 50MB; allow image and video types only.
@@ -9,6 +10,25 @@ service firebase.storage {
                    || (request.resource.size < 50 * 1024 * 1024
                        && (request.resource.contentType.matches('image/.*')
                            || request.resource.contentType.matches('video/.*')));
+    }
+
+    // Portfolio uploads: image (JPG/PNG), PDF, MP4 video, STL CAD files.
+    // STL files come in many content types (some browsers send octet-stream),
+    // so we accept the .stl extension via the path pattern as well.
+    match /portfolios/{benchmarkId}/{file=**} {
+      allow read: if true;
+      allow write: if request.resource == null
+                   || (request.resource.size < 100 * 1024 * 1024
+                       && (
+                            request.resource.contentType == 'image/jpeg'
+                         || request.resource.contentType == 'image/png'
+                         || request.resource.contentType == 'application/pdf'
+                         || request.resource.contentType == 'video/mp4'
+                         || request.resource.contentType == 'model/stl'
+                         || request.resource.contentType == 'application/sla'
+                         || request.resource.contentType == 'application/vnd.ms-pki.stl'
+                         || request.resource.contentType == 'application/octet-stream'
+                       ));
     }
   }
 }

@@ -2,19 +2,47 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Live artifacts: students post, everyone reads, anyone can delete (honor code + admin URL gates UI).
+    // Legacy artifacts (homework still uses this; benchmark portfolios moved to /portfolios).
     match /artifacts/{artifactId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['benchmarkId','studentName','description','createdAt']) &&
                        request.resource.data.studentName is string &&
+                       request.resource.data.studentName.size() > 0 &&
                        request.resource.data.studentName.size() <= 80 &&
-                       request.resource.data.description.size() <= 500;
+                       request.resource.data.description.size() <= 500 &&
+                       request.resource.data.createdAt == request.time;
       allow delete: if true;
       allow update: if false;
     }
 
-    // Archived artifacts: same model, separated for class history.
+    // Portfolios: per-benchmark student submissions with up to 5 slots
+    // (image, video, code, cad, summary). Slots are file/link/text refs.
+    match /portfolios/{portfolioId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['benchmarkId','studentName','createdAt','slots']) &&
+                       request.resource.data.benchmarkId is string &&
+                       request.resource.data.benchmarkId.size() <= 40 &&
+                       request.resource.data.studentName is string &&
+                       request.resource.data.studentName.size() > 0 &&
+                       request.resource.data.studentName.size() <= 80 &&
+                       request.resource.data.slots is map &&
+                       request.resource.data.createdAt == request.time;
+      allow delete: if true;
+      // Admin-gated UI lets a slot be cleared via setDoc merge; keep update permissive
+      // (honor code + admin URL token gate the UI), but require slots stays a map and
+      // immutable identity fields don't change.
+      allow update: if request.resource.data.slots is map &&
+                       request.resource.data.benchmarkId == resource.data.benchmarkId &&
+                       request.resource.data.studentName == resource.data.studentName;
+    }
+
+    // Archived collections: same model, separated for class history.
     match /archives/{archiveId}/artifacts/{artifactId} {
+      allow read: if true;
+      allow create, delete: if true;
+      allow update: if false;
+    }
+    match /archives/{archiveId}/portfolios/{portfolioId} {
       allow read: if true;
       allow create, delete: if true;
       allow update: if false;

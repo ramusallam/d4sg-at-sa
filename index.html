@@ -1058,6 +1058,720 @@
     color: #ef4444;
   }
 
+  /* ============== PORTFOLIO PANEL (drop + expand) ============== */
+  .portfolio-panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .portfolio-panel .pf-name-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .portfolio-panel .pf-name-row label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--ink-low);
+  }
+  .portfolio-panel .pf-name-row input {
+    font-family: inherit;
+    font-size: 15px;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg-2);
+    color: var(--paper-ink);
+    outline: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .portfolio-panel .pf-name-row input:focus {
+    border-color: var(--accent);
+    background: white;
+  }
+
+  .pf-slots {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+  .pf-slot {
+    background: var(--bg-2);
+    border: 1.5px dashed var(--border-strong);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .pf-slot.is-open {
+    border-style: solid;
+    border-color: var(--accent);
+    background: white;
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.12);
+    grid-column: 1 / -1;
+  }
+  .pf-slot.is-filled:not(.is-open) {
+    border-style: solid;
+    background: white;
+    border-color: var(--border);
+  }
+  .pf-slot:hover:not(.is-open) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .pf-slot.is-tile-dragover:not(.is-open) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.18);
+  }
+  .pf-slot-tile {
+    cursor: pointer;
+    padding: 18px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 120px;
+    text-align: center;
+    color: var(--ink-mid);
+    transition: color 0.15s ease;
+    position: relative;
+  }
+  .pf-slot.is-filled .pf-slot-tile { color: var(--paper-ink); }
+  .pf-slot-icon {
+    font-size: 26px;
+    line-height: 1;
+    color: var(--accent);
+  }
+  .pf-slot-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+  .pf-slot-status {
+    font-size: 11px;
+    color: var(--ink-low);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  .pf-slot.is-filled .pf-slot-status { color: var(--success); font-weight: 600; }
+  .pf-slot-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .pf-slot-thumb img,
+  .pf-slot-thumb video {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .pf-slot-mini-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .pf-slot.is-filled:hover .pf-slot-mini-actions { opacity: 1; }
+  .pf-slot-mini-actions button {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .pf-slot-mini-actions button:hover { background: #ef4444; transform: scale(1.05); }
+
+  .pf-slot-body {
+    overflow: hidden;
+    transition: max-height 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
+    max-height: 0;
+    opacity: 0;
+  }
+  .pf-slot.is-open .pf-slot-body {
+    max-height: 1200px;
+    opacity: 1;
+  }
+  .pf-slot-body-inner {
+    padding: 6px 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .pf-slot-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px 8px;
+  }
+  .pf-slot-head .pf-slot-head-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--paper-ink);
+  }
+  .pf-slot-head .pf-slot-head-title .pf-slot-icon { font-size: 20px; }
+  .pf-slot-collapse {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-mid);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .pf-slot-collapse:hover { border-color: var(--ink-mid); color: var(--paper-ink); }
+
+  .pf-drop {
+    border: 1.5px dashed var(--border-strong);
+    border-radius: 11px;
+    background: var(--bg-2);
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+    padding: 18px 14px;
+    text-align: center;
+  }
+  .pf-drop:hover { color: var(--accent); border-color: var(--accent); }
+  .pf-drop.is-dragover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.18);
+  }
+  .pf-drop .pf-drop-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+  }
+  .pf-drop .pf-drop-icon svg { width: 18px; height: 18px; }
+  .pf-drop-text { font-size: 14px; font-weight: 600; color: var(--paper-ink); }
+  .pf-drop-sub { font-size: 12px; color: var(--ink-low); }
+
+  .pf-link-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    position: relative;
+  }
+  .pf-link-row .pf-link-input-wrap {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .pf-link-row input {
+    flex: 1;
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 36px 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: white;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .pf-link-row input:focus { border-color: var(--accent); }
+  .pf-link-row .pf-link-check {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    line-height: 1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease, color 0.15s ease;
+  }
+  .pf-link-row .pf-link-check.is-valid { opacity: 1; color: var(--success); }
+  .pf-link-row .pf-link-check.is-invalid { opacity: 1; color: #ef4444; }
+  .pf-link-row .pf-link-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--ink-low);
+    white-space: nowrap;
+  }
+
+  .pf-summary-box {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-2);
+    color: var(--paper-ink);
+    outline: none;
+    resize: vertical;
+    min-height: 110px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .pf-summary-box:focus { border-color: var(--accent); background: white; }
+  .pf-char-count {
+    font-size: 11px;
+    color: var(--ink-low);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .pf-char-count.is-warn { color: #d97706; }
+  .pf-char-count.is-over { color: #ef4444; font-weight: 600; }
+
+  .pf-filled-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-2);
+  }
+  .pf-filled-preview .pf-fp-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 9px;
+    overflow: hidden;
+    background: white;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 22px;
+  }
+  .pf-filled-preview .pf-fp-thumb img,
+  .pf-filled-preview .pf-fp-thumb video { width: 100%; height: 100%; object-fit: cover; }
+  .pf-filled-preview .pf-fp-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .pf-filled-preview .pf-fp-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--paper-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pf-filled-preview .pf-fp-meta {
+    font-size: 12px;
+    color: var(--ink-mid);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pf-filled-preview .pf-fp-remove {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-mid);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  .pf-filled-preview .pf-fp-remove:hover { border-color: #ef4444; color: #ef4444; }
+
+  .pf-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 6px;
+  }
+  .pf-status {
+    font-size: 13px;
+    color: var(--ink-mid);
+    flex: 1;
+    min-height: 18px;
+  }
+  .pf-status.is-error { color: #ef4444; }
+  .pf-submit {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .pf-submit:hover:not(:disabled) { background: var(--accent-hover); }
+  .pf-submit:active:not(:disabled) { transform: translateY(1px); }
+  .pf-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+  .pf-submit.is-success {
+    background: var(--success);
+    opacity: 1;
+    cursor: default;
+    animation: submitPulse 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes submitPulse {
+    0%   { transform: scale(0.96); }
+    60%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  /* ============== PORTFOLIO GALLERY ============== */
+  .pf-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pf-gallery-empty {
+    text-align: center;
+    color: var(--ink-low);
+    font-size: 14px;
+    padding: 20px 0;
+  }
+  .pf-row {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    animation: pfRowIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes pfRowIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .pf-row.is-open {
+    border-color: var(--accent);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.07);
+  }
+  .pf-row-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease;
+  }
+  .pf-row-head:hover { background: var(--bg-2); }
+  .pf-row-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--paper-ink);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pf-row-icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .pf-row-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 50%;
+    font-size: 12px;
+    line-height: 1;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .pf-row-chip:hover { transform: translateY(-1px); background: white; }
+  .pf-row-chip .pf-chip-icon { font-size: 13px; line-height: 1; }
+  .pf-row-chip.is-empty {
+    background: transparent;
+    color: var(--ink-low);
+    border-style: dashed;
+    font-size: 10px;
+    font-weight: 600;
+    width: auto;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+  }
+  .pf-row-caret {
+    color: var(--ink-low);
+    font-size: 14px;
+    line-height: 1;
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+  }
+  .pf-row.is-open .pf-row-caret { transform: rotate(90deg); }
+  .pf-row-delete {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-low);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  body.is-admin .pf-row-delete { display: flex; }
+  .pf-row-delete:hover { border-color: #ef4444; color: #ef4444; }
+
+  .pf-row-body {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .pf-row.is-open .pf-row-body { max-height: 2400px; }
+  .pf-row-body-inner {
+    padding: 6px 18px 18px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .pf-view-tile {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    position: relative;
+    min-height: 130px;
+  }
+  .pf-view-tile:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    border-color: var(--accent);
+  }
+  .pf-view-tile.is-expanded {
+    grid-column: 1 / -1;
+    cursor: default;
+  }
+  .pf-view-tile.is-expanded:hover { transform: none; }
+  .pf-view-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pf-view-head .pf-view-icon {
+    font-size: 16px;
+    line-height: 1;
+    color: var(--accent);
+  }
+  .pf-view-head .pf-view-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--ink-low);
+    flex: 1;
+  }
+  .pf-view-thumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 28px;
+    position: relative;
+  }
+  .pf-view-thumb img,
+  .pf-view-thumb video {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .pf-view-thumb .play-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    pointer-events: none;
+  }
+  .pf-view-tile.is-expanded .pf-view-thumb {
+    aspect-ratio: auto;
+    max-height: 60vh;
+  }
+  .pf-view-tile.is-expanded .pf-view-thumb img {
+    object-fit: contain;
+    max-height: 60vh;
+  }
+  .pf-view-tile.is-expanded .pf-view-thumb video {
+    object-fit: contain;
+    max-height: 60vh;
+  }
+  .pf-view-filename {
+    font-size: 12px;
+    color: var(--paper-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .pf-view-open {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: background 0.15s ease;
+    align-self: flex-start;
+  }
+  .pf-view-open:hover { background: var(--accent-hover); }
+  .pf-view-summary {
+    font-size: 13px;
+    color: var(--paper-ink);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow: hidden;
+    flex: 1;
+  }
+  .pf-view-summary.is-collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+  }
+  .pf-view-readmore {
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    padding: 0;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-start;
+  }
+  .pf-view-readmore:hover { text-decoration: underline; }
+  .pf-view-slot-delete {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, transform 0.15s ease;
+    z-index: 1;
+  }
+  body.is-admin .pf-view-slot-delete { display: flex; }
+  .pf-view-slot-delete:hover { background: #ef4444; transform: scale(1.05); }
+
+  /* ============== TABLET ============== */
+  @media (max-width: 900px) and (min-width: 641px) {
+    .pf-slots { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .pf-slot-tile { min-height: 110px; padding: 14px 8px; }
+    .pf-slot-icon { font-size: 22px; }
+    .pf-slot-label { font-size: 11px; letter-spacing: 1px; }
+    .pf-slot-status { font-size: 10px; }
+  }
+
+  /* ============== REDUCED MOTION ============== */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   /* ============== MOBILE ============== */
   @media (max-width: 640px) {
     .header-inner { padding: 16px 20px; gap: 8px; flex-wrap: wrap; }
@@ -1074,6 +1788,11 @@
     .modal-header { padding: 20px 22px 16px; }
     .modal-body { padding: 20px 22px 32px; }
     .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .pf-slots { grid-template-columns: repeat(2, 1fr); }
+    .pf-slot.is-open { grid-column: 1 / -1; }
+    .pf-row-body-inner { grid-template-columns: repeat(2, 1fr); }
+    .pf-slot-tile { min-height: 100px; padding: 14px 8px; }
+    .pf-slot-icon { font-size: 22px; }
   }
 </style>
 </head>
@@ -1471,6 +2190,7 @@
   const countEls = {};        // { benchmarkId: HTMLElement }
   let currentBenchmark = null;
   let unsubscribeGallery = null;
+  let unsubscribePortfolios = null;
 
   function persist() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...checked]));
@@ -1540,15 +2260,30 @@
     }
   }
 
-  // Subscribe to all artifacts so count badges stay live.
+  // Live count badges:
+  // - Benchmarks (p*b*) count portfolios
+  // - Homework rows (hw-w*) count legacy artifacts (homework still uses the simple link form)
+  onSnapshot(collection(db, 'portfolios'), (snap) => {
+    const counts = {};
+    snap.forEach(d => {
+      const bid = d.data().benchmarkId;
+      counts[bid] = (counts[bid] || 0) + 1;
+    });
+    Object.keys(countEls).forEach(bid => {
+      if (bid.startsWith('hw-')) return; // homework counts handled below
+      updateCountBadge(bid, counts[bid] || 0);
+    });
+  });
   onSnapshot(collection(db, 'artifacts'), (snap) => {
     const counts = {};
     snap.forEach(d => {
       const bid = d.data().benchmarkId;
       counts[bid] = (counts[bid] || 0) + 1;
     });
-    // reset all known benchmarks then apply
-    Object.keys(countEls).forEach(bid => updateCountBadge(bid, counts[bid] || 0));
+    Object.keys(countEls).forEach(bid => {
+      if (!bid.startsWith('hw-')) return;
+      updateCountBadge(bid, counts[bid] || 0);
+    });
   });
 
   // ============== HOMEWORK page render ==============
@@ -1657,15 +2392,26 @@
       modalBody.appendChild(sec);
     }
 
-    // Gallery (always present — students drop work here, signals to grade)
+    // Portfolio submission panel — drop & expand
+    const portfolioSec = document.createElement('div');
+    portfolioSec.className = 'modal-section';
+    portfolioSec.innerHTML = `
+      <h3>${badge()}Drop your portfolio</h3>
+      <div id="portfolioPanelMount"></div>
+    `;
+    modalBody.appendChild(portfolioSec);
+    const panelMount = portfolioSec.querySelector('#portfolioPanelMount');
+    panelMount.appendChild(buildPortfolioPanel(b.id));
+
+    // Portfolio gallery — students by name with expandable rows
     const gallerySec = document.createElement('div');
     gallerySec.className = 'modal-section';
     gallerySec.innerHTML = `
-      <h3>${badge()}Drop evidence of your work here</h3>
-      <div class="gallery-grid" id="galleryGrid"></div>
+      <h3>${badge()}Class portfolios</h3>
+      <div class="pf-gallery" id="pfGallery"></div>
     `;
     modalBody.appendChild(gallerySec);
-    subscribeGallery(b.id);
+    subscribePortfolios(b.id);
 
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -1677,6 +2423,10 @@
     document.body.style.overflow = '';
     currentBenchmark = null;
     if (unsubscribeGallery) { unsubscribeGallery(); unsubscribeGallery = null; }
+    if (unsubscribePortfolios) { unsubscribePortfolios(); unsubscribePortfolios = null; }
+    // Clear modal body refs so a re-open animates fresh.
+    const pfGrid = document.getElementById('pfGallery');
+    if (pfGrid) pfGrid._pfKnownIds = null;
   }
 
   function openHomeworkModal(w) {
@@ -2133,6 +2883,818 @@
     }
   }
 
+  // ============== PORTFOLIO SYSTEM ==============
+  const SLOT_DEFS = [
+    { key: 'image',   label: 'Image',   icon: '📷', accept: 'image/jpeg,image/png,application/pdf', exts: 'JPG, PNG, PDF', fileTypes: 'image' },
+    { key: 'video',   label: 'Video',   icon: '🎬', accept: 'video/mp4',                              exts: 'MP4',          fileTypes: 'video' },
+    { key: 'code',    label: 'Code',    icon: '💻', accept: 'image/jpeg,image/png,application/pdf', exts: 'JPG, PNG, PDF', fileTypes: 'image' },
+    { key: 'cad',     label: 'CAD',     icon: '📐', accept: 'image/jpeg,image/png,application/pdf,.stl,model/stl,application/sla,application/vnd.ms-pki.stl', exts: 'JPG, PNG, PDF, STL', fileTypes: 'cad' },
+    { key: 'summary', label: 'Summary', icon: '📝', accept: '',                                     exts: 'Text only',     fileTypes: 'text' }
+  ];
+  const SUMMARY_MAX = 1500;
+  const PORTFOLIO_MAX_FILE = 100 * 1024 * 1024; // 100MB
+
+  function isStlFile(file) {
+    if (!file) return false;
+    if (/\.stl$/i.test(file.name || '')) return true;
+    const ct = (file.type || '').toLowerCase();
+    return ct === 'model/stl' || ct === 'application/sla' || ct === 'application/vnd.ms-pki.stl';
+  }
+
+  function isAcceptedForSlot(slotKey, file) {
+    if (!file) return false;
+    if (file.size > PORTFOLIO_MAX_FILE) return false;
+    const ct = (file.type || '').toLowerCase();
+    if (slotKey === 'image' || slotKey === 'code') {
+      return ct === 'image/jpeg' || ct === 'image/png' || ct === 'application/pdf';
+    }
+    if (slotKey === 'video') {
+      return ct === 'video/mp4';
+    }
+    if (slotKey === 'cad') {
+      return ct === 'image/jpeg' || ct === 'image/png' || ct === 'application/pdf' || isStlFile(file);
+    }
+    return false;
+  }
+
+  function shortBytes(n) {
+    if (n < 1024) return `${n} B`;
+    if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+    return `${(n / 1024 / 1024).toFixed(1)} MB`;
+  }
+
+  function getDomain(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ''); }
+    catch (_) { return ''; }
+  }
+
+  function thumbnailFor(slotData) {
+    if (!slotData) return '';
+    if (slotData.mode === 'text') return '📝';
+    if (slotData.mode === 'link') return '🔗';
+    const ct = (slotData.contentType || '').toLowerCase();
+    if (ct.startsWith('image/')) return `<img src="${slotData.url}" alt="" loading="lazy" />`;
+    if (ct.startsWith('video/')) return `<video src="${slotData.url}" muted preload="metadata"></video>`;
+    if (ct === 'application/pdf') return '📄';
+    return '📁';
+  }
+
+  function buildPortfolioPanel(benchmarkId) {
+    const panel = document.createElement('div');
+    panel.className = 'portfolio-panel';
+
+    const savedName = localStorage.getItem(NAME_KEY) || '';
+    panel.innerHTML = `
+      <div class="pf-name-row">
+        <label for="pfNameInput">Your name</label>
+        <input id="pfNameInput" type="text" maxlength="80" placeholder="e.g. Alex Rivera" value="${escapeHtml(savedName)}" />
+      </div>
+      <div class="pf-slots" data-pf-slots></div>
+      <div class="pf-actions">
+        <div class="pf-status" data-pf-status></div>
+        <button class="pf-submit" data-pf-submit type="button" disabled>Submit Portfolio</button>
+      </div>
+    `;
+
+    const nameInput = panel.querySelector('#pfNameInput');
+    const slotsEl = panel.querySelector('[data-pf-slots]');
+    const submitBtn = panel.querySelector('[data-pf-submit]');
+    const statusEl = panel.querySelector('[data-pf-status]');
+
+    // In-memory slot state: { image: {...}, video: {...}, ... } or null
+    const state = { image: null, video: null, code: null, cad: null, summary: null };
+    // Pending file objects, before submit (so we can upload at submit time)
+    const pendingFiles = {}; // { slotKey: File }
+    let openSlotKey = null;
+
+    SLOT_DEFS.forEach(def => {
+      const slot = document.createElement('div');
+      slot.className = 'pf-slot';
+      slot.dataset.slot = def.key;
+      slot.innerHTML = `
+        <div class="pf-slot-tile" data-pf-tile>
+          <div class="pf-slot-icon">${def.icon}</div>
+          <div class="pf-slot-label">${def.label}</div>
+          <div class="pf-slot-status">+ Add</div>
+          <div class="pf-slot-mini-actions">
+            <button type="button" data-pf-mini-edit aria-label="Edit">✎</button>
+            <button type="button" data-pf-mini-remove aria-label="Remove">×</button>
+          </div>
+        </div>
+        <div class="pf-slot-body">
+          <div class="pf-slot-head">
+            <div class="pf-slot-head-title">
+              <span class="pf-slot-icon">${def.icon}</span>
+              ${def.label}
+            </div>
+            <button type="button" class="pf-slot-collapse" data-pf-collapse aria-label="Collapse">×</button>
+          </div>
+          <div class="pf-slot-body-inner" data-pf-body-inner></div>
+        </div>
+      `;
+      slotsEl.appendChild(slot);
+
+      const tile = slot.querySelector('[data-pf-tile]');
+      const collapseBtn = slot.querySelector('[data-pf-collapse]');
+      const bodyInner = slot.querySelector('[data-pf-body-inner]');
+
+      tile.addEventListener('click', (e) => {
+        if (e.target.closest('[data-pf-mini-remove]')) {
+          e.stopPropagation();
+          clearSlot(def.key);
+          return;
+        }
+        if (e.target.closest('[data-pf-mini-edit]')) {
+          e.stopPropagation();
+        }
+        openSlot(def.key);
+      });
+      // Keyboard support: Enter / Space on tile opens slot
+      tile.setAttribute('tabindex', '0');
+      tile.setAttribute('role', 'button');
+      tile.setAttribute('aria-label', `${def.label} slot`);
+      tile.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          if (e.target.closest('[data-pf-mini-remove], [data-pf-mini-edit]')) return;
+          e.preventDefault();
+          openSlot(def.key);
+        }
+      });
+      // Drag-over feedback on the slot tile itself (when collapsed)
+      ['dragenter', 'dragover'].forEach(ev => slot.addEventListener(ev, (e) => {
+        if (slot.classList.contains('is-open')) return;
+        if (!e.dataTransfer || !e.dataTransfer.types.includes('Files')) return;
+        e.preventDefault();
+        slot.classList.add('is-tile-dragover');
+      }));
+      ['dragleave', 'drop'].forEach(ev => slot.addEventListener(ev, (e) => {
+        if (ev === 'dragleave' && slot.contains(e.relatedTarget)) return;
+        slot.classList.remove('is-tile-dragover');
+      }));
+      slot.addEventListener('drop', (e) => {
+        if (slot.classList.contains('is-open')) return;
+        const files = e.dataTransfer?.files;
+        if (!files || !files.length) return;
+        e.preventDefault();
+        if (def.fileTypes === 'text') {
+          setStatus('The Summary slot is text-only. Open it to type.', true);
+          return;
+        }
+        openSlot(def.key);
+        handleFileForSlot(def, files[0]);
+      });
+      collapseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeOpenSlot();
+      });
+
+      function renderBody() {
+        if (def.fileTypes === 'text') {
+          const existingText = state.summary?.text || '';
+          bodyInner.innerHTML = `
+            <textarea class="pf-summary-box" data-pf-text rows="6" maxlength="${SUMMARY_MAX}" placeholder="Write your summary here. Reflect on what you built, what you learned, and what's next.">${escapeHtml(existingText)}</textarea>
+            <div class="pf-char-count" data-pf-char>${existingText.length} / ${SUMMARY_MAX}</div>
+          `;
+          const txt = bodyInner.querySelector('[data-pf-text]');
+          const counter = bodyInner.querySelector('[data-pf-char]');
+          const updateCount = () => {
+            const len = txt.value.length;
+            counter.textContent = `${len} / ${SUMMARY_MAX}`;
+            counter.classList.toggle('is-warn', len > SUMMARY_MAX * 0.85 && len <= SUMMARY_MAX);
+            counter.classList.toggle('is-over', len > SUMMARY_MAX);
+          };
+          txt.addEventListener('input', () => {
+            updateCount();
+            const v = txt.value.trim();
+            state.summary = v ? { mode: 'text', text: v.slice(0, SUMMARY_MAX) } : null;
+            refreshTile(def.key);
+            refreshSubmit();
+          });
+          updateCount();
+          setTimeout(() => txt.focus(), 50);
+          return;
+        }
+
+        // File slot UI
+        const filled = state[def.key];
+        let previewHtml = '';
+        if (filled) {
+          let thumb = '';
+          if (filled.mode === 'link') {
+            thumb = '🔗';
+          } else if ((filled.contentType || '').startsWith('image/')) {
+            thumb = `<img src="${filled.url}" alt="" />`;
+          } else if ((filled.contentType || '').startsWith('video/')) {
+            thumb = `<video src="${filled.url}" muted></video>`;
+          } else if (filled.contentType === 'application/pdf') {
+            thumb = '📄';
+          } else {
+            thumb = '📁';
+          }
+          const title = filled.mode === 'link'
+            ? (filled.url || 'Link')
+            : (filled.fileName || 'File');
+          const meta = filled.mode === 'link'
+            ? (getDomain(filled.url) || 'External link')
+            : (filled.contentType || '');
+          previewHtml = `
+            <div class="pf-filled-preview">
+              <div class="pf-fp-thumb">${thumb}</div>
+              <div class="pf-fp-info">
+                <div class="pf-fp-title">${escapeHtml(title)}</div>
+                <div class="pf-fp-meta">${escapeHtml(meta)}</div>
+              </div>
+              <button type="button" class="pf-fp-remove" data-pf-clear aria-label="Remove">×</button>
+            </div>
+          `;
+        }
+
+        bodyInner.innerHTML = `
+          ${previewHtml}
+          <div class="pf-drop" data-pf-drop>
+            <div class="pf-drop-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg></div>
+            <div class="pf-drop-text">Drop a file or click to upload</div>
+            <div class="pf-drop-sub">${def.exts} · up to 100MB</div>
+            <input type="file" data-pf-file accept="${def.accept}" style="display:none;" />
+          </div>
+          <div class="pf-link-row">
+            <span class="pf-link-label">Or link</span>
+            <span class="pf-link-input-wrap">
+              <input type="url" data-pf-link placeholder="https://…" value="${filled?.mode === 'link' ? escapeHtml(filled.url) : ''}" />
+              <span class="pf-link-check" data-pf-link-check></span>
+            </span>
+          </div>
+        `;
+
+        const dropZone = bodyInner.querySelector('[data-pf-drop]');
+        const fileInput = bodyInner.querySelector('[data-pf-file]');
+        const linkInput = bodyInner.querySelector('[data-pf-link]');
+        const linkCheck = bodyInner.querySelector('[data-pf-link-check]');
+        const clearBtn = bodyInner.querySelector('[data-pf-clear]');
+
+        if (clearBtn) clearBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          clearSlot(def.key);
+          renderBody();
+        });
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => {
+          const f = fileInput.files[0];
+          if (f) handleFileForSlot(def, f);
+        });
+
+        ['dragenter', 'dragover'].forEach(ev => dropZone.addEventListener(ev, (e) => {
+          e.preventDefault();
+          dropZone.classList.add('is-dragover');
+        }));
+        ['dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, (e) => {
+          if (ev === 'dragleave' && e.target !== dropZone) return;
+          dropZone.classList.remove('is-dragover');
+        }));
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const files = e.dataTransfer.files;
+          if (files && files.length) handleFileForSlot(def, files[0]);
+        });
+
+        const commitLink = () => {
+          const v = linkInput.value.trim();
+          if (!v) return;
+          if (!/^https?:\/\//i.test(v)) {
+            setStatus('Link must start with http:// or https://', true);
+            return;
+          }
+          // Clear pending file, set link
+          delete pendingFiles[def.key];
+          state[def.key] = { mode: 'link', url: v };
+          refreshTile(def.key);
+          refreshSubmit();
+          setStatus('');
+          renderBody();
+        };
+        const updateLinkCheck = () => {
+          if (!linkCheck) return;
+          const v = linkInput.value.trim();
+          if (!v) {
+            linkCheck.classList.remove('is-valid', 'is-invalid');
+            linkCheck.textContent = '';
+            return;
+          }
+          if (/^https?:\/\/[^\s]+\.[^\s]+/i.test(v)) {
+            linkCheck.classList.add('is-valid');
+            linkCheck.classList.remove('is-invalid');
+            linkCheck.textContent = '✓';
+          } else {
+            linkCheck.classList.add('is-invalid');
+            linkCheck.classList.remove('is-valid');
+            linkCheck.textContent = '✗';
+          }
+        };
+        linkInput.addEventListener('input', updateLinkCheck);
+        updateLinkCheck();
+        linkInput.addEventListener('blur', commitLink);
+        linkInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            commitLink();
+          }
+        });
+      }
+
+      function handleFileForSlot(def, file) {
+        if (!isAcceptedForSlot(def.key, file)) {
+          setStatus(`That file type is not accepted for ${def.label}. Allowed: ${def.exts}.`, true);
+          return;
+        }
+        if (file.size > PORTFOLIO_MAX_FILE) {
+          setStatus('File too large (100MB max).', true);
+          return;
+        }
+        pendingFiles[def.key] = file;
+        // Use a local object URL for preview until upload at submit time
+        const objUrl = URL.createObjectURL(file);
+        const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
+        state[def.key] = {
+          mode: 'file',
+          url: objUrl,
+          fileName: file.name,
+          contentType: ct,
+          _localPreview: true
+        };
+        refreshTile(def.key);
+        refreshSubmit();
+        setStatus('');
+        renderBody();
+      }
+
+      function openSlot(key) {
+        // Already open? Do nothing — protect the in-progress textarea / link input.
+        if (openSlotKey === key && slot.classList.contains('is-open')) return;
+        if (openSlotKey && openSlotKey !== key) {
+          const prev = slotsEl.querySelector(`.pf-slot[data-slot="${openSlotKey}"]`);
+          if (prev) prev.classList.remove('is-open');
+        }
+        slot.classList.add('is-open');
+        openSlotKey = key;
+        renderBody();
+      }
+      function closeOpenSlot() {
+        slot.classList.remove('is-open');
+        if (openSlotKey === def.key) openSlotKey = null;
+      }
+
+      // Expose for outside helpers
+      slot._openSlot = openSlot;
+      slot._renderBody = renderBody;
+    });
+
+    function refreshTile(key) {
+      const slot = slotsEl.querySelector(`.pf-slot[data-slot="${key}"]`);
+      if (!slot) return;
+      const filled = state[key];
+      const tile = slot.querySelector('[data-pf-tile]');
+      const iconEl = tile.querySelector('.pf-slot-icon');
+      const labelEl = tile.querySelector('.pf-slot-label');
+      const statusEl = tile.querySelector('.pf-slot-status');
+      const def = SLOT_DEFS.find(d => d.key === key);
+
+      if (filled) {
+        slot.classList.add('is-filled');
+        if (filled.mode === 'text') {
+          const wordCount = filled.text.trim().split(/\s+/).filter(Boolean).length;
+          statusEl.textContent = wordCount === 1 ? '1 word written' : `${wordCount} words written`;
+          iconEl.textContent = def.icon;
+        } else if (filled.mode === 'link') {
+          statusEl.textContent = `Link · ${getDomain(filled.url) || 'external'}`;
+          iconEl.textContent = def.icon;
+        } else {
+          // File: show filename truncated, swap icon for a tiny thumb if image/video
+          statusEl.textContent = filled.fileName || 'File';
+          if ((filled.contentType || '').startsWith('image/')) {
+            iconEl.innerHTML = `<div class="pf-slot-thumb"><img src="${filled.url}" alt="" /></div>`;
+          } else if ((filled.contentType || '').startsWith('video/')) {
+            iconEl.innerHTML = `<div class="pf-slot-thumb"><video src="${filled.url}" muted></video></div>`;
+          } else {
+            iconEl.textContent = def.icon;
+          }
+        }
+        labelEl.textContent = def.label;
+      } else {
+        slot.classList.remove('is-filled');
+        iconEl.textContent = def.icon;
+        statusEl.textContent = '+ Add';
+        labelEl.textContent = def.label;
+      }
+    }
+
+    function clearSlot(key) {
+      const filled = state[key];
+      if (filled?._localPreview && filled.url) {
+        try { URL.revokeObjectURL(filled.url); } catch (_) {}
+      }
+      delete pendingFiles[key];
+      state[key] = null;
+      refreshTile(key);
+      refreshSubmit();
+    }
+
+    function refreshSubmit() {
+      const name = nameInput.value.trim();
+      const anyFilled = Object.values(state).some(v => v !== null);
+      submitBtn.disabled = !(name && anyFilled);
+    }
+    nameInput.addEventListener('input', refreshSubmit);
+
+    let statusTimeout = null;
+    function setStatus(msg, isErr) {
+      if (statusTimeout) { clearTimeout(statusTimeout); statusTimeout = null; }
+      statusEl.textContent = msg;
+      statusEl.classList.toggle('is-error', !!isErr);
+      // Auto-clear errors after 4s so they don't linger on the panel.
+      if (isErr && msg) {
+        statusTimeout = setTimeout(() => {
+          statusEl.textContent = '';
+          statusEl.classList.remove('is-error');
+        }, 4000);
+      }
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      const name = nameInput.value.trim();
+      if (!name) { setStatus('Please enter your name.', true); return; }
+      const anyFilled = Object.values(state).some(v => v !== null);
+      if (!anyFilled) { setStatus('Add at least one slot before submitting.', true); return; }
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+      setStatus('Submitting…');
+      localStorage.setItem(NAME_KEY, name);
+
+      try {
+        const finalSlots = { image: null, video: null, code: null, cad: null, summary: null };
+        const uploadedPaths = []; // track for rollback if needed
+
+        for (const def of SLOT_DEFS) {
+          const cur = state[def.key];
+          if (!cur) continue;
+          if (cur.mode === 'text') {
+            finalSlots[def.key] = { mode: 'text', text: cur.text };
+            continue;
+          }
+          if (cur.mode === 'link') {
+            finalSlots[def.key] = { mode: 'link', url: cur.url };
+            continue;
+          }
+          // File: upload
+          const file = pendingFiles[def.key];
+          if (!file) {
+            // Already uploaded? (shouldn't happen in this flow, but guard)
+            finalSlots[def.key] = {
+              mode: 'file', url: cur.url, fileName: cur.fileName, contentType: cur.contentType
+            };
+            continue;
+          }
+          setStatus(`Uploading ${def.label}…`);
+          const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0];
+          const path = `portfolios/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${def.key}${ext}`;
+          const ref = storageRef(storage, path);
+          const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
+          const task = uploadBytesResumable(ref, file, { contentType: ct });
+          await new Promise((resolve, reject) => {
+            task.on('state_changed',
+              (snap) => {
+                const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+                setStatus(`Uploading ${def.label}… ${pct}%`);
+              },
+              reject,
+              resolve
+            );
+          });
+          const url = await getDownloadURL(task.snapshot.ref);
+          uploadedPaths.push(path);
+          finalSlots[def.key] = {
+            mode: 'file',
+            url,
+            fileName: file.name,
+            contentType: ct,
+            filePath: path
+          };
+        }
+
+        await addDoc(collection(db, 'portfolios'), {
+          benchmarkId,
+          studentName: name,
+          createdAt: serverTimestamp(),
+          slots: finalSlots
+        });
+
+        // Reset state for a fresh entry, but keep name pre-filled.
+        for (const def of SLOT_DEFS) {
+          const cur = state[def.key];
+          if (cur?._localPreview && cur.url) {
+            try { URL.revokeObjectURL(cur.url); } catch (_) {}
+          }
+          state[def.key] = null;
+          delete pendingFiles[def.key];
+          refreshTile(def.key);
+        }
+        if (openSlotKey) {
+          const prev = slotsEl.querySelector(`.pf-slot[data-slot="${openSlotKey}"]`);
+          if (prev) prev.classList.remove('is-open');
+          openSlotKey = null;
+        }
+        // Success pulse: green flash on the button, status briefly, then clear.
+        submitBtn.textContent = '✓ Submitted!';
+        submitBtn.classList.add('is-success');
+        setStatus('Your portfolio is in the gallery below.');
+        setTimeout(() => {
+          submitBtn.classList.remove('is-success');
+          submitBtn.textContent = 'Submit Portfolio';
+          setStatus('');
+          refreshSubmit();
+        }, 1800);
+      } catch (err) {
+        console.error('portfolio submit failed', err);
+        submitBtn.textContent = 'Submit Portfolio';
+        setStatus(err.message || 'Submit failed. Try again.', true);
+        submitBtn.disabled = false;
+      }
+    });
+
+    refreshSubmit();
+    return panel;
+  }
+
+  // ----- Portfolio gallery (live) -----
+  function subscribePortfolios(benchmarkId) {
+    if (unsubscribePortfolios) unsubscribePortfolios();
+    const grid = document.getElementById('pfGallery');
+    if (!grid) return;
+    const q = query(collection(db, 'portfolios'), where('benchmarkId', '==', benchmarkId));
+    unsubscribePortfolios = onSnapshot(q, (snap) => {
+      const items = [];
+      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      // alphabetical by name
+      items.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }));
+      renderPortfolioGallery(grid, items);
+    }, (err) => {
+      console.error('portfolio subscribe error', err);
+      grid.innerHTML = `<div class="pf-gallery-empty">Could not load portfolios.</div>`;
+    });
+  }
+
+  function renderPortfolioGallery(grid, items) {
+    // Track which IDs were already painted so we only animate genuinely-new rows.
+    const knownIds = grid._pfKnownIds || new Set();
+    // Preserve which row was open before re-render
+    const openIds = new Set();
+    grid.querySelectorAll('.pf-row.is-open').forEach(r => openIds.add(r.dataset.id));
+
+    grid.innerHTML = '';
+    if (!items.length) {
+      grid.innerHTML = `<div class="pf-gallery-empty">No portfolios yet — be the first to drop yours.</div>`;
+      grid._pfKnownIds = new Set();
+      return;
+    }
+    const newKnownIds = new Set();
+    items.forEach(item => {
+      newKnownIds.add(item.id);
+      const row = document.createElement('div');
+      row.className = 'pf-row';
+      row.dataset.id = item.id;
+      // Suppress entry animation for rows we've already shown — only NEW submissions slide in.
+      if (knownIds.has(item.id)) row.style.animation = 'none';
+      const slots = item.slots || {};
+      const filledKeys = SLOT_DEFS.filter(d => slots[d.key]).map(d => d.key);
+      const chips = filledKeys.map(k => {
+        const def = SLOT_DEFS.find(d => d.key === k);
+        return `<span class="pf-row-chip" title="${escapeHtml(def.label)}" aria-label="${escapeHtml(def.label)} attached"><span class="pf-chip-icon">${def.icon}</span></span>`;
+      }).join('');
+
+      row.innerHTML = `
+        <div class="pf-row-head" data-pf-row-head>
+          <span class="pf-row-name">${escapeHtml(item.studentName || 'Unnamed')}</span>
+          <span class="pf-row-icons">${chips || '<span class="pf-row-chip is-empty">empty</span>'}</span>
+          <button class="pf-row-delete" data-pf-row-delete aria-label="Delete portfolio">×</button>
+          <span class="pf-row-caret">▶</span>
+        </div>
+        <div class="pf-row-body"><div class="pf-row-body-inner" data-pf-row-body></div></div>
+      `;
+      grid.appendChild(row);
+
+      const head = row.querySelector('[data-pf-row-head]');
+      const body = row.querySelector('[data-pf-row-body]');
+      const deleteBtn = row.querySelector('[data-pf-row-delete]');
+
+      head.addEventListener('click', (e) => {
+        if (e.target.closest('[data-pf-row-delete]')) return;
+        const willOpen = !row.classList.contains('is-open');
+        row.classList.toggle('is-open', willOpen);
+        if (willOpen) renderRowBody(body, item);
+      });
+      deleteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!confirm(`Delete ${item.studentName}'s portfolio?`)) return;
+        await deletePortfolio(item);
+      });
+
+      if (openIds.has(item.id)) {
+        row.classList.add('is-open');
+        renderRowBody(body, item);
+      }
+    });
+    grid._pfKnownIds = newKnownIds;
+  }
+
+  function renderRowBody(body, item) {
+    body.innerHTML = '';
+    const slots = item.slots || {};
+    SLOT_DEFS.forEach(def => {
+      const data = slots[def.key];
+      if (!data) return;
+      const tile = document.createElement('div');
+      tile.className = 'pf-view-tile';
+      tile.dataset.slotKey = def.key;
+      body.appendChild(tile);
+      paintTile(tile, def, data, item, false);
+    });
+    if (!body.children.length) {
+      body.innerHTML = `<div class="pf-gallery-empty" style="grid-column:1/-1;">No slots filled.</div>`;
+    }
+  }
+
+  // Paint a single tile (DOM events + content) — single source of truth so we don't double-bind.
+  function paintTile(tile, def, data, item, isExpanded) {
+    tile.classList.toggle('is-expanded', isExpanded);
+    tile.innerHTML = renderSlotView(def, data, isExpanded);
+
+    const onTileClick = (e) => {
+      if (e.target.closest('a, .pf-view-readmore, .pf-view-slot-delete, [data-pf-lightbox]')) return;
+      // For text slots, don't toggle — Read more / less handles that
+      if (data.mode === 'text' && tile.querySelector('.pf-view-readmore')) return;
+      paintTile(tile, def, data, item, !isExpanded);
+    };
+    tile.onclick = onTileClick;
+
+    const readMore = tile.querySelector('.pf-view-readmore');
+    if (readMore && !readMore.hasAttribute('style')) {
+      // Only wire interactive Read more (the "Click to expand" hint has pointer-events:none)
+      readMore.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const summary = tile.querySelector('.pf-view-summary');
+        if (summary) {
+          summary.classList.toggle('is-collapsed');
+          readMore.textContent = summary.classList.contains('is-collapsed') ? 'Read more' : 'Read less';
+        }
+      });
+    }
+    const slotDelete = tile.querySelector('.pf-view-slot-delete');
+    if (slotDelete) {
+      slotDelete.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!confirm(`Delete ${item.studentName}'s ${def.label} slot?`)) return;
+        await deletePortfolioSlot(item, def.key);
+      });
+    }
+    const lightboxTrigger = tile.querySelector('[data-pf-lightbox]');
+    if (lightboxTrigger) {
+      lightboxTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openPortfolioLightbox(data, item.studentName, def.label);
+      });
+    }
+  }
+
+  function renderSlotView(def, data, isExpanded) {
+    const headHtml = `
+      <div class="pf-view-head">
+        <span class="pf-view-icon">${def.icon}</span>
+        <span class="pf-view-label">${escapeHtml(def.label)}</span>
+      </div>
+      <button class="pf-view-slot-delete" data-pf-slot-delete aria-label="Delete slot">×</button>
+    `;
+
+    if (data.mode === 'text') {
+      const text = data.text || '';
+      const long = text.length > 200;
+      return `
+        ${headHtml}
+        <div class="pf-view-summary${(!isExpanded && long) ? ' is-collapsed' : ''}">${escapeHtml(text)}</div>
+        ${long ? `<button class="pf-view-readmore" type="button">${(!isExpanded) ? 'Read more' : 'Read less'}</button>` : ''}
+      `;
+    }
+
+    if (data.mode === 'link') {
+      const domain = getDomain(data.url) || 'link';
+      return `
+        ${headHtml}
+        <div class="pf-view-thumb" style="font-size:32px;">🔗</div>
+        <div class="pf-view-filename">${escapeHtml(domain)}</div>
+        <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ↗</a>
+      `;
+    }
+
+    // File
+    const ct = (data.contentType || '').toLowerCase();
+    if (ct.startsWith('image/')) {
+      return `
+        ${headHtml}
+        <div class="pf-view-thumb" data-pf-lightbox><img src="${data.url}" alt="${escapeHtml(data.fileName || '')}" loading="lazy" /></div>
+        <div class="pf-view-filename">${escapeHtml(data.fileName || 'Image')}</div>
+        ${isExpanded ? '' : '<span class="pf-view-readmore" style="pointer-events:none;">Click to expand</span>'}
+      `;
+    }
+    if (ct.startsWith('video/')) {
+      if (isExpanded) {
+        return `
+          ${headHtml}
+          <div class="pf-view-thumb"><video src="${data.url}" controls preload="metadata"></video></div>
+          <div class="pf-view-filename">${escapeHtml(data.fileName || 'Video')}</div>
+          <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ↗</a>
+        `;
+      }
+      return `
+        ${headHtml}
+        <div class="pf-view-thumb"><video src="${data.url}" muted preload="metadata"></video><div class="play-badge">▶</div></div>
+        <div class="pf-view-filename">${escapeHtml(data.fileName || 'Video')}</div>
+      `;
+    }
+    if (ct === 'application/pdf') {
+      if (isExpanded) {
+        return `
+          ${headHtml}
+          <div class="pf-view-thumb" style="aspect-ratio:auto;height:60vh;">
+            <iframe src="${data.url}" loading="lazy" style="width:100%;height:100%;border:0;"></iframe>
+          </div>
+          <div class="pf-view-filename">${escapeHtml(data.fileName || 'PDF')}</div>
+          <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ↗</a>
+        `;
+      }
+      return `
+        ${headHtml}
+        <div class="pf-view-thumb" style="font-size:32px;">📄</div>
+        <div class="pf-view-filename">${escapeHtml(data.fileName || 'PDF')}</div>
+        <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ↗</a>
+      `;
+    }
+    // STL or generic file
+    return `
+      ${headHtml}
+      <div class="pf-view-thumb" style="font-size:32px;">📦</div>
+      <div class="pf-view-filename">${escapeHtml(data.fileName || 'File')}</div>
+      <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Download ↓</a>
+    `;
+  }
+
+  function openPortfolioLightbox(data, studentName, slotLabel) {
+    if (data.mode !== 'file') return;
+    const ct = (data.contentType || '').toLowerCase();
+    if (ct.startsWith('image/')) {
+      lightboxMedia.innerHTML = `<img src="${data.url}" alt="${escapeHtml(studentName || '')}" />`;
+    } else if (ct.startsWith('video/')) {
+      lightboxMedia.innerHTML = `<video src="${data.url}" controls autoplay></video>`;
+    } else {
+      window.open(data.url, '_blank', 'noopener');
+      return;
+    }
+    lightboxName.textContent = `${studentName || 'Unnamed'} · ${slotLabel}`;
+    lightboxDesc.textContent = data.fileName || '';
+    lightbox.classList.add('open');
+  }
+
+  async function deletePortfolio(item) {
+    try {
+      // Delete any uploaded files
+      const slots = item.slots || {};
+      for (const def of SLOT_DEFS) {
+        const s = slots[def.key];
+        if (s && s.mode === 'file' && s.filePath) {
+          try { await deleteObject(storageRef(storage, s.filePath)); } catch (_) {}
+        }
+      }
+      await deleteDoc(doc(db, 'portfolios', item.id));
+    } catch (err) {
+      console.error('portfolio delete failed', err);
+      alert('Could not delete. Try again.');
+    }
+  }
+
+  async function deletePortfolioSlot(item, slotKey) {
+    try {
+      const slots = { ...(item.slots || {}) };
+      const cur = slots[slotKey];
+      if (cur && cur.mode === 'file' && cur.filePath) {
+        try { await deleteObject(storageRef(storage, cur.filePath)); } catch (_) {}
+      }
+      slots[slotKey] = null;
+      // Use setDoc with merge to update only slots
+      await setDoc(doc(db, 'portfolios', item.id), { slots }, { merge: true });
+    } catch (err) {
+      console.error('slot delete failed', err);
+      alert('Could not delete that slot. Try again.');
+    }
+  }
+
   // ============== LIGHTBOX ==============
   const lightbox = document.getElementById('lightbox');
   const lightboxMedia = document.getElementById('lightboxMedia');
@@ -2162,20 +3724,31 @@
   // ============== ARCHIVE (admin) ==============
   document.getElementById('archiveBtn').addEventListener('click', async () => {
     if (!isAdmin) return;
-    if (!confirm('Archive ALL current submissions and clear the live galleries? Old work stays accessible in Firestore as a snapshot.')) return;
+    if (!confirm('Archive ALL current portfolios and homework artifacts and clear the live galleries? Old work stays accessible in Firestore as a snapshot.')) return;
     try {
-      const snap = await getDocs(collection(db, 'artifacts'));
-      if (snap.empty) { alert('Nothing to archive.'); return; }
       const archiveId = new Date().toISOString().replace(/[:.]/g, '-');
-      // copy each to archives/{archiveId}/artifacts/{id}
+      // Portfolios
+      const pfSnap = await getDocs(collection(db, 'portfolios'));
+      const artSnap = await getDocs(collection(db, 'artifacts'));
+      if (pfSnap.empty && artSnap.empty) { alert('Nothing to archive.'); return; }
+
       const copies = [];
-      snap.forEach(d => {
-        copies.push(setDoc(doc(db, 'archives', archiveId, 'artifacts', d.id), d.data()));
-      });
+      pfSnap.forEach(d => copies.push(setDoc(doc(db, 'archives', archiveId, 'portfolios', d.id), d.data())));
+      artSnap.forEach(d => copies.push(setDoc(doc(db, 'archives', archiveId, 'artifacts', d.id), d.data())));
       await Promise.all(copies);
-      // delete originals (Firestore doc + Storage file)
+
       const deletes = [];
-      snap.forEach(d => {
+      pfSnap.forEach(d => {
+        const data = d.data();
+        const slots = data.slots || {};
+        Object.values(slots).forEach(s => {
+          if (s && s.mode === 'file' && s.filePath) {
+            deletes.push(deleteObject(storageRef(storage, s.filePath)).catch(() => {}));
+          }
+        });
+        deletes.push(deleteDoc(doc(db, 'portfolios', d.id)));
+      });
+      artSnap.forEach(d => {
         const data = d.data();
         if (data.filePath) {
           deletes.push(deleteObject(storageRef(storage, data.filePath)).catch(() => {}));
@@ -2183,7 +3756,7 @@
         deletes.push(deleteDoc(doc(db, 'artifacts', d.id)));
       });
       await Promise.all(deletes);
-      alert(`Archived ${snap.size} submissions to archives/${archiveId}.`);
+      alert(`Archived ${pfSnap.size} portfolios and ${artSnap.size} homework artifacts to archives/${archiveId}.`);
     } catch (err) {
       console.error(err);
       alert('Archive failed. Check console.');
