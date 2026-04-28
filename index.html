@@ -118,6 +118,96 @@
     max-width: 640px;
   }
 
+  /* ============== FINALE: PUBLISH TO INSTRUCTABLES (Project 4 only) ============== */
+  /* Distinctive coral-to-magenta gradient — intentionally different from every other
+     accent in the app to mark the END of the course / publish the final artifact. */
+  .finale-publish {
+    margin-top: 28px;
+    padding-top: 28px;
+    border-top: 1px dashed rgba(218, 95, 78, 0.35);
+    display: flex;
+    justify-content: stretch;
+  }
+  .finale-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 22px 26px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #FF7A45 0%, #E65C3C 45%, #C9337F 100%);
+    color: #ffffff;
+    text-decoration: none;
+    box-shadow: 0 8px 28px rgba(230, 92, 60, 0.35), 0 2px 6px rgba(201, 51, 127, 0.18);
+    transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+  .finale-btn::before {
+    /* subtle warm glow */
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 60%;
+    height: 200%;
+    background: radial-gradient(closest-side, rgba(255, 220, 180, 0.25), transparent 70%);
+    pointer-events: none;
+  }
+  .finale-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 36px rgba(230, 92, 60, 0.45), 0 4px 10px rgba(201, 51, 127, 0.22);
+  }
+  .finale-btn:active {
+    transform: translateY(0);
+  }
+  .finale-spark {
+    font-size: 32px;
+    line-height: 1;
+    color: #FFE066;
+    text-shadow: 0 0 12px rgba(255, 224, 102, 0.7);
+    flex-shrink: 0;
+  }
+  .finale-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .finale-title {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+  }
+  .finale-sub {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.88);
+    line-height: 1.45;
+  }
+  .finale-arrow {
+    font-size: 26px;
+    font-weight: 700;
+    color: #ffffff;
+    flex-shrink: 0;
+    transition: transform 0.18s ease-out;
+  }
+  .finale-btn:hover .finale-arrow {
+    transform: translateX(4px);
+  }
+  @media (max-width: 600px) {
+    .finale-btn { padding: 18px 20px; gap: 14px; border-radius: 14px; }
+    .finale-spark { font-size: 26px; }
+    .finale-title { font-size: 17px; }
+    .finale-sub { font-size: 12px; }
+    .finale-arrow { font-size: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .finale-btn, .finale-arrow { transition: none; }
+  }
+
   .benchmarks {
     display: flex;
     flex-direction: column;
@@ -2050,288 +2140,288 @@
   const PROJECTS = [
     {
       id: 'p1',
-      title: 'Project 1 - CAD',
-      goal: 'Design and 3D-print something that solves a real problem for a real person.',
+      title: 'Project 1: Mechanical Adaptive Switch Foundations',
+      goal: 'Build the safe, working foundation for adaptive switches that anyone can press, lift, or trigger.',
       benchmarks: [
         {
           id: 'p1b1',
-          title: 'Lorem ipsum dolor sit amet',
+          title: 'Breadboard, Wiring, and Arduino Safety Check',
           points: 5,
-          instructions: 'Placeholder instructions. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+          instructions: 'Wire your Arduino safely on a breadboard. Demonstrate proper grounding, current limits, and a clean LED-on-button circuit. No short circuits, no smoke.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 2 },
-            { criterion: 'Placeholder criterion two', points: 2 },
-            { criterion: 'Placeholder criterion three', points: 1 }
+            { criterion: 'Safe wiring and grounding', points: 2 },
+            { criterion: 'Working LED + button circuit', points: 2 },
+            { criterion: 'Clean breadboard layout', points: 1 }
           ]
         },
         {
           id: 'p1b2',
-          title: 'Consectetur adipiscing elit',
+          title: 'Large Button Adaptive Switch Prototype',
           points: 5,
-          instructions: 'Placeholder instructions. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+          instructions: 'Build a large, low-force button that someone with limited fine motor control can press reliably. Test it triggers a clean signal every time.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 3 },
-            { criterion: 'Placeholder criterion two', points: 3 },
-            { criterion: 'Placeholder criterion three', points: 2 }
+            { criterion: 'Low-force activation', points: 2 },
+            { criterion: 'Reliable signal (no double-trigger)', points: 2 },
+            { criterion: 'Mounted and stable', points: 1 }
           ]
         },
         {
           id: 'p1b3',
-          title: 'Sed do eiusmod tempor',
+          title: 'Lever Micro Switch Adaptive Trigger',
           points: 5,
-          instructions: 'Placeholder instructions. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
+          instructions: 'Build a lever-arm micro switch that triggers from a small movement (chin, finger, foot). Tune the lever for sensitivity without false triggers.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 4 },
-            { criterion: 'Placeholder criterion two', points: 3 },
-            { criterion: 'Placeholder criterion three', points: 3 }
+            { criterion: 'Sensitivity tuned for small movements', points: 2 },
+            { criterion: 'No false triggers at rest', points: 2 },
+            { criterion: 'Lever geometry justified in notebook', points: 1 }
           ]
         },
         {
           id: 'p1b4',
-          title: 'Incididunt ut labore et dolore',
+          title: 'Perfboard Soldering and CAD Switch Mounts',
           points: 5,
-          instructions: 'Placeholder instructions. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+          instructions: 'Move from breadboard to perfboard with clean solder joints. Design and 3D-print a CAD mount for one of your switches.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 3 },
-            { criterion: 'Placeholder criterion two', points: 2 },
-            { criterion: 'Placeholder criterion three', points: 2 }
+            { criterion: 'Clean solder joints (no cold joints, no bridges)', points: 2 },
+            { criterion: 'CAD mount fits the switch precisely', points: 2 },
+            { criterion: 'Mount is durable enough for repeated use', points: 1 }
           ]
         },
         {
           id: 'p1b5',
-          title: 'Magna aliqua enim ad minim',
+          title: 'Mechanical Switch Foundations Portfolio Drop',
           points: 30,
-          instructions: 'Placeholder instructions. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.',
+          instructions: 'Submit your full portfolio for Project 1: photos of each prototype, a video of switches working, your CAD files or screenshots, your Arduino code, and a written summary.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 4 },
-            { criterion: 'Placeholder criterion two', points: 3 },
-            { criterion: 'Placeholder criterion three', points: 3 }
+            { criterion: 'All four switch prototypes documented', points: 10 },
+            { criterion: 'Video clearly shows reliable function', points: 10 },
+            { criterion: 'Summary explains what you built and learned', points: 10 }
           ]
         }
       ]
     },
     {
       id: 'p2',
-      title: 'Project 2 - MakeyMakey',
-      goal: 'Turn everyday objects into an interactive interface that helps someone do something better.',
+      title: 'Project 2: Adaptive Input Expansion Prototypes',
+      goal: 'Expand who can use a controller. Design switch types for different mobility, breath, and touch needs.',
       benchmarks: [
         {
           id: 'p2b1',
-          title: 'Quis nostrud exercitation',
+          title: 'Passive External Switch Prototype',
           points: 5,
-          instructions: 'Placeholder instructions. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt.',
+          instructions: 'Build a passive (no power needed) external switch that plugs into your existing setup via a 3.5mm jack. Confirm it works with at least one accessibility-friendly device.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 2 },
-            { criterion: 'Placeholder criterion two', points: 2 },
-            { criterion: 'Placeholder criterion three', points: 1 }
+            { criterion: 'Standard 3.5mm switch interface', points: 2 },
+            { criterion: 'Works with at least one target device', points: 2 },
+            { criterion: 'Durable connection', points: 1 }
           ]
         },
         {
           id: 'p2b2',
-          title: 'Ullamco laboris nisi ut aliquip',
+          title: 'Sip-and-Puff Adaptive Switch Prototype',
           points: 5,
-          instructions: 'Placeholder instructions. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip.',
+          instructions: 'Build a sip-and-puff switch using a pressure sensor or air-flow sensor. Calibrate it for both sip (suction) and puff (blow) inputs as separate signals.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 2 },
-            { criterion: 'Placeholder criterion two', points: 2 },
-            { criterion: 'Placeholder criterion three', points: 2 }
+            { criterion: 'Distinguishes sip from puff', points: 2 },
+            { criterion: 'Calibrated thresholds (no accidental triggers)', points: 2 },
+            { criterion: 'Mouthpiece or tube is hygiene-friendly', points: 1 }
           ]
         },
         {
           id: 'p2b3',
-          title: 'Ex ea commodo consequat',
+          title: 'IR Touch-Free Switch Prototype',
           points: 5,
-          instructions: 'Placeholder instructions. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat.',
+          instructions: 'Build a touch-free switch using an IR proximity sensor. Tune detection range and confirm reliable triggering without contact.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 4 },
-            { criterion: 'Placeholder criterion two', points: 3 },
-            { criterion: 'Placeholder criterion three', points: 3 }
+            { criterion: 'Touch-free triggering works at intended range', points: 2 },
+            { criterion: 'No false triggers from background motion', points: 2 },
+            { criterion: 'Range is documented in notebook', points: 1 }
           ]
         },
         {
           id: 'p2b4',
-          title: 'Duis aute irure dolor',
+          title: 'Joystick Mouse Control Prototype',
           points: 5,
-          instructions: 'Placeholder instructions. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit.',
+          instructions: 'Use a joystick (analog or digital) to drive mouse cursor or controller-stick input. Map sensitivity curves so small movements feel natural.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 3 },
-            { criterion: 'Placeholder criterion two', points: 3 },
-            { criterion: 'Placeholder criterion three', points: 2 }
+            { criterion: 'Joystick maps to cursor or stick input', points: 2 },
+            { criterion: 'Sensitivity curve tuned (not too twitchy)', points: 2 },
+            { criterion: 'Dead zone implemented', points: 1 }
           ]
         },
         {
           id: 'p2b5',
-          title: 'In reprehenderit voluptate',
+          title: 'Adaptive Input Expansion Portfolio Drop',
           points: 30,
-          instructions: 'Placeholder instructions. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque.',
+          instructions: 'Submit your full portfolio for Project 2: photos and video of each input type, your code, any CAD/wiring diagrams, and a written summary of what you learned about matching input types to user needs.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 5 },
-            { criterion: 'Placeholder criterion two', points: 4 },
-            { criterion: 'Placeholder criterion three', points: 3 }
+            { criterion: 'All four input prototypes documented', points: 10 },
+            { criterion: 'Video shows each prototype actually working', points: 10 },
+            { criterion: 'Summary connects inputs to specific user needs', points: 10 }
           ]
         }
       ]
     },
     {
       id: 'p3',
-      title: 'Project 3 - XBAC',
-      goal: 'Adapt a video game or controller so a player with different abilities can play it well.',
+      title: 'Project 3: Modular Adaptive Controller Hub',
+      goal: 'Combine your switches into one controller hub so users can plug in the inputs that work for their body.',
       benchmarks: [
         {
           id: 'p3b1',
-          title: 'Velit esse cillum dolore',
+          title: 'Controller Hub Input Map',
           points: 5,
-          instructions: 'Placeholder instructions. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod.',
+          instructions: 'Design the input map for your hub: which physical ports map to which controller actions. Document the map clearly so a user can swap inputs without re-coding.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 2 },
-            { criterion: 'Placeholder criterion two', points: 2 },
-            { criterion: 'Placeholder criterion three', points: 1 }
+            { criterion: 'All ports labeled and mapped', points: 2 },
+            { criterion: 'Map supports user-side reassignment', points: 2 },
+            { criterion: 'Map is readable and printable', points: 1 }
           ]
         },
         {
           id: 'p3b2',
-          title: 'Eu fugiat nulla pariatur',
+          title: 'Plug-In Switch Port Prototype',
           points: 5,
-          instructions: 'Placeholder instructions. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
+          instructions: 'Build at least 3 plug-in ports on your hub that accept any of the switch types from Project 2. Test hot-swapping during operation.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 3 },
-            { criterion: 'Placeholder criterion two', points: 3 },
-            { criterion: 'Placeholder criterion three', points: 2 }
+            { criterion: 'At least 3 working plug-in ports', points: 2 },
+            { criterion: 'Hot-swap works without restart', points: 2 },
+            { criterion: 'Ports are mechanically robust', points: 1 }
           ]
         },
         {
           id: 'p3b3',
-          title: 'Excepteur sint occaecat',
+          title: 'Multi-Input Hub Code',
           points: 5,
-          instructions: 'Placeholder instructions. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.',
+          instructions: 'Write Arduino code that handles multiple simultaneous switch inputs cleanly. Implement debouncing, multi-press detection, and a way to remap actions without re-flashing.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 4 },
-            { criterion: 'Placeholder criterion two', points: 3 },
-            { criterion: 'Placeholder criterion three', points: 3 }
+            { criterion: 'Multiple inputs handled simultaneously', points: 2 },
+            { criterion: 'Debouncing implemented', points: 2 },
+            { criterion: 'Action map is data-driven (configurable)', points: 1 }
           ]
         },
         {
           id: 'p3b4',
-          title: 'Cupidatat non proident sunt',
+          title: 'Hub Functionality Test',
           points: 5,
-          instructions: 'Placeholder instructions. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia.',
+          instructions: 'Run a structured functionality test: every port, every supported input, every controller action. Document results and fix any failures.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 3 },
-            { criterion: 'Placeholder criterion two', points: 2 },
-            { criterion: 'Placeholder criterion three', points: 2 }
+            { criterion: 'Test plan covers all ports and actions', points: 2 },
+            { criterion: 'All tests pass (or failures documented)', points: 2 },
+            { criterion: 'Failures fixed before final test', points: 1 }
           ]
         },
         {
           id: 'p3b5',
-          title: 'Culpa qui officia deserunt',
+          title: 'Modular Hub Portfolio Drop',
           points: 30,
-          instructions: 'Placeholder instructions. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium.',
+          instructions: 'Submit your full Project 3 portfolio: hub photos and video, input map document, code, test results, and a written summary of what makes your hub modular.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 4 },
-            { criterion: 'Placeholder criterion two', points: 3 },
-            { criterion: 'Placeholder criterion three', points: 3 }
+            { criterion: 'Hub clearly documented (photos + video)', points: 10 },
+            { criterion: 'Code and input map included', points: 10 },
+            { criterion: 'Summary explains modularity decisions', points: 10 }
           ]
         }
       ]
     },
     {
       id: 'p4',
-      title: 'Project 4 - Arduino',
-      goal: 'Sense the world and respond to it with a small embedded system you build yourself.',
+      title: 'Project 4: Final Adaptive Controller Build',
+      goal: 'Ship the real thing. An adaptive controller built, soldered, enclosed, tested with a real user, and published.',
       benchmarks: [
         {
           id: 'p4b1',
-          title: 'Mollit anim id est laborum',
+          title: 'Final Device System Plan',
           points: 5,
-          instructions: 'Placeholder instructions. Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+          instructions: 'Write the final system plan: target user, input combination, controller actions, enclosure dimensions, BOM. Get instructor sign-off before building.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 2 },
-            { criterion: 'Placeholder criterion two', points: 2 },
-            { criterion: 'Placeholder criterion three', points: 1 }
+            { criterion: 'Target user identified with specific need', points: 2 },
+            { criterion: 'Complete BOM and dimensions', points: 2 },
+            { criterion: 'Instructor sign-off received', points: 1 }
           ]
         },
         {
           id: 'p4b2',
-          title: 'Sed perspiciatis unde omnis',
+          title: 'Final Perfboard/PCB Soldered Build',
           points: 5,
-          instructions: 'Placeholder instructions. Ut enim ad minim veniam, quis nostrud exercitation.',
+          instructions: 'Build the final electronics on perfboard or custom PCB. All connections soldered, no breadboard, ready for daily use.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 3 },
-            { criterion: 'Placeholder criterion two', points: 3 },
-            { criterion: 'Placeholder criterion three', points: 2 }
+            { criterion: 'All connections soldered (no breadboard)', points: 2 },
+            { criterion: 'Solder quality is durable and clean', points: 2 },
+            { criterion: 'Pinout documented', points: 1 }
           ]
         },
         {
           id: 'p4b3',
-          title: 'Iste natus error voluptatem',
+          title: 'CAD Enclosure and Physical Integration',
           points: 5,
-          instructions: 'Placeholder instructions. Duis aute irure dolor in reprehenderit in voluptate.',
+          instructions: 'Design and 3D-print (or laser-cut) an enclosure that holds the electronics, mounts the inputs, and looks finished. Cables route cleanly.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 4 },
-            { criterion: 'Placeholder criterion two', points: 3 },
-            { criterion: 'Placeholder criterion three', points: 3 }
+            { criterion: 'Enclosure fits all electronics', points: 2 },
+            { criterion: 'Cables routed cleanly, strain-relieved', points: 2 },
+            { criterion: 'Looks finished (not prototype-grade)', points: 1 }
           ]
         },
         {
           id: 'p4b4',
-          title: 'Accusantium doloremque laudantium',
+          title: 'User Testing and Revision',
           points: 5,
-          instructions: 'Placeholder instructions. Excepteur sint occaecat cupidatat non proident.',
+          instructions: 'Test your controller with a real target user (or a teacher/peer simulating one). Document feedback. Make at least one revision based on what you learned.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 3 },
-            { criterion: 'Placeholder criterion two', points: 2 },
-            { criterion: 'Placeholder criterion three', points: 2 }
+            { criterion: 'Tested with real user (not just yourself)', points: 2 },
+            { criterion: 'Feedback documented in notebook', points: 2 },
+            { criterion: 'At least one revision implemented', points: 1 }
           ]
         },
         {
           id: 'p4b5',
-          title: 'Totam rem aperiam eaque',
+          title: 'Final Controller Portfolio Drop',
           points: 30,
-          instructions: 'Placeholder instructions. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.',
+          instructions: 'Submit your complete final portfolio: photos and video of the finished controller, full code, CAD files, the system plan, user testing notes, and a written reflection. This is the artifact you will publish to Instructables next.',
           videoUrl: '',
           links: [],
           rubric: [
-            { criterion: 'Placeholder criterion one', points: 5 },
-            { criterion: 'Placeholder criterion two', points: 4 },
-            { criterion: 'Placeholder criterion three', points: 3 }
+            { criterion: 'Complete, polished documentation', points: 10 },
+            { criterion: 'User testing evidence included', points: 10 },
+            { criterion: 'Reflection ties to project goal', points: 10 }
           ]
         }
       ]
@@ -2426,6 +2516,22 @@
         benchEl.appendChild(row);
         countEls[b.id] = row.querySelector(`[data-count="${b.id}"]`);
       });
+      // Project-4 finale: distinctive "Publish to Instructables" button below the final portfolio drop.
+      if (project.id === 'p4') {
+        const finale = document.createElement('div');
+        finale.className = 'finale-publish';
+        finale.innerHTML = `
+          <a href="https://www.instructables.com/contest/?utm_source=d4sg-at-sa" target="_blank" rel="noopener" class="finale-btn" aria-label="Publish your final adaptive controller as an Instructable">
+            <span class="finale-spark" aria-hidden="true">★</span>
+            <span class="finale-text">
+              <span class="finale-title">Publish to Instructables</span>
+              <span class="finale-sub">End of the road. Take your final adaptive controller out into the world.</span>
+            </span>
+            <span class="finale-arrow" aria-hidden="true">→</span>
+          </a>
+        `;
+        projEl.appendChild(finale);
+      }
       app.appendChild(projEl);
     });
   }
