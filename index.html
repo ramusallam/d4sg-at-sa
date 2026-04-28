@@ -1755,6 +1755,167 @@
   body.is-admin .pf-view-slot-delete { display: flex; }
   .pf-view-slot-delete:hover { background: #ef4444; transform: scale(1.05); }
 
+  /* ============== ARCHIVE VIEWER ============== */
+  .archive-banner {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    color: #78350f;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .archive-banner .archive-banner-tag {
+    background: #d97706;
+    color: white;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    text-transform: uppercase;
+  }
+  .archive-banner .archive-banner-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+  .archive-banner button {
+    background: white;
+    border: 1px solid #d97706;
+    color: #78350f;
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .archive-banner button:hover { background: #d97706; color: white; }
+  .archive-banner button.btn-restore { border-color: var(--success); color: #166534; }
+  .archive-banner button.btn-restore:hover { background: var(--success); color: white; }
+
+  .archive-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .archive-list-empty {
+    text-align: center;
+    color: var(--ink-low);
+    font-size: 14px;
+    padding: 28px 0;
+  }
+  .archive-list-item {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.18s ease, transform 0.12s ease;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .archive-list-item:hover {
+    border-color: var(--accent);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+  }
+  .archive-list-item .archive-info { flex: 1; min-width: 0; }
+  .archive-list-item .archive-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--paper-ink);
+    margin-bottom: 3px;
+  }
+  .archive-list-item .archive-meta {
+    font-size: 12px;
+    color: var(--ink-mid);
+  }
+  .archive-list-item .archive-caret { color: var(--ink-low); font-size: 14px; }
+
+  /* "Show next 50" pager */
+  .pf-pager {
+    display: flex;
+    justify-content: center;
+    padding: 14px 0 4px;
+  }
+  .pf-pager button {
+    background: white;
+    border: 1px solid var(--border-strong);
+    color: var(--paper-ink);
+    padding: 9px 18px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.15s ease;
+  }
+  .pf-pager button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .pf-pager button:disabled { opacity: 0.5; cursor: default; }
+
+  /* Friendly file-unavailable placeholder */
+  .pf-broken {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-2);
+    color: var(--ink-low);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    padding: 8px;
+    gap: 4px;
+  }
+  .pf-broken .pf-broken-icon { font-size: 20px; opacity: 0.6; }
+
+  /* Soft warning under upload (large file) */
+  .pf-soft-warn {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    color: #78350f;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+    margin-top: 6px;
+  }
+
+  /* Retry button surfaced after upload failures */
+  .pf-retry-btn {
+    background: white;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.15s ease;
+  }
+  .pf-retry-btn:hover { background: #ef4444; color: white; }
+
+  /* Bound thumbnail sizes so the browser doesn't decode at full res */
+  .pf-row-chip img,
+  .pf-slot-thumb img,
+  .pf-fp-thumb img {
+    max-width: 120px;
+    max-height: 120px;
+  }
+
   /* ============== TABLET ============== */
   @media (max-width: 900px) and (min-width: 641px) {
     .pf-slots { grid-template-columns: repeat(5, 1fr); gap: 8px; }
@@ -1807,6 +1968,7 @@
       <span class="header-subtitle">Design for Social Good</span>
       <span class="admin-bar">
         <span class="admin-tag">Admin</span>
+        <button class="archive-btn" id="archivesViewBtn">Archives</button>
         <button class="archive-btn" id="archiveBtn">Archive class</button>
       </span>
     </div>
@@ -1843,7 +2005,8 @@
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
   import {
     getFirestore, collection, query, where, orderBy, onSnapshot,
-    addDoc, deleteDoc, doc, getDocs, setDoc, serverTimestamp
+    addDoc, deleteDoc, doc, getDoc, getDocs, setDoc, serverTimestamp,
+    getCountFromServer, limit, startAfter
   } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
   import {
     getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject
@@ -2260,31 +2423,40 @@
     }
   }
 
-  // Live count badges:
-  // - Benchmarks (p*b*) count portfolios
-  // - Homework rows (hw-w*) count legacy artifacts (homework still uses the simple link form)
-  onSnapshot(collection(db, 'portfolios'), (snap) => {
-    const counts = {};
-    snap.forEach(d => {
-      const bid = d.data().benchmarkId;
-      counts[bid] = (counts[bid] || 0) + 1;
-    });
-    Object.keys(countEls).forEach(bid => {
-      if (bid.startsWith('hw-')) return; // homework counts handled below
-      updateCountBadge(bid, counts[bid] || 0);
-    });
-  });
-  onSnapshot(collection(db, 'artifacts'), (snap) => {
-    const counts = {};
-    snap.forEach(d => {
-      const bid = d.data().benchmarkId;
-      counts[bid] = (counts[bid] || 0) + 1;
-    });
-    Object.keys(countEls).forEach(bid => {
-      if (!bid.startsWith('hw-')) return;
-      updateCountBadge(bid, counts[bid] || 0);
-    });
-  });
+  // Live count badges — SCOPED for scale.
+  //
+  // Old approach: two unscoped onSnapshot listeners on the full /portfolios
+  // and /artifacts collections. At 200 students × ~5 submissions × 20
+  // benchmarks that's 20,000+ doc reads on first paint and the listener
+  // re-fires on every write.
+  //
+  // New approach:
+  //   1. Initial load: one getCountFromServer() per benchmark (server-side
+  //      aggregation, billed as 1 read each — ~30 total instead of 20,000).
+  //   2. Live updates: maintain counts locally by listening only to the
+  //      currently-OPEN benchmark's gallery (already done in
+  //      subscribePortfolios + subscribeGallery). Other badges drift only
+  //      while a different benchmark is open; refreshCountBadge() is called
+  //      after every submit/delete to re-pull the affected benchmark.
+  async function refreshCountBadge(benchmarkId) {
+    if (!benchmarkId) return;
+    const isHw = benchmarkId.startsWith('hw-');
+    const colName = isHw ? 'artifacts' : 'portfolios';
+    try {
+      const q = query(collection(db, colName), where('benchmarkId', '==', benchmarkId));
+      const agg = await getCountFromServer(q);
+      updateCountBadge(benchmarkId, agg.data().count);
+    } catch (err) {
+      console.warn('count refresh failed for', benchmarkId, err);
+    }
+  }
+
+  async function loadInitialCounts() {
+    const ids = Object.keys(countEls);
+    // Run in parallel; getCountFromServer is a single read each.
+    await Promise.allSettled(ids.map(refreshCountBadge));
+  }
+  // Kicked off after the projects/homework page renders (see INIT block).
 
   // ============== HOMEWORK page render ==============
   function renderHomework() {
@@ -2424,9 +2596,20 @@
     currentBenchmark = null;
     if (unsubscribeGallery) { unsubscribeGallery(); unsubscribeGallery = null; }
     if (unsubscribePortfolios) { unsubscribePortfolios(); unsubscribePortfolios = null; }
+    // Cancel any pending debounced renders so they don't paint into a closed modal.
+    if (_galleryRenderTimer) { clearTimeout(_galleryRenderTimer); _galleryRenderTimer = null; _galleryRenderArgs = null; }
+    if (_pfGalleryRenderTimer) { clearTimeout(_pfGalleryRenderTimer); _pfGalleryRenderTimer = null; _pfGalleryRenderItems = null; }
     // Clear modal body refs so a re-open animates fresh.
     const pfGrid = document.getElementById('pfGallery');
     if (pfGrid) pfGrid._pfKnownIds = null;
+    // Clear archive deep-link param so closing an archive doesn't keep it sticky.
+    try {
+      const sp = new URLSearchParams(location.search);
+      if (sp.has('archive')) {
+        sp.delete('archive');
+        history.replaceState(null, '', sp.toString() ? `${location.pathname}?${sp.toString()}` : location.pathname);
+      }
+    } catch (_) {}
   }
 
   function openHomeworkModal(w) {
@@ -2496,11 +2679,28 @@
       snap.forEach(d => items.push({ id: d.id, ...d.data() }));
       // newest first
       items.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-      renderGallery(grid, benchmarkId, items, opts);
+      // Update the count badge from the live snapshot for free (no extra read).
+      updateCountBadge(benchmarkId, items.length);
+      debouncedRenderGallery(grid, benchmarkId, items, opts);
     }, (err) => {
       console.error('gallery subscribe error', err);
       grid.innerHTML = `<div class="gallery-empty">Could not load gallery.</div>`;
     });
+  }
+
+  // Debounce gallery re-renders. When 30 students submit in 5 seconds the
+  // snapshot fires 30 times; we want to coalesce to ~1 paint per ~200ms.
+  let _galleryRenderTimer = null;
+  let _galleryRenderArgs = null;
+  function debouncedRenderGallery(...args) {
+    _galleryRenderArgs = args;
+    if (_galleryRenderTimer) return;
+    _galleryRenderTimer = setTimeout(() => {
+      _galleryRenderTimer = null;
+      const a = _galleryRenderArgs;
+      _galleryRenderArgs = null;
+      if (a) renderGallery.apply(null, a);
+    }, 200);
   }
 
   function renderGallery(grid, benchmarkId, items, opts = {}) {
@@ -2514,12 +2714,12 @@
       let media;
       if (isLink) {
         media = item.linkImage
-          ? `<img src="${item.linkImage}" alt="${escapeHtml(item.linkTitle || item.linkUrl)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'link-fallback',innerHTML:'<div class=\\'link-icon\\'>🔗</div><div class=\\'link-domain\\'>${escapeHtml(item.linkDomain || '')}</div>'}));" />`
+          ? `<img src="${item.linkImage}" alt="${escapeHtml(item.linkTitle || item.linkUrl)}" loading="lazy" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'link-fallback',innerHTML:'<div class=\\'link-icon\\'>🔗</div><div class=\\'link-domain\\'>${escapeHtml(item.linkDomain || '')}</div>'}));" />`
           : `<div class="link-fallback"><div class="link-icon">🔗</div><div class="link-domain">${escapeHtml(item.linkDomain || 'link')}</div></div>`;
       } else if (isVideo) {
         media = `<video src="${item.fileUrl}" muted preload="metadata"></video><div class="play-icon">▶</div>`;
       } else {
-        media = `<img src="${item.fileUrl}" alt="${escapeHtml(item.studentName || '')}" loading="lazy" />`;
+        media = `<img src="${item.fileUrl}" alt="${escapeHtml(item.studentName || '')}" loading="lazy" decoding="async" onerror="this.parentElement.innerHTML='<div class=&quot;pf-broken&quot;><span class=&quot;pf-broken-icon&quot;>⚠</span><span>(file unavailable)</span></div>';" />`;
       }
 
       tile.innerHTML = `
@@ -2877,6 +3077,9 @@
         try { await deleteObject(storageRef(storage, item.filePath)); } catch (e) { /* file may already be gone */ }
       }
       await deleteDoc(doc(db, 'artifacts', item.id));
+      // Open-snapshot listener will update the count for this benchmark live;
+      // belt-and-braces refresh the badge in case nothing else closes the loop.
+      if (item.benchmarkId) refreshCountBadge(item.benchmarkId);
     } catch (err) {
       console.error('delete failed', err);
       alert('Could not delete. Try again.');
@@ -3226,6 +3429,16 @@
         refreshSubmit();
         setStatus('');
         renderBody();
+        // Soft warning for files >50MB (still under the 100MB hard cap).
+        if (file.size > 50 * 1024 * 1024) {
+          const inner = bodyInner;
+          const existing = inner.querySelector('.pf-soft-warn');
+          if (existing) existing.remove();
+          const warn = document.createElement('div');
+          warn.className = 'pf-soft-warn';
+          warn.textContent = 'Files over 50MB are accepted but may slow down the class. Consider linking instead.';
+          inner.appendChild(warn);
+        }
       }
 
       function openSlot(key) {
@@ -3320,19 +3533,27 @@
       }
     }
 
-    submitBtn.addEventListener('click', async () => {
+    let _isSubmitting = false;
+    async function doSubmit() {
+      if (_isSubmitting) return; // hard double-submit guard
       const name = nameInput.value.trim();
       if (!name) { setStatus('Please enter your name.', true); return; }
       const anyFilled = Object.values(state).some(v => v !== null);
       if (!anyFilled) { setStatus('Add at least one slot before submitting.', true); return; }
+      _isSubmitting = true;
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting…';
       setStatus('Submitting…');
       localStorage.setItem(NAME_KEY, name);
 
+      // Track per-slot upload outcome so a single failure doesn't wipe the
+      // student's other filled slots. Failed slots stay in state with a
+      // _retryable flag so they can be re-tried.
+      const failedSlots = [];
+
       try {
         const finalSlots = { image: null, video: null, code: null, cad: null, summary: null };
-        const uploadedPaths = []; // track for rollback if needed
+        const uploadedPaths = []; // track for rollback if doc-write fails
 
         for (const def of SLOT_DEFS) {
           const cur = state[def.key];
@@ -3355,30 +3576,45 @@
             continue;
           }
           setStatus(`Uploading ${def.label}…`);
-          const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0];
-          const path = `portfolios/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${def.key}${ext}`;
-          const ref = storageRef(storage, path);
-          const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
-          const task = uploadBytesResumable(ref, file, { contentType: ct });
-          await new Promise((resolve, reject) => {
-            task.on('state_changed',
-              (snap) => {
-                const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-                setStatus(`Uploading ${def.label}… ${pct}%`);
-              },
-              reject,
-              resolve
-            );
-          });
-          const url = await getDownloadURL(task.snapshot.ref);
-          uploadedPaths.push(path);
-          finalSlots[def.key] = {
-            mode: 'file',
-            url,
-            fileName: file.name,
-            contentType: ct,
-            filePath: path
-          };
+          try {
+            const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0];
+            const path = `portfolios/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${def.key}${ext}`;
+            const ref = storageRef(storage, path);
+            const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
+            const task = uploadBytesResumable(ref, file, { contentType: ct });
+            await new Promise((resolve, reject) => {
+              task.on('state_changed',
+                (snap) => {
+                  const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+                  setStatus(`Uploading ${def.label}… ${pct}%`);
+                },
+                reject,
+                resolve
+              );
+            });
+            const url = await getDownloadURL(task.snapshot.ref);
+            uploadedPaths.push(path);
+            finalSlots[def.key] = {
+              mode: 'file',
+              url,
+              fileName: file.name,
+              contentType: ct,
+              filePath: path
+            };
+          } catch (perSlotErr) {
+            console.error(`upload failed for ${def.key}`, perSlotErr);
+            failedSlots.push(def);
+            // Leave state[def.key] intact so the student can retry without
+            // re-attaching the file.
+          }
+        }
+
+        const anySucceeded = Object.values(finalSlots).some(v => v !== null);
+        if (failedSlots.length && !anySucceeded) {
+          // Total failure — surface a retry prompt and bail without writing.
+          throw new Error(
+            `Upload failed for ${failedSlots.map(d => d.label).join(', ')}. Check your wifi and try again.`
+          );
         }
 
         await addDoc(collection(db, 'portfolios'), {
@@ -3388,8 +3624,10 @@
           slots: finalSlots
         });
 
-        // Reset state for a fresh entry, but keep name pre-filled.
+        // Reset state ONLY for slots that successfully uploaded. Keep failed
+        // slots in state so the student can retry them.
         for (const def of SLOT_DEFS) {
+          if (failedSlots.find(f => f.key === def.key)) continue; // preserve
           const cur = state[def.key];
           if (cur?._localPreview && cur.url) {
             try { URL.revokeObjectURL(cur.url); } catch (_) {}
@@ -3398,26 +3636,50 @@
           delete pendingFiles[def.key];
           refreshTile(def.key);
         }
-        if (openSlotKey) {
+        if (openSlotKey && !failedSlots.find(f => f.key === openSlotKey)) {
           const prev = slotsEl.querySelector(`.pf-slot[data-slot="${openSlotKey}"]`);
           if (prev) prev.classList.remove('is-open');
           openSlotKey = null;
         }
+
+        // Refresh the count badge for this benchmark in case the snapshot
+        // hasn't propagated yet (it usually has, but this is belt-and-braces).
+        refreshCountBadge(benchmarkId);
+
         // Success pulse: green flash on the button, status briefly, then clear.
-        submitBtn.textContent = '✓ Submitted!';
-        submitBtn.classList.add('is-success');
-        setStatus('Your portfolio is in the gallery below.');
+        submitBtn.textContent = failedSlots.length ? 'Submit failed slots' : '✓ Submitted!';
+        if (!failedSlots.length) submitBtn.classList.add('is-success');
+        if (failedSlots.length) {
+          setStatus(`Saved ${SLOT_DEFS.length - failedSlots.length} slot(s). ${failedSlots.map(d => d.label).join(', ')} failed — retry?`, true);
+        } else {
+          setStatus('Your portfolio is in the gallery below.');
+        }
         setTimeout(() => {
           submitBtn.classList.remove('is-success');
           submitBtn.textContent = 'Submit Portfolio';
-          setStatus('');
+          if (!failedSlots.length) setStatus('');
+          _isSubmitting = false;
           refreshSubmit();
         }, 1800);
       } catch (err) {
         console.error('portfolio submit failed', err);
         submitBtn.textContent = 'Submit Portfolio';
-        setStatus(err.message || 'Submit failed. Try again.', true);
+        const msg = err?.code === 'unavailable' || /network|offline/i.test(err?.message || '')
+          ? 'Connection failed. Check wifi and retry.'
+          : (err.message || 'Submit failed. Try again.');
+        setStatus(msg, true);
         submitBtn.disabled = false;
+        _isSubmitting = false;
+      }
+    }
+    submitBtn.addEventListener('click', doSubmit);
+    // Prevent stray Enter-key resubmits from inside the panel.
+    panel.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      if (e.target.tagName === 'TEXTAREA') return; // newline allowed in summary
+      if (e.target === submitBtn) {
+        e.preventDefault();
+        doSubmit();
       }
     });
 
@@ -3426,8 +3688,27 @@
   }
 
   // ----- Portfolio gallery (live) -----
+  // Note: only the focused benchmark has a live listener. With 200 students
+  // each submitting ~5 portfolios per benchmark this listener pulls ~1000
+  // docs once on first open, then deltas only. We paginate the rendered
+  // gallery to 50 rows at a time so the DOM stays responsive.
+  let _pfGalleryPage = 50; // number of rows currently shown
+  const PF_PAGE_SIZE = 50;
+  let _pfGalleryRenderTimer = null;
+  let _pfGalleryRenderItems = null;
+  function debouncedRenderPortfolio(grid, items) {
+    _pfGalleryRenderItems = items;
+    if (_pfGalleryRenderTimer) return;
+    _pfGalleryRenderTimer = setTimeout(() => {
+      _pfGalleryRenderTimer = null;
+      const it = _pfGalleryRenderItems;
+      _pfGalleryRenderItems = null;
+      if (it) renderPortfolioGallery(grid, it);
+    }, 200);
+  }
   function subscribePortfolios(benchmarkId) {
     if (unsubscribePortfolios) unsubscribePortfolios();
+    _pfGalleryPage = PF_PAGE_SIZE; // reset paginator on every benchmark open
     const grid = document.getElementById('pfGallery');
     if (!grid) return;
     const q = query(collection(db, 'portfolios'), where('benchmarkId', '==', benchmarkId));
@@ -3436,14 +3717,17 @@
       snap.forEach(d => items.push({ id: d.id, ...d.data() }));
       // alphabetical by name
       items.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }));
-      renderPortfolioGallery(grid, items);
+      // Update the count badge live from the snapshot — no extra read.
+      updateCountBadge(benchmarkId, items.length);
+      debouncedRenderPortfolio(grid, items);
     }, (err) => {
       console.error('portfolio subscribe error', err);
       grid.innerHTML = `<div class="pf-gallery-empty">Could not load portfolios.</div>`;
     });
   }
 
-  function renderPortfolioGallery(grid, items) {
+  function renderPortfolioGallery(grid, items, opts = {}) {
+    const readOnly = !!opts.readOnly;
     // Track which IDs were already painted so we only animate genuinely-new rows.
     const knownIds = grid._pfKnownIds || new Set();
     // Preserve which row was open before re-render
@@ -3452,12 +3736,20 @@
 
     grid.innerHTML = '';
     if (!items.length) {
-      grid.innerHTML = `<div class="pf-gallery-empty">No portfolios yet — be the first to drop yours.</div>`;
+      grid.innerHTML = readOnly
+        ? `<div class="pf-gallery-empty">No portfolios in this archive.</div>`
+        : `<div class="pf-gallery-empty">No portfolios yet — be the first to drop yours.</div>`;
       grid._pfKnownIds = new Set();
       return;
     }
+
+    // Pagination: only paint up to _pfGalleryPage rows.
+    const total = items.length;
+    const pageSize = readOnly ? total : _pfGalleryPage;
+    const visible = items.slice(0, pageSize);
+
     const newKnownIds = new Set();
-    items.forEach(item => {
+    visible.forEach(item => {
       newKnownIds.add(item.id);
       const row = document.createElement('div');
       row.className = 'pf-row';
@@ -3471,11 +3763,14 @@
         return `<span class="pf-row-chip" title="${escapeHtml(def.label)}" aria-label="${escapeHtml(def.label)} attached"><span class="pf-chip-icon">${def.icon}</span></span>`;
       }).join('');
 
+      const deleteBtnHtml = readOnly
+        ? ''
+        : `<button class="pf-row-delete" data-pf-row-delete aria-label="Delete portfolio">×</button>`;
       row.innerHTML = `
         <div class="pf-row-head" data-pf-row-head>
           <span class="pf-row-name">${escapeHtml(item.studentName || 'Unnamed')}</span>
           <span class="pf-row-icons">${chips || '<span class="pf-row-chip is-empty">empty</span>'}</span>
-          <button class="pf-row-delete" data-pf-row-delete aria-label="Delete portfolio">×</button>
+          ${deleteBtnHtml}
           <span class="pf-row-caret">▶</span>
         </div>
         <div class="pf-row-body"><div class="pf-row-body-inner" data-pf-row-body></div></div>
@@ -3490,23 +3785,61 @@
         if (e.target.closest('[data-pf-row-delete]')) return;
         const willOpen = !row.classList.contains('is-open');
         row.classList.toggle('is-open', willOpen);
-        if (willOpen) renderRowBody(body, item);
+        if (willOpen) {
+          renderRowBody(body, item, { readOnly });
+          // Dynamic max-height: open to actual content, then settle to auto.
+          const inner = row.querySelector('.pf-row-body');
+          if (inner) {
+            inner.style.maxHeight = inner.scrollHeight + 'px';
+            const onEnd = () => {
+              if (row.classList.contains('is-open')) inner.style.maxHeight = 'none';
+              inner.removeEventListener('transitionend', onEnd);
+            };
+            inner.addEventListener('transitionend', onEnd);
+          }
+        } else {
+          // Collapsing: snap back to a measured height first, then 0, so the
+          // CSS transition runs even if we were on max-height: none.
+          const inner = row.querySelector('.pf-row-body');
+          if (inner) {
+            inner.style.maxHeight = inner.scrollHeight + 'px';
+            requestAnimationFrame(() => { inner.style.maxHeight = '0px'; });
+          }
+        }
       });
-      deleteBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        if (!confirm(`Delete ${item.studentName}'s portfolio?`)) return;
-        await deletePortfolio(item);
-      });
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (!confirm(`Delete ${item.studentName}'s portfolio?`)) return;
+          await deletePortfolio(item);
+        });
+      }
 
       if (openIds.has(item.id)) {
         row.classList.add('is-open');
-        renderRowBody(body, item);
+        renderRowBody(body, item, { readOnly });
       }
     });
+
+    // "Show next 50" pager
+    if (!readOnly && total > pageSize) {
+      const remaining = total - pageSize;
+      const nextChunk = Math.min(PF_PAGE_SIZE, remaining);
+      const pager = document.createElement('div');
+      pager.className = 'pf-pager';
+      pager.innerHTML = `<button type="button">Show next ${nextChunk} (${remaining} more)</button>`;
+      pager.querySelector('button').addEventListener('click', () => {
+        _pfGalleryPage += PF_PAGE_SIZE;
+        renderPortfolioGallery(grid, items, opts);
+      });
+      grid.appendChild(pager);
+    }
+
     grid._pfKnownIds = newKnownIds;
   }
 
-  function renderRowBody(body, item) {
+  function renderRowBody(body, item, opts = {}) {
+    const readOnly = !!opts.readOnly;
     body.innerHTML = '';
     const slots = item.slots || {};
     SLOT_DEFS.forEach(def => {
@@ -3516,7 +3849,7 @@
       tile.className = 'pf-view-tile';
       tile.dataset.slotKey = def.key;
       body.appendChild(tile);
-      paintTile(tile, def, data, item, false);
+      paintTile(tile, def, data, item, false, { readOnly });
     });
     if (!body.children.length) {
       body.innerHTML = `<div class="pf-gallery-empty" style="grid-column:1/-1;">No slots filled.</div>`;
@@ -3524,15 +3857,16 @@
   }
 
   // Paint a single tile (DOM events + content) — single source of truth so we don't double-bind.
-  function paintTile(tile, def, data, item, isExpanded) {
+  function paintTile(tile, def, data, item, isExpanded, opts = {}) {
+    const readOnly = !!opts.readOnly;
     tile.classList.toggle('is-expanded', isExpanded);
-    tile.innerHTML = renderSlotView(def, data, isExpanded);
+    tile.innerHTML = renderSlotView(def, data, isExpanded, { readOnly });
 
     const onTileClick = (e) => {
       if (e.target.closest('a, .pf-view-readmore, .pf-view-slot-delete, [data-pf-lightbox]')) return;
       // For text slots, don't toggle — Read more / less handles that
       if (data.mode === 'text' && tile.querySelector('.pf-view-readmore')) return;
-      paintTile(tile, def, data, item, !isExpanded);
+      paintTile(tile, def, data, item, !isExpanded, { readOnly });
     };
     tile.onclick = onTileClick;
 
@@ -3549,7 +3883,7 @@
       });
     }
     const slotDelete = tile.querySelector('.pf-view-slot-delete');
-    if (slotDelete) {
+    if (slotDelete && !readOnly) {
       slotDelete.addEventListener('click', async (e) => {
         e.stopPropagation();
         if (!confirm(`Delete ${item.studentName}'s ${def.label} slot?`)) return;
@@ -3563,15 +3897,34 @@
         openPortfolioLightbox(data, item.studentName, def.label);
       });
     }
+    // Image graceful failure: if the URL 404s show a friendly placeholder.
+    tile.querySelectorAll('img').forEach(img => {
+      img.addEventListener('error', () => {
+        const wrap = img.closest('.pf-view-thumb');
+        if (wrap) {
+          wrap.innerHTML = `<div class="pf-broken"><span class="pf-broken-icon">⚠</span><span>(file unavailable)</span></div>`;
+        }
+      }, { once: true });
+    });
+    tile.querySelectorAll('iframe').forEach(f => {
+      f.addEventListener('error', () => {
+        const wrap = f.closest('.pf-view-thumb');
+        if (wrap) wrap.innerHTML = `<div class="pf-broken"><span class="pf-broken-icon">⚠</span><span>(file unavailable)</span></div>`;
+      }, { once: true });
+    });
   }
 
-  function renderSlotView(def, data, isExpanded) {
+  function renderSlotView(def, data, isExpanded, opts = {}) {
+    const readOnly = !!opts.readOnly;
+    const slotDeleteBtn = readOnly
+      ? ''
+      : `<button class="pf-view-slot-delete" data-pf-slot-delete aria-label="Delete slot">×</button>`;
     const headHtml = `
       <div class="pf-view-head">
         <span class="pf-view-icon">${def.icon}</span>
         <span class="pf-view-label">${escapeHtml(def.label)}</span>
       </div>
-      <button class="pf-view-slot-delete" data-pf-slot-delete aria-label="Delete slot">×</button>
+      ${slotDeleteBtn}
     `;
 
     if (data.mode === 'text') {
@@ -3599,7 +3952,7 @@
     if (ct.startsWith('image/')) {
       return `
         ${headHtml}
-        <div class="pf-view-thumb" data-pf-lightbox><img src="${data.url}" alt="${escapeHtml(data.fileName || '')}" loading="lazy" /></div>
+        <div class="pf-view-thumb" data-pf-lightbox><img src="${data.url}" alt="${escapeHtml(data.fileName || '')}" loading="lazy" decoding="async" /></div>
         <div class="pf-view-filename">${escapeHtml(data.fileName || 'Image')}</div>
         ${isExpanded ? '' : '<span class="pf-view-readmore" style="pointer-events:none;">Click to expand</span>'}
       `;
@@ -3673,6 +4026,7 @@
         }
       }
       await deleteDoc(doc(db, 'portfolios', item.id));
+      if (item.benchmarkId) refreshCountBadge(item.benchmarkId);
     } catch (err) {
       console.error('portfolio delete failed', err);
       alert('Could not delete. Try again.');
@@ -3724,7 +4078,8 @@
   // ============== ARCHIVE (admin) ==============
   document.getElementById('archiveBtn').addEventListener('click', async () => {
     if (!isAdmin) return;
-    if (!confirm('Archive ALL current portfolios and homework artifacts and clear the live galleries? Old work stays accessible in Firestore as a snapshot.')) return;
+    if (!confirm('Archive ALL current portfolios and homework artifacts and clear the live galleries? Old work stays accessible in Firestore as a snapshot and viewable from the Archives button.')) return;
+    const note = (prompt('Optional cohort label (e.g. "April 2026 cohort"). Leave blank to skip.', '') || '').trim();
     try {
       const archiveId = new Date().toISOString().replace(/[:.]/g, '-');
       // Portfolios
@@ -3736,6 +4091,18 @@
       pfSnap.forEach(d => copies.push(setDoc(doc(db, 'archives', archiveId, 'portfolios', d.id), d.data())));
       artSnap.forEach(d => copies.push(setDoc(doc(db, 'archives', archiveId, 'artifacts', d.id), d.data())));
       await Promise.all(copies);
+
+      // Write parent metadata doc — used by the archive viewer's list page.
+      const studentNames = new Set();
+      pfSnap.forEach(d => { const n = d.data().studentName; if (n) studentNames.add(n.trim().toLowerCase()); });
+      artSnap.forEach(d => { const n = d.data().studentName; if (n) studentNames.add(n.trim().toLowerCase()); });
+      await setDoc(doc(db, 'archives', archiveId), {
+        archivedAt: serverTimestamp(),
+        portfolioCount: pfSnap.size,
+        artifactCount: artSnap.size,
+        studentCount: studentNames.size,
+        note: note || ''
+      });
 
       const deletes = [];
       pfSnap.forEach(d => {
@@ -3756,12 +4123,250 @@
         deletes.push(deleteDoc(doc(db, 'artifacts', d.id)));
       });
       await Promise.all(deletes);
+      // Refresh visible count badges (now zero for everything).
+      Object.keys(countEls).forEach(bid => updateCountBadge(bid, 0));
       alert(`Archived ${pfSnap.size} portfolios and ${artSnap.size} homework artifacts to archives/${archiveId}.`);
     } catch (err) {
       console.error(err);
       alert('Archive failed. Check console.');
     }
   });
+
+  // ============== ARCHIVE VIEWER (admin) ==============
+  // Per-session cache so re-opening an archive doesn't re-fetch.
+  const _archiveCache = new Map(); // archiveId -> { portfolios: [...], meta: {...} }
+
+  function fmtArchiveDate(d) {
+    if (!d) return '';
+    try {
+      const dt = (d.toDate && d.toDate()) || d;
+      return dt.toISOString().slice(0, 10);
+    } catch (_) { return String(d); }
+  }
+  function archiveTitleFor(meta, archiveId) {
+    if (meta?.note) return meta.note;
+    // Fall back to the readable date portion of the archiveId
+    return `Archive ${archiveId.slice(0, 10)}`;
+  }
+
+  async function openArchivesList() {
+    if (!isAdmin) return;
+    currentBenchmark = null;
+    modalTitle.textContent = 'Class Archives';
+    modalPoints.style.display = 'none';
+    modalBody.classList.remove('is-hw');
+    modalBody.innerHTML = `
+      <div class="modal-section">
+        <p style="color:var(--paper-ink-mid);font-size:14px;margin-bottom:18px;">
+          Read-only snapshots from previous cohorts. Click any archive to browse it.
+        </p>
+        <div class="archive-list" id="archiveList">
+          <div class="archive-list-empty">Loading archives…</div>
+        </div>
+      </div>
+    `;
+    // Tear down any open live listeners first.
+    if (unsubscribeGallery) { unsubscribeGallery(); unsubscribeGallery = null; }
+    if (unsubscribePortfolios) { unsubscribePortfolios(); unsubscribePortfolios = null; }
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    const listEl = document.getElementById('archiveList');
+    try {
+      // Fetch parent docs only — no subcollection scans.
+      const archivesSnap = await getDocs(collection(db, 'archives'));
+      const items = [];
+      archivesSnap.forEach(d => {
+        const data = d.data() || {};
+        // Only include docs that look like a metadata doc (has archivedAt).
+        // Older archives may not have a parent doc — surface them too with a synthetic stub.
+        items.push({ id: d.id, ...data });
+      });
+      // Sort newest first by archiveId (ISO-ish string sorts naturally).
+      items.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+
+      if (!items.length) {
+        listEl.innerHTML = `<div class="archive-list-empty">No archives yet.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = '';
+      items.forEach(item => {
+        const date = item.archivedAt ? fmtArchiveDate(item.archivedAt) : item.id.slice(0, 10);
+        const title = archiveTitleFor(item, item.id);
+        const meta = [
+          item.studentCount != null ? `${item.studentCount} students` : null,
+          item.portfolioCount != null ? `${item.portfolioCount} portfolios` : null,
+          item.artifactCount != null ? `${item.artifactCount} homework` : null
+        ].filter(Boolean).join(' · ');
+        const row = document.createElement('div');
+        row.className = 'archive-list-item';
+        row.innerHTML = `
+          <div class="archive-info">
+            <div class="archive-title">${escapeHtml(title)}</div>
+            <div class="archive-meta">archived ${escapeHtml(date)}${meta ? ' — ' + escapeHtml(meta) : ''}</div>
+          </div>
+          <span class="archive-caret">▶</span>
+        `;
+        row.addEventListener('click', () => openArchiveDetail(item.id, item));
+        listEl.appendChild(row);
+      });
+    } catch (err) {
+      console.error('archive list failed', err);
+      listEl.innerHTML = `<div class="archive-list-empty">Could not load archives.</div>`;
+    }
+  }
+
+  async function openArchiveDetail(archiveId, metaHint) {
+    if (!isAdmin) return;
+    currentBenchmark = null;
+    modalTitle.textContent = archiveTitleFor(metaHint || {}, archiveId);
+    modalPoints.style.display = 'none';
+    modalBody.classList.remove('is-hw');
+    modalBody.innerHTML = `
+      <div class="modal-section">
+        <div class="archive-banner">
+          <span class="archive-banner-tag">Archive</span>
+          <span>Read-only snapshot. ${escapeHtml(fmtArchiveDate(metaHint?.archivedAt) || archiveId.slice(0, 10))}</span>
+          <div class="archive-banner-actions">
+            <button type="button" data-archive-back>← All archives</button>
+            <button type="button" class="btn-restore" data-archive-restore>Restore to live</button>
+          </div>
+        </div>
+        <div id="archiveDetail">
+          <div class="pf-gallery-empty">Loading…</div>
+        </div>
+      </div>
+    `;
+    // Update URL deep link.
+    try {
+      const sp = new URLSearchParams(location.search);
+      sp.set('admin', ADMIN_TOKEN);
+      sp.set('archive', archiveId);
+      history.replaceState(null, '', `${location.pathname}?${sp.toString()}`);
+    } catch (_) {}
+
+    modalBody.querySelector('[data-archive-back]').addEventListener('click', () => {
+      // Clear the deep link param when going back to the list.
+      try {
+        const sp = new URLSearchParams(location.search);
+        sp.delete('archive');
+        history.replaceState(null, '', `${location.pathname}?${sp.toString()}`);
+      } catch (_) {}
+      openArchivesList();
+    });
+    modalBody.querySelector('[data-archive-restore]').addEventListener('click', () => restoreArchive(archiveId));
+
+    if (!modal.classList.contains('open')) {
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    const detailEl = document.getElementById('archiveDetail');
+    try {
+      let cached = _archiveCache.get(archiveId);
+      if (!cached) {
+        // One-time getDocs — no live listener for archives.
+        const pfSnap = await getDocs(collection(db, 'archives', archiveId, 'portfolios'));
+        const portfolios = [];
+        pfSnap.forEach(d => portfolios.push({ id: d.id, ...d.data() }));
+        cached = { portfolios, meta: metaHint || null };
+        _archiveCache.set(archiveId, cached);
+      }
+      const portfolios = cached.portfolios;
+
+      detailEl.innerHTML = '';
+      // Group archived portfolios by benchmarkId, render in PROJECTS order.
+      const byBenchmark = {};
+      portfolios.forEach(p => {
+        const bid = p.benchmarkId || '_unbound';
+        (byBenchmark[bid] = byBenchmark[bid] || []).push(p);
+      });
+
+      let renderedAny = false;
+      PROJECTS.forEach(project => {
+        const projHasContent = project.benchmarks.some(b => byBenchmark[b.id]?.length);
+        if (!projHasContent) return;
+        renderedAny = true;
+        const projSec = document.createElement('section');
+        projSec.className = 'project';
+        projSec.style.marginBottom = '32px';
+        projSec.innerHTML = `<h2 class="project-title">${escapeHtml(project.title)}</h2>`;
+        const benchWrap = document.createElement('div');
+        benchWrap.className = 'benchmarks';
+        project.benchmarks.forEach(b => {
+          const bucket = byBenchmark[b.id] || [];
+          if (!bucket.length) return;
+          const wrapper = document.createElement('div');
+          wrapper.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-bottom:18px;';
+          wrapper.innerHTML = `
+            <div style="font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-mid);">
+              ${escapeHtml(b.title)} — ${bucket.length} portfolio${bucket.length === 1 ? '' : 's'}
+            </div>
+            <div class="pf-gallery"></div>
+          `;
+          const grid = wrapper.querySelector('.pf-gallery');
+          // Sort alphabetically as in the live view.
+          bucket.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }));
+          renderPortfolioGallery(grid, bucket, { readOnly: true });
+          benchWrap.appendChild(wrapper);
+        });
+        projSec.appendChild(benchWrap);
+        detailEl.appendChild(projSec);
+      });
+
+      if (!renderedAny) {
+        detailEl.innerHTML = `<div class="pf-gallery-empty">This archive has no portfolios.</div>`;
+      }
+    } catch (err) {
+      console.error('archive detail failed', err);
+      detailEl.innerHTML = `<div class="pf-gallery-empty">Could not load this archive.</div>`;
+    }
+  }
+
+  async function restoreArchive(archiveId) {
+    if (!isAdmin) return;
+    if (!confirm(
+      'Restore this archive\'s portfolios to the LIVE collection? This is for accidental archives only — it copies docs back to /portfolios. Proceed?'
+    )) return;
+    try {
+      const cached = _archiveCache.get(archiveId);
+      let portfolios = cached?.portfolios;
+      if (!portfolios) {
+        const pfSnap = await getDocs(collection(db, 'archives', archiveId, 'portfolios'));
+        portfolios = [];
+        pfSnap.forEach(d => portfolios.push({ id: d.id, ...d.data() }));
+      }
+      if (!portfolios.length) { alert('Nothing to restore.'); return; }
+
+      // Strip the archive doc id and write a fresh doc in /portfolios with a
+      // new server timestamp. We DO preserve all slot data including the
+      // existing fileUrl pointers (Storage objects were left in place since
+      // archive doesn't move blobs — they were deleted on archive though, so
+      // file-mode slots may now be broken; the read-side renders a friendly
+      // placeholder for those).
+      const writes = [];
+      portfolios.forEach(p => {
+        const { id, createdAt, ...rest } = p;
+        writes.push(addDoc(collection(db, 'portfolios'), {
+          ...rest,
+          createdAt: serverTimestamp()
+        }));
+      });
+      await Promise.all(writes);
+      // Refresh count badges so admin sees the restore reflected.
+      const benchIds = new Set(portfolios.map(p => p.benchmarkId).filter(Boolean));
+      benchIds.forEach(bid => refreshCountBadge(bid));
+      alert(`Restored ${portfolios.length} portfolios to live. Note: archived files (storage blobs) were deleted at archive time, so file-mode slots may show "(file unavailable)".`);
+    } catch (err) {
+      console.error('restore failed', err);
+      alert('Restore failed. Check console.');
+    }
+  }
+
+  if (isAdmin) {
+    document.getElementById('archivesViewBtn').addEventListener('click', openArchivesList);
+  }
 
   // ============== UTIL ==============
   function escapeHtml(s) {
@@ -3777,6 +4382,16 @@
     renderHomework();
   } else {
     renderProjects();
+  }
+  // Pull initial counts via getCountFromServer (1 read per benchmark).
+  loadInitialCounts();
+  // Deep link to an archive: ?admin=ramsey-d4sg&archive=2026-04-15T12-34-56
+  if (isAdmin) {
+    const archiveDeepLink = urlParams.get('archive');
+    if (archiveDeepLink) {
+      // Defer slightly so projects render first.
+      setTimeout(() => openArchiveDetail(archiveDeepLink, null), 50);
+    }
   }
 </script>
 

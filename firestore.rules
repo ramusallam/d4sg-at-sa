@@ -47,5 +47,13 @@ service cloud.firestore {
       allow create, delete: if true;
       allow update: if false;
     }
+    // Parent archive metadata doc: archivedAt + counts + optional admin note.
+    // Lets the archive viewer list archives without scanning subcollections.
+    match /archives/{archiveId} {
+      allow read: if true;
+      allow create: if request.resource.data.archivedAt is timestamp;
+      allow update: if false;
+      allow delete: if true;
+    }
   }
 }
