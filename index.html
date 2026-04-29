@@ -119,12 +119,12 @@
   }
 
   /* ============== FINALE: PUBLISH TO INSTRUCTABLES (Project 4 only) ============== */
-  /* Distinctive coral-to-magenta gradient — intentionally different from every other
-     accent in the app to mark the END of the course / publish the final artifact. */
+  /* Quiet, grown-up forest-green CTA. Distinct from the indigo accents elsewhere
+     so the publishing step still reads as a separate moment, but no shouting. */
   .finale-publish {
     margin-top: 28px;
-    padding-top: 28px;
-    border-top: 1px dashed rgba(218, 95, 78, 0.35);
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
     display: flex;
     justify-content: stretch;
   }
@@ -132,75 +132,56 @@
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 18px;
-    padding: 22px 26px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #FF7A45 0%, #E65C3C 45%, #C9337F 100%);
+    gap: 16px;
+    padding: 18px 22px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #15803D 0%, #14653A 100%);
     color: #ffffff;
     text-decoration: none;
-    box-shadow: 0 8px 28px rgba(230, 92, 60, 0.35), 0 2px 6px rgba(201, 51, 127, 0.18);
-    transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
-    position: relative;
-    overflow: hidden;
-  }
-  .finale-btn::before {
-    /* subtle warm glow */
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 60%;
-    height: 200%;
-    background: radial-gradient(closest-side, rgba(255, 220, 180, 0.25), transparent 70%);
-    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(20, 101, 58, 0.15);
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
   }
   .finale-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 36px rgba(230, 92, 60, 0.45), 0 4px 10px rgba(201, 51, 127, 0.22);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(20, 101, 58, 0.22);
   }
   .finale-btn:active {
     transform: translateY(0);
-  }
-  .finale-spark {
-    font-size: 32px;
-    line-height: 1;
-    color: #FFE066;
-    text-shadow: 0 0 12px rgba(255, 224, 102, 0.7);
-    flex-shrink: 0;
   }
   .finale-text {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
   }
   .finale-title {
-    font-size: 20px;
-    font-weight: 800;
+    font-size: 16px;
+    font-weight: 700;
     letter-spacing: -0.01em;
     color: #ffffff;
   }
   .finale-sub {
     font-size: 13px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.88);
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
     line-height: 1.45;
   }
   .finale-arrow {
-    font-size: 26px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 600;
     color: #ffffff;
     flex-shrink: 0;
-    transition: transform 0.18s ease-out;
+    opacity: 0.9;
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
   }
   .finale-btn:hover .finale-arrow {
-    transform: translateX(4px);
+    transform: translateX(3px);
+    opacity: 1;
   }
   @media (max-width: 600px) {
-    .finale-btn { padding: 18px 20px; gap: 14px; border-radius: 14px; }
-    .finale-spark { font-size: 26px; }
-    .finale-title { font-size: 17px; }
+    .finale-btn { padding: 16px 18px; gap: 12px; border-radius: 10px; }
+    .finale-title { font-size: 15px; }
     .finale-sub { font-size: 12px; }
     .finale-arrow { font-size: 22px; }
   }
@@ -2522,7 +2503,6 @@
         finale.className = 'finale-publish';
         finale.innerHTML = `
           <a href="https://www.instructables.com/contest/?utm_source=d4sg-at-sa" target="_blank" rel="noopener" class="finale-btn" aria-label="Publish your final adaptive controller as an Instructable">
-            <span class="finale-spark" aria-hidden="true">★</span>
             <span class="finale-text">
               <span class="finale-title">Publish to Instructables</span>
               <span class="finale-sub">End of the road. Take your final adaptive controller out into the world.</span>
