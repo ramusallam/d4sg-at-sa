@@ -490,13 +490,19 @@
   body.view-progress .nav-to-progress { display: none; }
 
   /* ============== PROGRESS page ============== */
+  /* Tight grid in a card. Names are big and elegant on the left, projects
+     are stacked headers across the top (PROJECT N → 1 2 3 4 5). The
+     Instructable lives at the very right with a green "I" header to call it
+     out. Done cells render a green check that hyperlinks into that
+     student's gallery row; empty cells stay nearly invisible. */
   .progress-section { margin-bottom: 32px; }
   .progress-table-wrap {
-    overflow-x: auto;
     background: white;
     border: 1px solid var(--border);
-    border-radius: 14px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    border-radius: 18px;
+    box-shadow: 0 6px 22px rgba(17, 17, 17, 0.05);
+    overflow-x: auto;
+    padding: 8px 4px 14px;
   }
   .progress-table {
     border-collapse: collapse;
@@ -507,90 +513,128 @@
   .progress-table td {
     padding: 0;
     text-align: center;
-    vertical-align: middle;
-    white-space: nowrap;
     background: white;
+    white-space: nowrap;
   }
+
+  /* Project group eyebrow */
   .progress-table thead .prog-project-th {
-    color: var(--paper-ink);
+    font-size: 10px;
     font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 1px;
+    letter-spacing: 1.8px;
     text-transform: uppercase;
-    padding: 14px 8px 10px;
-    border-bottom: 1px solid var(--border);
+    color: var(--ink-low);
+    padding: 22px 14px 8px;
   }
+  .progress-table thead .prog-project-th.is-final {
+    color: var(--success);
+  }
+
+  /* Benchmark number row */
   .progress-table thead .prog-bench-th {
+    font-size: 11px;
     font-weight: 600;
     color: var(--ink-low);
-    font-size: 12px;
-    padding: 10px 8px 12px;
-    min-width: 48px;
-    border-bottom: 1px solid var(--border-strong);
+    padding: 0 0 16px;
+    min-width: 46px;
+    border-bottom: 1px solid var(--border);
   }
+  .progress-table thead .prog-bench-th.is-final {
+    color: var(--success);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    font-style: italic;
+  }
+
+  /* Sticky student name column */
   .progress-table .prog-name-cell {
     position: sticky;
     left: 0;
     z-index: 1;
+    background: white;
     text-align: left;
-    padding: 14px 18px;
+    padding: 18px 24px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--paper-ink);
-    min-width: 180px;
-    max-width: 220px;
+    letter-spacing: -0.01em;
+    min-width: 220px;
+    max-width: 260px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .progress-table thead .prog-name-cell {
-    background: white;
-    font-weight: 600;
-    color: var(--ink-low);
-    font-size: 11px;
-    letter-spacing: 0.8px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
     text-transform: uppercase;
-    padding: 14px 18px 12px;
-    border-bottom: 1px solid var(--border-strong);
+    color: var(--ink-low);
+    padding: 22px 24px 16px;
+    border-bottom: 1px solid var(--border);
   }
-  .progress-table tbody tr { border-top: 1px solid var(--border); }
-  .progress-table tbody tr:hover td,
-  .progress-table tbody tr:hover .prog-name-cell { background: var(--bg-2); }
 
+  /* Row separator + hover */
+  .progress-table tbody tr td { border-top: 1px solid rgba(17, 17, 17, 0.04); }
+  .progress-table tbody tr:first-child td { border-top: none; }
+  .progress-table tbody tr { transition: background 0.15s ease; }
+  .progress-table tbody tr:hover .prog-name-cell,
+  .progress-table tbody tr:hover td { background: var(--bg-2); }
+
+  /* Cells */
   .prog-cell {
-    width: 48px;
-    height: 44px;
+    width: 46px;
+    height: 56px;
     padding: 0;
   }
+
+  /* Done state — green check, no chip background until hover */
   .prog-check {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
     color: var(--success);
     text-decoration: none;
-    transition: background 0.15s ease, transform 0.12s ease;
     cursor: pointer;
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease;
   }
   .prog-check:hover {
     background: rgba(34, 197, 94, 0.14);
-    transform: scale(1.05);
+    transform: scale(1.18);
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.25);
   }
-  .prog-check svg { width: 16px; height: 16px; display: block; }
+  .prog-check svg { width: 18px; height: 18px; display: block; }
+
+  /* Empty cell — minuscule dot, almost invisible */
+  .prog-cell:empty::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--border);
+    opacity: 0.5;
+  }
+
   .prog-empty {
     text-align: center;
     color: var(--ink-low);
-    padding: 28px 16px;
-    font-size: 13px;
+    padding: 36px 16px;
+    font-size: 14px;
     background: white;
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 820px) {
     .progress-table { font-size: 12px; }
-    .progress-table .prog-name-cell { min-width: 130px; padding: 12px 12px; }
-    .prog-cell { width: 42px; height: 40px; }
-    .prog-check { width: 24px; height: 24px; border-radius: 6px; }
-    .prog-check svg { width: 14px; height: 14px; }
+    .progress-table .prog-name-cell { min-width: 160px; padding: 14px 16px; font-size: 14px; }
+    .progress-table thead .prog-name-cell { padding: 18px 16px 12px; }
+    .prog-cell { width: 40px; height: 50px; }
+    .prog-check { width: 26px; height: 26px; }
+    .prog-check svg { width: 16px; height: 16px; }
+    .progress-table thead .prog-bench-th { min-width: 38px; }
   }
 
   /* Instructable submission panel — single link field, slim like checkpoint */
@@ -2774,6 +2818,7 @@
   }
 
   function shortBenchLabel(b, idx) {
+    if (b.id === 'instructable') return 'I';
     return String(idx + 1);
   }
 
@@ -2825,12 +2870,14 @@
     let head = '<thead><tr>';
     head += `<th class="prog-name-cell" rowspan="2">Student</th>`;
     PROJECTS.forEach(p => {
-      head += `<th class="prog-project-th" colspan="${p.benchmarks.length}">${escapeHtml(shortProjectLabel(p))}</th>`;
+      const finalCls = p.id === 'final' ? ' is-final' : '';
+      head += `<th class="prog-project-th${finalCls}" colspan="${p.benchmarks.length}">${escapeHtml(shortProjectLabel(p))}</th>`;
     });
     head += '</tr><tr>';
     PROJECTS.forEach(p => {
       p.benchmarks.forEach((b, idx) => {
-        head += `<th class="prog-bench-th" title="${escapeHtml(b.title)}">${escapeHtml(shortBenchLabel(b, idx))}</th>`;
+        const finalCls = b.id === 'instructable' ? ' is-final' : '';
+        head += `<th class="prog-bench-th${finalCls}" title="${escapeHtml(b.title)}">${escapeHtml(shortBenchLabel(b, idx))}</th>`;
       });
     });
     head += '</tr></thead>';
