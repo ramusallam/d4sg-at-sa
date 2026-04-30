@@ -530,6 +530,28 @@
     letter-spacing: -0.02em;
     color: var(--ink-hi);
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .prog-card-you {
+    display: inline-flex;
+    align-items: center;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 999px;
+  }
+  .prog-card.is-you {
+    border-color: rgba(59, 130, 246, 0.35);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.12);
+  }
+  .prog-card.is-you:hover {
+    box-shadow: 0 8px 22px rgba(59, 130, 246, 0.18);
   }
   .prog-card-tally {
     display: inline-flex;
@@ -636,9 +658,18 @@
     border-radius: 14px;
     padding: 40px 24px;
     text-align: center;
-    color: var(--ink-low);
-    font-size: 14px;
     box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
+  }
+  .prog-cards-empty-line {
+    margin: 0 0 6px;
+    font-size: 15px;
+    color: var(--paper-ink);
+    font-weight: 600;
+  }
+  .prog-cards-empty-sub {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-low);
   }
 
   @media (max-width: 720px) {
@@ -2820,6 +2851,12 @@
   let _progressUnsubscribe = null;
   let _progressData = {}; // { studentName: Set(benchmarkId) }
 
+  // Temporary seed students to preview the Progress page before real submissions
+  // exist. Remove these (or set to empty {}) once your class starts dropping work.
+  const TEST_PROGRESS = {
+    'Test Student': new Set(['p1b1', 'p1b2', 'p1b3', 'p2b1', 'p2b2', 'p2b3', 'p2b4', 'p2b5'])
+  };
+
   const PROG_CHECK_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>`;
 
   function findBenchmarkById(id) {
@@ -2877,26 +2914,51 @@
     const tbl = document.getElementById('progressTable');
     if (!tbl) return;
 
-    const studentNames = Object.keys(_progressData).sort((a, b) =>
-      a.localeCompare(b, undefined, { sensitivity: 'base' })
-    );
+    // Viewer's localStorage name — they always see their own card first, even
+    // if they haven't submitted anything yet. Lets every student walk up to
+    // Progress and see their full track ready to fill.
+    const myName = (localStorage.getItem(NAME_KEY) || '').trim();
 
-    if (!studentNames.length) {
-      tbl.innerHTML = `<div class="prog-cards-empty">No submissions yet — once your class drops work, this fills up.</div>`;
+    // Merge in any seeded test students so the page demos the design before
+    // real submissions exist.
+    const merged = { ..._progressData };
+    Object.keys(TEST_PROGRESS).forEach(n => {
+      if (!merged[n]) merged[n] = TEST_PROGRESS[n];
+    });
+
+    const allNames = new Set(Object.keys(merged));
+    if (myName) allNames.add(myName);
+
+    if (!allNames.size) {
+      tbl.innerHTML = `
+        <div class="prog-cards-empty">
+          <p class="prog-cards-empty-line">Track your progress through the course.</p>
+          <p class="prog-cards-empty-sub">Drop your first submission anywhere — your card will pin to the top of this page.</p>
+        </div>
+      `;
       return;
     }
+
+    const studentNames = Array.from(allNames).sort((a, b) => {
+      if (myName) {
+        if (a.toLowerCase() === myName.toLowerCase()) return -1;
+        if (b.toLowerCase() === myName.toLowerCase()) return 1;
+      }
+      return a.localeCompare(b, undefined, { sensitivity: 'base' });
+    });
 
     const totalBench = PROJECTS.reduce((s, p) => s + p.benchmarks.length, 0);
 
     let html = '<div class="prog-cards">';
     studentNames.forEach(name => {
-      const done = _progressData[name];
+      const done = merged[name] || new Set();
       let ownDone = 0;
       PROJECTS.forEach(p => p.benchmarks.forEach(b => { if (done.has(b.id)) ownDone++; }));
+      const isMe = myName && name.toLowerCase() === myName.toLowerCase();
 
-      html += `<article class="prog-card">
+      html += `<article class="prog-card${isMe ? ' is-you' : ''}">
         <header class="prog-card-head">
-          <h3 class="prog-card-name">${escapeHtml(name)}</h3>
+          <h3 class="prog-card-name">${escapeHtml(name)}${isMe ? '<span class="prog-card-you">you</span>' : ''}</h3>
           <div class="prog-card-tally"><span class="prog-card-tally-num">${ownDone}</span><span class="prog-card-tally-of">/ ${totalBench}</span></div>
         </header>
         <ul class="prog-card-rows">`;
