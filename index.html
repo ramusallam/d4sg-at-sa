@@ -2192,7 +2192,7 @@
   const PROJECTS = [
     {
       id: 'p1',
-      title: 'Project 1: Mechanical Adaptive Switch Foundations',
+      title: 'Project 1: Basic Adaptive Switches',
       goal: 'Build the safe, working foundation for adaptive switches that anyone can press, lift, or trigger.',
       benchmarks: [
         {
@@ -2467,6 +2467,17 @@
   const app = document.getElementById('app');
 
   const PAPERCLIP_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>';
+
+  // Clean line-icon set for portfolio slots and previews. All icons inherit
+  // currentColor and scale with parent font-size (width/height = 1em).
+  const _SVG_ATTRS = 'width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;"';
+  const ICON_IMAGE   = `<svg ${_SVG_ATTRS}><rect x="3" y="6" width="18" height="14" rx="2.5"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.3-2.2h5.4L16 6"/></svg>`;
+  const ICON_VIDEO   = `<svg ${_SVG_ATTRS}><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10.5 9.5l4 2.5-4 2.5z" fill="currentColor" stroke="none"/></svg>`;
+  const ICON_CAD     = `<svg ${_SVG_ATTRS}><path d="M12 3l8.5 4.5v9L12 21l-8.5-4.5v-9z"/><path d="M3.5 7.5L12 12l8.5-4.5"/><path d="M12 12v9"/></svg>`;
+  const ICON_CODE    = `<svg ${_SVG_ATTRS}><path d="M8 7l-5 5 5 5"/><path d="M16 7l5 5-5 5"/><path d="M14 5l-4 14"/></svg>`;
+  const ICON_SUMMARY = `<svg ${_SVG_ATTRS}><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/></svg>`;
+  const ICON_LINK    = `<svg ${_SVG_ATTRS}><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.5-1.5"/></svg>`;
+  const ICON_DOC     = `<svg ${_SVG_ATTRS}><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/></svg>`;
 
   function renderProjects() {
     app.innerHTML = '';
@@ -3223,11 +3234,11 @@
 
   // ============== PORTFOLIO SYSTEM ==============
   const SLOT_DEFS = [
-    { key: 'image',   label: 'Image',   icon: '📷', accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
-    { key: 'video',   label: 'Video',   icon: '🎬', accept: 'video/mp4',                                                     exts: 'MP4',       fileTypes: 'video', allowFile: true,  allowLink: true  },
-    { key: 'cad',     label: 'CAD',     icon: '📐', accept: '.stl,model/stl,application/sla,application/vnd.ms-pki.stl',    exts: 'STL',       fileTypes: 'cad',   allowFile: true,  allowLink: false },
-    { key: 'code',    label: 'Code',    icon: '💻', accept: '',                                                              exts: 'Link only', fileTypes: 'link', allowFile: false, allowLink: true  },
-    { key: 'summary', label: 'Summary', icon: '📝', accept: '',                                                              exts: 'Text only', fileTypes: 'text', allowFile: false, allowLink: false }
+    { key: 'image',   label: 'Image',   icon: ICON_IMAGE,   accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
+    { key: 'video',   label: 'Video',   icon: ICON_VIDEO,   accept: 'video/mp4',                                                     exts: 'MP4',       fileTypes: 'video', allowFile: true,  allowLink: true  },
+    { key: 'cad',     label: 'CAD',     icon: ICON_CAD,     accept: '.stl,model/stl,application/sla,application/vnd.ms-pki.stl',    exts: 'STL',       fileTypes: 'cad',   allowFile: true,  allowLink: false },
+    { key: 'code',    label: 'Code',    icon: ICON_CODE,    accept: '',                                                              exts: 'Link only', fileTypes: 'link', allowFile: false, allowLink: true  },
+    { key: 'summary', label: 'Summary', icon: ICON_SUMMARY, accept: '',                                                              exts: 'Text only', fileTypes: 'text', allowFile: false, allowLink: false }
   ];
   const SUMMARY_MAX = 1500;
   const PORTFOLIO_MAX_FILE = 100 * 1024 * 1024; // 100MB
@@ -3268,13 +3279,12 @@
 
   function thumbnailFor(slotData) {
     if (!slotData) return '';
-    if (slotData.mode === 'text') return '📝';
-    if (slotData.mode === 'link') return '🔗';
+    if (slotData.mode === 'text') return ICON_SUMMARY;
+    if (slotData.mode === 'link') return ICON_LINK;
     const ct = (slotData.contentType || '').toLowerCase();
     if (ct.startsWith('image/')) return `<img src="${slotData.url}" alt="" loading="lazy" />`;
     if (ct.startsWith('video/')) return `<video src="${slotData.url}" muted preload="metadata"></video>`;
-    if (ct === 'application/pdf') return '📄';
-    return '📁';
+    return ICON_DOC;
   }
 
   function buildPortfolioPanel(benchmarkId) {
@@ -3418,15 +3428,13 @@
         if (filled) {
           let thumb = '';
           if (filled.mode === 'link') {
-            thumb = '🔗';
+            thumb = ICON_LINK;
           } else if ((filled.contentType || '').startsWith('image/')) {
             thumb = `<img src="${filled.url}" alt="" />`;
           } else if ((filled.contentType || '').startsWith('video/')) {
             thumb = `<video src="${filled.url}" muted></video>`;
-          } else if (filled.contentType === 'application/pdf') {
-            thumb = '📄';
           } else {
-            thumb = '📁';
+            thumb = ICON_DOC;
           }
           const title = filled.mode === 'link'
             ? (filled.url || 'Link')
