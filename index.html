@@ -2807,12 +2807,6 @@
   let _progressUnsubscribe = null;
   let _progressData = {}; // { studentName: Set(benchmarkId) }
 
-  // Temporary seed students to preview the Progress page before real submissions
-  // exist. Remove these (or set to empty {}) once your class starts dropping work.
-  const TEST_PROGRESS = {
-    'Test Student': new Set(['p1b1', 'p1b2', 'p1b3', 'p2b1', 'p2b2', 'p2b3', 'p2b4', 'p2b5'])
-  };
-
   const PROG_CHECK_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>`;
 
   function findBenchmarkById(id) {
@@ -2874,13 +2868,7 @@
     // if they haven't submitted anything yet. Lets every student walk up to
     // Progress and see their full track ready to fill.
     const myName = (localStorage.getItem(NAME_KEY) || '').trim();
-
-    // Merge in any seeded test students so the page demos the design before
-    // real submissions exist.
     const merged = { ..._progressData };
-    Object.keys(TEST_PROGRESS).forEach(n => {
-      if (!merged[n]) merged[n] = TEST_PROGRESS[n];
-    });
 
     const allNames = new Set(Object.keys(merged));
     if (myName) allNames.add(myName);
