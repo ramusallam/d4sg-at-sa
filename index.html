@@ -2617,6 +2617,21 @@
     persist();
   }
 
+  // Auto-check a benchmark after a successful submission. Idempotent —
+  // re-submitting won't toggle it back off.
+  function markChecked(id) {
+    if (checked.has(id)) return;
+    checked.add(id);
+    const cb = document.querySelector(`[data-checkbox="${id}"]`);
+    const row = cb ? cb.closest('.benchmark') : null;
+    if (cb) {
+      cb.classList.add('checked');
+      cb.setAttribute('aria-checked', 'true');
+    }
+    if (row) row.classList.add('done');
+    persist();
+  }
+
   // ============== MODAL ==============
   const modal = document.getElementById('modal');
   const modalCard = document.getElementById('modalCard');
@@ -3765,6 +3780,7 @@
         // Refresh the count badge for this benchmark in case the snapshot
         // hasn't propagated yet (it usually has, but this is belt-and-braces).
         refreshCountBadge(benchmarkId);
+        if (!failedSlots.length) markChecked(benchmarkId);
 
         // Success pulse: green flash on the button, status briefly, then clear.
         submitBtn.textContent = failedSlots.length ? 'Submit failed slots' : '✓ Submitted!';
@@ -3968,6 +3984,7 @@
         clearPhoto();
         textarea.value = '';
         refreshCountBadge(benchmarkId);
+        markChecked(benchmarkId);
 
         submitBtn.textContent = '✓ Submitted!';
         submitBtn.classList.add('is-success');
