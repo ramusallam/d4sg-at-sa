@@ -2835,6 +2835,7 @@
       row.innerHTML = `
         <div class="benchmark-label">${escapeHtml(w.title)}</div>
         <span class="artifact-count" data-count="${w.id}" style="display:none;">${PAPERCLIP_SVG}<span data-count-num>0</span></span>
+        <div class="points">5 pts</div>
       `;
       row.addEventListener('click', () => openHomeworkModal(w));
       list.appendChild(row);
