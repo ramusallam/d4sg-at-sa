@@ -484,9 +484,162 @@
     background: var(--accent-soft);
   }
   .nav-back { display: none; }
-  .nav-to-hw { display: inline-flex; }
-  body.view-hw .nav-back { display: inline-flex; }
+  .nav-to-hw, .nav-to-progress { display: inline-flex; }
+  body.view-hw .nav-back, body.view-progress .nav-back { display: inline-flex; }
   body.view-hw .nav-to-hw { display: none; }
+  body.view-progress .nav-to-progress { display: none; }
+
+  /* ============== PROGRESS page ============== */
+  .progress-section { margin-bottom: 32px; }
+  .progress-blurb {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-mid);
+    margin: 0 0 18px;
+    max-width: 640px;
+  }
+  .progress-table-wrap {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: auto;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    max-height: calc(100vh - 220px);
+  }
+  .progress-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    font-size: 13px;
+  }
+  .progress-table th,
+  .progress-table td {
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    background: white;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .progress-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--bg-2);
+    color: var(--ink-mid);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    padding: 10px 8px;
+  }
+  .progress-table thead .prog-project-th {
+    border-bottom: 1px solid var(--border-strong);
+    color: var(--paper-ink);
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+  .progress-table thead .prog-bench-th {
+    font-weight: 600;
+    color: var(--ink-mid);
+    padding: 8px 6px;
+    min-width: 56px;
+  }
+  .progress-table .prog-name-cell {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: white;
+    text-align: left;
+    padding: 10px 16px;
+    font-weight: 600;
+    color: var(--paper-ink);
+    min-width: 180px;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-right: 1px solid var(--border-strong);
+  }
+  .progress-table thead .prog-name-cell {
+    z-index: 3;
+    background: var(--bg-2);
+    color: var(--ink-mid);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.8px;
+  }
+  .progress-table tbody tr:hover .prog-name-cell { background: var(--bg-2); }
+  .progress-table tbody tr:hover td { background: rgba(34, 197, 94, 0.03); }
+  .progress-table tbody tr:last-child td { border-bottom: none; }
+  .progress-table td:last-child,
+  .progress-table th:last-child { border-right: none; }
+
+  .prog-cell {
+    width: 56px;
+    height: 44px;
+    padding: 0;
+  }
+  .prog-cell.is-done {
+    background: rgba(34, 197, 94, 0.06);
+  }
+  .prog-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--success);
+    color: white;
+    text-decoration: none;
+    transition: transform 0.12s ease, box-shadow 0.18s ease;
+    cursor: pointer;
+  }
+  .prog-check:hover {
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
+  }
+  .prog-check svg { width: 14px; height: 14px; display: block; }
+  .prog-empty {
+    text-align: center;
+    color: var(--ink-low);
+    padding: 28px 16px;
+    font-size: 13px;
+    background: white;
+  }
+  .prog-empty-cell::before {
+    content: '·';
+    color: var(--border-strong);
+    font-size: 14px;
+  }
+
+  @media (max-width: 720px) {
+    .progress-table { font-size: 12px; }
+    .progress-table .prog-name-cell { min-width: 130px; padding: 10px 10px; }
+    .prog-cell { width: 44px; height: 38px; }
+    .prog-check { width: 24px; height: 24px; }
+    .prog-check svg { width: 12px; height: 12px; }
+  }
+
+  /* Instructable submission panel — single link field, slim like checkpoint */
+  .instructable-panel .inst-link-input {
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    border-radius: 11px;
+    padding: 12px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--paper-ink);
+    background: var(--bg-1);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .instructable-panel .inst-link-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
 
   /* ============== HOMEWORK page ============== */
   .week-row {
@@ -2119,9 +2272,9 @@
   <div class="header-inner">
     <h1 class="header-title">D4SG <span class="at">@</span> SA</h1>
     <div class="header-meta">
+      <a href="/progress" class="nav-link nav-to-progress">Progress</a>
       <a href="/hw" class="nav-link nav-to-hw">Homework</a>
       <a href="/" class="nav-link nav-back">← Back to class</a>
-      <span class="header-subtitle">Design for Social Good</span>
       <span class="admin-bar">
         <span class="admin-tag">Admin</span>
         <button class="archive-btn" id="archivesViewBtn">Archives</button>
@@ -2421,6 +2574,24 @@
           ]
         }
       ]
+    },
+    {
+      id: 'final',
+      title: 'Final: Publish Instructable',
+      goal: 'Publish your finished controller to Instructables so the world can build from your work.',
+      benchmarks: [
+        {
+          id: 'instructable',
+          title: 'Instructable',
+          points: 50,
+          instructions: 'Publish your finished controller as a step-by-step Instructable on instructables.com. Include build photos, materials list, code, and STL files in the post. Then drop the public URL below.',
+          videoUrl: '',
+          links: [],
+          rubric: [
+            { label: 'Instructable', text: 'Public link to a complete, published Instructable.', points: 50 }
+          ]
+        }
+      ]
     }
   ];
 
@@ -2613,6 +2784,126 @@
     app.appendChild(sec);
   }
 
+  // ============== PROGRESS page ==============
+  // Live grid of student × benchmark completion. Subscribes to the portfolios
+  // collection once; the existence of any portfolio doc with (studentName,
+  // benchmarkId) marks that cell as "done" and renders a clickable green check
+  // that opens the benchmark modal and auto-expands that student's row.
+  let _progressUnsubscribe = null;
+  let _progressData = {}; // { studentName: Set(benchmarkId) }
+
+  const PROG_CHECK_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>`;
+
+  function findBenchmarkById(id) {
+    for (const p of PROJECTS) {
+      for (const b of p.benchmarks) {
+        if (b.id === id) return b;
+      }
+    }
+    return null;
+  }
+
+  function shortBenchLabel(b, idx) {
+    if (b.id === 'instructable') return 'Pub';
+    if (b.title === 'Portfolio Drop') return 'Drop';
+    return String(idx + 1);
+  }
+
+  function shortProjectLabel(p) {
+    return p.title.replace(/^Project \d+: /, '').replace(/^Final: /, '');
+  }
+
+  function renderProgress() {
+    app.innerHTML = '';
+    const wrap = document.createElement('section');
+    wrap.className = 'progress-section';
+    wrap.innerHTML = `
+      <h2 class="project-title">Class Progress</h2>
+      <p class="progress-blurb">Each row is a student, each column a benchmark. A green check means a submission is in. Click any check to jump to that work.</p>
+      <div class="progress-table-wrap">
+        <table class="progress-table" id="progressTable"></table>
+      </div>
+    `;
+    app.appendChild(wrap);
+    subscribeProgress();
+  }
+
+  function subscribeProgress() {
+    if (_progressUnsubscribe) _progressUnsubscribe();
+    _progressUnsubscribe = onSnapshot(collection(db, 'portfolios'), (snap) => {
+      _progressData = {};
+      snap.forEach(d => {
+        const data = d.data();
+        const name = (data.studentName || '').trim();
+        if (!name || !data.benchmarkId) return;
+        if (!_progressData[name]) _progressData[name] = new Set();
+        _progressData[name].add(data.benchmarkId);
+      });
+      renderProgressTable();
+    }, (err) => {
+      console.error('progress subscribe error', err);
+      const tbl = document.getElementById('progressTable');
+      if (tbl) tbl.innerHTML = `<tbody><tr><td class="prog-empty">Could not load progress.</td></tr></tbody>`;
+    });
+  }
+
+  function renderProgressTable() {
+    const tbl = document.getElementById('progressTable');
+    if (!tbl) return;
+
+    const totalCols = 1 + PROJECTS.reduce((s, p) => s + p.benchmarks.length, 0);
+
+    // ---- Header
+    let head = '<thead><tr>';
+    head += `<th class="prog-name-cell" rowspan="2">Student</th>`;
+    PROJECTS.forEach(p => {
+      head += `<th class="prog-project-th" colspan="${p.benchmarks.length}">${escapeHtml(shortProjectLabel(p))}</th>`;
+    });
+    head += '</tr><tr>';
+    PROJECTS.forEach(p => {
+      p.benchmarks.forEach((b, idx) => {
+        head += `<th class="prog-bench-th" title="${escapeHtml(b.title)}">${escapeHtml(shortBenchLabel(b, idx))}</th>`;
+      });
+    });
+    head += '</tr></thead>';
+
+    // ---- Body
+    const studentNames = Object.keys(_progressData).sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' })
+    );
+
+    let body = '<tbody>';
+    if (!studentNames.length) {
+      body += `<tr><td class="prog-empty" colspan="${totalCols}">No submissions yet — once your class drops work, this board fills up.</td></tr>`;
+    } else {
+      studentNames.forEach(name => {
+        const done = _progressData[name];
+        body += `<tr><td class="prog-name-cell">${escapeHtml(name)}</td>`;
+        PROJECTS.forEach(p => {
+          p.benchmarks.forEach(b => {
+            if (done.has(b.id)) {
+              body += `<td class="prog-cell is-done"><a class="prog-check" data-bench="${escapeHtml(b.id)}" data-student="${escapeHtml(name)}" title="View ${escapeHtml(name)}'s ${escapeHtml(b.title)} submission">${PROG_CHECK_SVG}</a></td>`;
+            } else {
+              body += `<td class="prog-cell prog-empty-cell"></td>`;
+            }
+          });
+        });
+        body += '</tr>';
+      });
+    }
+    body += '</tbody>';
+
+    tbl.innerHTML = head + body;
+
+    tbl.querySelectorAll('.prog-check').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const benchObj = findBenchmarkById(a.dataset.bench);
+        if (benchObj) openModal(benchObj, { focusStudent: a.dataset.student });
+      });
+    });
+  }
+
   function toggleChecked(id, row, cb) {
     if (checked.has(id)) {
       checked.delete(id);
@@ -2651,7 +2942,11 @@
   const modalBody = document.getElementById('modalBody');
   const closeBtn = document.getElementById('closeBtn');
 
-  function openModal(b) {
+  // _focusStudent: when set, the next portfolio gallery render auto-expands the
+  // row for that student name and scrolls it into view.
+  let _focusStudent = null;
+  function openModal(b, opts = {}) {
+    _focusStudent = opts.focusStudent || null;
     currentBenchmark = b;
     modalTitle.textContent = b.title;
     modalPoints.textContent = `${b.points} pts`;
@@ -2709,17 +3004,25 @@
       modalBody.appendChild(sec);
     }
 
-    // Submission panel — checkpoint (simple photo + reflection) or full Portfolio Drop
+    // Submission panel — instructable (link-only), Portfolio Drop (multi-slot), or checkpoint (photo + reflection)
     const isPortfolioDrop = b.title === 'Portfolio Drop';
+    const isInstructable = b.id === 'instructable';
     const portfolioSec = document.createElement('div');
     portfolioSec.className = 'modal-section';
+    const submitHeading = isInstructable ? 'Drop your Instructable link'
+      : isPortfolioDrop ? 'Drop your portfolio'
+      : 'Submit evidence + reflection';
     portfolioSec.innerHTML = `
-      <h3>${badge()}${isPortfolioDrop ? 'Drop your portfolio' : 'Submit evidence + reflection'}</h3>
+      <h3>${badge()}${submitHeading}</h3>
       <div id="portfolioPanelMount"></div>
     `;
     modalBody.appendChild(portfolioSec);
     const panelMount = portfolioSec.querySelector('#portfolioPanelMount');
-    panelMount.appendChild(isPortfolioDrop ? buildPortfolioPanel(b.id) : buildCheckpointPanel(b.id));
+    panelMount.appendChild(
+      isInstructable ? buildInstructablePanel(b.id)
+      : isPortfolioDrop ? buildPortfolioPanel(b.id)
+      : buildCheckpointPanel(b.id)
+    );
 
     // Gallery — students by name with expandable rows
     const gallerySec = document.createElement('div');
@@ -2740,6 +3043,7 @@
     modal.classList.remove('open');
     document.body.style.overflow = '';
     currentBenchmark = null;
+    _focusStudent = null;
     if (unsubscribeGallery) { unsubscribeGallery(); unsubscribeGallery = null; }
     if (unsubscribePortfolios) { unsubscribePortfolios(); unsubscribePortfolios = null; }
     // Cancel any pending debounced renders so they don't paint into a closed modal.
@@ -4020,6 +4324,95 @@
     return panel;
   }
 
+  // ----- Instructable panel — link-only submission -----
+  // Stores the URL under slot.code so the existing gallery renders it as a
+  // clickable link chip without any extra render path.
+  function buildInstructablePanel(benchmarkId) {
+    const panel = document.createElement('div');
+    panel.className = 'portfolio-panel checkpoint-panel instructable-panel';
+
+    const savedName = localStorage.getItem(NAME_KEY) || '';
+    panel.innerHTML = `
+      <div class="pf-name-row">
+        <label for="instNameInput">Your name</label>
+        <input id="instNameInput" type="text" maxlength="80" placeholder="e.g. Alex Rivera" value="${escapeHtml(savedName)}" />
+      </div>
+      <div class="cp-section">
+        <div class="cp-section-label">Public Instructable URL</div>
+        <input class="inst-link-input" type="url" data-inst-link placeholder="https://www.instructables.com/..." />
+      </div>
+      <div class="pf-actions">
+        <div class="pf-status" data-inst-status></div>
+        <button class="pf-submit" data-inst-submit type="button" disabled>Submit</button>
+      </div>
+    `;
+
+    const nameInput = panel.querySelector('#instNameInput');
+    const linkInput = panel.querySelector('[data-inst-link]');
+    const submitBtn = panel.querySelector('[data-inst-submit]');
+    const statusEl = panel.querySelector('[data-inst-status]');
+
+    function setStatus(msg, isErr) {
+      statusEl.textContent = msg || '';
+      statusEl.classList.toggle('is-error', !!isErr);
+    }
+    function refresh() {
+      const ok = nameInput.value.trim() && /^https?:\/\/\S+/i.test(linkInput.value.trim());
+      submitBtn.disabled = !ok;
+    }
+    nameInput.addEventListener('input', refresh);
+    linkInput.addEventListener('input', refresh);
+
+    let isSubmitting = false;
+    submitBtn.addEventListener('click', async () => {
+      if (isSubmitting) return;
+      const name = nameInput.value.trim();
+      const url = linkInput.value.trim();
+      if (!name) { setStatus('Please enter your name.', true); return; }
+      if (!/^https?:\/\//i.test(url)) { setStatus('Link must start with http:// or https://', true); return; }
+
+      isSubmitting = true;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+      setStatus('');
+      localStorage.setItem(NAME_KEY, name);
+
+      try {
+        await addDoc(collection(db, 'portfolios'), {
+          benchmarkId,
+          studentName: name,
+          createdAt: serverTimestamp(),
+          slots: {
+            image: null, video: null, code: { mode: 'link', url }, cad: null, summary: null
+          }
+        });
+        linkInput.value = '';
+        refreshCountBadge(benchmarkId);
+        markChecked(benchmarkId);
+
+        submitBtn.textContent = '✓ Submitted!';
+        submitBtn.classList.add('is-success');
+        setStatus('Your Instructable is in the gallery below.');
+        setTimeout(() => {
+          submitBtn.classList.remove('is-success');
+          submitBtn.textContent = 'Submit';
+          setStatus('');
+          isSubmitting = false;
+          refresh();
+        }, 1800);
+      } catch (err) {
+        console.error('instructable submit failed', err);
+        setStatus('Submit failed. Check your wifi and try again.', true);
+        submitBtn.textContent = 'Submit';
+        isSubmitting = false;
+        refresh();
+      }
+    });
+
+    refresh();
+    return panel;
+  }
+
   // ----- Portfolio gallery (live) -----
   // Note: only the focused benchmark has a live listener. With 200 students
   // each submitting ~5 portfolios per benchmark this listener pulls ~1000
@@ -4169,6 +4562,27 @@
     }
 
     grid._pfKnownIds = newKnownIds;
+
+    // Deep-link from Progress page: auto-expand the targeted student's row
+    // and scroll the gallery into view. Consumes _focusStudent on success.
+    if (!readOnly && _focusStudent) {
+      const target = _focusStudent;
+      requestAnimationFrame(() => {
+        const rows = grid.querySelectorAll('.pf-row');
+        for (const r of rows) {
+          const nameEl = r.querySelector('.pf-row-name');
+          const name = (nameEl?.textContent || '').trim();
+          if (name.localeCompare(target, undefined, { sensitivity: 'base' }) === 0) {
+            if (!r.classList.contains('is-open')) {
+              r.querySelector('[data-pf-row-head]')?.click();
+            }
+            setTimeout(() => r.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+            _focusStudent = null;
+            break;
+          }
+        }
+      });
+    }
   }
 
   function renderRowBody(body, item, opts = {}) {
@@ -4713,6 +5127,9 @@
   if (route === '/hw') {
     document.body.classList.add('view-hw');
     renderHomework();
+  } else if (route === '/progress') {
+    document.body.classList.add('view-progress');
+    renderProgress();
   } else {
     renderProjects();
   }
