@@ -104,75 +104,16 @@
     max-width: 640px;
   }
 
-  /* ============== FINALE: PUBLISH TO INSTRUCTABLES (Project 4 only) ============== */
-  /* Quiet, grown-up forest-green CTA. Distinct from the indigo accents elsewhere
-     so the publishing step still reads as a separate moment, but no shouting. */
-  .finale-publish {
-    margin-top: 28px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: stretch;
+  /* Standalone (single-benchmark) project rows — used for "Final: Publish to
+     Instructables". Soft green wash signals the publishing milestone without
+     shouting. */
+  .project.is-standalone .benchmark {
+    background: rgba(34, 197, 94, 0.07);
+    border-color: rgba(34, 197, 94, 0.22);
   }
-  .finale-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 18px 22px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-    color: #ffffff;
-    text-decoration: none;
-    box-shadow: 0 2px 10px rgba(5, 150, 105, 0.20);
-    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
-  }
-  .finale-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.28);
-  }
-  .finale-btn:active {
-    transform: translateY(0);
-  }
-  .finale-text {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    min-width: 0;
-  }
-  .finale-title {
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    color: #ffffff;
-  }
-  .finale-sub {
-    font-size: 13px;
-    font-weight: 400;
-    color: rgba(255, 255, 255, 0.85);
-    line-height: 1.45;
-  }
-  .finale-arrow {
-    font-size: 18px;
-    font-weight: 600;
-    color: #ffffff;
-    flex-shrink: 0;
-    opacity: 0.9;
-    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
-  }
-  .finale-btn:hover .finale-arrow {
-    transform: translateX(3px);
-    opacity: 1;
-  }
-  @media (max-width: 600px) {
-    .finale-btn { padding: 16px 18px; gap: 12px; border-radius: 10px; }
-    .finale-title { font-size: 15px; }
-    .finale-sub { font-size: 12px; }
-    .finale-arrow { font-size: 22px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .finale-btn, .finale-arrow { transition: none; }
+  .project.is-standalone .benchmark:hover {
+    background: rgba(34, 197, 94, 0.11);
+    border-color: rgba(34, 197, 94, 0.32);
   }
 
   .benchmarks {
@@ -2757,21 +2698,6 @@
         benchEl.appendChild(row);
         countEls[b.id] = row.querySelector(`[data-count="${b.id}"]`);
       });
-      // Project-4 finale: distinctive "Publish to Instructables" button below the final portfolio drop.
-      if (project.id === 'p4') {
-        const finale = document.createElement('div');
-        finale.className = 'finale-publish';
-        finale.innerHTML = `
-          <a href="https://www.instructables.com/contest/?utm_source=d4sg-at-sa" target="_blank" rel="noopener" class="finale-btn" aria-label="Publish your final adaptive controller as an Instructable">
-            <span class="finale-text">
-              <span class="finale-title">Publish to Instructables</span>
-              <span class="finale-sub">End of the road. Take your final adaptive controller out into the world.</span>
-            </span>
-            <span class="finale-arrow" aria-hidden="true">→</span>
-          </a>
-        `;
-        projEl.appendChild(finale);
-      }
       app.appendChild(projEl);
     });
   }
