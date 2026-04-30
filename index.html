@@ -490,146 +490,164 @@
   body.view-progress .nav-to-progress { display: none; }
 
   /* ============== PROGRESS page ============== */
-  /* Tight grid in a card. Names are big and elegant on the left, projects
-     are stacked headers across the top (PROJECT N → 1 2 3 4 5). The
-     Instructable lives at the very right with a green "I" header to call it
-     out. Done cells render a green check that hyperlinks into that
-     student's gallery row; empty cells stay nearly invisible. */
+  /* Per-student cards stacked vertically. Each card mirrors the project
+     section aesthetic on the home page: white surface, rounded corners,
+     soft shadow. Inside each card, one row per project shows the project
+     prefix, title, and 5 status pips (1 for the final row). Pips are
+     clickable when filled and deep-link to that student's gallery row. */
   .progress-section { margin-bottom: 32px; }
-  .progress-table-wrap {
+  .progress-board {
+    width: 100%;
+  }
+  .prog-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .prog-card {
     background: white;
     border: 1px solid var(--border);
-    border-radius: 18px;
-    box-shadow: 0 6px 22px rgba(17, 17, 17, 0.05);
-    padding: 4px 2px 10px;
+    border-radius: 16px;
+    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
+    padding: 24px 28px 22px;
+    transition: box-shadow 0.2s ease, transform 0.12s ease;
   }
-  .progress-table {
-    border-collapse: collapse;
-    width: 100%;
-    table-layout: fixed;
-    font-size: 13px;
+  .prog-card:hover {
+    box-shadow: 0 8px 22px rgba(17, 17, 17, 0.06);
   }
-  .progress-table th,
-  .progress-table td {
-    padding: 0;
-    text-align: center;
-    background: white;
-    white-space: nowrap;
-  }
-
-  /* Project group eyebrow */
-  .progress-table thead .prog-project-th {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.8px;
-    text-transform: uppercase;
-    color: var(--ink-low);
-    padding: 22px 14px 8px;
-  }
-  .progress-table thead .prog-project-th.is-final {
-    color: var(--success);
-  }
-
-  /* Benchmark number row */
-  .progress-table thead .prog-bench-th {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--ink-low);
-    padding: 0 0 14px;
+  .prog-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
     border-bottom: 1px solid var(--border);
-    width: 40px;
   }
-  .progress-table thead .prog-bench-th.is-final {
-    color: var(--success);
+  .prog-card-name {
+    font-size: 22px;
     font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink-hi);
+    margin: 0;
+  }
+  .prog-card-tally {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .prog-card-tally-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--success);
+    letter-spacing: -0.01em;
+  }
+  .prog-card-tally-of {
     font-size: 14px;
-    letter-spacing: 0.5px;
+    font-weight: 500;
+    color: var(--ink-low);
   }
 
-  /* Student name column */
-  .progress-table .prog-name-cell {
-    text-align: left;
-    padding: 16px 22px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--paper-ink);
-    letter-spacing: -0.01em;
-    width: auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .prog-card-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
-  .progress-table thead .prog-name-cell {
-    font-size: 10px;
+  .prog-card-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+  }
+  .prog-card-row + .prog-card-row {
+    border-top: 1px solid rgba(17, 17, 17, 0.04);
+  }
+  .prog-card-row-label {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+  }
+  .prog-card-row-prefix {
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.4px;
     text-transform: uppercase;
     color: var(--ink-low);
-    padding: 22px 22px 14px;
-    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    min-width: 64px;
+  }
+  .prog-card-row-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--paper-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .prog-card-row-dots {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
   }
 
-  /* Row separator + hover */
-  .progress-table tbody tr td { border-top: 1px solid rgba(17, 17, 17, 0.04); }
-  .progress-table tbody tr:first-child td { border-top: none; }
-  .progress-table tbody tr { transition: background 0.15s ease; }
-  .progress-table tbody tr:hover .prog-name-cell,
-  .progress-table tbody tr:hover td { background: var(--bg-2); }
-
-  /* Cells */
-  .prog-cell {
-    width: 40px;
-    height: 54px;
-    padding: 0;
-  }
-
-  /* Done state — green check, no chip background until hover */
-  .prog-check {
+  .prog-pip {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    color: var(--success);
+    border: 1.6px solid var(--border-strong);
+    background: transparent;
+    color: white;
     text-decoration: none;
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    flex-shrink: 0;
+  }
+  .prog-pip.is-done {
+    background: var(--success);
+    border-color: var(--success);
     cursor: pointer;
-    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease;
   }
-  .prog-check:hover {
-    background: rgba(34, 197, 94, 0.14);
+  .prog-pip.is-done:hover {
     transform: scale(1.18);
-    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.25);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
   }
-  .prog-check svg { width: 18px; height: 18px; display: block; }
-
-  /* Empty cell — minuscule dot, almost invisible */
-  .prog-cell:empty::before {
-    content: '';
-    display: inline-block;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--border);
-    opacity: 0.5;
+  .prog-pip svg {
+    width: 12px;
+    height: 12px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
   }
+  .prog-pip.is-done svg { opacity: 1; }
 
-  .prog-empty {
+  .prog-cards-empty {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 40px 24px;
     text-align: center;
     color: var(--ink-low);
-    padding: 36px 16px;
     font-size: 14px;
-    background: white;
+    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
   }
 
-  @media (max-width: 820px) {
-    .progress-table { font-size: 12px; }
-    .progress-table .prog-name-cell { padding: 14px 14px; font-size: 13px; }
-    .progress-table thead .prog-name-cell { padding: 18px 14px 12px; }
-    .prog-cell { width: 32px; height: 50px; }
-    .prog-check { width: 24px; height: 24px; }
-    .prog-check svg { width: 14px; height: 14px; }
-    .progress-table thead .prog-project-th { font-size: 9px; letter-spacing: 1.2px; padding: 16px 4px 6px; }
-    .progress-table thead .prog-bench-th { width: 32px; font-size: 10px; }
+  @media (max-width: 720px) {
+    .prog-card { padding: 18px 18px 16px; }
+    .prog-card-name { font-size: 18px; }
+    .prog-card-tally-num { font-size: 17px; }
+    .prog-card-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .prog-card-row-label { width: 100%; }
+    .prog-card-row-prefix { min-width: 0; }
+    .prog-card-row-dots { padding-left: 0; }
   }
 
   /* Instructable submission panel — single link field, slim like checkpoint */
@@ -2586,7 +2604,7 @@
     },
     {
       id: 'final',
-      title: 'Final: Publish Instructable',
+      title: 'Final: Publish to Instructables',
       goal: 'Publish your finished controller to Instructables so the world can build from your work.',
       benchmarks: [
         {
@@ -2829,9 +2847,7 @@
     wrap.className = 'progress-section';
     wrap.innerHTML = `
       <h2 class="project-title">Student Progress</h2>
-      <div class="progress-table-wrap">
-        <table class="progress-table" id="progressTable"></table>
-      </div>
+      <div id="progressTable" class="progress-board"></div>
     `;
     app.appendChild(wrap);
     subscribeProgress();
@@ -2860,53 +2876,57 @@
     const tbl = document.getElementById('progressTable');
     if (!tbl) return;
 
-    const totalCols = 1 + PROJECTS.reduce((s, p) => s + p.benchmarks.length, 0);
-
-    // ---- Header
-    let head = '<thead><tr>';
-    head += `<th class="prog-name-cell" rowspan="2">Student</th>`;
-    PROJECTS.forEach(p => {
-      const finalCls = p.id === 'final' ? ' is-final' : '';
-      head += `<th class="prog-project-th${finalCls}" colspan="${p.benchmarks.length}">${escapeHtml(shortProjectLabel(p))}</th>`;
-    });
-    head += '</tr><tr>';
-    PROJECTS.forEach(p => {
-      p.benchmarks.forEach((b, idx) => {
-        const finalCls = b.id === 'instructable' ? ' is-final' : '';
-        head += `<th class="prog-bench-th${finalCls}" title="${escapeHtml(b.title)}">${escapeHtml(shortBenchLabel(b, idx))}</th>`;
-      });
-    });
-    head += '</tr></thead>';
-
-    // ---- Body
     const studentNames = Object.keys(_progressData).sort((a, b) =>
       a.localeCompare(b, undefined, { sensitivity: 'base' })
     );
 
-    let body = '<tbody>';
     if (!studentNames.length) {
-      body += `<tr><td class="prog-empty" colspan="${totalCols}">No submissions yet — once your class drops work, this board fills up.</td></tr>`;
-    } else {
-      studentNames.forEach(name => {
-        const done = _progressData[name];
-        body += `<tr><td class="prog-name-cell">${escapeHtml(name)}</td>`;
-        PROJECTS.forEach(p => {
-          p.benchmarks.forEach(b => {
-            if (done.has(b.id)) {
-              body += `<td class="prog-cell"><a class="prog-check" data-bench="${escapeHtml(b.id)}" data-student="${escapeHtml(name)}" title="View ${escapeHtml(name)}'s ${escapeHtml(b.title)} submission">${PROG_CHECK_SVG}</a></td>`;
-            } else {
-              body += `<td class="prog-cell"></td>`;
-            }
-          });
-        });
-        body += '</tr>';
-      });
+      tbl.innerHTML = `<div class="prog-cards-empty">No submissions yet — once your class drops work, this fills up.</div>`;
+      return;
     }
-    body += '</tbody>';
 
-    tbl.innerHTML = head + body;
+    const totalBench = PROJECTS.reduce((s, p) => s + p.benchmarks.length, 0);
 
-    tbl.querySelectorAll('.prog-check').forEach(a => {
+    let html = '<div class="prog-cards">';
+    studentNames.forEach(name => {
+      const done = _progressData[name];
+      let ownDone = 0;
+      PROJECTS.forEach(p => p.benchmarks.forEach(b => { if (done.has(b.id)) ownDone++; }));
+
+      html += `<article class="prog-card">
+        <header class="prog-card-head">
+          <h3 class="prog-card-name">${escapeHtml(name)}</h3>
+          <div class="prog-card-tally"><span class="prog-card-tally-num">${ownDone}</span><span class="prog-card-tally-of">/ ${totalBench}</span></div>
+        </header>
+        <ul class="prog-card-rows">`;
+
+      PROJECTS.forEach(p => {
+        const prefix = shortProjectLabel(p);
+        const subtitle = p.title.replace(/^[^:]+:\s*/, '');
+        const rowFinalCls = p.id === 'final' ? ' is-final' : '';
+        html += `<li class="prog-card-row${rowFinalCls}">
+          <div class="prog-card-row-label">
+            <span class="prog-card-row-prefix">${escapeHtml(prefix)}</span>
+            <span class="prog-card-row-title">${escapeHtml(subtitle)}</span>
+          </div>
+          <div class="prog-card-row-dots">`;
+        p.benchmarks.forEach(b => {
+          if (done.has(b.id)) {
+            html += `<a class="prog-pip is-done" data-bench="${escapeHtml(b.id)}" data-student="${escapeHtml(name)}" title="View ${escapeHtml(name)}'s ${escapeHtml(b.title)}">${PROG_CHECK_SVG}</a>`;
+          } else {
+            html += `<span class="prog-pip"></span>`;
+          }
+        });
+        html += `</div></li>`;
+      });
+
+      html += `</ul></article>`;
+    });
+    html += '</div>';
+
+    tbl.innerHTML = html;
+
+    tbl.querySelectorAll('.prog-pip.is-done[data-bench]').forEach(a => {
       a.addEventListener('click', (e) => {
         e.preventDefault();
         const benchObj = findBenchmarkById(a.dataset.bench);
