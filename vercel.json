@@ -1,6 +1,8 @@
 {
   "rewrites": [
     { "source": "/hw", "destination": "/index.html" },
-    { "source": "/hw/", "destination": "/index.html" }
+    { "source": "/hw/", "destination": "/index.html" },
+    { "source": "/progress", "destination": "/index.html" },
+    { "source": "/progress/", "destination": "/index.html" }
   ]
 }
