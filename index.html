@@ -2712,23 +2712,28 @@
   function renderProjects() {
     app.innerHTML = '';
     PROJECTS.forEach(project => {
+      // Single-benchmark projects (like the Final/Instructable) collapse into
+      // one clean row: no h2, no benchmark number, label uses the full project
+      // title so the row reads as the section's purpose.
+      const isStandalone = project.benchmarks.length === 1;
       const projEl = document.createElement('section');
-      projEl.className = 'project';
+      projEl.className = 'project' + (isStandalone ? ' is-standalone' : '');
       projEl.innerHTML = `
-        <h2 class="project-title">${escapeHtml(project.title)}</h2>
+        ${isStandalone ? '' : `<h2 class="project-title">${escapeHtml(project.title)}</h2>`}
         ${project.blurb ? `<p class="project-blurb">${escapeHtml(project.blurb)}</p>` : ''}
         <div class="benchmarks"></div>
       `;
       const benchEl = projEl.querySelector('.benchmarks');
       project.benchmarks.forEach((b, idx) => {
         const isChecked = checked.has(b.id);
+        const labelText = isStandalone ? project.title : b.title;
         const row = document.createElement('div');
         row.className = 'benchmark' + (isChecked ? ' done' : '');
         row.dataset.id = b.id;
         row.innerHTML = `
           <div class="checkbox ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" tabindex="0"></div>
-          <div class="benchmark-num">${idx + 1}</div>
-          <div class="benchmark-label">${escapeHtml(b.title)}</div>
+          ${isStandalone ? '' : `<div class="benchmark-num">${idx + 1}</div>`}
+          <div class="benchmark-label">${escapeHtml(labelText)}</div>
           <span class="artifact-count" data-count="${b.id}" style="display:none;">${PAPERCLIP_SVG}<span data-count-num>0</span></span>
           <div class="points">${b.points} pts</div>
         `;
