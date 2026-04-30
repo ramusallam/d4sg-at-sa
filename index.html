@@ -501,12 +501,12 @@
     border: 1px solid var(--border);
     border-radius: 18px;
     box-shadow: 0 6px 22px rgba(17, 17, 17, 0.05);
-    overflow-x: auto;
-    padding: 8px 4px 14px;
+    padding: 4px 2px 10px;
   }
   .progress-table {
     border-collapse: collapse;
     width: 100%;
+    table-layout: fixed;
     font-size: 13px;
   }
   .progress-table th,
@@ -535,32 +535,26 @@
     font-size: 11px;
     font-weight: 600;
     color: var(--ink-low);
-    padding: 0 0 16px;
-    min-width: 46px;
+    padding: 0 0 14px;
     border-bottom: 1px solid var(--border);
+    width: 40px;
   }
   .progress-table thead .prog-bench-th.is-final {
     color: var(--success);
     font-weight: 700;
     font-size: 14px;
     letter-spacing: 0.5px;
-    font-style: italic;
   }
 
-  /* Sticky student name column */
+  /* Student name column */
   .progress-table .prog-name-cell {
-    position: sticky;
-    left: 0;
-    z-index: 1;
-    background: white;
     text-align: left;
-    padding: 18px 24px;
+    padding: 16px 22px;
     font-size: 15px;
     font-weight: 600;
     color: var(--paper-ink);
     letter-spacing: -0.01em;
-    min-width: 220px;
-    max-width: 260px;
+    width: auto;
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -570,7 +564,7 @@
     letter-spacing: 1.4px;
     text-transform: uppercase;
     color: var(--ink-low);
-    padding: 22px 24px 16px;
+    padding: 22px 22px 14px;
     border-bottom: 1px solid var(--border);
   }
 
@@ -583,8 +577,8 @@
 
   /* Cells */
   .prog-cell {
-    width: 46px;
-    height: 56px;
+    width: 40px;
+    height: 54px;
     padding: 0;
   }
 
@@ -629,12 +623,13 @@
 
   @media (max-width: 820px) {
     .progress-table { font-size: 12px; }
-    .progress-table .prog-name-cell { min-width: 160px; padding: 14px 16px; font-size: 14px; }
-    .progress-table thead .prog-name-cell { padding: 18px 16px 12px; }
-    .prog-cell { width: 40px; height: 50px; }
-    .prog-check { width: 26px; height: 26px; }
-    .prog-check svg { width: 16px; height: 16px; }
-    .progress-table thead .prog-bench-th { min-width: 38px; }
+    .progress-table .prog-name-cell { padding: 14px 14px; font-size: 13px; }
+    .progress-table thead .prog-name-cell { padding: 18px 14px 12px; }
+    .prog-cell { width: 32px; height: 50px; }
+    .prog-check { width: 24px; height: 24px; }
+    .prog-check svg { width: 14px; height: 14px; }
+    .progress-table thead .prog-project-th { font-size: 9px; letter-spacing: 1.2px; padding: 16px 4px 6px; }
+    .progress-table thead .prog-bench-th { width: 32px; font-size: 10px; }
   }
 
   /* Instructable submission panel — single link field, slim like checkpoint */
