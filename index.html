@@ -95,28 +95,7 @@
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--ink-hi);
-    margin: 0 0 4px;
-  }
-  .project-goal {
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--ink-mid);
-    margin: 0 0 24px;
-    line-height: 1.4;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .project-goal .goal-label {
-    color: var(--accent);
-    font-weight: 700;
-    margin-right: 6px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    font-size: 11px;
-  }
-  @media (max-width: 720px) {
-    .project-goal { white-space: normal; }
+    margin: 0 0 16px;
   }
   .project-blurb {
     font-size: 14px;
@@ -2496,7 +2475,6 @@
       projEl.className = 'project';
       projEl.innerHTML = `
         <h2 class="project-title">${escapeHtml(project.title)}</h2>
-        ${project.goal ? `<p class="project-goal"><span class="goal-label">Goal:</span>${escapeHtml(project.goal)}</p>` : ''}
         ${project.blurb ? `<p class="project-blurb">${escapeHtml(project.blurb)}</p>` : ''}
         <div class="benchmarks"></div>
       `;
@@ -4617,7 +4595,7 @@
         const projSec = document.createElement('section');
         projSec.className = 'project';
         projSec.style.marginBottom = '32px';
-        projSec.innerHTML = `<h2 class="project-title">${escapeHtml(project.title)}</h2>${project.goal ? `<p class="project-goal"><span class="goal-label">Goal:</span>${escapeHtml(project.goal)}</p>` : ''}`;
+        projSec.innerHTML = `<h2 class="project-title">${escapeHtml(project.title)}</h2>`;
         const benchWrap = document.createElement('div');
         benchWrap.className = 'benchmarks';
         project.benchmarks.forEach(b => {
