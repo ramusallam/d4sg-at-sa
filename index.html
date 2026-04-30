@@ -491,98 +491,74 @@
 
   /* ============== PROGRESS page ============== */
   .progress-section { margin-bottom: 32px; }
-  .progress-blurb {
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--ink-mid);
-    margin: 0 0 18px;
-    max-width: 640px;
-  }
   .progress-table-wrap {
+    overflow-x: auto;
     background: white;
     border: 1px solid var(--border);
     border-radius: 14px;
-    overflow: auto;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    max-height: calc(100vh - 220px);
   }
   .progress-table {
-    border-collapse: separate;
-    border-spacing: 0;
+    border-collapse: collapse;
     width: 100%;
     font-size: 13px;
   }
   .progress-table th,
   .progress-table td {
     padding: 0;
-    border-bottom: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-    background: white;
     text-align: center;
     vertical-align: middle;
     white-space: nowrap;
-  }
-  .progress-table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: var(--bg-2);
-    color: var(--ink-mid);
-    font-weight: 600;
-    font-size: 11px;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-    padding: 10px 8px;
+    background: white;
   }
   .progress-table thead .prog-project-th {
-    border-bottom: 1px solid var(--border-strong);
     color: var(--paper-ink);
+    font-weight: 700;
     font-size: 11px;
     letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 14px 8px 10px;
+    border-bottom: 1px solid var(--border);
   }
   .progress-table thead .prog-bench-th {
     font-weight: 600;
-    color: var(--ink-mid);
-    padding: 8px 6px;
-    min-width: 56px;
+    color: var(--ink-low);
+    font-size: 12px;
+    padding: 10px 8px 12px;
+    min-width: 48px;
+    border-bottom: 1px solid var(--border-strong);
   }
   .progress-table .prog-name-cell {
     position: sticky;
     left: 0;
     z-index: 1;
-    background: white;
     text-align: left;
-    padding: 10px 16px;
+    padding: 14px 18px;
     font-weight: 600;
     color: var(--paper-ink);
     min-width: 180px;
     max-width: 220px;
     overflow: hidden;
     text-overflow: ellipsis;
-    border-right: 1px solid var(--border-strong);
   }
   .progress-table thead .prog-name-cell {
-    z-index: 3;
-    background: var(--bg-2);
-    color: var(--ink-mid);
+    background: white;
     font-weight: 600;
-    text-transform: uppercase;
+    color: var(--ink-low);
     font-size: 11px;
     letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border-strong);
   }
+  .progress-table tbody tr { border-top: 1px solid var(--border); }
+  .progress-table tbody tr:hover td,
   .progress-table tbody tr:hover .prog-name-cell { background: var(--bg-2); }
-  .progress-table tbody tr:hover td { background: rgba(34, 197, 94, 0.03); }
-  .progress-table tbody tr:last-child td { border-bottom: none; }
-  .progress-table td:last-child,
-  .progress-table th:last-child { border-right: none; }
 
   .prog-cell {
-    width: 56px;
+    width: 48px;
     height: 44px;
     padding: 0;
-  }
-  .prog-cell.is-done {
-    background: rgba(34, 197, 94, 0.06);
   }
   .prog-check {
     display: inline-flex;
@@ -590,18 +566,17 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    border-radius: 50%;
-    background: var(--success);
-    color: white;
+    border-radius: 7px;
+    color: var(--success);
     text-decoration: none;
-    transition: transform 0.12s ease, box-shadow 0.18s ease;
+    transition: background 0.15s ease, transform 0.12s ease;
     cursor: pointer;
   }
   .prog-check:hover {
-    transform: scale(1.08);
-    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
+    background: rgba(34, 197, 94, 0.14);
+    transform: scale(1.05);
   }
-  .prog-check svg { width: 14px; height: 14px; display: block; }
+  .prog-check svg { width: 16px; height: 16px; display: block; }
   .prog-empty {
     text-align: center;
     color: var(--ink-low);
@@ -609,18 +584,13 @@
     font-size: 13px;
     background: white;
   }
-  .prog-empty-cell::before {
-    content: '·';
-    color: var(--border-strong);
-    font-size: 14px;
-  }
 
   @media (max-width: 720px) {
     .progress-table { font-size: 12px; }
-    .progress-table .prog-name-cell { min-width: 130px; padding: 10px 10px; }
-    .prog-cell { width: 44px; height: 38px; }
-    .prog-check { width: 24px; height: 24px; }
-    .prog-check svg { width: 12px; height: 12px; }
+    .progress-table .prog-name-cell { min-width: 130px; padding: 12px 12px; }
+    .prog-cell { width: 42px; height: 40px; }
+    .prog-check { width: 24px; height: 24px; border-radius: 6px; }
+    .prog-check svg { width: 14px; height: 14px; }
   }
 
   /* Instructable submission panel — single link field, slim like checkpoint */
@@ -2804,13 +2774,13 @@
   }
 
   function shortBenchLabel(b, idx) {
-    if (b.id === 'instructable') return 'Pub';
-    if (b.title === 'Portfolio Drop') return 'Drop';
     return String(idx + 1);
   }
 
   function shortProjectLabel(p) {
-    return p.title.replace(/^Project \d+: /, '').replace(/^Final: /, '');
+    // Keep the leading namespace ("Project 1", "Final"), drop the descriptive subtitle.
+    const m = p.title.match(/^([^:]+):/);
+    return m ? m[1].trim() : p.title;
   }
 
   function renderProgress() {
@@ -2818,8 +2788,6 @@
     const wrap = document.createElement('section');
     wrap.className = 'progress-section';
     wrap.innerHTML = `
-      <h2 class="project-title">Class Progress</h2>
-      <p class="progress-blurb">Each row is a student, each column a benchmark. A green check means a submission is in. Click any check to jump to that work.</p>
       <div class="progress-table-wrap">
         <table class="progress-table" id="progressTable"></table>
       </div>
@@ -2882,9 +2850,9 @@
         PROJECTS.forEach(p => {
           p.benchmarks.forEach(b => {
             if (done.has(b.id)) {
-              body += `<td class="prog-cell is-done"><a class="prog-check" data-bench="${escapeHtml(b.id)}" data-student="${escapeHtml(name)}" title="View ${escapeHtml(name)}'s ${escapeHtml(b.title)} submission">${PROG_CHECK_SVG}</a></td>`;
+              body += `<td class="prog-cell"><a class="prog-check" data-bench="${escapeHtml(b.id)}" data-student="${escapeHtml(name)}" title="View ${escapeHtml(name)}'s ${escapeHtml(b.title)} submission">${PROG_CHECK_SVG}</a></td>`;
             } else {
-              body += `<td class="prog-cell prog-empty-cell"></td>`;
+              body += `<td class="prog-cell"></td>`;
             }
           });
         });
