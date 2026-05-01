@@ -3491,7 +3491,7 @@
     const sec = document.createElement('section');
     sec.className = 'project';
     sec.innerHTML = `
-      <h2 class="project-title">Weekly CAD Homework</h2>
+      <h2 class="project-title">Homework</h2>
       <div class="benchmarks" id="weekList"></div>
     `;
     const list = sec.querySelector('#weekList');
@@ -3518,7 +3518,6 @@
     sec.className = 'project';
     sec.innerHTML = `
       <h2 class="project-title">Tools</h2>
-      <p class="project-blurb">Custom tools built for your D4SG build process. More coming as you need them.</p>
       <div class="tools-grid">
         <div class="tool-card" id="toolCardSchematic">
           <p class="tool-card-eyebrow">Tool 01</p>
@@ -3532,30 +3531,6 @@
           <p class="tool-card-blurb">Talk to AI to draft Arduino code, then push it into a built-in editor. Connect your Leonardo or Micro and watch live serial output as your sketch runs.</p>
           <div class="tool-card-footer">Open tool</div>
         </div>
-      </div>
-
-      <h3 class="tools-section-title">External Circuit References</h3>
-      <div class="tools-refs">
-        <a class="tool-ref-card" href="https://www.tinkercad.com/circuits" target="_blank" rel="noopener">
-          <p class="tool-ref-title">Tinkercad Circuits</p>
-          <p class="tool-ref-blurb">Virtual Arduino simulator. Drag components, write code, watch LEDs blink. Free with school account, works on Chromebooks.</p>
-          <p class="tool-ref-host">tinkercad.com</p>
-        </a>
-        <a class="tool-ref-card" href="https://wokwi.com" target="_blank" rel="noopener">
-          <p class="tool-ref-title">Wokwi</p>
-          <p class="tool-ref-blurb">Browser-based Arduino simulator with rich peripherals (OLED, NeoPixel, ESP32). Use when Tinkercad doesn't have what you need.</p>
-          <p class="tool-ref-host">wokwi.com</p>
-        </a>
-        <a class="tool-ref-card" href="https://www.circuito.io/app" target="_blank" rel="noopener">
-          <p class="tool-ref-title">Circuito.io</p>
-          <p class="tool-ref-blurb">Pick your components, get a wiring diagram + parts list + starter Arduino code. Bridge from sim to real build.</p>
-          <p class="tool-ref-host">circuito.io</p>
-        </a>
-        <a class="tool-ref-card" href="https://app.cirkitdesigner.com" target="_blank" rel="noopener">
-          <p class="tool-ref-title">Cirkit Studio</p>
-          <p class="tool-ref-blurb">AI-assisted circuit design, simulation, and integrated Arduino IDE. 30k+ components, free.</p>
-          <p class="tool-ref-host">cirkitdesigner.com</p>
-        </a>
       </div>
     `;
     app.appendChild(sec);
@@ -4472,7 +4447,7 @@
     const wrap = document.createElement('section');
     wrap.className = 'progress-section';
     wrap.innerHTML = `
-      <h2 class="project-title">Student Progress</h2>
+      <h2 class="project-title">Progress</h2>
       <div id="progressTable" class="progress-board"></div>
     `;
     app.appendChild(wrap);
