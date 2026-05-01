@@ -518,24 +518,6 @@
   .prog-card.is-you:hover {
     box-shadow: 0 8px 22px rgba(59, 130, 246, 0.18);
   }
-  .prog-card-tally {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 4px;
-    font-variant-numeric: tabular-nums;
-  }
-  .prog-card-tally-num {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--success);
-    letter-spacing: -0.01em;
-  }
-  .prog-card-tally-of {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--ink-low);
-  }
-
   .prog-card-rows {
     list-style: none;
     margin: 0;
@@ -2903,7 +2885,6 @@
       html += `<article class="prog-card${isMe ? ' is-you' : ''}">
         <header class="prog-card-head">
           <h3 class="prog-card-name">${escapeHtml(name)}${isMe ? '<span class="prog-card-you">you</span>' : ''}</h3>
-          <div class="prog-card-tally"><span class="prog-card-tally-num">${ownDone}</span><span class="prog-card-tally-of">/ ${totalBench}</span></div>
         </header>
         <ul class="prog-card-rows">`;
 
