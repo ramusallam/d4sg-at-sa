@@ -449,10 +449,11 @@
     background: var(--accent-soft);
   }
   .nav-back { display: none; }
-  .nav-to-hw, .nav-to-progress { display: inline-flex; }
-  body.view-hw .nav-back, body.view-progress .nav-back { display: inline-flex; }
+  .nav-to-hw, .nav-to-progress, .nav-to-tools { display: inline-flex; }
+  body.view-hw .nav-back, body.view-progress .nav-back, body.view-tools .nav-back { display: inline-flex; }
   body.view-hw .nav-to-hw { display: none; }
   body.view-progress .nav-to-progress { display: none; }
+  body.view-tools .nav-to-tools { display: none; }
 
   /* ============== PROGRESS page ============== */
   /* Per-student cards stacked vertically. Each card mirrors the project
@@ -2271,6 +2272,363 @@
     .pf-slot-tile { min-height: 100px; padding: 14px 8px; }
     .pf-slot-icon { font-size: 22px; }
   }
+
+  /* ============== TOOLS PAGE ============== */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin-bottom: 36px;
+  }
+  @media (max-width: 760px) {
+    .tools-grid { grid-template-columns: 1fr; }
+  }
+  .tool-card {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
+    padding: 28px 28px 26px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 180px;
+  }
+  .tool-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  }
+  .tool-card.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.78;
+  }
+  .tool-card.is-disabled:hover {
+    transform: none;
+    border-color: var(--border);
+    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
+  }
+  .tool-card-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+  }
+  .tool-card.is-disabled .tool-card-eyebrow {
+    color: var(--ink-low);
+  }
+  .tool-card-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink-hi);
+    margin: 0;
+  }
+  .tool-card-blurb {
+    font-size: 14px;
+    color: var(--ink-mid);
+    margin: 0;
+    line-height: 1.55;
+  }
+  .tool-card-footer {
+    margin-top: auto;
+    padding-top: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .tool-card.is-disabled .tool-card-footer {
+    color: var(--ink-low);
+  }
+
+  .tools-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin: 12px 0 14px;
+  }
+  .tools-refs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 900px) {
+    .tools-refs { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .tools-refs { grid-template-columns: 1fr; }
+  }
+  .tool-ref-card {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px 14px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.18s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  }
+  .tool-ref-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+  }
+  .tool-ref-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink-hi);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .tool-ref-blurb {
+    font-size: 12.5px;
+    color: var(--ink-mid);
+    margin: 0;
+    line-height: 1.45;
+  }
+  .tool-ref-host {
+    font-size: 11px;
+    color: var(--ink-low);
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ============== SCHEMATIC TOOL ============== */
+  .schem-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .schem-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  }
+  .schem-toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .schem-toolbar-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+  }
+  .schem-color-row {
+    display: flex;
+    gap: 6px;
+  }
+  .schem-color {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong);
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    padding: 0;
+  }
+  .schem-color:hover { transform: scale(1.08); }
+  .schem-color.is-active {
+    border-color: var(--ink-hi);
+    box-shadow: 0 0 0 2px var(--bg-1), 0 0 0 4px var(--ink-hi);
+  }
+  .schem-btn {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    color: var(--ink-mid);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .schem-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .schem-btn.is-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .schem-btn.is-primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: white;
+  }
+  .schem-btn.is-danger:hover {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: #fef2f2;
+  }
+  .schem-back {
+    background: none;
+    border: none;
+    color: var(--ink-mid);
+    cursor: pointer;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .schem-back:hover { color: var(--accent); }
+
+  .schem-stage {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 820px) {
+    .schem-stage { grid-template-columns: 1fr; }
+  }
+
+  .schem-palette {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 640px;
+    overflow-y: auto;
+  }
+  .schem-palette-group {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+    margin: 8px 4px 4px;
+  }
+  .schem-palette-group:first-child { margin-top: 2px; }
+  .schem-palette-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-2);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    font-size: 13px;
+    color: var(--ink-hi);
+    text-align: left;
+    width: 100%;
+  }
+  .schem-palette-item:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .schem-palette-thumb {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .schem-canvas-wrap {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    overflow: auto;
+    max-height: 640px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  }
+  .schem-canvas {
+    display: block;
+    background: #E9D9B8;  /* perfboard tan */
+    border-radius: 8px;
+    user-select: none;
+  }
+  .schem-pin {
+    cursor: crosshair;
+    transition: r 0.1s ease, fill 0.1s ease;
+  }
+  .schem-pin:hover { fill: #fbbf24 !important; }
+  .schem-pin.is-pending {
+    fill: #f59e0b !important;
+    stroke: #b45309;
+    stroke-width: 2;
+  }
+  .schem-component {
+    cursor: grab;
+  }
+  .schem-component.is-dragging { cursor: grabbing; }
+  .schem-wire {
+    fill: none;
+    stroke-linecap: round;
+    pointer-events: stroke;
+    cursor: pointer;
+  }
+  .schem-wire:hover { opacity: 0.7; }
+  .schem-solder {
+    pointer-events: none;
+  }
+
+  .schem-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink-hi);
+    color: white;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .schem-toast.is-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+  }
+
+  .schem-hint {
+    font-size: 12.5px;
+    color: var(--ink-mid);
+    line-height: 1.55;
+    padding: 10px 14px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+  }
 </style>
 </head>
 <body>
@@ -2279,6 +2637,7 @@
   <div class="header-inner">
     <h1 class="header-title">D4SG <span class="at">@</span> SA</h1>
     <div class="header-meta">
+      <a href="/tools" class="nav-link nav-to-tools">Tools</a>
       <a href="/hw" class="nav-link nav-to-hw">Homework</a>
       <a href="/progress" class="nav-link nav-to-progress">Progress</a>
       <a href="/" class="nav-link nav-back">← Back to class</a>
@@ -2780,6 +3139,932 @@
       countEls[w.id] = row.querySelector(`[data-count="${w.id}"]`);
     });
     app.appendChild(sec);
+  }
+
+  // ============== TOOLS page ==============
+  function renderTools() {
+    app.innerHTML = '';
+    const sec = document.createElement('section');
+    sec.className = 'project';
+    sec.innerHTML = `
+      <h2 class="project-title">Tools</h2>
+      <p class="project-blurb">Custom tools built for your D4SG build process. More coming as you need them.</p>
+      <div class="tools-grid">
+        <div class="tool-card" id="toolCardSchematic">
+          <p class="tool-card-eyebrow">Tool 01</p>
+          <h3 class="tool-card-title">Wiring Schematic Tool</h3>
+          <p class="tool-card-blurb">Map your perfboard wiring before you solder. Drop in your Arduino, switches, joystick, LEDs, then click pin to pin to draw color-coded wires. Save a clean diagram for your portfolio.</p>
+          <div class="tool-card-footer">Open tool</div>
+        </div>
+        <div class="tool-card is-disabled" id="toolCardVibe">
+          <p class="tool-card-eyebrow">Coming next</p>
+          <h3 class="tool-card-title">Vibe Coding Arduino Tool</h3>
+          <p class="tool-card-blurb">Talk to AI to draft Arduino code, paste it in the editor, push to your Leonardo. Coming in the next pass.</p>
+          <div class="tool-card-footer">Not yet available</div>
+        </div>
+      </div>
+
+      <h3 class="tools-section-title">External Circuit References</h3>
+      <div class="tools-refs">
+        <a class="tool-ref-card" href="https://www.tinkercad.com/circuits" target="_blank" rel="noopener">
+          <p class="tool-ref-title">Tinkercad Circuits</p>
+          <p class="tool-ref-blurb">Virtual Arduino simulator. Drag components, write code, watch LEDs blink. Free with school account, works on Chromebooks.</p>
+          <p class="tool-ref-host">tinkercad.com</p>
+        </a>
+        <a class="tool-ref-card" href="https://wokwi.com" target="_blank" rel="noopener">
+          <p class="tool-ref-title">Wokwi</p>
+          <p class="tool-ref-blurb">Browser-based Arduino simulator with rich peripherals (OLED, NeoPixel, ESP32). Use when Tinkercad doesn't have what you need.</p>
+          <p class="tool-ref-host">wokwi.com</p>
+        </a>
+        <a class="tool-ref-card" href="https://www.circuito.io/app" target="_blank" rel="noopener">
+          <p class="tool-ref-title">Circuito.io</p>
+          <p class="tool-ref-blurb">Pick your components, get a wiring diagram + parts list + starter Arduino code. Bridge from sim to real build.</p>
+          <p class="tool-ref-host">circuito.io</p>
+        </a>
+        <a class="tool-ref-card" href="https://app.cirkitdesigner.com" target="_blank" rel="noopener">
+          <p class="tool-ref-title">Cirkit Studio</p>
+          <p class="tool-ref-blurb">AI-assisted circuit design, simulation, and integrated Arduino IDE. 30k+ components, free.</p>
+          <p class="tool-ref-host">cirkitdesigner.com</p>
+        </a>
+      </div>
+    `;
+    app.appendChild(sec);
+    sec.querySelector('#toolCardSchematic').addEventListener('click', () => {
+      initSchematicTool();
+    });
+    sec.querySelector('#toolCardVibe').addEventListener('click', () => {
+      schemToast('Vibe Coding Tool launches in the next pass.');
+    });
+  }
+
+  // ============== SCHEMATIC TOOL ==============
+  // Click-pin to click-pin perfboard wiring diagrammer. NOT a simulator.
+  // State persists in localStorage as 'd4sg-schematic-v1'. The whole tool
+  // renders into the main #app container. Components live in SVG <g> nodes
+  // with embedded <circle data-pin> endpoints; wires are SVG paths from
+  // pin coord to pin coord.
+
+  const SCHEM_STORAGE_KEY = 'd4sg-schematic-v1';
+  const SCHEM_GRID_PITCH = 22;     // px between dots
+  const SCHEM_DOT_RADIUS = 1.6;
+  const SCHEM_PIN_RADIUS = 5;
+  const SCHEM_SOLDER_RADIUS = 4.5;
+
+  const SCHEM_COLORS = {
+    red:    '#dc2626',
+    black:  '#111111',
+    yellow: '#eab308',
+    green:  '#16a34a',
+    blue:   '#2563eb',
+    white:  '#f8fafc'
+  };
+
+  // Component definitions. Each component has:
+  //   group: 'boards' | 'components'
+  //   label: display name
+  //   w, h: bounding box in grid units
+  //   pins: [{ name, gx, gy }] - pin offsets in grid units from component origin (top-left)
+  //   svg: function(opts) -> inner SVG markup (excluding pins; pins drawn separately)
+  // Coordinates are in SVG user units; multiply by SCHEM_GRID_PITCH to get px.
+  const SCHEM_COMPONENTS = {
+    leonardo: {
+      group: 'boards',
+      label: 'Arduino Leonardo',
+      w: 9, h: 6,
+      pins: [
+        // Top row (digital)
+        { name: 'D13', gx: 0.7, gy: 0 }, { name: 'D12', gx: 1.4, gy: 0 },
+        { name: 'D11', gx: 2.1, gy: 0 }, { name: 'D10', gx: 2.8, gy: 0 },
+        { name: 'D9',  gx: 3.5, gy: 0 }, { name: 'D8',  gx: 4.2, gy: 0 },
+        { name: 'D7',  gx: 5.1, gy: 0 }, { name: 'D6',  gx: 5.8, gy: 0 },
+        { name: 'D5',  gx: 6.5, gy: 0 }, { name: 'D4',  gx: 7.2, gy: 0 },
+        { name: 'D3',  gx: 7.9, gy: 0 }, { name: 'D2',  gx: 8.6, gy: 0 },
+        // Bottom row (power + analog)
+        { name: 'RST', gx: 0.7, gy: 6 }, { name: '3V3', gx: 1.4, gy: 6 },
+        { name: '5V',  gx: 2.1, gy: 6 }, { name: 'GND', gx: 2.8, gy: 6 },
+        { name: 'GND2',gx: 3.5, gy: 6 }, { name: 'VIN', gx: 4.2, gy: 6 },
+        { name: 'A0',  gx: 5.1, gy: 6 }, { name: 'A1',  gx: 5.8, gy: 6 },
+        { name: 'A2',  gx: 6.5, gy: 6 }, { name: 'A3',  gx: 7.2, gy: 6 },
+        { name: 'A4',  gx: 7.9, gy: 6 }, { name: 'A5',  gx: 8.6, gy: 6 }
+      ],
+      svg: function() {
+        const W = 9 * SCHEM_GRID_PITCH;
+        const H = 6 * SCHEM_GRID_PITCH;
+        return `
+          <rect x="0" y="0" width="${W}" height="${H}" rx="8" fill="#1d4ed8" stroke="#0b2a6b" stroke-width="1.5"/>
+          <rect x="${W*0.06}" y="${H*0.18}" width="${W*0.88}" height="${H*0.64}" rx="3" fill="#1e40af"/>
+          <rect x="${W*0.34}" y="${H*0.34}" width="${W*0.32}" height="${H*0.32}" rx="2" fill="#0f172a"/>
+          <text x="${W*0.5}" y="${H*0.56}" text-anchor="middle" font-size="9" fill="#dbeafe" font-family="system-ui, sans-serif" font-weight="600">LEONARDO</text>
+          <rect x="${-6}" y="${H*0.32}" width="12" height="${H*0.36}" rx="1" fill="#9ca3af" stroke="#4b5563"/>
+        `;
+      },
+      pinLabels: true
+    },
+
+    micro: {
+      group: 'boards',
+      label: 'Arduino Micro',
+      w: 7, h: 4,
+      pins: [
+        { name: 'D13', gx: 0.6, gy: 0 }, { name: 'D12', gx: 1.2, gy: 0 },
+        { name: 'D11', gx: 1.8, gy: 0 }, { name: 'D10', gx: 2.4, gy: 0 },
+        { name: 'D9',  gx: 3.0, gy: 0 }, { name: 'D8',  gx: 3.6, gy: 0 },
+        { name: 'D7',  gx: 4.2, gy: 0 }, { name: 'D6',  gx: 4.8, gy: 0 },
+        { name: 'D5',  gx: 5.4, gy: 0 }, { name: 'D4',  gx: 6.0, gy: 0 },
+        { name: 'D3',  gx: 6.6, gy: 0 },
+        { name: '5V',  gx: 0.6, gy: 4 }, { name: 'GND', gx: 1.2, gy: 4 },
+        { name: 'RST', gx: 1.8, gy: 4 }, { name: 'VIN', gx: 2.4, gy: 4 },
+        { name: 'A0',  gx: 3.0, gy: 4 }, { name: 'A1',  gx: 3.6, gy: 4 },
+        { name: 'A2',  gx: 4.2, gy: 4 }, { name: 'A3',  gx: 4.8, gy: 4 },
+        { name: 'A4',  gx: 5.4, gy: 4 }, { name: 'A5',  gx: 6.0, gy: 4 },
+        { name: 'D2',  gx: 6.6, gy: 4 }
+      ],
+      svg: function() {
+        const W = 7 * SCHEM_GRID_PITCH;
+        const H = 4 * SCHEM_GRID_PITCH;
+        return `
+          <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#1d4ed8" stroke="#0b2a6b" stroke-width="1.5"/>
+          <rect x="${W*0.36}" y="${H*0.28}" width="${W*0.28}" height="${H*0.44}" rx="2" fill="#0f172a"/>
+          <text x="${W*0.5}" y="${H*0.6}" text-anchor="middle" font-size="8" fill="#dbeafe" font-family="system-ui, sans-serif" font-weight="600">MICRO</text>
+          <rect x="${-5}" y="${H*0.32}" width="10" height="${H*0.36}" rx="1" fill="#9ca3af" stroke="#4b5563"/>
+        `;
+      },
+      pinLabels: true
+    },
+
+    microswitch: {
+      group: 'components',
+      label: 'Roller-lever switch',
+      w: 3, h: 2,
+      pins: [
+        { name: 'COM', gx: 0.5, gy: 2 },
+        { name: 'NC',  gx: 1.5, gy: 2 },
+        { name: 'NO',  gx: 2.5, gy: 2 }
+      ],
+      svg: function() {
+        const W = 3 * SCHEM_GRID_PITCH;
+        const H = 2 * SCHEM_GRID_PITCH;
+        return `
+          <rect x="0" y="0" width="${W}" height="${H}" rx="3" fill="#9ca3af" stroke="#374151" stroke-width="1.2"/>
+          <line x1="${W*0.2}" y1="${H*0.45}" x2="${W*1.05}" y2="${H*0.05}" stroke="#374151" stroke-width="2"/>
+          <circle cx="${W*1.05}" cy="${H*0.05}" r="3" fill="#1f2937"/>
+          <text x="${W*0.5}" y="${H*0.7}" text-anchor="middle" font-size="7" fill="#1f2937" font-family="system-ui, sans-serif" font-weight="700">SPDT</text>
+        `;
+      },
+      pinLabels: true
+    },
+
+    tactile: {
+      group: 'components',
+      label: 'Tactile button',
+      w: 2, h: 2,
+      pins: [
+        // Pads 1+2 internally connected; pads 3+4 internally connected.
+        { name: '1A', gx: 0,   gy: 0.5 },
+        { name: '1B', gx: 0,   gy: 1.5 },
+        { name: '2A', gx: 2,   gy: 0.5 },
+        { name: '2B', gx: 2,   gy: 1.5 }
+      ],
+      svg: function() {
+        const W = 2 * SCHEM_GRID_PITCH;
+        const H = 2 * SCHEM_GRID_PITCH;
+        return `
+          <rect x="0" y="0" width="${W}" height="${H}" rx="3" fill="#1f2937" stroke="#0f172a" stroke-width="1"/>
+          <circle cx="${W*0.5}" cy="${H*0.5}" r="${W*0.22}" fill="#374151" stroke="#111827" stroke-width="1"/>
+          <text x="${W*0.5}" y="${H*0.95}" text-anchor="middle" font-size="6" fill="#9ca3af" font-family="system-ui, sans-serif">BTN</text>
+        `;
+      },
+      pinLabels: true,
+      hint: 'Pads 1A+1B are one side, 2A+2B are the other side.'
+    },
+
+    joystick: {
+      group: 'components',
+      label: 'Joystick (KY-023)',
+      w: 4, h: 4,
+      pins: [
+        { name: 'GND', gx: 0.5, gy: 4 },
+        { name: 'VCC', gx: 1.4, gy: 4 },
+        { name: 'VRx', gx: 2.2, gy: 4 },
+        { name: 'VRy', gx: 3.0, gy: 4 },
+        { name: 'SW',  gx: 3.7, gy: 4 }
+      ],
+      svg: function() {
+        const W = 4 * SCHEM_GRID_PITCH;
+        const H = 4 * SCHEM_GRID_PITCH;
+        return `
+          <rect x="0" y="0" width="${W}" height="${H}" rx="4" fill="#15803d" stroke="#064e3b" stroke-width="1.2"/>
+          <circle cx="${W*0.5}" cy="${H*0.45}" r="${W*0.34}" fill="#0f172a" stroke="#000" stroke-width="1"/>
+          <circle cx="${W*0.5}" cy="${H*0.45}" r="${W*0.18}" fill="#1f2937" stroke="#374151"/>
+          <text x="${W*0.5}" y="${H*0.92}" text-anchor="middle" font-size="6" fill="#dcfce7" font-family="system-ui, sans-serif" font-weight="700">KY-023</text>
+        `;
+      },
+      pinLabels: true
+    },
+
+    irsensor: {
+      group: 'components',
+      label: 'IR sensor (3-pin)',
+      w: 3, h: 2.5,
+      pins: [
+        { name: 'VCC', gx: 0.5, gy: 2.5 },
+        { name: 'GND', gx: 1.5, gy: 2.5 },
+        { name: 'OUT', gx: 2.5, gy: 2.5 }
+      ],
+      svg: function() {
+        const W = 3 * SCHEM_GRID_PITCH;
+        const H = 2.5 * SCHEM_GRID_PITCH;
+        return `
+          <rect x="0" y="0" width="${W}" height="${H}" rx="3" fill="#15803d" stroke="#064e3b" stroke-width="1.2"/>
+          <circle cx="${W*0.3}" cy="${H*0.4}" r="${W*0.15}" fill="#0f172a" stroke="#000"/>
+          <rect x="${W*0.55}" y="${H*0.18}" width="${W*0.32}" height="${H*0.5}" rx="1.5" fill="#1d4ed8" stroke="#0b2a6b"/>
+          <circle cx="${W*0.71}" cy="${H*0.43}" r="${W*0.06}" fill="#fbbf24"/>
+          <text x="${W*0.5}" y="${H*0.92}" text-anchor="middle" font-size="6" fill="#dcfce7" font-family="system-ui, sans-serif" font-weight="700">IR</text>
+        `;
+      },
+      pinLabels: true
+    },
+
+    sippuff: {
+      group: 'components',
+      label: 'Sip-and-puff',
+      w: 3.5, h: 2,
+      pins: [
+        { name: 'T1', gx: 0,   gy: 1 },
+        { name: 'T2', gx: 3.5, gy: 1 }
+      ],
+      svg: function() {
+        const W = 3.5 * SCHEM_GRID_PITCH;
+        const H = 2 * SCHEM_GRID_PITCH;
+        return `
+          <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#e5e7eb" stroke="#374151" stroke-width="1.2"/>
+          <rect x="${W*0.42}" y="${-6}" width="${W*0.16}" height="6" fill="#6b7280" stroke="#374151"/>
+          <circle cx="${W*0.5}" cy="${-3}" r="3" fill="#1f2937"/>
+          <text x="${W*0.5}" y="${H*0.6}" text-anchor="middle" font-size="7" fill="#1f2937" font-family="system-ui, sans-serif" font-weight="700">SIP/PUFF</text>
+        `;
+      },
+      pinLabels: true
+    },
+
+    led: {
+      group: 'components',
+      label: 'LED',
+      w: 1.5, h: 2,
+      pins: [
+        { name: 'A', gx: 0.4, gy: 2 },  // anode (longer, +)
+        { name: 'K', gx: 1.1, gy: 2 }   // cathode (shorter, -)
+      ],
+      svg: function(opts) {
+        const W = 1.5 * SCHEM_GRID_PITCH;
+        const H = 2 * SCHEM_GRID_PITCH;
+        const color = (opts && opts.ledColor) || 'red';
+        const fill = { red:'#ef4444', yellow:'#facc15', green:'#22c55e', blue:'#3b82f6', white:'#f8fafc' }[color] || '#ef4444';
+        return `
+          <ellipse cx="${W*0.5}" cy="${H*0.42}" rx="${W*0.42}" ry="${H*0.42}" fill="${fill}" stroke="#7f1d1d" stroke-width="1" opacity="0.92"/>
+          <ellipse cx="${W*0.4}" cy="${H*0.32}" rx="${W*0.12}" ry="${H*0.18}" fill="white" opacity="0.5"/>
+          <line x1="${W*0.27}" y1="${H*0.78}" x2="${W*0.27}" y2="${H}" stroke="#374151" stroke-width="1.6"/>
+          <line x1="${W*0.73}" y1="${H*0.78}" x2="${W*0.73}" y2="${H}" stroke="#374151" stroke-width="1.6"/>
+          <text x="${W*0.27}" y="${H*0.88}" text-anchor="middle" font-size="7" fill="#374151" font-family="system-ui, sans-serif" font-weight="700">+</text>
+        `;
+      },
+      pinLabels: true,
+      hasColor: true
+    },
+
+    resistor: {
+      group: 'components',
+      label: '220Ω resistor',
+      w: 3, h: 1,
+      pins: [
+        { name: 'L', gx: 0,   gy: 0.5 },
+        { name: 'R', gx: 3,   gy: 0.5 }
+      ],
+      svg: function() {
+        const W = 3 * SCHEM_GRID_PITCH;
+        const H = 1 * SCHEM_GRID_PITCH;
+        return `
+          <line x1="0" y1="${H*0.5}" x2="${W}" y2="${H*0.5}" stroke="#6b7280" stroke-width="1.5"/>
+          <rect x="${W*0.18}" y="${H*0.18}" width="${W*0.64}" height="${H*0.64}" rx="6" fill="#fef3c7" stroke="#a16207" stroke-width="1"/>
+          <rect x="${W*0.26}" y="${H*0.18}" width="${W*0.06}" height="${H*0.64}" fill="#dc2626"/>
+          <rect x="${W*0.4}" y="${H*0.18}"  width="${W*0.06}" height="${H*0.64}" fill="#dc2626"/>
+          <rect x="${W*0.54}" y="${H*0.18}" width="${W*0.06}" height="${H*0.64}" fill="#92400e"/>
+          <text x="${W*0.5}" y="${H*1.0}" text-anchor="middle" font-size="6" fill="#78350f" font-family="system-ui, sans-serif" font-weight="700">220Ω</text>
+        `;
+      },
+      pinLabels: false
+    }
+  };
+
+  // Default schematic state.
+  function _schemDefaultState() {
+    return {
+      gridCols: 24,
+      gridRows: 18,
+      components: [],
+      wires: [],
+      selectedColor: 'red',
+      resistorReminderShown: false,
+      _idCounter: 1
+    };
+  }
+
+  let _schemState = null;
+  let _schemPendingPin = null;   // pinId waiting for second click
+  let _schemDrag = null;         // { id, startX, startY, originGx, originGy }
+  let _schemSvg = null;          // root <svg>
+
+  function schemLoad() {
+    try {
+      const raw = localStorage.getItem(SCHEM_STORAGE_KEY);
+      if (!raw) return _schemDefaultState();
+      const parsed = JSON.parse(raw);
+      // Merge defaults so older saves don't crash.
+      return Object.assign(_schemDefaultState(), parsed);
+    } catch (err) {
+      console.warn('schematic load failed', err);
+      return _schemDefaultState();
+    }
+  }
+
+  function schemSave() {
+    try {
+      localStorage.setItem(SCHEM_STORAGE_KEY, JSON.stringify(_schemState));
+    } catch (err) {
+      console.warn('schematic save failed', err);
+    }
+  }
+
+  function schemNewId(prefix) {
+    const n = _schemState._idCounter++;
+    return `${prefix}_${n}`;
+  }
+
+  function schemToast(msg, ms) {
+    let el = document.getElementById('schemToast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'schemToast';
+      el.className = 'schem-toast';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    requestAnimationFrame(() => el.classList.add('is-visible'));
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => {
+      el.classList.remove('is-visible');
+    }, ms || 2400);
+  }
+
+  function initSchematicTool() {
+    _schemState = schemLoad();
+    _schemPendingPin = null;
+    _schemDrag = null;
+
+    app.innerHTML = '';
+    const wrap = document.createElement('section');
+    wrap.className = 'project';
+    wrap.innerHTML = `
+      <button class="schem-back" id="schemBack">&larr; Back to Tools</button>
+      <h2 class="project-title">Wiring Schematic Tool</h2>
+      <p class="project-blurb">Map your perfboard wiring before you solder. Click a component in the palette to drop it on the board, drag to move it, then click pin to pin to draw wires. Right-click any wire or component to delete it.</p>
+
+      <div class="schem-wrap">
+        <div class="schem-toolbar">
+          <div class="schem-toolbar-group">
+            <span class="schem-toolbar-label">Wire color</span>
+            <div class="schem-color-row" id="schemColors"></div>
+          </div>
+          <div class="schem-toolbar-group">
+            <span class="schem-toolbar-label">Board</span>
+            <button class="schem-btn" id="schemGridToggle">Toggle size</button>
+          </div>
+          <div class="schem-toolbar-group" style="margin-left: auto;">
+            <button class="schem-btn" id="schemClear">Clear</button>
+            <button class="schem-btn" id="schemPortfolio">Add to Portfolio</button>
+            <button class="schem-btn is-primary" id="schemDownload">Download Image</button>
+          </div>
+        </div>
+
+        <div class="schem-stage">
+          <div class="schem-palette" id="schemPalette"></div>
+          <div class="schem-canvas-wrap" id="schemCanvasWrap"></div>
+        </div>
+
+        <div class="schem-hint">Tip: click any pin to start a wire, then click a second pin to finish it. Color the wire first using the palette above.</div>
+      </div>
+    `;
+    app.appendChild(wrap);
+
+    document.getElementById('schemBack').addEventListener('click', () => {
+      history.pushState({}, '', '/tools');
+      document.body.classList.remove('view-tools-detail');
+      renderTools();
+    });
+
+    renderComponentPalette();
+    renderColorRow();
+    renderPerfboard();
+
+    document.getElementById('schemGridToggle').addEventListener('click', () => {
+      if (_schemState.gridCols === 24) {
+        _schemState.gridCols = 35;
+        _schemState.gridRows = 24;
+      } else {
+        _schemState.gridCols = 24;
+        _schemState.gridRows = 18;
+      }
+      schemSave();
+      renderPerfboard();
+    });
+
+    document.getElementById('schemClear').addEventListener('click', () => {
+      if (!_schemState.components.length && !_schemState.wires.length) {
+        schemToast('Already empty.');
+        return;
+      }
+      if (!confirm('Clear the whole canvas? This cannot be undone.')) return;
+      clearCanvas();
+    });
+
+    document.getElementById('schemPortfolio').addEventListener('click', () => {
+      schemToast('Coming soon. For now, download and add manually.', 3200);
+    });
+
+    document.getElementById('schemDownload').addEventListener('click', () => {
+      exportPNG();
+    });
+  }
+
+  function renderColorRow() {
+    const row = document.getElementById('schemColors');
+    row.innerHTML = '';
+    Object.entries(SCHEM_COLORS).forEach(([name, hex]) => {
+      const btn = document.createElement('button');
+      btn.className = 'schem-color' + (name === _schemState.selectedColor ? ' is-active' : '');
+      btn.style.background = hex;
+      btn.title = name;
+      btn.setAttribute('aria-label', `Wire color: ${name}`);
+      btn.addEventListener('click', () => {
+        _schemState.selectedColor = name;
+        schemSave();
+        renderColorRow();
+      });
+      row.appendChild(btn);
+    });
+  }
+
+  function renderComponentPalette() {
+    const pal = document.getElementById('schemPalette');
+    pal.innerHTML = '';
+    const groups = { boards: [], components: [] };
+    Object.entries(SCHEM_COMPONENTS).forEach(([type, def]) => {
+      groups[def.group].push({ type, def });
+    });
+
+    const addGroup = (title, items) => {
+      const heading = document.createElement('div');
+      heading.className = 'schem-palette-group';
+      heading.textContent = title;
+      pal.appendChild(heading);
+      items.forEach(({ type, def }) => {
+        const btn = document.createElement('button');
+        btn.className = 'schem-palette-item';
+        btn.innerHTML = `
+          <span class="schem-palette-thumb">
+            <svg viewBox="0 0 ${def.w * SCHEM_GRID_PITCH} ${def.h * SCHEM_GRID_PITCH}" width="28" height="${Math.min(28, def.h * 14)}">
+              ${def.svg({ ledColor: 'red' })}
+            </svg>
+          </span>
+          <span>${def.label}</span>
+        `;
+        btn.addEventListener('click', () => placeComponent(type));
+        pal.appendChild(btn);
+      });
+    };
+
+    addGroup('Boards', groups.boards);
+    addGroup('Components', groups.components);
+  }
+
+  function renderPerfboard() {
+    const wrap = document.getElementById('schemCanvasWrap');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+
+    const cols = _schemState.gridCols;
+    const rows = _schemState.gridRows;
+    const W = (cols + 1) * SCHEM_GRID_PITCH;
+    const H = (rows + 1) * SCHEM_GRID_PITCH;
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'schem-canvas');
+    svg.setAttribute('width', W);
+    svg.setAttribute('height', H);
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('xmlns', svgNS);
+    _schemSvg = svg;
+
+    // Background rect (perfboard tan) baked into the SVG so PNG export keeps it.
+    const bg = document.createElementNS(svgNS, 'rect');
+    bg.setAttribute('x', 0);
+    bg.setAttribute('y', 0);
+    bg.setAttribute('width', W);
+    bg.setAttribute('height', H);
+    bg.setAttribute('fill', '#E9D9B8');
+    bg.setAttribute('rx', 8);
+    svg.appendChild(bg);
+
+    // Pad-hole grid.
+    for (let r = 0; r <= rows; r++) {
+      for (let c = 0; c <= cols; c++) {
+        const cx = (c + 0.5) * SCHEM_GRID_PITCH;
+        const cy = (r + 0.5) * SCHEM_GRID_PITCH;
+        const dot = document.createElementNS(svgNS, 'circle');
+        dot.setAttribute('cx', cx);
+        dot.setAttribute('cy', cy);
+        dot.setAttribute('r', SCHEM_DOT_RADIUS);
+        dot.setAttribute('fill', '#a78250');
+        dot.setAttribute('opacity', '0.45');
+        svg.appendChild(dot);
+      }
+    }
+
+    // Components layer.
+    const layerComponents = document.createElementNS(svgNS, 'g');
+    layerComponents.setAttribute('id', 'schemLayerComponents');
+    svg.appendChild(layerComponents);
+
+    // Wires layer (drawn ABOVE components so they're visible).
+    const layerWires = document.createElementNS(svgNS, 'g');
+    layerWires.setAttribute('id', 'schemLayerWires');
+    svg.appendChild(layerWires);
+
+    _schemState.components.forEach(c => drawComponent(c));
+    _schemState.wires.forEach(w => drawWire(w));
+
+    // Cancel pending wire on background click.
+    svg.addEventListener('click', (e) => {
+      if (e.target === svg || e.target === bg) {
+        if (_schemPendingPin) {
+          _schemPendingPin = null;
+          highlightPendingPin(null);
+        }
+      }
+    });
+
+    // Drag handling at the SVG level for performance.
+    svg.addEventListener('mousemove', _schemOnDragMove);
+    svg.addEventListener('mouseup', _schemOnDragEnd);
+    svg.addEventListener('mouseleave', _schemOnDragEnd);
+
+    wrap.appendChild(svg);
+  }
+
+  function drawComponent(c) {
+    const def = SCHEM_COMPONENTS[c.type];
+    if (!def) return;
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const layer = _schemSvg.querySelector('#schemLayerComponents');
+
+    const g = document.createElementNS(svgNS, 'g');
+    g.setAttribute('class', 'schem-component component-svg');
+    g.setAttribute('data-component', c.type);
+    g.setAttribute('data-component-id', c.id);
+    g.setAttribute('transform', `translate(${(c.x + 0.5) * SCHEM_GRID_PITCH}, ${(c.y + 0.5) * SCHEM_GRID_PITCH})`);
+
+    // Body (innerSVG from definition). Pins drawn separately below.
+    const body = document.createElementNS(svgNS, 'g');
+    body.setAttribute('class', 'schem-component-body');
+    body.innerHTML = def.svg({ ledColor: c.ledColor || 'red' });
+    g.appendChild(body);
+
+    // Pins.
+    def.pins.forEach(pin => {
+      const px = pin.gx * SCHEM_GRID_PITCH;
+      const py = pin.gy * SCHEM_GRID_PITCH;
+      const pinG = document.createElementNS(svgNS, 'g');
+      pinG.setAttribute('class', 'schem-pin-group');
+
+      const pinCircle = document.createElementNS(svgNS, 'circle');
+      pinCircle.setAttribute('class', 'schem-pin');
+      pinCircle.setAttribute('cx', px);
+      pinCircle.setAttribute('cy', py);
+      pinCircle.setAttribute('r', SCHEM_PIN_RADIUS);
+      pinCircle.setAttribute('fill', '#c0c0c0');
+      pinCircle.setAttribute('stroke', '#1f2937');
+      pinCircle.setAttribute('stroke-width', '1.2');
+      const pinId = `${c.id}:${pin.name}`;
+      pinCircle.setAttribute('data-pin', pinId);
+      pinG.appendChild(pinCircle);
+
+      if (def.pinLabels) {
+        const lbl = document.createElementNS(svgNS, 'text');
+        lbl.setAttribute('x', px);
+        // Place label outside the component bbox.
+        const labelAbove = pin.gy <= 0.01;
+        lbl.setAttribute('y', labelAbove ? py - 8 : py + 14);
+        lbl.setAttribute('text-anchor', 'middle');
+        lbl.setAttribute('font-size', '7');
+        lbl.setAttribute('fill', '#1f2937');
+        lbl.setAttribute('font-family', 'system-ui, sans-serif');
+        lbl.setAttribute('font-weight', '600');
+        lbl.setAttribute('pointer-events', 'none');
+        lbl.textContent = pin.name;
+        pinG.appendChild(lbl);
+      }
+
+      pinCircle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handlePinClick(pinId);
+      });
+
+      g.appendChild(pinG);
+    });
+
+    // Drag start on the body, not on pins.
+    g.addEventListener('mousedown', (e) => {
+      if (e.target.classList && e.target.classList.contains('schem-pin')) return;
+      if (e.button !== 0) return;
+      const pt = svgPoint(e);
+      _schemDrag = {
+        id: c.id,
+        startX: pt.x,
+        startY: pt.y,
+        originGx: c.x,
+        originGy: c.y
+      };
+      g.classList.add('is-dragging');
+      e.preventDefault();
+    });
+
+    // Right-click delete.
+    g.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      if (confirm(`Delete ${def.label}?`)) {
+        deleteComponent(c.id);
+      }
+    });
+
+    // Double-click LED to cycle color.
+    if (def.hasColor) {
+      g.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        const order = ['red', 'yellow', 'green', 'blue', 'white'];
+        const cur = c.ledColor || 'red';
+        const next = order[(order.indexOf(cur) + 1) % order.length];
+        c.ledColor = next;
+        schemSave();
+        renderPerfboard();
+      });
+    }
+
+    layer.appendChild(g);
+  }
+
+  function drawWire(w) {
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const layer = _schemSvg.querySelector('#schemLayerWires');
+    const a = pinIdToCoords(w.fromPinId);
+    const b = pinIdToCoords(w.toPinId);
+    if (!a || !b) return;
+
+    // Smooth curve between pins.
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const sag = Math.min(40, Math.max(10, dist * 0.18));
+    const cx1 = a.x + dx * 0.3;
+    const cy1 = a.y + dy * 0.3 + sag;
+    const cx2 = a.x + dx * 0.7;
+    const cy2 = a.y + dy * 0.7 + sag;
+    const d = `M ${a.x} ${a.y} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${b.x} ${b.y}`;
+
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('class', 'schem-wire');
+    path.setAttribute('d', d);
+    path.setAttribute('stroke', SCHEM_COLORS[w.color] || SCHEM_COLORS.red);
+    path.setAttribute('stroke-width', '3');
+    path.setAttribute('data-wire-id', w.id);
+    if (w.color === 'white') {
+      path.setAttribute('stroke', '#f8fafc');
+      path.style.filter = 'drop-shadow(0 0 1px rgba(0,0,0,0.4))';
+    }
+
+    path.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      deleteWire(w.id);
+    });
+    path.addEventListener('click', (e) => {
+      // Allow click-to-delete as a secondary action with shift-key for accessibility.
+      if (e.shiftKey) {
+        deleteWire(w.id);
+      }
+    });
+
+    layer.appendChild(path);
+
+    // Solder blobs at each end.
+    [a, b].forEach(pt => {
+      const blob = document.createElementNS(svgNS, 'circle');
+      blob.setAttribute('class', 'schem-solder');
+      blob.setAttribute('cx', pt.x);
+      blob.setAttribute('cy', pt.y);
+      blob.setAttribute('r', SCHEM_SOLDER_RADIUS);
+      blob.setAttribute('fill', '#94a3b8');
+      blob.setAttribute('stroke', '#475569');
+      blob.setAttribute('stroke-width', '0.8');
+      layer.appendChild(blob);
+    });
+  }
+
+  function pinIdToCoords(pinId) {
+    const [compId, pinName] = pinId.split(':');
+    const c = _schemState.components.find(x => x.id === compId);
+    if (!c) return null;
+    const def = SCHEM_COMPONENTS[c.type];
+    if (!def) return null;
+    const pin = def.pins.find(p => p.name === pinName);
+    if (!pin) return null;
+    const x = (c.x + 0.5) * SCHEM_GRID_PITCH + pin.gx * SCHEM_GRID_PITCH;
+    const y = (c.y + 0.5) * SCHEM_GRID_PITCH + pin.gy * SCHEM_GRID_PITCH;
+    return { x, y };
+  }
+
+  function svgPoint(e) {
+    const pt = _schemSvg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    return pt.matrixTransform(_schemSvg.getScreenCTM().inverse());
+  }
+
+  function _schemOnDragMove(e) {
+    if (!_schemDrag) return;
+    const pt = svgPoint(e);
+    const dx = (pt.x - _schemDrag.startX) / SCHEM_GRID_PITCH;
+    const dy = (pt.y - _schemDrag.startY) / SCHEM_GRID_PITCH;
+    const c = _schemState.components.find(x => x.id === _schemDrag.id);
+    if (!c) return;
+    const def = SCHEM_COMPONENTS[c.type];
+    let nx = Math.round(_schemDrag.originGx + dx);
+    let ny = Math.round(_schemDrag.originGy + dy);
+    nx = Math.max(0, Math.min(_schemState.gridCols - def.w, nx));
+    ny = Math.max(0, Math.min(_schemState.gridRows - def.h, ny));
+    if (nx !== c.x || ny !== c.y) {
+      c.x = nx;
+      c.y = ny;
+      // Re-render only this component's transform + redraw wires that touch it.
+      const node = _schemSvg.querySelector(`[data-component-id="${c.id}"]`);
+      if (node) {
+        node.setAttribute('transform', `translate(${(c.x + 0.5) * SCHEM_GRID_PITCH}, ${(c.y + 0.5) * SCHEM_GRID_PITCH})`);
+      }
+      redrawWires();
+    }
+  }
+
+  function _schemOnDragEnd() {
+    if (!_schemDrag) return;
+    const node = _schemSvg.querySelector(`[data-component-id="${_schemDrag.id}"]`);
+    if (node) node.classList.remove('is-dragging');
+    _schemDrag = null;
+    schemSave();
+  }
+
+  function redrawWires() {
+    const layer = _schemSvg.querySelector('#schemLayerWires');
+    if (!layer) return;
+    layer.innerHTML = '';
+    _schemState.wires.forEach(w => drawWire(w));
+  }
+
+  function placeComponent(type) {
+    const def = SCHEM_COMPONENTS[type];
+    if (!def) return;
+    // Drop in middle of canvas, offset slightly per existing count to avoid overlap.
+    const count = _schemState.components.filter(c => c.type === type).length;
+    const baseX = Math.max(0, Math.floor(_schemState.gridCols / 2 - def.w / 2));
+    const baseY = Math.max(0, Math.floor(_schemState.gridRows / 2 - def.h / 2));
+    const x = Math.min(_schemState.gridCols - def.w, baseX + (count % 4));
+    const y = Math.min(_schemState.gridRows - def.h, baseY + Math.floor(count / 4));
+    const id = schemNewId(type);
+    const c = { id, type, x, y };
+    if (def.hasColor) c.ledColor = 'red';
+    _schemState.components.push(c);
+    schemSave();
+    drawComponent(c);
+
+    // LED reminder: offer 220 ohm resistor on first LED placement per session.
+    if (type === 'led' && !_schemState.resistorReminderShown) {
+      _schemState.resistorReminderShown = true;
+      schemSave();
+      schemToast('LEDs need a 220 ohm resistor in series. Add one from the palette.', 3600);
+    }
+  }
+
+  function handlePinClick(pinId) {
+    if (!_schemPendingPin) {
+      _schemPendingPin = pinId;
+      highlightPendingPin(pinId);
+      return;
+    }
+    if (_schemPendingPin === pinId) {
+      // Click same pin again to cancel.
+      _schemPendingPin = null;
+      highlightPendingPin(null);
+      return;
+    }
+    completeWire(_schemPendingPin, pinId);
+    _schemPendingPin = null;
+    highlightPendingPin(null);
+  }
+
+  function highlightPendingPin(pinId) {
+    _schemSvg.querySelectorAll('.schem-pin.is-pending').forEach(el => el.classList.remove('is-pending'));
+    if (pinId) {
+      const el = _schemSvg.querySelector(`[data-pin="${pinId}"]`);
+      if (el) el.classList.add('is-pending');
+    }
+  }
+
+  function completeWire(fromPinId, toPinId) {
+    const id = schemNewId('wire');
+    const w = { id, fromPinId, toPinId, color: _schemState.selectedColor };
+    _schemState.wires.push(w);
+    schemSave();
+    drawWire(w);
+  }
+
+  function deleteComponent(id) {
+    _schemState.components = _schemState.components.filter(c => c.id !== id);
+    // Drop any wires touching this component.
+    _schemState.wires = _schemState.wires.filter(w => {
+      return !w.fromPinId.startsWith(id + ':') && !w.toPinId.startsWith(id + ':');
+    });
+    schemSave();
+    renderPerfboard();
+  }
+
+  function deleteWire(id) {
+    _schemState.wires = _schemState.wires.filter(w => w.id !== id);
+    schemSave();
+    redrawWires();
+  }
+
+  function clearCanvas() {
+    _schemState.components = [];
+    _schemState.wires = [];
+    schemSave();
+    renderPerfboard();
+    schemToast('Canvas cleared.');
+  }
+
+  function exportPNG() {
+    if (!_schemSvg) return;
+    try {
+      const serializer = new XMLSerializer();
+      // Clone so we can strip interactive cursor classes.
+      const clone = _schemSvg.cloneNode(true);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      const svgStr = serializer.serializeToString(clone);
+      const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const w = _schemSvg.viewBox.baseVal.width || _schemSvg.clientWidth;
+        const h = _schemSvg.viewBox.baseVal.height || _schemSvg.clientHeight;
+        const scale = 2;
+        const canvas = document.createElement('canvas');
+        canvas.width = w * scale;
+        canvas.height = h * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(scale, scale);
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        canvas.toBlob((pngBlob) => {
+          if (!pngBlob) {
+            schemToast('Could not generate image. Try again.');
+            return;
+          }
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(pngBlob);
+          const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+          a.download = `wiring-schematic-${stamp}.png`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+          schemToast('Image saved.');
+        }, 'image/png');
+      };
+      img.onerror = (err) => {
+        console.error('image load error', err);
+        schemToast('Could not generate image. Try again.');
+      };
+      img.src = url;
+    } catch (err) {
+      console.error('export PNG failed', err);
+      schemToast('Could not generate image. Try again.');
+    }
   }
 
   // ============== PROGRESS page ==============
@@ -5151,6 +6436,9 @@
   } else if (route === '/progress') {
     document.body.classList.add('view-progress');
     renderProgress();
+  } else if (route === '/tools') {
+    document.body.classList.add('view-tools');
+    renderTools();
   } else {
     renderProjects();
   }
