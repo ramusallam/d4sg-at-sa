@@ -1,7 +1,15 @@
-// Vercel Node.js serverless function: Anthropic proxy for the Vibe Coding
+// Vercel Node.js serverless function: OpenAI proxy for the Vibe Coding
 // Arduino Tool. Gates access by class code, applies a soft per-IP rate limit,
-// uses prompt caching on the system prompt, and strips markdown fences from
-// the model output so the client receives pure Arduino C/C++.
+// and strips markdown fences from the model output so the client receives
+// pure Arduino C/C++.
+//
+// Model is read from env var OPENAI_MODEL so it auto-tracks future OpenAI
+// releases without code changes. Default: gpt-4o (auto-resolves to the
+// latest GPT-4o snapshot). Update the env var in Vercel and redeploy when a
+// newer model ships (e.g. set OPENAI_MODEL=gpt-5 once it's available).
+//
+// OpenAI applies prompt caching automatically on prompts over ~1024 tokens
+// when the same system prefix is repeated; no special headers required.
 
 const SYSTEM_PROMPT = "You are a coding assistant for a high school maker class at Sonoma Academy. The student is using an Arduino Leonardo or Arduino Micro to build an adaptive controller for accessibility. Their hardware palette includes: SPDT roller-lever microswitches, tactile buttons (4-pin pairs), 5-pin KY-023 joystick (VCC/GND/VRx/VRy/SW), 3-pin IR sensor module (VCC/GND/OUT), 2-wire sip-and-puff dry-contact switch, LEDs, and 220-ohm resistors.\n\nGenerate clean, well-commented Arduino C/C++ code in response to their request. Use the Keyboard.h, Mouse.h, or Joystick.h libraries when appropriate (Leonardo/Micro can act as a USB HID device). Always include pin number constants at the top, a setup() function, and a loop(). Add Serial.println() debug output so they can see values in the Serial Monitor at 9600 baud. Keep code under 100 lines unless absolutely necessary. Return ONLY the code, no markdown fences, no explanation.";
 
@@ -28,7 +36,6 @@ function checkRateLimit(ip) {
   const count = rateBuckets.get(key) || 0;
   if (count >= RATE_LIMIT_PER_DAY) return false;
   rateBuckets.set(key, count + 1);
-  // Light cleanup so the Map does not grow forever on long-warm instances.
   if (rateBuckets.size > 5000) {
     const today = todayUtc();
     for (const k of rateBuckets.keys()) {
@@ -41,14 +48,12 @@ function checkRateLimit(ip) {
 function stripFences(text) {
   if (!text) return '';
   let out = String(text).trim();
-  // Strip a leading fenced block label line and trailing fence
   const fenceStart = /^```(?:arduino|cpp|c\+\+|c)?\s*\n/i;
   const fenceEnd = /\n```\s*$/;
   if (fenceStart.test(out)) {
     out = out.replace(fenceStart, '');
     out = out.replace(fenceEnd, '');
   }
-  // Also handle bare ``` at start
   if (out.startsWith('```')) {
     out = out.replace(/^```\s*\n?/, '');
     out = out.replace(/\n?```\s*$/, '');
@@ -102,10 +107,14 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Daily request limit reached. Try again tomorrow.' });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'API key not configured' });
   }
+
+  // Bare model names auto-track latest snapshot. Update the env var in Vercel
+  // (no code change) when a new generation ships.
+  const model = process.env.OPENAI_MODEL || 'gpt-4o';
 
   // Sanitize history: only role + string content, only user/assistant, last 10.
   const cleanHistory = history
@@ -114,28 +123,20 @@ export default async function handler(req, res) {
     .map(m => ({ role: m.role, content: m.content }));
 
   const requestBody = {
-    model: 'claude-sonnet-4-6',
-    max_tokens: 2048,
-    system: [
-      {
-        type: 'text',
-        text: SYSTEM_PROMPT,
-        cache_control: { type: 'ephemeral' }
-      }
-    ],
+    model,
     messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
       ...cleanHistory,
       { role: 'user', content: prompt }
-    ]
+    ],
+    max_completion_tokens: 2048
   };
 
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'prompt-caching-2024-07-31',
+        'Authorization': 'Bearer ' + apiKey,
         'content-type': 'application/json'
       },
       body: JSON.stringify(requestBody)
@@ -145,17 +146,14 @@ export default async function handler(req, res) {
 
     if (!r.ok) {
       const detail = (data && data.error && data.error.message) ? data.error.message : ('HTTP ' + r.status);
-      return res.status(502).json({ error: 'Anthropic API error', detail });
+      return res.status(502).json({ error: 'OpenAI API error', detail });
     }
 
-    let text = '';
-    if (Array.isArray(data.content)) {
-      // Concatenate any text blocks
-      text = data.content.filter(b => b && b.type === 'text').map(b => b.text || '').join('\n').trim();
-    }
+    const choice = Array.isArray(data.choices) && data.choices[0];
+    const text = (choice && choice.message && choice.message.content) ? String(choice.message.content) : '';
     const code = stripFences(text);
 
-    return res.status(200).json({ code, usage: data.usage || null });
+    return res.status(200).json({ code, usage: data.usage || null, model: data.model || model });
   } catch (err) {
     return res.status(500).json({ error: 'Proxy error', detail: String(err.message || err) });
   }
