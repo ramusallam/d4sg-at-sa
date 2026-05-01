@@ -2629,6 +2629,376 @@
     border-left: 3px solid var(--accent);
     border-radius: 8px;
   }
+
+  /* ============== VIBE CODING TOOL ============== */
+  .vibe-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+    height: calc(100vh - 220px);
+    min-height: 560px;
+  }
+  @media (max-width: 980px) {
+    .vibe-wrap {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+  }
+  .vibe-panel {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .vibe-panel-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--bg-2);
+  }
+  .vibe-panel-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin: 0;
+  }
+  .vibe-panel-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* Chat panel */
+  .vibe-chat-scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+  }
+  .vibe-chat-empty {
+    color: var(--ink-low);
+    font-size: 13.5px;
+    text-align: center;
+    padding: 32px 18px;
+    line-height: 1.6;
+  }
+  .vibe-chat-empty strong {
+    color: var(--ink-mid);
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14.5px;
+  }
+  .vibe-msg {
+    max-width: 92%;
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .vibe-msg-user {
+    align-self: flex-end;
+    background: var(--accent-soft);
+    border: 1px solid #dbeafe;
+    color: var(--ink-hi);
+  }
+  .vibe-msg-ai {
+    align-self: flex-start;
+    background: var(--bg-0);
+    border: 1px solid var(--border);
+    color: var(--ink-hi);
+  }
+  .vibe-msg-error {
+    align-self: flex-start;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    font-size: 13.5px;
+  }
+  .vibe-msg-loading {
+    align-self: flex-start;
+    color: var(--ink-mid);
+    font-size: 13.5px;
+    font-style: italic;
+    animation: vibePulse 1.4s ease-in-out infinite;
+  }
+  @keyframes vibePulse {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+  .vibe-msg-codepreview {
+    margin-top: 8px;
+    background: #1e293b;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    max-height: 180px;
+    overflow: auto;
+    white-space: pre;
+  }
+  .vibe-msg-copybtn {
+    margin-top: 8px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .vibe-msg-copybtn:hover { background: #2563eb; }
+  .vibe-msg-copybtn.is-copied { background: var(--success); }
+
+  .vibe-input-row {
+    border-top: 1px solid var(--border);
+    padding: 10px 12px;
+    background: var(--bg-2);
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .vibe-input {
+    flex: 1 1 auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-1);
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: none;
+    min-height: 44px;
+    max-height: 160px;
+    color: var(--ink-hi);
+  }
+  .vibe-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+  .vibe-send-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease;
+    align-self: stretch;
+  }
+  .vibe-send-btn:hover { background: #2563eb; }
+  .vibe-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Right panel: editor + monitor */
+  .vibe-right {
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    min-height: 0;
+  }
+  .vibe-editor-wrap {
+    flex: 1 1 auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 240px;
+  }
+  .vibe-editor-wrap .CodeMirror {
+    height: 100%;
+    font-size: 13px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  }
+  .vibe-editor-fallback {
+    flex: 1 1 auto;
+    width: 100%;
+    border: none;
+    padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    background: var(--bg-1);
+    color: var(--ink-hi);
+    resize: none;
+    outline: none;
+  }
+  .vibe-help-line {
+    padding: 8px 16px;
+    font-size: 12px;
+    color: var(--ink-mid);
+    background: var(--accent-soft);
+    border-top: 1px solid var(--border);
+    line-height: 1.5;
+  }
+
+  .vibe-monitor-header {
+    background: #0a0a0a;
+    color: #cbd5e1;
+    padding: 9px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .vibe-monitor-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin: 0;
+  }
+  .vibe-monitor-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .vibe-monitor-controls select,
+  .vibe-monitor-controls .vibe-mini-btn {
+    background: #1f2937;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 11.5px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .vibe-monitor-controls .vibe-mini-btn:hover {
+    background: #334155;
+  }
+  .vibe-monitor {
+    background: #000;
+    color: #4ade80;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    padding: 12px 14px;
+    height: 160px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .vibe-monitor-empty {
+    color: #475569;
+    font-style: italic;
+  }
+
+  .vibe-btn {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    color: var(--ink-mid);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .vibe-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .vibe-btn.is-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .vibe-btn.is-primary:hover {
+    background: #2563eb;
+    color: white;
+  }
+  .vibe-btn.is-active {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+  }
+  .vibe-btn.is-copied {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+  }
+
+  /* Class code modal */
+  .vibe-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 17, 17, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 250;
+    padding: 20px;
+  }
+  .vibe-modal {
+    background: var(--bg-1);
+    border-radius: 14px;
+    padding: 28px 28px 24px;
+    max-width: 380px;
+    width: 100%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  }
+  .vibe-modal h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink-hi);
+  }
+  .vibe-modal p {
+    margin: 0 0 16px;
+    font-size: 13.5px;
+    color: var(--ink-mid);
+    line-height: 1.5;
+  }
+  .vibe-modal input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+    color: var(--ink-hi);
+  }
+  .vibe-modal input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+  .vibe-modal-error {
+    color: #b91c1c;
+    font-size: 12.5px;
+    margin: 0 0 10px;
+    min-height: 16px;
+  }
+  .vibe-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
 </style>
 </head>
 <body>
@@ -3156,11 +3526,11 @@
           <p class="tool-card-blurb">Map your perfboard wiring before you solder. Drop in your Arduino, switches, joystick, LEDs, then click pin to pin to draw color-coded wires. Save a clean diagram for your portfolio.</p>
           <div class="tool-card-footer">Open tool</div>
         </div>
-        <div class="tool-card is-disabled" id="toolCardVibe">
-          <p class="tool-card-eyebrow">Coming next</p>
+        <div class="tool-card" id="toolCardVibe">
+          <p class="tool-card-eyebrow">Tool 02</p>
           <h3 class="tool-card-title">Vibe Coding Arduino Tool</h3>
-          <p class="tool-card-blurb">Talk to AI to draft Arduino code, paste it in the editor, push to your Leonardo. Coming in the next pass.</p>
-          <div class="tool-card-footer">Not yet available</div>
+          <p class="tool-card-blurb">Talk to AI to draft Arduino code, then push it into a built-in editor. Connect your Leonardo or Micro and watch live serial output as your sketch runs.</p>
+          <div class="tool-card-footer">Open tool</div>
         </div>
       </div>
 
@@ -3193,7 +3563,7 @@
       initSchematicTool();
     });
     sec.querySelector('#toolCardVibe').addEventListener('click', () => {
-      schemToast('Vibe Coding Tool launches in the next pass.');
+      initVibeCodingTool();
     });
   }
 
@@ -6419,6 +6789,538 @@
 
   if (isAdmin) {
     document.getElementById('archivesViewBtn').addEventListener('click', openArchivesList);
+  }
+
+  // ============== VIBE CODING TOOL ==============
+  // Two-panel chat-driven Arduino code workbench. Talks to /api/vibe-code
+  // (Anthropic proxy with class-code gate). Right panel is a CodeMirror
+  // editor + Web Serial monitor. Pass 2: copy-to-clipboard upload flow.
+
+  const VIBE_CHAT_KEY = 'd4sg-vibe-chat-v1';
+  const VIBE_EDITOR_KEY = 'd4sg-vibe-editor-v1';
+  const VIBE_CLASSCODE_KEY = 'd4sg-vibe-classcode-v1';
+  const VIBE_DEFAULT_CODE = '// Your Arduino code will appear here.\n// Ask the assistant on the left for help, then click "Copy to Editor".\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n}\n';
+
+  let _vibeEditor = null;     // CodeMirror instance (or null if fallback textarea used)
+  let _vibeChat = [];         // [{ role: 'user'|'assistant'|'error', content: string }]
+  let _vibeBusy = false;
+  let _vibeSerialPort = null;
+  let _vibeSerialReader = null;
+  let _vibeSerialKeepReading = false;
+  let _vibeMonitorAutoScroll = true;
+
+  function vibeLoadChat() {
+    try {
+      const raw = localStorage.getItem(VIBE_CHAT_KEY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (_) { return []; }
+  }
+  function vibeSaveChat() {
+    try { localStorage.setItem(VIBE_CHAT_KEY, JSON.stringify(_vibeChat)); } catch (_) {}
+  }
+  function vibeLoadEditorText() {
+    try { return localStorage.getItem(VIBE_EDITOR_KEY) || VIBE_DEFAULT_CODE; } catch (_) { return VIBE_DEFAULT_CODE; }
+  }
+  function vibeSaveEditorText(txt) {
+    try { localStorage.setItem(VIBE_EDITOR_KEY, txt); } catch (_) {}
+  }
+  function vibeGetClassCode() {
+    try { return localStorage.getItem(VIBE_CLASSCODE_KEY) || ''; } catch (_) { return ''; }
+  }
+  function vibeSetClassCode(code) {
+    try { localStorage.setItem(VIBE_CLASSCODE_KEY, code); } catch (_) {}
+  }
+  function vibeClearClassCode() {
+    try { localStorage.removeItem(VIBE_CLASSCODE_KEY); } catch (_) {}
+  }
+
+  function vibeLoadCodeMirror() {
+    if (window.CodeMirror) return Promise.resolve();
+    const cssHref = 'https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css';
+    if (!document.querySelector('link[data-vibe-cm]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = cssHref;
+      link.setAttribute('data-vibe-cm', '1');
+      document.head.appendChild(link);
+    }
+    const loadScript = (src) => new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('Failed to load ' + src));
+      document.head.appendChild(s);
+    });
+    return loadScript('https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js')
+      .then(() => loadScript('https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/clike/clike.min.js'));
+  }
+
+  function initVibeCodingTool() {
+    _vibeChat = vibeLoadChat();
+
+    app.innerHTML = '';
+    document.body.classList.add('view-tools-detail');
+    const wrap = document.createElement('section');
+    wrap.className = 'project';
+    wrap.innerHTML = `
+      <button class="schem-back" id="vibeBack">&larr; Back to Tools</button>
+      <h2 class="project-title">Vibe Coding Arduino Tool</h2>
+      <p class="project-blurb">Talk to the assistant on the left, push code into the editor on the right, then copy it into the desktop Arduino IDE to upload to your Leonardo or Micro.</p>
+
+      <div class="vibe-wrap">
+        <div class="vibe-panel">
+          <div class="vibe-panel-header">
+            <p class="vibe-panel-title">Vibe Coding Chat</p>
+            <div class="vibe-panel-actions">
+              <button class="vibe-btn" id="vibeChatClear">Clear chat</button>
+            </div>
+          </div>
+          <div class="vibe-chat-scroll" id="vibeChatScroll"></div>
+          <div class="vibe-input-row">
+            <textarea class="vibe-input" id="vibeInput" placeholder="Try: 'Make a button on pin 2 send the spacebar key when pressed.'" rows="1"></textarea>
+            <button class="vibe-send-btn" id="vibeSend">Send</button>
+          </div>
+        </div>
+
+        <div class="vibe-panel vibe-right">
+          <div class="vibe-panel-header">
+            <p class="vibe-panel-title">Arduino Code Editor</p>
+            <div class="vibe-panel-actions">
+              <button class="vibe-btn is-primary" id="vibeConnect">Connect Arduino</button>
+              <button class="vibe-btn" id="vibeCopyCode">Copy Code</button>
+              <button class="vibe-btn" id="vibeClearEditor">Clear Editor</button>
+            </div>
+          </div>
+          <div class="vibe-editor-wrap" id="vibeEditorWrap">
+            <textarea class="vibe-editor-fallback" id="vibeEditorFallback" spellcheck="false"></textarea>
+          </div>
+          <div class="vibe-help-line">Paste this into the desktop Arduino IDE and upload to your Leonardo or Micro. The Serial Monitor below stays connected and will show output once your code is running.</div>
+          <div>
+            <div class="vibe-monitor-header">
+              <p class="vibe-monitor-title">Serial Monitor</p>
+              <div class="vibe-monitor-controls">
+                <select id="vibeBaudRate" title="Baud rate">
+                  <option value="9600" selected>9600</option>
+                  <option value="19200">19200</option>
+                  <option value="38400">38400</option>
+                  <option value="57600">57600</option>
+                  <option value="115200">115200</option>
+                </select>
+                <button class="vibe-mini-btn" id="vibeMonitorClear">Clear</button>
+              </div>
+            </div>
+            <div class="vibe-monitor" id="vibeMonitor"><span class="vibe-monitor-empty">Click "Connect Arduino" above. Web Serial works in Chrome and Edge.</span></div>
+          </div>
+        </div>
+      </div>
+    `;
+    app.appendChild(wrap);
+
+    document.getElementById('vibeBack').addEventListener('click', () => {
+      vibeStopReading();
+      history.pushState({}, '', '/tools');
+      document.body.classList.remove('view-tools-detail');
+      renderTools();
+    });
+
+    document.getElementById('vibeChatClear').addEventListener('click', () => {
+      if (!_vibeChat.length) { schemToast('Chat is already empty.'); return; }
+      if (!confirm('Clear the entire chat history?')) return;
+      _vibeChat = [];
+      vibeSaveChat();
+      vibeRenderChat();
+    });
+
+    document.getElementById('vibeSend').addEventListener('click', () => vibeSend());
+    const inputEl = document.getElementById('vibeInput');
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        vibeSend();
+      }
+    });
+    inputEl.addEventListener('input', () => {
+      inputEl.style.height = 'auto';
+      inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + 'px';
+    });
+
+    document.getElementById('vibeCopyCode').addEventListener('click', () => {
+      const txt = vibeGetEditorText();
+      navigator.clipboard.writeText(txt).then(() => {
+        const btn = document.getElementById('vibeCopyCode');
+        btn.textContent = 'Copied!';
+        btn.classList.add('is-copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy Code';
+          btn.classList.remove('is-copied');
+        }, 1600);
+      }).catch(() => schemToast('Could not copy to clipboard.'));
+    });
+
+    document.getElementById('vibeClearEditor').addEventListener('click', () => {
+      if (!confirm('Clear the editor?')) return;
+      vibeSetEditorText(VIBE_DEFAULT_CODE);
+      vibeSaveEditorText(VIBE_DEFAULT_CODE);
+    });
+
+    document.getElementById('vibeConnect').addEventListener('click', () => {
+      if (_vibeSerialPort) {
+        vibeDisconnectSerial();
+      } else {
+        vibeConnectSerial();
+      }
+    });
+
+    document.getElementById('vibeMonitorClear').addEventListener('click', () => {
+      const m = document.getElementById('vibeMonitor');
+      m.innerHTML = '<span class="vibe-monitor-empty">Cleared.</span>';
+    });
+
+    document.getElementById('vibeBaudRate').addEventListener('change', () => {
+      if (_vibeSerialPort) {
+        schemToast('Disconnect and reconnect to change baud rate.');
+      }
+    });
+
+    const monitor = document.getElementById('vibeMonitor');
+    monitor.addEventListener('scroll', () => {
+      const nearBottom = monitor.scrollHeight - monitor.scrollTop - monitor.clientHeight < 16;
+      _vibeMonitorAutoScroll = nearBottom;
+    });
+
+    // Bootstrap editor + chat
+    const fallback = document.getElementById('vibeEditorFallback');
+    fallback.value = vibeLoadEditorText();
+    fallback.addEventListener('input', () => vibeSaveEditorText(fallback.value));
+
+    vibeLoadCodeMirror().then(() => {
+      try {
+        const wrapEl = document.getElementById('vibeEditorWrap');
+        if (!wrapEl) return; // user navigated away
+        wrapEl.innerHTML = '';
+        const ta = document.createElement('textarea');
+        wrapEl.appendChild(ta);
+        ta.value = vibeLoadEditorText();
+        _vibeEditor = window.CodeMirror.fromTextArea(ta, {
+          mode: 'text/x-c++src',
+          lineNumbers: true,
+          tabSize: 2,
+          indentUnit: 2,
+          lineWrapping: true,
+          theme: 'default'
+        });
+        _vibeEditor.on('change', () => {
+          vibeSaveEditorText(_vibeEditor.getValue());
+        });
+        // Force layout
+        setTimeout(() => _vibeEditor.refresh(), 50);
+      } catch (err) {
+        // Fallback textarea is already in place
+        console.warn('CodeMirror init failed, using textarea fallback', err);
+      }
+    }).catch((err) => {
+      console.warn('CodeMirror failed to load, using textarea fallback', err);
+    });
+
+    vibeRenderChat();
+
+    // Class code gate
+    if (!vibeGetClassCode()) {
+      vibeShowClassCodeModal();
+    }
+  }
+
+  function vibeGetEditorText() {
+    if (_vibeEditor) return _vibeEditor.getValue();
+    const fb = document.getElementById('vibeEditorFallback');
+    return fb ? fb.value : '';
+  }
+  function vibeSetEditorText(txt) {
+    if (_vibeEditor) {
+      _vibeEditor.setValue(txt);
+    } else {
+      const fb = document.getElementById('vibeEditorFallback');
+      if (fb) fb.value = txt;
+    }
+  }
+
+  function vibeRenderChat() {
+    const scroll = document.getElementById('vibeChatScroll');
+    if (!scroll) return;
+    if (!_vibeChat.length && !_vibeBusy) {
+      scroll.innerHTML = `
+        <div class="vibe-chat-empty">
+          <strong>Ask the assistant for Arduino help.</strong>
+          Try things like:<br>
+          "Read a button on pin 2 and send the spacebar."<br>
+          "Use the joystick on A0/A1 to move the mouse."<br>
+          "Print joystick values to the Serial Monitor."
+        </div>
+      `;
+      return;
+    }
+    scroll.innerHTML = '';
+    _vibeChat.forEach((msg, idx) => {
+      if (msg.role === 'user') {
+        const el = document.createElement('div');
+        el.className = 'vibe-msg vibe-msg-user';
+        el.textContent = msg.content;
+        scroll.appendChild(el);
+      } else if (msg.role === 'assistant') {
+        const el = document.createElement('div');
+        el.className = 'vibe-msg vibe-msg-ai';
+        // Show a code preview + copy button. The whole AI response is treated as code.
+        const intro = document.createElement('div');
+        intro.style.fontSize = '13px';
+        intro.style.color = 'var(--ink-mid)';
+        intro.textContent = 'Here is the code:';
+        const pre = document.createElement('pre');
+        pre.className = 'vibe-msg-codepreview';
+        pre.textContent = msg.content;
+        const btn = document.createElement('button');
+        btn.className = 'vibe-msg-copybtn';
+        btn.textContent = 'Copy to Editor';
+        btn.addEventListener('click', () => {
+          vibeSetEditorText(msg.content);
+          vibeSaveEditorText(msg.content);
+          btn.textContent = 'Copied to editor';
+          btn.classList.add('is-copied');
+          setTimeout(() => {
+            btn.textContent = 'Copy to Editor';
+            btn.classList.remove('is-copied');
+          }, 1600);
+        });
+        el.appendChild(intro);
+        el.appendChild(pre);
+        el.appendChild(btn);
+        scroll.appendChild(el);
+      } else if (msg.role === 'error') {
+        const el = document.createElement('div');
+        el.className = 'vibe-msg vibe-msg-error';
+        el.textContent = msg.content;
+        scroll.appendChild(el);
+      }
+    });
+    if (_vibeBusy) {
+      const el = document.createElement('div');
+      el.className = 'vibe-msg vibe-msg-loading';
+      el.textContent = 'Generating...';
+      scroll.appendChild(el);
+    }
+    scroll.scrollTop = scroll.scrollHeight;
+  }
+
+  function vibeSend() {
+    if (_vibeBusy) return;
+    const inputEl = document.getElementById('vibeInput');
+    const txt = (inputEl.value || '').trim();
+    if (!txt) return;
+
+    if (!vibeGetClassCode()) {
+      vibeShowClassCodeModal(txt);
+      return;
+    }
+
+    _vibeChat.push({ role: 'user', content: txt });
+    vibeSaveChat();
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    _vibeBusy = true;
+    document.getElementById('vibeSend').disabled = true;
+    vibeRenderChat();
+
+    // Build a short history (last 6 messages, excluding errors).
+    const history = _vibeChat
+      .filter(m => m.role === 'user' || m.role === 'assistant')
+      .slice(-7, -1) // exclude the just-added user message
+      .map(m => ({ role: m.role, content: m.content }));
+
+    fetch('/api/vibe-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: txt,
+        classCode: vibeGetClassCode(),
+        history
+      })
+    }).then(async (r) => {
+      const data = await r.json().catch(() => ({}));
+      if (r.status === 401) {
+        vibeClearClassCode();
+        _vibeBusy = false;
+        document.getElementById('vibeSend').disabled = false;
+        vibeRenderChat();
+        vibeShowClassCodeModal(txt);
+        return;
+      }
+      if (!r.ok) {
+        const errMsg = data.error || ('Server error ' + r.status);
+        _vibeChat.push({ role: 'error', content: 'Something went wrong, try again. (' + errMsg + ')' });
+      } else {
+        const code = (data.code || '').trim();
+        if (code) {
+          _vibeChat.push({ role: 'assistant', content: code });
+        } else {
+          _vibeChat.push({ role: 'error', content: 'The assistant did not return any code.' });
+        }
+      }
+      vibeSaveChat();
+      _vibeBusy = false;
+      document.getElementById('vibeSend').disabled = false;
+      vibeRenderChat();
+    }).catch((err) => {
+      _vibeChat.push({ role: 'error', content: 'Something went wrong, try again. (' + (err.message || err) + ')' });
+      vibeSaveChat();
+      _vibeBusy = false;
+      const sendBtn = document.getElementById('vibeSend');
+      if (sendBtn) sendBtn.disabled = false;
+      vibeRenderChat();
+    });
+  }
+
+  function vibeShowClassCodeModal(pendingPrompt) {
+    if (document.getElementById('vibeClassCodeModal')) return;
+    const backdrop = document.createElement('div');
+    backdrop.className = 'vibe-modal-backdrop';
+    backdrop.id = 'vibeClassCodeModal';
+    backdrop.innerHTML = `
+      <div class="vibe-modal">
+        <h3>Enter the class code</h3>
+        <p>Ask Mr. Musallam if you don't have it.</p>
+        <input type="text" id="vibeClassCodeInput" placeholder="Class code" autocomplete="off" />
+        <p class="vibe-modal-error" id="vibeClassCodeError"></p>
+        <div class="vibe-modal-actions">
+          <button class="vibe-btn is-primary" id="vibeClassCodeSubmit">Unlock</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+
+    const input = document.getElementById('vibeClassCodeInput');
+    const errEl = document.getElementById('vibeClassCodeError');
+    input.focus();
+
+    const submit = () => {
+      const code = (input.value || '').trim();
+      if (!code) {
+        errEl.textContent = 'Enter a code.';
+        return;
+      }
+      errEl.textContent = 'Checking...';
+      // Verify by calling the proxy with a tiny prompt.
+      fetch('/api/vibe-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: 'Say OK.', classCode: code, history: [] })
+      }).then(async (r) => {
+        if (r.status === 401) {
+          errEl.textContent = 'Wrong code, try again.';
+          return;
+        }
+        // Any non-401 means the code was accepted by the gate (even if other errors follow).
+        vibeSetClassCode(code);
+        backdrop.remove();
+        if (pendingPrompt) {
+          const inp = document.getElementById('vibeInput');
+          if (inp) inp.value = pendingPrompt;
+          vibeSend();
+        }
+      }).catch((err) => {
+        errEl.textContent = 'Network error: ' + (err.message || err);
+      });
+    };
+
+    document.getElementById('vibeClassCodeSubmit').addEventListener('click', submit);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); submit(); }
+    });
+  }
+
+  // ---- Web Serial ----
+  async function vibeConnectSerial() {
+    const monitor = document.getElementById('vibeMonitor');
+    if (!('serial' in navigator)) {
+      monitor.innerHTML = '';
+      vibeAppendMonitor('Web Serial not supported in this browser. Use Chrome or Edge on a desktop, then reload this page.\n');
+      return;
+    }
+    try {
+      const port = await navigator.serial.requestPort();
+      const baud = parseInt(document.getElementById('vibeBaudRate').value, 10) || 9600;
+      await port.open({ baudRate: baud });
+      _vibeSerialPort = port;
+      _vibeSerialKeepReading = true;
+      const btn = document.getElementById('vibeConnect');
+      btn.textContent = 'Disconnect';
+      btn.classList.remove('is-primary');
+      btn.classList.add('is-active');
+      monitor.innerHTML = '';
+      vibeAppendMonitor('[ connected at ' + baud + ' baud ]\n');
+      vibeReadLoop();
+    } catch (err) {
+      // User cancelled the picker, or open failed.
+      if (err && err.name !== 'NotFoundError') {
+        vibeAppendMonitor('[ connection error: ' + (err.message || err) + ' ]\n');
+      }
+    }
+  }
+
+  async function vibeReadLoop() {
+    if (!_vibeSerialPort) return;
+    const decoder = new TextDecoderStream();
+    const inputDone = _vibeSerialPort.readable.pipeTo(decoder.writable).catch(() => {});
+    const reader = decoder.readable.getReader();
+    _vibeSerialReader = reader;
+    try {
+      while (_vibeSerialKeepReading) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) vibeAppendMonitor(value);
+      }
+    } catch (err) {
+      vibeAppendMonitor('[ read error: ' + (err.message || err) + ' ]\n');
+    }
+  }
+
+  async function vibeDisconnectSerial() {
+    _vibeSerialKeepReading = false;
+    try {
+      if (_vibeSerialReader) {
+        await _vibeSerialReader.cancel().catch(() => {});
+        _vibeSerialReader = null;
+      }
+      if (_vibeSerialPort) {
+        await _vibeSerialPort.close().catch(() => {});
+      }
+    } catch (_) {}
+    _vibeSerialPort = null;
+    const btn = document.getElementById('vibeConnect');
+    if (btn) {
+      btn.textContent = 'Connect Arduino';
+      btn.classList.add('is-primary');
+      btn.classList.remove('is-active');
+    }
+    vibeAppendMonitor('[ disconnected ]\n');
+  }
+
+  function vibeStopReading() {
+    if (_vibeSerialPort) {
+      vibeDisconnectSerial();
+    }
+  }
+
+  function vibeAppendMonitor(text) {
+    const m = document.getElementById('vibeMonitor');
+    if (!m) return;
+    // Clear empty placeholder
+    const empty = m.querySelector('.vibe-monitor-empty');
+    if (empty) m.innerHTML = '';
+    m.appendChild(document.createTextNode(text));
+    if (_vibeMonitorAutoScroll) {
+      m.scrollTop = m.scrollHeight;
+    }
   }
 
   // ============== UTIL ==============
