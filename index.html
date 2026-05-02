@@ -600,6 +600,64 @@
     height: 13px;
   }
 
+  /* Homework row at the bottom of each progress card. Light blue / sky to
+     differentiate from the green project pips above. */
+  .prog-card-hw {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0 2px;
+    margin-top: 8px;
+    border-top: 1px solid rgba(17, 17, 17, 0.06);
+  }
+  .prog-card-hw-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+    flex-shrink: 0;
+  }
+  .prog-card-hw-dots {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .prog-pip-hw {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid #7dd3fc;
+    background: rgba(125, 211, 252, 0.08);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    flex-shrink: 0;
+  }
+  .prog-pip-hw.is-done {
+    background: #38bdf8;
+    border-color: #38bdf8;
+    cursor: pointer;
+  }
+  .prog-pip-hw.is-done:hover {
+    transform: scale(1.18);
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.35);
+  }
+  .prog-pip-hw svg {
+    width: 12px;
+    height: 12px;
+  }
+
   .prog-cards-empty {
     background: white;
     border: 1px solid var(--border);
@@ -628,6 +686,8 @@
     .prog-card-row-label { width: 100%; }
     .prog-card-row-prefix { min-width: 0; }
     .prog-card-row-dots { padding-left: 0; }
+    .prog-card-hw { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .prog-card-hw-dots { justify-content: flex-start; }
   }
 
   /* Instructable submission panel — single link field, slim like checkpoint */
@@ -5507,7 +5567,9 @@
   // benchmarkId) marks that cell as "done" and renders a clickable green check
   // that opens the benchmark modal and auto-expands that student's row.
   let _progressUnsubscribe = null;
+  let _progressHomeworkUnsubscribe = null;
   let _progressData = {}; // { studentName: Set(benchmarkId) }
+  let _progressHomework = {}; // { studentName: Set(weekId) }
 
   const PROG_CHECK_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>`;
 
@@ -5559,6 +5621,23 @@
       console.error('progress subscribe error', err);
       const tbl = document.getElementById('progressTable');
       if (tbl) tbl.innerHTML = `<tbody><tr><td class="prog-empty">Could not load progress.</td></tr></tbody>`;
+    });
+
+    if (_progressHomeworkUnsubscribe) _progressHomeworkUnsubscribe();
+    _progressHomeworkUnsubscribe = onSnapshot(collection(db, 'artifacts'), (snap) => {
+      _progressHomework = {};
+      snap.forEach(d => {
+        const data = d.data();
+        const name = (data.studentName || '').trim();
+        const bid = data.benchmarkId || '';
+        // Only homework artifacts use the hw-w{n} id pattern.
+        if (!name || !/^hw-w\d+$/.test(bid)) return;
+        if (!_progressHomework[name]) _progressHomework[name] = new Set();
+        _progressHomework[name].add(bid);
+      });
+      renderProgressTable();
+    }, (err) => {
+      console.error('progress homework subscribe error', err);
     });
   }
 
@@ -5629,7 +5708,24 @@
         html += `</div></li>`;
       });
 
-      html += `</ul></article>`;
+      html += `</ul>`;
+
+      // Homework dot row: light blue, separate from the green project pips.
+      const hwDone = _progressHomework[name] || new Set();
+      html += `<div class="prog-card-hw">
+        <span class="prog-card-hw-label">Homework</span>
+        <div class="prog-card-hw-dots">`;
+      HOMEWORK.forEach(w => {
+        const isDone = hwDone.has(w.id);
+        if (isDone) {
+          html += `<a class="prog-pip-hw is-done" data-hw-week="${w.week}" data-student="${escapeHtml(name)}" title="${escapeHtml(name)} dropped Week ${w.week}">${PROG_CHECK_SVG}</a>`;
+        } else {
+          html += `<span class="prog-pip-hw" title="Week ${w.week}">${w.week}</span>`;
+        }
+      });
+      html += `</div></div>`;
+
+      html += `</article>`;
     });
     html += '</div>';
 
@@ -5640,6 +5736,15 @@
         e.preventDefault();
         const benchObj = findBenchmarkById(a.dataset.bench);
         if (benchObj) openModal(benchObj, { focusStudent: a.dataset.student });
+      });
+    });
+
+    tbl.querySelectorAll('.prog-pip-hw.is-done[data-hw-week]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const week = parseInt(a.dataset.hwWeek, 10);
+        const w = HOMEWORK.find(h => h.week === week);
+        if (w) openHomeworkModal(w);
       });
     });
   }
