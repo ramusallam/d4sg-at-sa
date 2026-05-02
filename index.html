@@ -2907,9 +2907,46 @@
   .vibe-msg-copybtn:hover { background: #2563eb; }
   .vibe-msg-copybtn.is-copied { background: var(--success); }
 
+  /* Prompt starter chips — quick-fill templates modeled on modern code-prompt
+     patterns ("Act like...", "Walk me through...", "Debug this..."). Click a
+     chip to drop its scaffold into the input; the cursor lands at the
+     customizable portion ready to type. */
+  .vibe-stems {
+    border-top: 1px solid var(--border);
+    background: var(--bg-2);
+    padding: 12px 18px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .vibe-stem {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .vibe-stem:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .vibe-stem-icon {
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
   .vibe-input-row {
     border-top: 1px solid var(--border);
-    padding: 16px 18px;
+    padding: 12px 18px 16px;
     background: var(--bg-2);
     display: flex;
     gap: 10px;
@@ -7618,6 +7655,7 @@
           <p class="vibe-role-card-body"><strong>An assistive technology engineer.</strong> They specialize in Arduino Leonardo and Micro hardware for adaptive controllers. Tell them what your project needs to do and they'll write the code.</p>
         </div>
         <div class="vibe-chat-scroll" id="vibeChatScroll"></div>
+        <div class="vibe-stems" id="vibeStems"></div>
         <div class="vibe-input-row">
           <textarea class="vibe-input" id="vibeInput" placeholder="Try: 'Make a button on pin 2 send the spacebar key when pressed.'" rows="1"></textarea>
           <button class="vibe-send-btn" id="vibeSend" aria-label="Send">
@@ -7740,6 +7778,9 @@
         libsAdd.appendChild(b);
       });
     }
+
+    // Prompt starter chips
+    vibeRenderStems();
 
     // Bootstrap editor + chat
     const fallback = document.getElementById('vibeEditorFallback');
@@ -7872,6 +7913,76 @@
       scroll.appendChild(row);
     }
     scroll.scrollTop = scroll.scrollHeight;
+  }
+
+  // ----- Prompt starters -----
+  // Modern "Act like..." style scaffolds. Each entry has:
+  //   label: short button text
+  //   text:  the prompt body that fills the input
+  //   placeholder: substring inside `text` to highlight (cursor lands here)
+  const VIBE_STEMS = [
+    {
+      label: 'Act like an engineer',
+      text: "Act like a senior firmware engineer at an assistive technology company. I'm working with an Arduino Leonardo. Walk me through code that <DESCRIBE WHAT YOU WANT IT TO DO>.",
+      placeholder: '<DESCRIBE WHAT YOU WANT IT TO DO>'
+    },
+    {
+      label: 'Build for me',
+      text: "I'm building an adaptive controller with an Arduino Leonardo. Write clean, well-commented code that <DESCRIBE THE BEHAVIOR>. Use the appropriate HID library if it should send keyboard or mouse input.",
+      placeholder: '<DESCRIBE THE BEHAVIOR>'
+    },
+    {
+      label: 'Walk me through',
+      text: "Walk me through how to <DESCRIBE THE TASK> on an Arduino Leonardo, step by step. Explain the why, not just the how.",
+      placeholder: '<DESCRIBE THE TASK>'
+    },
+    {
+      label: 'Debug this',
+      text: "Act like a debugging partner. Here's my Arduino code, and what's happening when I run it:\n\nCODE:\n```\n<PASTE YOUR CODE>\n```\n\nWHAT I'M SEEING:\n<DESCRIBE WHAT'S WRONG>\n\nFind the bug and explain the fix.",
+      placeholder: '<PASTE YOUR CODE>'
+    },
+    {
+      label: 'Explain this code',
+      text: "Explain this Arduino code to me line by line as if I'm new to programming. What does each section do, and why?\n\n```\n<PASTE YOUR CODE>\n```",
+      placeholder: '<PASTE YOUR CODE>'
+    },
+    {
+      label: 'Optimize this',
+      text: "Act like a code reviewer. Here's my Arduino sketch:\n\n```\n<PASTE YOUR CODE>\n```\n\nClean it up: better variable names, smaller loops, clearer structure. Explain each change.",
+      placeholder: '<PASTE YOUR CODE>'
+    }
+  ];
+
+  function vibeRenderStems() {
+    const wrap = document.getElementById('vibeStems');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    VIBE_STEMS.forEach(stem => {
+      const btn = document.createElement('button');
+      btn.className = 'vibe-stem';
+      btn.type = 'button';
+      btn.innerHTML = `<span class="vibe-stem-icon">✦</span><span>${stem.label}</span>`;
+      btn.title = stem.text.length > 80 ? stem.text.slice(0, 77) + '...' : stem.text;
+      btn.addEventListener('click', () => vibeApplyStem(stem));
+      wrap.appendChild(btn);
+    });
+  }
+
+  function vibeApplyStem(stem) {
+    const inp = document.getElementById('vibeInput');
+    if (!inp) return;
+    inp.value = stem.text;
+    inp.focus();
+    // Auto-grow to fit the new content.
+    inp.style.height = 'auto';
+    inp.style.height = Math.min(inp.scrollHeight, 220) + 'px';
+    // Position the cursor at the placeholder so the student can type over it.
+    const idx = stem.placeholder ? stem.text.indexOf(stem.placeholder) : -1;
+    if (idx >= 0) {
+      inp.setSelectionRange(idx, idx + stem.placeholder.length);
+    } else {
+      inp.setSelectionRange(stem.text.length, stem.text.length);
+    }
   }
 
   // ----- Libraries strip + status bar -----
