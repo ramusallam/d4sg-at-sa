@@ -2631,19 +2631,158 @@
   }
 
   /* ============== VIBE CODING TOOL ============== */
+  /* IDE-first layout: the editor + serial monitor fill the page width.
+     Chat lives in a floating drawer that slides in from the right when
+     the student clicks the "Ask AI" button — like Cursor / VSCode Copilot. */
   .vibe-wrap {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
     margin-top: 8px;
-    height: calc(100vh - 220px);
-    min-height: 560px;
+    height: calc(100vh - 200px);
+    min-height: 600px;
   }
+
+  /* Floating Ask AI button — gradient pill, fixed bottom-right. */
+  .vibe-ai-fab {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 90;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 50%, #6366f1 100%);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 14px 22px 14px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.32), 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .vibe-ai-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 42px rgba(99, 102, 241, 0.38), 0 2px 6px rgba(0, 0, 0, 0.12);
+  }
+  .vibe-ai-fab .vibe-ai-fab-icon {
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    flex-shrink: 0;
+  }
+  .vibe-ai-fab .vibe-ai-fab-icon svg { width: 14px; height: 14px; }
+
+  .vibe-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+  .vibe-drawer-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .vibe-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(540px, 92vw);
+    z-index: 101;
+    background: var(--bg-1);
+    box-shadow: -16px 0 48px rgba(15, 23, 42, 0.18);
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0.4, 1);
+    display: flex;
+    flex-direction: column;
+  }
+  .vibe-drawer.is-open { transform: translateX(0); }
+
+  .vibe-drawer-head {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    background: white;
+  }
+  .vibe-drawer-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink-hi);
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .vibe-drawer-title-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #14b8a6, #6366f1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  }
+  .vibe-drawer-close {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-mid);
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .vibe-drawer-close:hover { border-color: var(--ink-mid); color: var(--ink-hi); }
+
+  /* The role / "stem" card — frames the conversation as if the student
+     is talking to an assistive-technology engineer. Read-only context. */
+  .vibe-role-card {
+    margin: 16px 18px 0;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.10) 0%, rgba(99, 102, 241, 0.08) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.22);
+    border-radius: 14px;
+    color: var(--ink-hi);
+    line-height: 1.55;
+  }
+  .vibe-role-card-eyebrow {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: #6366f1;
+    margin: 0 0 6px;
+  }
+  .vibe-role-card-body {
+    font-size: 13.5px;
+    color: var(--ink-mid);
+    margin: 0;
+  }
+  .vibe-role-card-body strong { color: var(--ink-hi); font-weight: 600; }
+
   @media (max-width: 980px) {
-    .vibe-wrap {
-      grid-template-columns: 1fr;
-      height: auto;
-    }
+    .vibe-wrap { height: auto; }
   }
   .vibe-panel {
     background: var(--bg-1);
@@ -2815,11 +2954,13 @@
     cursor: not-allowed;
   }
 
-  /* Right panel: editor + monitor */
+  /* Editor panel: takes full page width now. Editor expands, monitor docks
+     at bottom. */
   .vibe-right {
     display: grid;
-    grid-template-rows: auto 1fr auto auto;
+    grid-template-rows: auto auto 1fr auto auto auto;
     min-height: 0;
+    flex: 1 1 auto;
   }
   .vibe-editor-wrap {
     flex: 1 1 auto;
@@ -7411,20 +7552,6 @@
       <h2 class="project-title">Vibe Coding</h2>
 
       <div class="vibe-wrap">
-        <div class="vibe-panel">
-          <div class="vibe-panel-header">
-            <p class="vibe-panel-title">Vibe Coding Chat</p>
-            <div class="vibe-panel-actions">
-              <button class="vibe-btn" id="vibeChatClear">Clear chat</button>
-            </div>
-          </div>
-          <div class="vibe-chat-scroll" id="vibeChatScroll"></div>
-          <div class="vibe-input-row">
-            <textarea class="vibe-input" id="vibeInput" placeholder="Try: 'Make a button on pin 2 send the spacebar key when pressed.'" rows="1"></textarea>
-            <button class="vibe-send-btn" id="vibeSend">Send</button>
-          </div>
-        </div>
-
         <div class="vibe-panel vibe-right">
           <div class="vibe-panel-header">
             <p class="vibe-panel-title">Arduino Code Editor</p>
@@ -7466,6 +7593,36 @@
           </div>
         </div>
       </div>
+
+      <!-- Floating "Ask AI" button + slide-in drawer -->
+      <button class="vibe-ai-fab" id="vibeAiFab" title="Open the AI assistant (chat)">
+        <span class="vibe-ai-fab-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 L13.5 8.5 L20 10 L13.5 11.5 L12 18 L10.5 11.5 L4 10 L10.5 8.5 Z" fill="currentColor"/>
+          </svg>
+        </span>
+        <span>Ask AI</span>
+      </button>
+
+      <div class="vibe-drawer-backdrop" id="vibeDrawerBackdrop"></div>
+      <aside class="vibe-drawer" id="vibeDrawer" role="dialog" aria-label="AI assistant">
+        <div class="vibe-drawer-head">
+          <h3 class="vibe-drawer-title"><span class="vibe-drawer-title-dot"></span>AI Assistant</h3>
+          <div class="vibe-drawer-head-actions" style="display: flex; gap: 8px;">
+            <button class="vibe-btn" id="vibeChatClear">Clear chat</button>
+            <button class="vibe-drawer-close" id="vibeDrawerClose" aria-label="Close">×</button>
+          </div>
+        </div>
+        <div class="vibe-role-card">
+          <p class="vibe-role-card-eyebrow">You're talking to</p>
+          <p class="vibe-role-card-body"><strong>An assistive technology engineer.</strong> They specialize in Arduino Leonardo and Micro hardware for adaptive controllers. Tell them what your project needs to do and they'll write the code.</p>
+        </div>
+        <div class="vibe-chat-scroll" id="vibeChatScroll"></div>
+        <div class="vibe-input-row">
+          <textarea class="vibe-input" id="vibeInput" placeholder="Try: 'Make a button on pin 2 send the spacebar key when pressed.'" rows="1"></textarea>
+          <button class="vibe-send-btn" id="vibeSend">Send</button>
+        </div>
+      </aside>
     `;
     app.appendChild(wrap);
 
@@ -7475,6 +7632,29 @@
       document.body.classList.remove('view-tools-detail');
       renderTools();
     });
+
+    // Drawer open / close + ESC handler
+    const drawer = document.getElementById('vibeDrawer');
+    const backdrop = document.getElementById('vibeDrawerBackdrop');
+    function openVibeDrawer() {
+      drawer.classList.add('is-open');
+      backdrop.classList.add('is-open');
+      setTimeout(() => {
+        const inp = document.getElementById('vibeInput');
+        if (inp) inp.focus();
+      }, 180);
+    }
+    function closeVibeDrawer() {
+      drawer.classList.remove('is-open');
+      backdrop.classList.remove('is-open');
+    }
+    document.getElementById('vibeAiFab').addEventListener('click', openVibeDrawer);
+    document.getElementById('vibeDrawerClose').addEventListener('click', closeVibeDrawer);
+    backdrop.addEventListener('click', closeVibeDrawer);
+    const escHandler = (e) => { if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeVibeDrawer(); };
+    document.addEventListener('keydown', escHandler);
+    // Open the drawer once on first visit so students see the chat exists.
+    if (!_vibeChat.length) openVibeDrawer();
 
     document.getElementById('vibeChatClear').addEventListener('click', () => {
       if (!_vibeChat.length) { schemToast('Chat is already empty.'); return; }
