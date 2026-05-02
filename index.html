@@ -4134,7 +4134,7 @@
           <div class="schem-canvas-wrap" id="schemCanvasWrap"></div>
         </div>
 
-        <div class="schem-hint">Tip: click any pin to start a wire, then click a second pin to finish it. Color the wire first using the palette above.</div>
+        <div class="schem-hint">Click a pin, then a second pin to draw a wire. Shift+click any component to rotate 90°. Double-click a wire to delete. Cmd/Ctrl+Z to undo.</div>
       </div>
     `;
     app.appendChild(wrap);
@@ -4345,7 +4345,13 @@
     g.setAttribute('class', 'schem-component component-svg');
     g.setAttribute('data-component', c.type);
     g.setAttribute('data-component-id', c.id);
-    g.setAttribute('transform', `translate(${(c.x + 0.5) * SCHEM_GRID_PITCH}, ${(c.y + 0.5) * SCHEM_GRID_PITCH})`);
+    const rot = c.rotation || 0;
+    const cxLocal = cw * SCHEM_GRID_PITCH / 2;
+    const cyLocal = ch * SCHEM_GRID_PITCH / 2;
+    const transform = rot
+      ? `translate(${(c.x + 0.5) * SCHEM_GRID_PITCH}, ${(c.y + 0.5) * SCHEM_GRID_PITCH}) rotate(${rot} ${cxLocal} ${cyLocal})`
+      : `translate(${(c.x + 0.5) * SCHEM_GRID_PITCH}, ${(c.y + 0.5) * SCHEM_GRID_PITCH})`;
+    g.setAttribute('transform', transform);
 
     // Body (innerSVG from definition). Pins drawn separately below.
     const body = document.createElementNS(svgNS, 'g');
@@ -4522,6 +4528,16 @@
       if (e.target.classList && e.target.classList.contains('schem-pin')) return;
       if (e.target.closest && (e.target.closest('.schem-resize-handle') || e.target.closest('.schem-move-handle'))) return;
       if (e.button !== 0) return;
+      // Shift+click rotates 90 degrees clockwise (skip perfboard).
+      if (e.shiftKey && c.type !== 'perfboard') {
+        e.preventDefault();
+        e.stopPropagation();
+        pushSchemHistory();
+        c.rotation = ((c.rotation || 0) + 90) % 360;
+        schemSave();
+        renderPerfboard();
+        return;
+      }
       const pt = svgPoint(e);
       pushSchemHistory();
       _schemDrag = {
@@ -4645,8 +4661,27 @@
       pin = def.pins.find(p => p.name === pinName);
     }
     if (!pin) return null;
-    const x = (c.x + 0.5) * SCHEM_GRID_PITCH + pin.gx * SCHEM_GRID_PITCH;
-    const y = (c.y + 0.5) * SCHEM_GRID_PITCH + pin.gy * SCHEM_GRID_PITCH;
+
+    const rot = ((c.rotation || 0) % 360 + 360) % 360;
+    const w = _schemComponentW(c);
+    const h = _schemComponentH(c);
+    const cxLocal = w * SCHEM_GRID_PITCH / 2;
+    const cyLocal = h * SCHEM_GRID_PITCH / 2;
+    const px = pin.gx * SCHEM_GRID_PITCH;
+    const py = pin.gy * SCHEM_GRID_PITCH;
+    let localX = px;
+    let localY = py;
+    if (rot) {
+      const rad = rot * Math.PI / 180;
+      const cosR = Math.cos(rad);
+      const sinR = Math.sin(rad);
+      const dx = px - cxLocal;
+      const dy = py - cyLocal;
+      localX = cxLocal + (dx * cosR - dy * sinR);
+      localY = cyLocal + (dx * sinR + dy * cosR);
+    }
+    const x = (c.x + 0.5) * SCHEM_GRID_PITCH + localX;
+    const y = (c.y + 0.5) * SCHEM_GRID_PITCH + localY;
     return { x, y };
   }
 
