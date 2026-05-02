@@ -3050,16 +3050,40 @@
     font: inherit;
     font-size: 15px;
     line-height: 1.55;
-    resize: none;
     min-height: 64px;
     max-height: 220px;
+    overflow-y: auto;
     color: var(--ink-hi);
     box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    white-space: pre-wrap;
+    word-break: break-word;
+    cursor: text;
   }
   .vibe-input:focus {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+  /* Contenteditable placeholder: shown only when the div is empty. */
+  .vibe-input:empty::before {
+    content: attr(data-placeholder);
+    color: var(--ink-low);
+    pointer-events: none;
+  }
+  /* Two-tone styling: template scaffold reads muted/italic; the user's
+     filled-in portion (the bit inside <PLACEHOLDER>) renders in the
+     accent color so students see the structure they're shaping. */
+  .vibe-input-template {
+    color: var(--ink-low);
+    font-style: italic;
+  }
+  .vibe-input-user {
+    color: var(--accent);
+    font-weight: 600;
+    font-style: normal;
+    background: var(--accent-soft);
+    padding: 1px 4px;
+    border-radius: 4px;
   }
   .vibe-send-btn {
     background: var(--accent);
@@ -8118,7 +8142,7 @@
             <p class="vibe-panel-title">Arduino Code Editor</p>
             <div class="vibe-panel-actions">
               <button class="vibe-btn is-primary" id="vibeConnect">Connect Arduino</button>
-              <button class="vibe-btn" id="vibeCopyCode">Copy Code</button>
+              <button class="vibe-btn" id="vibeCheckCode" title="Ask the assistant to review your code">Check Code</button>
               <button class="vibe-btn is-primary" id="vibeDownloadPdf">Download PDF</button>
               <button class="vibe-btn" id="vibeClearEditor">Clear Editor</button>
             </div>
@@ -8180,7 +8204,7 @@
         <div class="vibe-chat-scroll" id="vibeChatScroll"></div>
         <div class="vibe-stems" id="vibeStems"></div>
         <div class="vibe-input-row">
-          <textarea class="vibe-input" id="vibeInput" placeholder="Try: 'Use the joystick to move the mouse and left-click on press.'" rows="1"></textarea>
+          <div class="vibe-input" id="vibeInput" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Try: 'Use the joystick to move the mouse and left-click on press.'"></div>
           <button class="vibe-send-btn" id="vibeSend" aria-label="Send">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M22 2 L11 13"/>
@@ -8238,23 +8262,7 @@
         vibeSend();
       }
     });
-    inputEl.addEventListener('input', () => {
-      inputEl.style.height = 'auto';
-      inputEl.style.height = Math.min(inputEl.scrollHeight, 220) + 'px';
-    });
-
-    document.getElementById('vibeCopyCode').addEventListener('click', () => {
-      const txt = vibeGetEditorText();
-      navigator.clipboard.writeText(txt).then(() => {
-        const btn = document.getElementById('vibeCopyCode');
-        btn.textContent = 'Copied!';
-        btn.classList.add('is-copied');
-        setTimeout(() => {
-          btn.textContent = 'Copy Code';
-          btn.classList.remove('is-copied');
-        }, 1600);
-      }).catch(() => schemToast('Could not copy to clipboard.'));
-    });
+    // Contenteditable grows with content automatically (max-height capped in CSS).
 
     document.getElementById('vibeClearEditor').addEventListener('click', () => {
       if (!confirm('Clear the editor?')) return;
@@ -8264,6 +8272,38 @@
     });
 
     document.getElementById('vibeDownloadPdf').addEventListener('click', () => vibeExportPdf());
+
+    document.getElementById('vibeCheckCode').addEventListener('click', () => {
+      const txt = vibeGetEditorText();
+      if (!txt || !txt.trim()) {
+        schemToast('Editor is empty. Generate or paste some code first.', 2400);
+        return;
+      }
+      // Open the AI drawer with a pre-filled review prompt; student hits Send.
+      const inp = document.getElementById('vibeInput');
+      const escape = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const before = "Review this Arduino sketch for bugs, style issues, and improvements. Return a clean, fixed version with inline comments explaining what changed and why:\n\n```\n";
+      const after = "\n```";
+      inp.innerHTML =
+        `<span class="vibe-input-template">${escape(before)}</span>` +
+        `<span class="vibe-input-user">${escape(txt)}</span>` +
+        `<span class="vibe-input-template">${escape(after)}</span>`;
+      // Open the drawer
+      const drawer = document.getElementById('vibeDrawer');
+      const backdrop = document.getElementById('vibeDrawerBackdrop');
+      if (drawer && backdrop && !drawer.classList.contains('is-open')) {
+        drawer.classList.add('is-open');
+        backdrop.classList.add('is-open');
+      }
+      inp.focus();
+      // Place caret at the end so they can append context if they want.
+      const range = document.createRange();
+      range.selectNodeContents(inp);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    });
 
     document.getElementById('vibeConnect').addEventListener('click', () => {
       if (_vibeSerialPort) {
@@ -8398,27 +8438,12 @@
         const intro = document.createElement('div');
         intro.style.fontSize = '13px';
         intro.style.color = 'var(--ink-mid)';
-        intro.textContent = 'Here is the code:';
+        intro.textContent = 'Loaded into your editor.';
         const pre = document.createElement('pre');
         pre.className = 'vibe-msg-codepreview';
         pre.textContent = msg.content;
-        const btn = document.createElement('button');
-        btn.className = 'vibe-msg-copybtn';
-        btn.textContent = 'Copy to Editor';
-        btn.addEventListener('click', () => {
-          vibeSetEditorText(msg.content);
-          vibeSaveEditorText(msg.content);
-          vibeUpdateLibraries();
-          btn.textContent = 'Copied to editor';
-          btn.classList.add('is-copied');
-          setTimeout(() => {
-            btn.textContent = 'Copy to Editor';
-            btn.classList.remove('is-copied');
-          }, 1600);
-        });
         el.appendChild(intro);
         el.appendChild(pre);
-        el.appendChild(btn);
         scroll.appendChild(row);
       } else if (msg.role === 'error') {
         const { row, msg: el } = _row('ai', 'vibe-msg-error');
@@ -8491,17 +8516,37 @@
   function vibeApplyStem(stem) {
     const inp = document.getElementById('vibeInput');
     if (!inp) return;
-    inp.value = stem.text;
-    inp.focus();
-    // Auto-grow to fit the new content.
-    inp.style.height = 'auto';
-    inp.style.height = Math.min(inp.scrollHeight, 220) + 'px';
-    // Position the cursor at the placeholder so the student can type over it.
-    const idx = stem.placeholder ? stem.text.indexOf(stem.placeholder) : -1;
+    // Build innerHTML with two spans: template scaffold (muted/italic) and
+    // user-input portion (accent color, bold). The placeholder text starts
+    // selected so the student types over it; their characters land inside
+    // the .vibe-input-user span and inherit its styling.
+    const placeholder = stem.placeholder || '';
+    const text = stem.text || '';
+    const idx = placeholder ? text.indexOf(placeholder) : -1;
+    inp.innerHTML = '';
+    const escape = (s) => s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
     if (idx >= 0) {
-      inp.setSelectionRange(idx, idx + stem.placeholder.length);
+      const before = text.slice(0, idx);
+      const after = text.slice(idx + placeholder.length);
+      inp.innerHTML =
+        `<span class="vibe-input-template">${escape(before)}</span>` +
+        `<span class="vibe-input-user">${escape(placeholder)}</span>` +
+        `<span class="vibe-input-template">${escape(after)}</span>`;
     } else {
-      inp.setSelectionRange(stem.text.length, stem.text.length);
+      inp.innerHTML = `<span class="vibe-input-template">${escape(text)}</span>`;
+    }
+    inp.focus();
+    // Select the user-input span's text so the student types over it cleanly.
+    const userSpan = inp.querySelector('.vibe-input-user');
+    if (userSpan) {
+      const range = document.createRange();
+      range.selectNodeContents(userSpan);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
     }
   }
 
@@ -8574,13 +8619,14 @@
   function vibeSend() {
     if (_vibeBusy) return;
     const inputEl = document.getElementById('vibeInput');
-    const txt = (inputEl.value || '').trim();
+    // Read plain text from the contenteditable (was a textarea before).
+    const txt = ((inputEl.textContent != null ? inputEl.textContent : inputEl.value) || '').trim();
     if (!txt) return;
 
     _vibeChat.push({ role: 'user', content: txt });
     vibeSaveChat();
-    inputEl.value = '';
-    inputEl.style.height = 'auto';
+    inputEl.innerHTML = '';
+    inputEl.textContent = '';
     _vibeBusy = true;
     document.getElementById('vibeSend').disabled = true;
     vibeRenderChat();
