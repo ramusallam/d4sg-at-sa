@@ -4112,9 +4112,8 @@
     const wrap = document.createElement('section');
     wrap.className = 'project';
     wrap.innerHTML = `
-      <button class="schem-back" id="schemBack">&larr; Back to Tools</button>
-      <h2 class="project-title">Wiring Schematic Tool</h2>
-      <p class="project-blurb">Map your perfboard wiring before you solder. Click a component in the palette to drop it on the board, drag to move it, then click pin to pin to draw wires. Right-click any wire or component to delete it.</p>
+      <button class="schem-back" id="schemBack">← Back</button>
+      <h2 class="project-title">Schematic</h2>
 
       <div class="schem-wrap">
         <div class="schem-toolbar">
@@ -7290,6 +7289,81 @@
       .then(() => loadScript('https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/clike/clike.min.js'));
   }
 
+  // Lazy-load jsPDF on first export.
+  function vibeLoadJsPdf() {
+    if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('Failed to load jsPDF'));
+      document.head.appendChild(s);
+    });
+  }
+
+  async function vibeExportPdf() {
+    const btn = document.getElementById('vibeDownloadPdf');
+    const txt = vibeGetEditorText();
+    if (!txt || !txt.trim()) {
+      schemToast('Editor is empty. Generate or paste code first.');
+      return;
+    }
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = 'Building PDF...';
+    try {
+      await vibeLoadJsPdf();
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const marginX = 48;
+      const marginY = 56;
+      // Header
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('Arduino Sketch', marginX, marginY);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+      const stamp = new Date().toLocaleString();
+      doc.text(stamp, pageW - marginX, marginY, { align: 'right' });
+      doc.setTextColor(0);
+      // Code body
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(10);
+      const lineHeight = 13;
+      const wrappedLines = [];
+      txt.split('\n').forEach(line => {
+        const fitted = doc.splitTextToSize(line || ' ', pageW - marginX * 2);
+        fitted.forEach(l => wrappedLines.push(l));
+      });
+      let y = marginY + 28;
+      wrappedLines.forEach(line => {
+        if (y + lineHeight > pageH - marginY) {
+          doc.addPage();
+          y = marginY;
+        }
+        doc.text(line, marginX, y);
+        y += lineHeight;
+      });
+      const filename = `arduino-sketch-${new Date().toISOString().slice(0, 10)}.pdf`;
+      doc.save(filename);
+      btn.textContent = 'Saved!';
+      btn.classList.add('is-copied');
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('is-copied');
+        btn.disabled = false;
+      }, 1600);
+    } catch (err) {
+      console.warn('PDF export failed', err);
+      schemToast('Could not build PDF. Check your connection and try again.');
+      btn.textContent = original;
+      btn.disabled = false;
+    }
+  }
+
   function initVibeCodingTool() {
     _vibeChat = vibeLoadChat();
 
@@ -7298,9 +7372,8 @@
     const wrap = document.createElement('section');
     wrap.className = 'project';
     wrap.innerHTML = `
-      <button class="schem-back" id="vibeBack">&larr; Back to Tools</button>
-      <h2 class="project-title">Vibe Coding Arduino Tool</h2>
-      <p class="project-blurb">Talk to the assistant on the left, push code into the editor on the right, then copy it into the desktop Arduino IDE to upload to your Leonardo or Micro.</p>
+      <button class="schem-back" id="vibeBack">← Back</button>
+      <h2 class="project-title">Vibe Coding</h2>
 
       <div class="vibe-wrap">
         <div class="vibe-panel">
@@ -7323,6 +7396,7 @@
             <div class="vibe-panel-actions">
               <button class="vibe-btn is-primary" id="vibeConnect">Connect Arduino</button>
               <button class="vibe-btn" id="vibeCopyCode">Copy Code</button>
+              <button class="vibe-btn is-primary" id="vibeDownloadPdf">Download PDF</button>
               <button class="vibe-btn" id="vibeClearEditor">Clear Editor</button>
             </div>
           </div>
@@ -7405,7 +7479,10 @@
       if (!confirm('Clear the editor?')) return;
       vibeSetEditorText(VIBE_DEFAULT_CODE);
       vibeSaveEditorText(VIBE_DEFAULT_CODE);
+      vibeUpdateLibraries();
     });
+
+    document.getElementById('vibeDownloadPdf').addEventListener('click', () => vibeExportPdf());
 
     document.getElementById('vibeConnect').addEventListener('click', () => {
       if (_vibeSerialPort) {
