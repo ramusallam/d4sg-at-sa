@@ -90,13 +90,7 @@ export default async function handler(req, res) {
 
   const body = await readJson(req);
   const prompt = (body.prompt || '').toString().trim();
-  const classCode = (body.classCode || '').toString();
   const history = Array.isArray(body.history) ? body.history : [];
-
-  const expectedCode = process.env.CLASS_CODE || 'chabot-2026';
-  if (!classCode || classCode !== expectedCode) {
-    return res.status(401).json({ error: 'Wrong class code' });
-  }
 
   if (!prompt) {
     return res.status(400).json({ error: 'Empty prompt' });

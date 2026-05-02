@@ -2770,25 +2770,26 @@
 
   .vibe-input-row {
     border-top: 1px solid var(--border);
-    padding: 10px 12px;
+    padding: 16px 18px;
     background: var(--bg-2);
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: flex-end;
   }
   .vibe-input {
     flex: 1 1 auto;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 14px;
     background: var(--bg-1);
-    padding: 10px 12px;
+    padding: 14px 16px;
     font: inherit;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.55;
     resize: none;
-    min-height: 44px;
-    max-height: 160px;
+    min-height: 64px;
+    max-height: 220px;
     color: var(--ink-hi);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
   }
   .vibe-input:focus {
     outline: none;
@@ -2799,13 +2800,14 @@
     background: var(--accent);
     color: white;
     border: none;
-    border-radius: 10px;
-    padding: 11px 18px;
-    font-size: 14px;
+    border-radius: 14px;
+    padding: 14px 22px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s ease, opacity 0.15s ease;
     align-self: stretch;
+    min-width: 88px;
   }
   .vibe-send-btn:hover { background: #2563eb; }
   .vibe-send-btn:disabled {
@@ -2891,13 +2893,13 @@
     background: #334155;
   }
   .vibe-monitor {
-    background: #000;
+    background: #050505;
     color: #4ade80;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-    font-size: 12.5px;
-    line-height: 1.5;
-    padding: 12px 14px;
-    height: 160px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    padding: 16px 18px;
+    height: 260px;
     overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-word;
@@ -7250,7 +7252,7 @@
     });
     inputEl.addEventListener('input', () => {
       inputEl.style.height = 'auto';
-      inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + 'px';
+      inputEl.style.height = Math.min(inputEl.scrollHeight, 220) + 'px';
     });
 
     document.getElementById('vibeCopyCode').addEventListener('click', () => {
@@ -7350,11 +7352,6 @@
 
     vibeUpdateLibraries();
     vibeRenderChat();
-
-    // Class code gate
-    if (!vibeGetClassCode()) {
-      vibeShowClassCodeModal();
-    }
   }
 
   function vibeGetEditorText() {
@@ -7519,11 +7516,6 @@
     const txt = (inputEl.value || '').trim();
     if (!txt) return;
 
-    if (!vibeGetClassCode()) {
-      vibeShowClassCodeModal(txt);
-      return;
-    }
-
     _vibeChat.push({ role: 'user', content: txt });
     vibeSaveChat();
     inputEl.value = '';
@@ -7543,19 +7535,10 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         prompt: txt,
-        classCode: vibeGetClassCode(),
         history
       })
     }).then(async (r) => {
       const data = await r.json().catch(() => ({}));
-      if (r.status === 401) {
-        vibeClearClassCode();
-        _vibeBusy = false;
-        document.getElementById('vibeSend').disabled = false;
-        vibeRenderChat();
-        vibeShowClassCodeModal(txt);
-        return;
-      }
       if (!r.ok) {
         const errMsg = data.error || ('Server error ' + r.status);
         _vibeChat.push({ role: 'error', content: 'Something went wrong, try again. (' + errMsg + ')' });
