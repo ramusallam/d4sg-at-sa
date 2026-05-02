@@ -107,8 +107,11 @@ export default async function handler(req, res) {
   }
 
   // Bare model names auto-track latest snapshot. Update the env var in Vercel
-  // (no code change) when a new generation ships.
-  const model = process.env.OPENAI_MODEL || 'gpt-4o';
+  // (no code change) when a new generation ships. If the configured model is
+  // rejected (invalid id, no access on this tier), we auto-fall back to
+  // gpt-4o so a class doesn't get blocked by an env var typo.
+  const FALLBACK_MODEL = 'gpt-4o';
+  const model = (process.env.OPENAI_MODEL || FALLBACK_MODEL).trim();
 
   // Sanitize history: only role + string content, only user/assistant, last 10.
   const cleanHistory = history
@@ -116,38 +119,67 @@ export default async function handler(req, res) {
     .slice(-10)
     .map(m => ({ role: m.role, content: m.content }));
 
-  const requestBody = {
-    model,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...cleanHistory,
-      { role: 'user', content: prompt }
-    ],
-    max_completion_tokens: 2048
-  };
+  function buildBody(modelName) {
+    return {
+      model: modelName,
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...cleanHistory,
+        { role: 'user', content: prompt }
+      ],
+      max_completion_tokens: 2048
+    };
+  }
 
-  try {
+  async function callOpenAI(modelName) {
     const r = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + apiKey,
         'content-type': 'application/json'
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(buildBody(modelName))
     });
-
     const data = await r.json().catch(() => ({}));
+    return { r, data };
+  }
+
+  try {
+    let { r, data } = await callOpenAI(model);
+    let modelUsed = model;
+    let fallback = false;
+
+    // If the configured model is bad (invalid id or no access on this tier),
+    // try gpt-4o once. Saves a class from being blocked by an env var typo.
+    if (!r.ok && model !== FALLBACK_MODEL) {
+      const detail = (data && data.error && data.error.message) || '';
+      const looksLikeBadModel =
+        detail.toLowerCase().includes('model') ||
+        (data && data.error && (data.error.code === 'model_not_found' || data.error.code === 'invalid_model'));
+      if (looksLikeBadModel) {
+        const retry = await callOpenAI(FALLBACK_MODEL);
+        r = retry.r;
+        data = retry.data;
+        modelUsed = FALLBACK_MODEL;
+        fallback = true;
+      }
+    }
 
     if (!r.ok) {
       const detail = (data && data.error && data.error.message) ? data.error.message : ('HTTP ' + r.status);
-      return res.status(502).json({ error: 'OpenAI API error', detail });
+      return res.status(502).json({ error: 'OpenAI API error', detail, modelTried: model });
     }
 
     const choice = Array.isArray(data.choices) && data.choices[0];
     const text = (choice && choice.message && choice.message.content) ? String(choice.message.content) : '';
     const code = stripFences(text);
 
-    return res.status(200).json({ code, usage: data.usage || null, model: data.model || model });
+    return res.status(200).json({
+      code,
+      usage: data.usage || null,
+      model: data.model || modelUsed,
+      fallback
+    });
   } catch (err) {
     return res.status(500).json({ error: 'Proxy error', detail: String(err.message || err) });
   }
