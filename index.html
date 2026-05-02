@@ -3935,47 +3935,83 @@
     led: {
       group: 'components',
       label: 'LED',
-      w: 1.5, h: 2,
+      // 2 wide x 3 tall: long anode + short cathode legs, body sits at top.
+      // Pins at gx 0.5 / 1.5 land on adjacent perfboard pads (1-grid spacing).
+      w: 2, h: 3,
       pins: [
-        { name: 'A', gx: 0.4, gy: 2 },     // anode (long leg, +)
-        { name: 'K', gx: 1.1, gy: 1.55 }   // cathode (noticeably shorter leg, -)
+        { name: 'A', gx: 0.5, gy: 3 },     // anode: long leg, full height, +
+        { name: 'K', gx: 1.5, gy: 2.2 }    // cathode: noticeably shorter, -
       ],
       svg: function(opts) {
-        const W = 1.5 * SCHEM_GRID_PITCH;
-        const H = 2 * SCHEM_GRID_PITCH;
+        const W = 2 * SCHEM_GRID_PITCH;
+        const H = 3 * SCHEM_GRID_PITCH;
         const color = (opts && opts.ledColor) || 'red';
-        const fill = { red:'#ef4444', yellow:'#facc15', green:'#22c55e', blue:'#3b82f6', white:'#f8fafc' }[color] || '#ef4444';
-        // Anode leg goes all the way down; cathode stops earlier so the difference is visible.
+        const palette = {
+          red:    { fill: '#ef4444', stroke: '#7f1d1d', highlight: 'rgba(255,255,255,0.65)' },
+          yellow: { fill: '#facc15', stroke: '#a16207', highlight: 'rgba(255,255,255,0.7)'  },
+          green:  { fill: '#22c55e', stroke: '#15803d', highlight: 'rgba(255,255,255,0.6)'  },
+          blue:   { fill: '#3b82f6', stroke: '#1d4ed8', highlight: 'rgba(255,255,255,0.55)' },
+          white:  { fill: '#f8fafc', stroke: '#94a3b8', highlight: 'rgba(255,255,255,0.85)' }
+        };
+        const c = palette[color] || palette.red;
+        const bulbCX = W * 0.5;
+        const bulbCY = H * 0.28;
+        const bulbR  = W * 0.42;
+        const baseY  = bulbCY + bulbR * 0.95;       // bottom of bulb
+        const anodeX = 0.5 * SCHEM_GRID_PITCH;
+        const cathodeX = 1.5 * SCHEM_GRID_PITCH;
+        const anodeBottom   = 3 * SCHEM_GRID_PITCH;       // anode reaches gy=3
+        const cathodeBottom = 2.2 * SCHEM_GRID_PITCH;     // cathode stops short
         return `
-          <ellipse cx="${W*0.5}" cy="${H*0.42}" rx="${W*0.42}" ry="${H*0.42}" fill="${fill}" stroke="#7f1d1d" stroke-width="1" opacity="0.92"/>
-          <ellipse cx="${W*0.4}" cy="${H*0.32}" rx="${W*0.12}" ry="${H*0.18}" fill="white" opacity="0.55"/>
-          <line x1="${W*0.27}" y1="${H*0.78}" x2="${W*0.27}" y2="${H}"      stroke="#374151" stroke-width="1.6"/>
-          <line x1="${W*0.73}" y1="${H*0.78}" x2="${W*0.73}" y2="${H*0.78 + (H - H*0.78) * 0.55}" stroke="#374151" stroke-width="1.6"/>
-          <text x="${W*0.27}" y="${H*0.96}" text-anchor="middle" font-size="6" fill="#374151" font-family="system-ui, sans-serif" font-weight="700">+</text>
+          <!-- Bulb -->
+          <ellipse cx="${bulbCX}" cy="${bulbCY}" rx="${bulbR}" ry="${bulbR}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="1.4" opacity="0.92"/>
+          <!-- Highlight glint -->
+          <ellipse cx="${bulbCX - bulbR * 0.32}" cy="${bulbCY - bulbR * 0.34}" rx="${bulbR * 0.28}" ry="${bulbR * 0.18}" fill="${c.highlight}"/>
+          <!-- Lens flat at base of bulb -->
+          <line x1="${bulbCX - bulbR}" y1="${baseY - 1}" x2="${bulbCX + bulbR}" y2="${baseY - 1}" stroke="${c.stroke}" stroke-width="1.2" opacity="0.5"/>
+          <!-- Anode (long, +) -->
+          <line x1="${anodeX}" y1="${baseY}" x2="${anodeX}" y2="${anodeBottom}" stroke="#475569" stroke-width="2"/>
+          <!-- Cathode (short, -) -->
+          <line x1="${cathodeX}" y1="${baseY}" x2="${cathodeX}" y2="${cathodeBottom}" stroke="#475569" stroke-width="2"/>
+          <!-- + label next to anode -->
+          <text x="${anodeX - 6}" y="${(baseY + anodeBottom) / 2}" text-anchor="end" font-size="9" fill="#475569" font-family="system-ui, sans-serif" font-weight="700">+</text>
         `;
       },
-      pinLabels: true,
+      pinLabels: false,
       hasColor: true
     },
 
     resistor: {
       group: 'components',
       label: '220Ω resistor',
-      w: 3, h: 1,
+      // 5 wide x 1 tall. Pins at gx 0.5 / 4.5 land on perfboard pads 4 apart
+      // (the standard 0.4" axial body footprint). Body sits in the middle
+      // with leads sticking out to each pin.
+      w: 5, h: 1,
       pins: [
-        { name: 'L', gx: 0,   gy: 0.5 },
-        { name: 'R', gx: 3,   gy: 0.5 }
+        { name: 'L', gx: 0.5, gy: 0.5 },
+        { name: 'R', gx: 4.5, gy: 0.5 }
       ],
       svg: function() {
-        const W = 3 * SCHEM_GRID_PITCH;
+        const W = 5 * SCHEM_GRID_PITCH;
         const H = 1 * SCHEM_GRID_PITCH;
+        const cy = H * 0.5;
+        const leftPin = 0.5 * SCHEM_GRID_PITCH;
+        const rightPin = 4.5 * SCHEM_GRID_PITCH;
+        const bodyL = 1.4 * SCHEM_GRID_PITCH;
+        const bodyR = 3.6 * SCHEM_GRID_PITCH;
+        const bodyW = bodyR - bodyL;
         return `
-          <line x1="0" y1="${H*0.5}" x2="${W}" y2="${H*0.5}" stroke="#6b7280" stroke-width="1.5"/>
-          <rect x="${W*0.18}" y="${H*0.18}" width="${W*0.64}" height="${H*0.64}" rx="6" fill="#fef3c7" stroke="#a16207" stroke-width="1"/>
-          <rect x="${W*0.26}" y="${H*0.18}" width="${W*0.06}" height="${H*0.64}" fill="#dc2626"/>
-          <rect x="${W*0.4}" y="${H*0.18}"  width="${W*0.06}" height="${H*0.64}" fill="#dc2626"/>
-          <rect x="${W*0.54}" y="${H*0.18}" width="${W*0.06}" height="${H*0.64}" fill="#92400e"/>
-          <text x="${W*0.5}" y="${H*1.0}" text-anchor="middle" font-size="6" fill="#78350f" font-family="system-ui, sans-serif" font-weight="700">220Ω</text>
+          <!-- Leads -->
+          <line x1="${leftPin}" y1="${cy}" x2="${bodyL}" y2="${cy}" stroke="#6b7280" stroke-width="2"/>
+          <line x1="${bodyR}" y1="${cy}" x2="${rightPin}" y2="${cy}" stroke="#6b7280" stroke-width="2"/>
+          <!-- Tan body -->
+          <rect x="${bodyL}" y="${H*0.18}" width="${bodyW}" height="${H*0.64}" rx="5" fill="#e9c89a" stroke="#7c5018" stroke-width="1"/>
+          <!-- Color bands: 2 (red) 2 (red) x10 (brown) tolerance (gold) -->
+          <rect x="${bodyL + bodyW * 0.16}" y="${H*0.18}" width="3" height="${H*0.64}" fill="#dc2626"/>
+          <rect x="${bodyL + bodyW * 0.34}" y="${H*0.18}" width="3" height="${H*0.64}" fill="#dc2626"/>
+          <rect x="${bodyL + bodyW * 0.52}" y="${H*0.18}" width="3" height="${H*0.64}" fill="#7c2d12"/>
+          <rect x="${bodyL + bodyW * 0.78}" y="${H*0.18}" width="3" height="${H*0.64}" fill="#d4a851"/>
         `;
       },
       pinLabels: false
@@ -4000,6 +4036,30 @@
   let _schemDrag = null;         // { id, startX, startY, originGx, originGy }
   let _schemResize = null;       // { id, startX, startY, startCols, startRows } - perfboard resize
   let _schemSvg = null;          // root <svg>
+  const _schemHistory = [];      // JSON snapshots of state for undo
+  const _SCHEM_HISTORY_MAX = 40;
+
+  function pushSchemHistory() {
+    try {
+      _schemHistory.push(JSON.stringify(_schemState));
+      if (_schemHistory.length > _SCHEM_HISTORY_MAX) _schemHistory.shift();
+    } catch (_) {}
+  }
+  function schemUndo() {
+    const snap = _schemHistory.pop();
+    if (!snap) {
+      schemToast('Nothing to undo.');
+      return;
+    }
+    try {
+      _schemState = JSON.parse(snap);
+      _schemPendingPin = null;
+      schemSave();
+      renderPerfboard();
+    } catch (_) {
+      schemToast('Could not undo.');
+    }
+  }
 
   function schemLoad() {
     try {
@@ -4063,6 +4123,7 @@
             <div class="schem-color-row" id="schemColors"></div>
           </div>
           <div class="schem-toolbar-group" style="margin-left: auto;">
+            <button class="schem-btn" id="schemUndo" title="Undo last change (Cmd+Z / Ctrl+Z)">Undo</button>
             <button class="schem-btn" id="schemClear">Clear</button>
             <button class="schem-btn" id="schemPortfolio">Add to Portfolio</button>
             <button class="schem-btn is-primary" id="schemDownload">Download Image</button>
@@ -4088,6 +4149,20 @@
     renderComponentPalette();
     renderColorRow();
     renderPerfboard();
+
+    document.getElementById('schemUndo').addEventListener('click', schemUndo);
+    // Keyboard shortcut: Cmd/Ctrl+Z to undo
+    const undoKeyHandler = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        schemUndo();
+      }
+    };
+    document.addEventListener('keydown', undoKeyHandler);
+    // Detach when leaving the tool — small leak protection
+    document.getElementById('schemBack').addEventListener('click', () => {
+      document.removeEventListener('keydown', undoKeyHandler);
+    });
 
     document.getElementById('schemClear').addEventListener('click', () => {
       if (!_schemState.components.length && !_schemState.wires.length) {
@@ -4159,15 +4234,16 @@
   }
 
   // Resize the canvas grid to fit all currently-placed components, plus a few
-  // cells of breathing room on the right and bottom.
+  // cells of breathing room on the right and bottom. Generous minimums so the
+  // canvas starts off as a real workspace, not a tight box.
   function autoFitCanvas() {
-    let maxCol = 24;
-    let maxRow = 16;
+    let maxCol = 50;
+    let maxRow = 32;
     _schemState.components.forEach(c => {
       const w = _schemComponentW(c);
       const h = _schemComponentH(c);
-      maxCol = Math.max(maxCol, c.x + w + 4);
-      maxRow = Math.max(maxRow, c.y + h + 3);
+      maxCol = Math.max(maxCol, c.x + w + 5);
+      maxRow = Math.max(maxRow, c.y + h + 4);
     });
     _schemState.gridCols = maxCol;
     _schemState.gridRows = maxRow;
@@ -4376,6 +4452,43 @@
       g.appendChild(pinG);
     });
 
+    // Perfboard move handle (top-left, dotted square icon). Always-visible
+    // grab target so students don't have to find the gap between pads.
+    if (isPerfboard) {
+      const moveHandle = document.createElementNS(svgNS, 'g');
+      moveHandle.setAttribute('class', 'schem-move-handle');
+      moveHandle.innerHTML = `
+        <rect x="-2" y="-2" width="20" height="20" rx="3" fill="#0c3a1f" stroke="#fff" stroke-width="0.8"/>
+        <circle cx="3" cy="3" r="1" fill="#fff"/>
+        <circle cx="8" cy="3" r="1" fill="#fff"/>
+        <circle cx="13" cy="3" r="1" fill="#fff"/>
+        <circle cx="3" cy="8" r="1" fill="#fff"/>
+        <circle cx="8" cy="8" r="1" fill="#fff"/>
+        <circle cx="13" cy="8" r="1" fill="#fff"/>
+        <circle cx="3" cy="13" r="1" fill="#fff"/>
+        <circle cx="8" cy="13" r="1" fill="#fff"/>
+        <circle cx="13" cy="13" r="1" fill="#fff"/>
+      `;
+      moveHandle.style.cursor = 'grab';
+      moveHandle.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        e.preventDefault();
+        pushSchemHistory();
+        const pt = svgPoint(e);
+        _schemDrag = {
+          id: c.id,
+          startX: pt.x,
+          startY: pt.y,
+          originGx: c.x,
+          originGy: c.y,
+          moved: false
+        };
+        g.classList.add('is-dragging');
+      });
+      g.appendChild(moveHandle);
+    }
+
     // Perfboard resize handle (bottom-right corner). Drag to grow/shrink.
     if (isPerfboard) {
       const W = cw * SCHEM_GRID_PITCH;
@@ -4392,6 +4505,7 @@
         if (e.button !== 0) return;
         e.stopPropagation();
         e.preventDefault();
+        pushSchemHistory();
         const pt = svgPoint(e);
         _schemResize = {
           id: c.id,
@@ -4404,18 +4518,20 @@
       g.appendChild(handle);
     }
 
-    // Drag start on the body, not on pins or the resize handle.
+    // Drag start on the body, not on pins or the corner handles.
     g.addEventListener('mousedown', (e) => {
       if (e.target.classList && e.target.classList.contains('schem-pin')) return;
-      if (e.target.closest && e.target.closest('.schem-resize-handle')) return;
+      if (e.target.closest && (e.target.closest('.schem-resize-handle') || e.target.closest('.schem-move-handle'))) return;
       if (e.button !== 0) return;
       const pt = svgPoint(e);
+      pushSchemHistory();
       _schemDrag = {
         id: c.id,
         startX: pt.x,
         startY: pt.y,
         originGx: c.x,
-        originGy: c.y
+        originGy: c.y,
+        moved: false
       };
       g.classList.add('is-dragging');
       e.preventDefault();
@@ -4433,6 +4549,7 @@
     if (def.hasColor) {
       g.addEventListener('dblclick', (e) => {
         e.preventDefault();
+        pushSchemHistory();
         const order = ['red', 'yellow', 'green', 'blue', 'white'];
         const cur = c.ledColor || 'red';
         const next = order[(order.indexOf(cur) + 1) % order.length];
@@ -4481,8 +4598,12 @@
       e.preventDefault();
       deleteWire(w.id);
     });
+    path.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      deleteWire(w.id);
+    });
     path.addEventListener('click', (e) => {
-      // Allow click-to-delete as a secondary action with shift-key for accessibility.
       if (e.shiftKey) {
         deleteWire(w.id);
       }
@@ -4579,7 +4700,6 @@
 
   function _schemOnDragEnd() {
     if (_schemResize) {
-      // Trim wires that point at pads no longer existing on the resized perfboard.
       _schemState.wires = _schemState.wires.filter(w =>
         pinIdToCoords(w.fromPinId) && pinIdToCoords(w.toPinId)
       );
@@ -4591,9 +4711,17 @@
     if (!_schemDrag) return;
     const node = _schemSvg.querySelector(`[data-component-id="${_schemDrag.id}"]`);
     if (node) node.classList.remove('is-dragging');
+    const draggedId = _schemDrag.id;
     _schemDrag = null;
     schemSave();
-    renderPerfboard();
+    // Only re-render the whole canvas if auto-fit would change its size.
+    // Otherwise we keep the existing nodes in place — no flash, no flicker.
+    const oldCols = _schemState.gridCols;
+    const oldRows = _schemState.gridRows;
+    autoFitCanvas();
+    if (_schemState.gridCols !== oldCols || _schemState.gridRows !== oldRows) {
+      renderPerfboard();
+    }
   }
 
   function redrawWires() {
@@ -4606,6 +4734,7 @@
   function placeComponent(type) {
     const def = SCHEM_COMPONENTS[type];
     if (!def) return;
+    pushSchemHistory();
     // Drop in middle of canvas, offset slightly per existing count to avoid overlap.
     const count = _schemState.components.filter(c => c.type === type).length;
     const baseX = Math.max(0, Math.floor(_schemState.gridCols / 2 - def.w / 2));
@@ -4657,6 +4786,7 @@
   }
 
   function completeWire(fromPinId, toPinId) {
+    pushSchemHistory();
     const id = schemNewId('wire');
     const w = { id, fromPinId, toPinId, color: _schemState.selectedColor };
     _schemState.wires.push(w);
@@ -4665,6 +4795,7 @@
   }
 
   function deleteComponent(id) {
+    pushSchemHistory();
     _schemState.components = _schemState.components.filter(c => c.id !== id);
     // Drop any wires touching this component.
     _schemState.wires = _schemState.wires.filter(w => {
@@ -4675,12 +4806,14 @@
   }
 
   function deleteWire(id) {
+    pushSchemHistory();
     _schemState.wires = _schemState.wires.filter(w => w.id !== id);
     schemSave();
     redrawWires();
   }
 
   function clearCanvas() {
+    pushSchemHistory();
     _schemState.components = [];
     _schemState.wires = [];
     schemSave();
