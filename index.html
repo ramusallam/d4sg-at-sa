@@ -2942,6 +2942,131 @@
     color: white;
   }
 
+  /* Chat avatars — ChatGPT-style "AI" / "You" mini circles next to each
+     message. Keeps the conversation legible at a glance. */
+  .vibe-msg-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .vibe-msg-row.is-user { flex-direction: row-reverse; }
+  .vibe-msg-row.is-loading { gap: 10px; }
+  .vibe-msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: white;
+    margin-top: 2px;
+  }
+  .vibe-msg-avatar.is-ai {
+    background: linear-gradient(135deg, #14b8a6, #0d9488);
+  }
+  .vibe-msg-avatar.is-user {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+  }
+  .vibe-msg-row .vibe-msg { max-width: 100%; flex: 1 1 auto; }
+
+  /* Libraries strip — sits above the editor, mimics Arduino IDE's
+     "library inclusions" visibility. Auto-detects #include lines from the
+     editor and surfaces quick-add buttons for the libraries the class uses. */
+  .vibe-libs {
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 9px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+  .vibe-libs-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+    flex-shrink: 0;
+  }
+  .vibe-libs-active {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .vibe-libs-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 11.5px;
+    color: var(--paper-ink);
+  }
+  .vibe-libs-chip.is-empty {
+    background: transparent;
+    border-style: dashed;
+    color: var(--ink-low);
+    font-family: inherit;
+    font-style: italic;
+  }
+  .vibe-libs-add {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .vibe-libs-add button {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 11.5px;
+    color: var(--accent);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .vibe-libs-add button:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .vibe-libs-add button:disabled {
+    color: var(--ink-low);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  /* Connection status strip at the very bottom of the right panel. */
+  .vibe-status {
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
+    padding: 7px 14px;
+    font-size: 11.5px;
+    color: var(--ink-mid);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .vibe-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ink-low);
+  }
+  .vibe-status.is-connected .vibe-status-dot { background: var(--success); }
+  .vibe-status.is-connected { color: var(--paper-ink); }
+
   /* Class code modal */
   .vibe-modal-backdrop {
     position: fixed;
@@ -7066,6 +7191,11 @@
               <button class="vibe-btn" id="vibeClearEditor">Clear Editor</button>
             </div>
           </div>
+          <div class="vibe-libs">
+            <span class="vibe-libs-label">Libraries</span>
+            <div class="vibe-libs-active" id="vibeLibsActive"></div>
+            <div class="vibe-libs-add" id="vibeLibsAdd"></div>
+          </div>
           <div class="vibe-editor-wrap" id="vibeEditorWrap">
             <textarea class="vibe-editor-fallback" id="vibeEditorFallback" spellcheck="false"></textarea>
           </div>
@@ -7085,6 +7215,10 @@
               </div>
             </div>
             <div class="vibe-monitor" id="vibeMonitor"><span class="vibe-monitor-empty">Click "Connect Arduino" above. Web Serial works in Chrome and Edge.</span></div>
+          </div>
+          <div class="vibe-status" id="vibeStatus">
+            <span class="vibe-status-dot"></span>
+            <span class="vibe-status-text">Disconnected. Choose your Leonardo or Micro after clicking Connect Arduino.</span>
           </div>
         </div>
       </div>
@@ -7163,10 +7297,25 @@
       _vibeMonitorAutoScroll = nearBottom;
     });
 
+    // Quick-add library buttons
+    const libsAdd = document.getElementById('vibeLibsAdd');
+    if (libsAdd) {
+      VIBE_QUICK_LIBS.forEach(lib => {
+        const b = document.createElement('button');
+        b.textContent = `+ ${lib}`;
+        b.dataset.lib = lib;
+        b.addEventListener('click', () => vibeAddLibrary(lib));
+        libsAdd.appendChild(b);
+      });
+    }
+
     // Bootstrap editor + chat
     const fallback = document.getElementById('vibeEditorFallback');
     fallback.value = vibeLoadEditorText();
-    fallback.addEventListener('input', () => vibeSaveEditorText(fallback.value));
+    fallback.addEventListener('input', () => {
+      vibeSaveEditorText(fallback.value);
+      vibeUpdateLibraries();
+    });
 
     vibeLoadCodeMirror().then(() => {
       try {
@@ -7186,9 +7335,11 @@
         });
         _vibeEditor.on('change', () => {
           vibeSaveEditorText(_vibeEditor.getValue());
+          vibeUpdateLibraries();
         });
         // Force layout
         setTimeout(() => _vibeEditor.refresh(), 50);
+        vibeUpdateLibraries();
       } catch (err) {
         // Fallback textarea is already in place
         console.warn('CodeMirror init failed, using textarea fallback', err);
@@ -7197,6 +7348,7 @@
       console.warn('CodeMirror failed to load, using textarea fallback', err);
     });
 
+    vibeUpdateLibraries();
     vibeRenderChat();
 
     // Class code gate
@@ -7235,16 +7387,26 @@
       return;
     }
     scroll.innerHTML = '';
-    _vibeChat.forEach((msg, idx) => {
+    const _row = (avatarKind, msgClass) => {
+      const row = document.createElement('div');
+      row.className = `vibe-msg-row is-${avatarKind}`;
+      const av = document.createElement('div');
+      av.className = `vibe-msg-avatar is-${avatarKind}`;
+      av.textContent = avatarKind === 'user' ? 'You' : 'AI';
+      const msg = document.createElement('div');
+      msg.className = `vibe-msg ${msgClass}`;
+      row.appendChild(av);
+      row.appendChild(msg);
+      return { row, msg };
+    };
+
+    _vibeChat.forEach((msg) => {
       if (msg.role === 'user') {
-        const el = document.createElement('div');
-        el.className = 'vibe-msg vibe-msg-user';
+        const { row, msg: el } = _row('user', 'vibe-msg-user');
         el.textContent = msg.content;
-        scroll.appendChild(el);
+        scroll.appendChild(row);
       } else if (msg.role === 'assistant') {
-        const el = document.createElement('div');
-        el.className = 'vibe-msg vibe-msg-ai';
-        // Show a code preview + copy button. The whole AI response is treated as code.
+        const { row, msg: el } = _row('ai', 'vibe-msg-ai');
         const intro = document.createElement('div');
         intro.style.fontSize = '13px';
         intro.style.color = 'var(--ink-mid)';
@@ -7258,6 +7420,7 @@
         btn.addEventListener('click', () => {
           vibeSetEditorText(msg.content);
           vibeSaveEditorText(msg.content);
+          vibeUpdateLibraries();
           btn.textContent = 'Copied to editor';
           btn.classList.add('is-copied');
           setTimeout(() => {
@@ -7268,21 +7431,86 @@
         el.appendChild(intro);
         el.appendChild(pre);
         el.appendChild(btn);
-        scroll.appendChild(el);
+        scroll.appendChild(row);
       } else if (msg.role === 'error') {
-        const el = document.createElement('div');
-        el.className = 'vibe-msg vibe-msg-error';
+        const { row, msg: el } = _row('ai', 'vibe-msg-error');
         el.textContent = msg.content;
-        scroll.appendChild(el);
+        scroll.appendChild(row);
       }
     });
     if (_vibeBusy) {
-      const el = document.createElement('div');
-      el.className = 'vibe-msg vibe-msg-loading';
+      const { row, msg: el } = _row('ai', 'vibe-msg-loading');
       el.textContent = 'Generating...';
-      scroll.appendChild(el);
+      row.classList.add('is-loading');
+      scroll.appendChild(row);
     }
     scroll.scrollTop = scroll.scrollHeight;
+  }
+
+  // ----- Libraries strip + status bar -----
+  const VIBE_QUICK_LIBS = ['Keyboard.h', 'Mouse.h', 'Joystick.h', 'Servo.h'];
+
+  function vibeDetectIncludes() {
+    const txt = vibeGetEditorText();
+    const found = [];
+    const re = /^\s*#\s*include\s*[<"]([^>"]+)[>"]/gm;
+    let m;
+    while ((m = re.exec(txt)) !== null) {
+      const lib = m[1].trim();
+      if (lib && !found.includes(lib)) found.push(lib);
+    }
+    return found;
+  }
+
+  function vibeUpdateLibraries() {
+    const active = document.getElementById('vibeLibsActive');
+    if (!active) return;
+    const includes = vibeDetectIncludes();
+    active.innerHTML = '';
+    if (!includes.length) {
+      const empty = document.createElement('span');
+      empty.className = 'vibe-libs-chip is-empty';
+      empty.textContent = 'no libraries included';
+      active.appendChild(empty);
+    } else {
+      includes.forEach(lib => {
+        const chip = document.createElement('span');
+        chip.className = 'vibe-libs-chip';
+        chip.textContent = `<${lib}>`;
+        active.appendChild(chip);
+      });
+    }
+    document.querySelectorAll('.vibe-libs-add button').forEach(btn => {
+      btn.disabled = includes.includes(btn.dataset.lib);
+    });
+  }
+
+  function vibeAddLibrary(lib) {
+    const txt = vibeGetEditorText();
+    if (new RegExp(`#\\s*include\\s*[<"]${lib.replace(/\./g, '\\.')}[>"]`).test(txt)) return;
+    const inc = `#include <${lib}>\n`;
+    // Insert after any existing #include block, otherwise at the very top.
+    const lines = txt.split('\n');
+    let lastInclude = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (/^\s*#\s*include/.test(lines[i])) lastInclude = i;
+    }
+    if (lastInclude >= 0) {
+      lines.splice(lastInclude + 1, 0, `#include <${lib}>`);
+    } else {
+      lines.unshift(`#include <${lib}>`);
+    }
+    const next = lines.join('\n');
+    vibeSetEditorText(next);
+    vibeSaveEditorText(next);
+    vibeUpdateLibraries();
+  }
+
+  function vibeSetStatus(state, label) {
+    const bar = document.getElementById('vibeStatus');
+    if (!bar) return;
+    bar.classList.toggle('is-connected', state === 'connected');
+    bar.querySelector('.vibe-status-text').textContent = label;
   }
 
   function vibeSend() {
@@ -7431,6 +7659,7 @@
       btn.classList.add('is-active');
       monitor.innerHTML = '';
       vibeAppendMonitor('[ connected at ' + baud + ' baud ]\n');
+      vibeSetStatus('connected', `Connected at ${baud} baud. Upload your sketch in the desktop Arduino IDE; output streams here.`);
       vibeReadLoop();
     } catch (err) {
       // User cancelled the picker, or open failed.
@@ -7476,6 +7705,7 @@
       btn.classList.remove('is-active');
     }
     vibeAppendMonitor('[ disconnected ]\n');
+    vibeSetStatus('disconnected', 'Disconnected. Choose your Leonardo or Micro after clicking Connect Arduino.');
   }
 
   function vibeStopReading() {
