@@ -2572,18 +2572,46 @@
   }
   .schem-pin {
     cursor: crosshair;
-    transition: r 0.1s ease, fill 0.1s ease;
+    transition: r 0.1s ease, fill 0.1s ease, filter 0.1s ease;
   }
-  .schem-pin:hover { fill: #fbbf24 !important; }
+  .schem-pin:hover {
+    fill: #fbbf24 !important;
+    r: 6.5;
+    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.6));
+  }
   .schem-pin.is-pending {
     fill: #f59e0b !important;
     stroke: #b45309;
     stroke-width: 2;
   }
+  .schem-pin-tooltip {
+    pointer-events: none;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: system-ui, -apple-system, sans-serif;
+    fill: #1f2937;
+    paint-order: stroke;
+    stroke: #ffffff;
+    stroke-width: 3;
+    stroke-linejoin: round;
+  }
   .schem-component {
     cursor: grab;
   }
   .schem-component.is-dragging { cursor: grabbing; }
+  .schem-selection-halo {
+    pointer-events: none;
+  }
+  .schem-palette-ghost {
+    position: fixed;
+    pointer-events: none;
+    opacity: 0.7;
+    z-index: 1000;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
+  }
+  .schem-wire-preview {
+    pointer-events: none;
+  }
   .schem-wire {
     fill: none;
     stroke-linecap: round;
@@ -4215,6 +4243,8 @@
   let _schemDrag = null;         // { id, startX, startY, originGx, originGy }
   let _schemResize = null;       // { id, startX, startY, startCols, startRows } - perfboard resize
   let _schemSvg = null;          // root <svg>
+  let _schemSelected = null;     // currently selected component id, or null
+  let _schemPaletteDrag = null;  // { type, startX, startY, ghostEl, didMove }
   const _schemHistory = [];      // JSON snapshots of state for undo
   const _SCHEM_HISTORY_MAX = 40;
 
@@ -4233,6 +4263,7 @@
     try {
       _schemState = JSON.parse(snap);
       _schemPendingPin = null;
+      _schemSelected = null;
       schemSave();
       renderPerfboard();
     } catch (_) {
@@ -4286,6 +4317,8 @@
     _schemState = schemLoad();
     _schemPendingPin = null;
     _schemDrag = null;
+    _schemSelected = null;
+    _schemPaletteDrag = null;
 
     app.innerHTML = '';
     const wrap = document.createElement('section');
@@ -4313,7 +4346,7 @@
           <div class="schem-canvas-wrap" id="schemCanvasWrap"></div>
         </div>
 
-        <div class="schem-hint">Click a pin, then a second pin to draw a wire. Shift+click any component to rotate 90°. Double-click a wire to delete. Cmd/Ctrl+Z to undo.</div>
+        <div class="schem-hint">Drag a part from the palette onto the canvas, or click to drop in the center. Click a pin, then a second pin to draw a wire. Click a component to select it, then press R to rotate or Delete to remove. Double-click a wire to delete. Cmd/Ctrl+Z to undo.</div>
       </div>
     `;
     app.appendChild(wrap);
@@ -4329,17 +4362,49 @@
     renderPerfboard();
 
     document.getElementById('schemUndo').addEventListener('click', schemUndo);
-    // Keyboard shortcut: Cmd/Ctrl+Z to undo
-    const undoKeyHandler = (e) => {
+    // Keyboard shortcut: Cmd/Ctrl+Z to undo, R to rotate selection, Delete/Backspace to remove selection.
+    const schemKeyHandler = (e) => {
+      // Skip if typing in a real input.
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
         e.preventDefault();
         schemUndo();
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      const key = e.key;
+      if ((key === 'r' || key === 'R') && _schemSelected) {
+        const c = _schemState.components.find(x => x.id === _schemSelected);
+        if (!c || c.type === 'perfboard') return;
+        e.preventDefault();
+        pushSchemHistory();
+        c.rotation = ((c.rotation || 0) + 90) % 360;
+        schemSave();
+        renderPerfboard();
+        return;
+      }
+      if ((key === 'Delete' || key === 'Backspace') && _schemSelected) {
+        e.preventDefault();
+        const id = _schemSelected;
+        _schemSelected = null;
+        deleteComponent(id);
+        return;
       }
     };
-    document.addEventListener('keydown', undoKeyHandler);
-    // Detach when leaving the tool — small leak protection
+    document.addEventListener('keydown', schemKeyHandler);
+    // Palette ghost-drag global listeners.
+    document.addEventListener('mousemove', _schemOnPaletteDragMove);
+    document.addEventListener('mouseup', _schemOnPaletteDragEnd);
+    // Detach when leaving the tool, small leak protection.
     document.getElementById('schemBack').addEventListener('click', () => {
-      document.removeEventListener('keydown', undoKeyHandler);
+      document.removeEventListener('keydown', schemKeyHandler);
+      document.removeEventListener('mousemove', _schemOnPaletteDragMove);
+      document.removeEventListener('mouseup', _schemOnPaletteDragEnd);
+      _schemCancelPaletteDrag();
+      _schemSelected = null;
     });
 
     document.getElementById('schemClear').addEventListener('click', () => {
@@ -4402,7 +4467,17 @@
           </span>
           <span>${def.label}</span>
         `;
-        btn.addEventListener('click', () => placeComponent(type));
+        btn.addEventListener('mousedown', (e) => {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          _schemPaletteDrag = {
+            type,
+            startX: e.clientX,
+            startY: e.clientY,
+            ghostEl: null,
+            didMove: false
+          };
+        });
         pal.appendChild(btn);
       });
     };
@@ -4492,22 +4567,34 @@
     _schemState.components.forEach(c => drawComponent(c));
     _schemState.wires.forEach(w => drawWire(w));
 
-    // Cancel pending wire on background click.
+    // Cancel pending wire on background click. Also deselect any selected component.
     svg.addEventListener('click', (e) => {
       if (e.target === svg || e.target === bg) {
         if (_schemPendingPin) {
           _schemPendingPin = null;
           highlightPendingPin(null);
+          _removeWirePreview();
+        }
+        if (_schemSelected) {
+          _schemSelected = null;
+          renderPerfboard();
         }
       }
     });
 
     // Drag handling at the SVG level for performance.
     svg.addEventListener('mousemove', _schemOnDragMove);
+    svg.addEventListener('mousemove', _schemOnWirePreviewMove);
     svg.addEventListener('mouseup', _schemOnDragEnd);
     svg.addEventListener('mouseleave', _schemOnDragEnd);
 
     wrap.appendChild(svg);
+
+    // If a pending pin survived a re-render, redraw its preview line so it stays live.
+    if (_schemPendingPin) {
+      const a = pinIdToCoords(_schemPendingPin);
+      if (a) _ensureWirePreview(a.x, a.y);
+    }
   }
 
   function drawComponent(c) {
@@ -4596,6 +4683,7 @@
           e.stopPropagation();
           handlePinClick(pinId);
         });
+        _attachPinTooltipHandlers(click, pin.name);
 
         g.appendChild(pinG);
         return;
@@ -4632,6 +4720,7 @@
         e.stopPropagation();
         handlePinClick(pinId);
       });
+      _attachPinTooltipHandlers(pinCircle, pin.name);
 
       g.appendChild(pinG);
     });
@@ -4719,6 +4808,14 @@
       }
       const pt = svgPoint(e);
       pushSchemHistory();
+      // Single-click also selects this component (and dragging selects too).
+      const wasSelected = _schemSelected === c.id;
+      _schemSelected = c.id;
+      if (!wasSelected) {
+        // Re-render to draw the halo around this component.
+        // We do this synchronously here; subsequent drag will then operate on the fresh node.
+        renderPerfboard();
+      }
       _schemDrag = {
         id: c.id,
         startX: pt.x,
@@ -4727,7 +4824,8 @@
         originGy: c.y,
         moved: false
       };
-      g.classList.add('is-dragging');
+      const freshNode = _schemSvg.querySelector(`[data-component-id="${c.id}"]`);
+      if (freshNode) freshNode.classList.add('is-dragging');
       e.preventDefault();
     });
 
@@ -4751,6 +4849,23 @@
         schemSave();
         renderPerfboard();
       });
+    }
+
+    // Selection halo: dashed indigo rect around the component bbox (in local coords).
+    if (_schemSelected === c.id) {
+      const pad = 4;
+      const halo = document.createElementNS(svgNS, 'rect');
+      halo.setAttribute('class', 'schem-selection-halo');
+      halo.setAttribute('x', -pad);
+      halo.setAttribute('y', -pad);
+      halo.setAttribute('width', cw * SCHEM_GRID_PITCH + pad * 2);
+      halo.setAttribute('height', ch * SCHEM_GRID_PITCH + pad * 2);
+      halo.setAttribute('rx', 6);
+      halo.setAttribute('fill', 'none');
+      halo.setAttribute('stroke', 'var(--accent)');
+      halo.setAttribute('stroke-width', '1.6');
+      halo.setAttribute('stroke-dasharray', '4 3');
+      g.appendChild(halo);
     }
 
     layer.appendChild(g);
@@ -4871,6 +4986,40 @@
     return pt.matrixTransform(_schemSvg.getScreenCTM().inverse());
   }
 
+  // Show a small SVG <text> tooltip near the hovered pin with its name.
+  function _attachPinTooltipHandlers(pinEl, pinName) {
+    pinEl.addEventListener('mouseenter', () => {
+      if (!_schemSvg) return;
+      // Remove any stale tooltip first.
+      const stale = _schemSvg.querySelector('.schem-pin-tooltip');
+      if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
+      // Compute the pin's center in SVG-space (root) by transforming through CTM.
+      try {
+        const ctm = pinEl.getCTM();
+        const cx = parseFloat(pinEl.getAttribute('cx')) || 0;
+        const cy = parseFloat(pinEl.getAttribute('cy')) || 0;
+        let sx = cx;
+        let sy = cy;
+        if (ctm) {
+          sx = ctm.a * cx + ctm.c * cy + ctm.e;
+          sy = ctm.b * cx + ctm.d * cy + ctm.f;
+        }
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const t = document.createElementNS(svgNS, 'text');
+        t.setAttribute('class', 'schem-pin-tooltip');
+        t.setAttribute('x', sx + 10);
+        t.setAttribute('y', sy - 10);
+        t.textContent = pinName;
+        _schemSvg.appendChild(t);
+      } catch (_) {}
+    });
+    pinEl.addEventListener('mouseleave', () => {
+      if (!_schemSvg) return;
+      const tip = _schemSvg.querySelector('.schem-pin-tooltip');
+      if (tip && tip.parentNode) tip.parentNode.removeChild(tip);
+    });
+  }
+
   function _schemOnDragMove(e) {
     if (_schemResize) {
       const pt = svgPoint(e);
@@ -4947,13 +5096,23 @@
   function placeComponent(type) {
     const def = SCHEM_COMPONENTS[type];
     if (!def) return;
-    pushSchemHistory();
     // Drop in middle of canvas, offset slightly per existing count to avoid overlap.
     const count = _schemState.components.filter(c => c.type === type).length;
     const baseX = Math.max(0, Math.floor(_schemState.gridCols / 2 - def.w / 2));
     const baseY = Math.max(0, Math.floor(_schemState.gridRows / 2 - def.h / 2));
-    const x = Math.min(_schemState.gridCols - def.w, baseX + (count % 4));
-    const y = Math.min(_schemState.gridRows - def.h, baseY + Math.floor(count / 4));
+    const x = baseX + (count % 4);
+    const y = baseY + Math.floor(count / 4);
+    return placeComponentAt(type, x, y);
+  }
+
+  function placeComponentAt(type, gx, gy) {
+    const def = SCHEM_COMPONENTS[type];
+    if (!def) return null;
+    pushSchemHistory();
+    const w = def.w;
+    const h = def.h;
+    let x = Math.max(0, Math.min(_schemState.gridCols - w, Math.round(gx)));
+    let y = Math.max(0, Math.min(_schemState.gridRows - h, Math.round(gy)));
     const id = schemNewId(type);
     const c = { id, type, x, y };
     if (def.hasColor) c.ledColor = 'red';
@@ -4962,6 +5121,7 @@
       c.rows = 10;
     }
     _schemState.components.push(c);
+    _schemSelected = id;
     schemSave();
     renderPerfboard();
 
@@ -4971,23 +5131,144 @@
       schemSave();
       schemToast('LEDs need a 220 ohm resistor in series. Add one from the palette.', 3600);
     }
+    return c;
+  }
+
+  function _schemBuildPaletteGhost(type) {
+    const def = SCHEM_COMPONENTS[type];
+    if (!def) return null;
+    const w = def.w * SCHEM_GRID_PITCH;
+    const h = def.h * SCHEM_GRID_PITCH;
+    const wrap = document.createElement('div');
+    wrap.className = 'schem-palette-ghost';
+    wrap.innerHTML = `
+      <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+        ${def.svg({ ledColor: 'red' })}
+      </svg>
+    `;
+    wrap.style.width = w + 'px';
+    wrap.style.height = h + 'px';
+    return wrap;
+  }
+
+  function _schemOnPaletteDragMove(e) {
+    if (!_schemPaletteDrag) return;
+    const pd = _schemPaletteDrag;
+    const dx = e.clientX - pd.startX;
+    const dy = e.clientY - pd.startY;
+    if (!pd.didMove) {
+      if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+      pd.didMove = true;
+      pd.ghostEl = _schemBuildPaletteGhost(pd.type);
+      if (pd.ghostEl) document.body.appendChild(pd.ghostEl);
+    }
+    if (pd.ghostEl) {
+      const def = SCHEM_COMPONENTS[pd.type];
+      const w = def.w * SCHEM_GRID_PITCH;
+      const h = def.h * SCHEM_GRID_PITCH;
+      pd.ghostEl.style.left = (e.clientX - w / 2) + 'px';
+      pd.ghostEl.style.top = (e.clientY - h / 2) + 'px';
+    }
+  }
+
+  function _schemOnPaletteDragEnd(e) {
+    if (!_schemPaletteDrag) return;
+    const pd = _schemPaletteDrag;
+    if (!pd.didMove) {
+      // Treat as click: drop at center.
+      _schemCancelPaletteDrag();
+      placeComponent(pd.type);
+      return;
+    }
+    // Drag mode: drop where released if over the canvas.
+    let dropped = false;
+    if (_schemSvg) {
+      const rect = _schemSvg.getBoundingClientRect();
+      const inside = e.clientX >= rect.left && e.clientX <= rect.right &&
+                     e.clientY >= rect.top && e.clientY <= rect.bottom;
+      if (inside) {
+        const def = SCHEM_COMPONENTS[pd.type];
+        const pt = _schemSvg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        const local = pt.matrixTransform(_schemSvg.getScreenCTM().inverse());
+        // Position so cursor falls roughly in the middle of the component.
+        const gx = local.x / SCHEM_GRID_PITCH - 0.5 - def.w / 2;
+        const gy = local.y / SCHEM_GRID_PITCH - 0.5 - def.h / 2;
+        placeComponentAt(pd.type, gx, gy);
+        dropped = true;
+      }
+    }
+    _schemCancelPaletteDrag();
+    if (!dropped) {
+      // Released off-canvas: cancel silently.
+    }
+  }
+
+  function _schemCancelPaletteDrag() {
+    if (_schemPaletteDrag && _schemPaletteDrag.ghostEl && _schemPaletteDrag.ghostEl.parentNode) {
+      _schemPaletteDrag.ghostEl.parentNode.removeChild(_schemPaletteDrag.ghostEl);
+    }
+    _schemPaletteDrag = null;
   }
 
   function handlePinClick(pinId) {
     if (!_schemPendingPin) {
       _schemPendingPin = pinId;
       highlightPendingPin(pinId);
+      const a = pinIdToCoords(pinId);
+      if (a) _ensureWirePreview(a.x, a.y);
       return;
     }
     if (_schemPendingPin === pinId) {
       // Click same pin again to cancel.
       _schemPendingPin = null;
       highlightPendingPin(null);
+      _removeWirePreview();
       return;
     }
     completeWire(_schemPendingPin, pinId);
     _schemPendingPin = null;
     highlightPendingPin(null);
+    _removeWirePreview();
+  }
+
+  // Faint dashed line from the pending pin to the cursor while the user picks the second pin.
+  function _ensureWirePreview(x1, y1) {
+    if (!_schemSvg) return;
+    let line = _schemSvg.querySelector('#schemWirePreview');
+    const svgNS = 'http://www.w3.org/2000/svg';
+    if (!line) {
+      line = document.createElementNS(svgNS, 'line');
+      line.setAttribute('id', 'schemWirePreview');
+      line.setAttribute('class', 'schem-wire-preview');
+      line.setAttribute('stroke-dasharray', '5 4');
+      line.setAttribute('stroke-width', '2.5');
+      line.setAttribute('stroke-linecap', 'round');
+      line.setAttribute('opacity', '0.45');
+    }
+    const color = SCHEM_COLORS[_schemState.selectedColor] || SCHEM_COLORS.red;
+    line.setAttribute('stroke', color);
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x1);
+    line.setAttribute('y2', y1);
+    _schemSvg.appendChild(line);
+  }
+
+  function _removeWirePreview() {
+    if (!_schemSvg) return;
+    const line = _schemSvg.querySelector('#schemWirePreview');
+    if (line && line.parentNode) line.parentNode.removeChild(line);
+  }
+
+  function _schemOnWirePreviewMove(e) {
+    if (!_schemPendingPin || !_schemSvg) return;
+    const line = _schemSvg.querySelector('#schemWirePreview');
+    if (!line) return;
+    const pt = svgPoint(e);
+    line.setAttribute('x2', pt.x);
+    line.setAttribute('y2', pt.y);
   }
 
   function highlightPendingPin(pinId) {
