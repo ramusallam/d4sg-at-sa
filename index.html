@@ -1634,6 +1634,12 @@
   }
   .checkpoint-panel .cp-preview {
     display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .checkpoint-panel .cp-preview[hidden] { display: none; }
+  .checkpoint-panel .cp-preview-item {
+    display: flex;
     align-items: center;
     gap: 12px;
     padding: 10px 12px;
@@ -1641,7 +1647,6 @@
     border-radius: 11px;
     background: var(--bg-2);
   }
-  .checkpoint-panel .cp-preview[hidden] { display: none; }
   .checkpoint-panel .cp-preview img {
     width: 64px;
     height: 64px;
@@ -3545,7 +3550,7 @@
         {
           id: 'p1b5',
           title: 'Portfolio Drop',
-          points: 50,
+          points: 60,
           instructions: 'Submit your full portfolio for Project 1: photos of each prototype, a video of switches working, your CAD files or screenshots, your Arduino code, and a written summary.',
           videoUrl: '',
           links: [],
@@ -3553,7 +3558,8 @@
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 10 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
             { label: 'CAD',     text: 'Upload STL file(s) integrated into final product.', points: 10 },
-            { label: 'Code',    text: 'Link public code used for in final product.', points: 10 },
+            { label: 'Wiring',  text: 'Upload images of wiring diagram of final product.', points: 10 },
+            { label: 'Code',    text: 'Upload PDF of code used for final product.', points: 10 },
             { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 10 }
           ]
         }
@@ -3603,7 +3609,7 @@
         {
           id: 'p2b5',
           title: 'Portfolio Drop',
-          points: 50,
+          points: 60,
           instructions: 'Submit your full portfolio for Project 2: photos and video of each input type, your code, any CAD/wiring diagrams, and a written summary of what you learned about matching input types to user needs.',
           videoUrl: '',
           links: [],
@@ -3611,7 +3617,8 @@
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 10 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
             { label: 'CAD',     text: 'Upload STL file(s) integrated into final product.', points: 10 },
-            { label: 'Code',    text: 'Link public code used for in final product.', points: 10 },
+            { label: 'Wiring',  text: 'Upload images of wiring diagram of final product.', points: 10 },
+            { label: 'Code',    text: 'Upload PDF of code used for final product.', points: 10 },
             { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 10 }
           ]
         }
@@ -3661,7 +3668,7 @@
         {
           id: 'p3b5',
           title: 'Portfolio Drop',
-          points: 50,
+          points: 60,
           instructions: 'Submit your full Project 3 portfolio: hub photos and video, input map document, code, test results, and a written summary of what makes your hub modular.',
           videoUrl: '',
           links: [],
@@ -3669,7 +3676,8 @@
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 10 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
             { label: 'CAD',     text: 'Upload STL file(s) integrated into final product.', points: 10 },
-            { label: 'Code',    text: 'Link public code used for in final product.', points: 10 },
+            { label: 'Wiring',  text: 'Upload images of wiring diagram of final product.', points: 10 },
+            { label: 'Code',    text: 'Upload PDF of code used for final product.', points: 10 },
             { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 10 }
           ]
         }
@@ -3719,7 +3727,7 @@
         {
           id: 'p4b5',
           title: 'Portfolio Drop',
-          points: 50,
+          points: 60,
           instructions: 'Submit your complete final portfolio: photos and video of the finished controller, full code, CAD files, the system plan, user testing notes, and a written reflection. This is the artifact you will publish to Instructables next.',
           videoUrl: '',
           links: [],
@@ -3727,7 +3735,8 @@
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 10 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
             { label: 'CAD',     text: 'Upload STL file(s) integrated into final product.', points: 10 },
-            { label: 'Code',    text: 'Link public code used for in final product.', points: 10 },
+            { label: 'Wiring',  text: 'Upload images of wiring diagram of final product.', points: 10 },
+            { label: 'Code',    text: 'Upload PDF of code used for final product.', points: 10 },
             { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 10 }
           ]
         }
@@ -6413,7 +6422,8 @@
     { key: 'image',   label: 'Image',   icon: ICON_IMAGE,   accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
     { key: 'video',   label: 'Video',   icon: ICON_VIDEO,   accept: 'video/mp4',                                                     exts: 'MP4',       fileTypes: 'video', allowFile: true,  allowLink: true  },
     { key: 'cad',     label: 'CAD',     icon: ICON_CAD,     accept: '.stl,model/stl,application/sla,application/vnd.ms-pki.stl',    exts: 'STL',       fileTypes: 'cad',   allowFile: true,  allowLink: false },
-    { key: 'code',    label: 'Code',    icon: ICON_CODE,    accept: '',                                                              exts: 'Link only', fileTypes: 'link', allowFile: false, allowLink: true  },
+    { key: 'wiring',  label: 'Wiring',  icon: ICON_IMAGE,   accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
+    { key: 'code',    label: 'Code',    icon: ICON_CODE,    accept: 'application/pdf',                                               exts: 'PDF',       fileTypes: 'pdf',  allowFile: true,  allowLink: false },
     { key: 'summary', label: 'Summary', icon: ICON_SUMMARY, accept: '',                                                              exts: 'Text only', fileTypes: 'text', allowFile: false, allowLink: false }
   ];
   const SUMMARY_MAX = 1500;
@@ -6430,7 +6440,7 @@
     if (!file) return false;
     if (file.size > PORTFOLIO_MAX_FILE) return false;
     const ct = (file.type || '').toLowerCase();
-    if (slotKey === 'image') {
+    if (slotKey === 'image' || slotKey === 'wiring') {
       return ct === 'image/jpeg' || ct === 'image/png';
     }
     if (slotKey === 'video') {
@@ -6439,7 +6449,10 @@
     if (slotKey === 'cad') {
       return isStlFile(file);
     }
-    return false; // code is link-only, summary is text-only
+    if (slotKey === 'code') {
+      return ct === 'application/pdf';
+    }
+    return false; // summary is text-only
   }
 
   function shortBytes(n) {
@@ -7026,12 +7039,12 @@
         <input id="cpNameInput" type="text" maxlength="80" placeholder="e.g. Alex Rivera" value="${escapeHtml(savedName)}" />
       </div>
       <div class="cp-section">
-        <div class="cp-section-label">Photo of your work</div>
+        <div class="cp-section-label">Photo(s) of your work</div>
         <div class="pf-drop" data-cp-drop>
           <div class="pf-drop-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg></div>
-          <div class="pf-drop-text">Drop a photo or click to upload</div>
-          <div class="pf-drop-sub">JPG, PNG · up to 100MB</div>
-          <input type="file" data-cp-file accept="image/jpeg,image/png" style="display:none;" />
+          <div class="pf-drop-text">Drop one or more photos, or click to upload</div>
+          <div class="pf-drop-sub">JPG, PNG · up to 100MB each</div>
+          <input type="file" data-cp-file accept="image/jpeg,image/png" multiple style="display:none;" />
         </div>
         <div class="cp-preview" data-cp-preview hidden></div>
       </div>
@@ -7054,60 +7067,77 @@
     const submitBtn = panel.querySelector('[data-cp-submit]');
     const statusEl = panel.querySelector('[data-cp-status]');
 
-    let pendingFile = null;
-    let previewUrl = null;
+    // Multiple photos per checkpoint submission. Each entry: { file, url }.
+    let pendingFiles = [];
 
     function setStatus(msg, isError) {
       statusEl.textContent = msg || '';
       statusEl.classList.toggle('is-error', !!isError);
     }
     function refreshSubmit() {
-      const ok = !!(nameInput.value.trim() && pendingFile && textarea.value.trim());
+      const ok = !!(nameInput.value.trim() && pendingFiles.length && textarea.value.trim());
       submitBtn.disabled = !ok;
     }
-    function clearPhoto() {
-      pendingFile = null;
-      if (previewUrl) { try { URL.revokeObjectURL(previewUrl); } catch (_) {} }
-      previewUrl = null;
+    function clearAllPhotos() {
+      pendingFiles.forEach(p => { try { URL.revokeObjectURL(p.url); } catch (_) {} });
+      pendingFiles = [];
       preview.innerHTML = '';
       preview.hidden = true;
       drop.style.display = '';
       fileInput.value = '';
       refreshSubmit();
     }
-    function showPreview(file) {
-      if (previewUrl) { try { URL.revokeObjectURL(previewUrl); } catch (_) {} }
-      previewUrl = URL.createObjectURL(file);
-      preview.innerHTML = `
-        <img src="${previewUrl}" alt="" />
-        <div class="cp-preview-meta">
-          <div class="cp-preview-name">${escapeHtml(file.name)}</div>
-          <button type="button" class="cp-preview-remove" data-cp-remove aria-label="Remove">×</button>
-        </div>
-      `;
-      preview.hidden = false;
-      drop.style.display = 'none';
-      preview.querySelector('[data-cp-remove]').addEventListener('click', clearPhoto);
+    function removeOne(idx) {
+      const p = pendingFiles[idx];
+      if (!p) return;
+      try { URL.revokeObjectURL(p.url); } catch (_) {}
+      pendingFiles.splice(idx, 1);
+      if (!pendingFiles.length) {
+        clearAllPhotos();
+      } else {
+        renderPreviews();
+      }
     }
-    function handleFile(file) {
-      if (!file) return;
-      const ct = (file.type || '').toLowerCase();
-      if (ct !== 'image/jpeg' && ct !== 'image/png') {
-        setStatus('Photo must be JPG or PNG.', true);
-        return;
-      }
-      if (file.size > PORTFOLIO_MAX_FILE) {
-        setStatus('File too large (100MB max).', true);
-        return;
-      }
-      setStatus('');
-      pendingFile = file;
-      showPreview(file);
+    function renderPreviews() {
+      preview.innerHTML = pendingFiles.map((p, i) => `
+        <div class="cp-preview-item">
+          <img src="${p.url}" alt="" />
+          <div class="cp-preview-meta">
+            <div class="cp-preview-name">${escapeHtml(p.file.name)}</div>
+            <button type="button" class="cp-preview-remove" data-cp-remove="${i}" aria-label="Remove">×</button>
+          </div>
+        </div>
+      `).join('');
+      preview.querySelectorAll('[data-cp-remove]').forEach(b => {
+        b.addEventListener('click', () => removeOne(parseInt(b.getAttribute('data-cp-remove'), 10)));
+      });
+      preview.hidden = false;
+      drop.style.display = '';
       refreshSubmit();
+    }
+    function handleFiles(files) {
+      const arr = Array.from(files || []);
+      let added = 0;
+      for (const f of arr) {
+        const ct = (f.type || '').toLowerCase();
+        if (ct !== 'image/jpeg' && ct !== 'image/png') continue;
+        if (f.size > PORTFOLIO_MAX_FILE) continue;
+        pendingFiles.push({ file: f, url: URL.createObjectURL(f) });
+        added++;
+      }
+      if (!added && arr.length) {
+        setStatus('Photos must be JPG or PNG, up to 100MB each.', true);
+      } else {
+        setStatus('');
+      }
+      renderPreviews();
     }
 
     drop.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', () => handleFile(fileInput.files?.[0]));
+    fileInput.addEventListener('change', () => {
+      handleFiles(fileInput.files);
+      fileInput.value = '';
+    });
     ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, (e) => {
       if (!e.dataTransfer || !e.dataTransfer.types.includes('Files')) return;
       e.preventDefault();
@@ -7120,7 +7150,7 @@
       const files = e.dataTransfer?.files;
       if (!files || !files.length) return;
       e.preventDefault();
-      handleFile(files[0]);
+      handleFiles(files);
     });
 
     nameInput.addEventListener('input', refreshSubmit);
@@ -7131,7 +7161,7 @@
       if (isSubmitting) return;
       const name = nameInput.value.trim();
       const text = textarea.value.trim();
-      if (!name || !pendingFile || !text) return;
+      if (!name || !pendingFiles.length || !text) return;
       isSubmitting = true;
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting…';
@@ -7139,29 +7169,38 @@
       localStorage.setItem(NAME_KEY, name);
 
       try {
-        const ext = (pendingFile.name.match(/\.[a-z0-9]+$/i) || [''])[0];
-        const path = `portfolios/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-image${ext}`;
-        const ref = storageRef(storage, path);
-        const ct = pendingFile.type || 'image/jpeg';
-        const task = uploadBytesResumable(ref, pendingFile, { contentType: ct });
-        await new Promise((resolve, reject) => {
-          task.on('state_changed',
-            (snap) => {
-              const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-              setStatus(`Uploading… ${pct}%`);
-            },
-            reject,
-            resolve
-          );
-        });
-        const url = await getDownloadURL(task.snapshot.ref);
+        const uploaded = [];
+        for (let i = 0; i < pendingFiles.length; i++) {
+          const f = pendingFiles[i].file;
+          const ext = (f.name.match(/\.[a-z0-9]+$/i) || [''])[0];
+          const path = `portfolios/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-image${ext}`;
+          const ref = storageRef(storage, path);
+          const ct = f.type || 'image/jpeg';
+          const task = uploadBytesResumable(ref, f, { contentType: ct });
+          await new Promise((resolve, reject) => {
+            task.on('state_changed',
+              (snap) => {
+                const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+                setStatus(`Uploading photo ${i + 1} of ${pendingFiles.length} (${pct}%)…`);
+              },
+              reject,
+              resolve
+            );
+          });
+          const url = await getDownloadURL(task.snapshot.ref);
+          uploaded.push({ mode: 'file', url, fileName: f.name, contentType: ct, filePath: path });
+        }
 
         await addDoc(collection(db, 'portfolios'), {
           benchmarkId,
           studentName: name,
           createdAt: serverTimestamp(),
           slots: {
-            image: { mode: 'file', url, fileName: pendingFile.name, contentType: ct, filePath: path },
+            // First photo stays under `image` for backward compatibility with
+            // existing gallery code; full list lives under `images` so all of
+            // them render when galleries support arrays.
+            image: uploaded[0],
+            images: uploaded,
             video: null,
             code: null,
             cad: null,
@@ -7169,7 +7208,7 @@
           }
         });
 
-        clearPhoto();
+        clearAllPhotos();
         textarea.value = '';
         refreshCountBadge(benchmarkId);
         markChecked(benchmarkId);
