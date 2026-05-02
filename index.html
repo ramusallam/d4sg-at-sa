@@ -8168,14 +8168,14 @@
       <aside class="vibe-drawer" id="vibeDrawer" role="dialog" aria-label="AI assistant">
         <div class="vibe-drawer-head">
           <h3 class="vibe-drawer-title"><span class="vibe-drawer-title-dot"></span>AI Assistant</h3>
-          <div class="vibe-drawer-head-actions" style="display: flex; gap: 8px;">
-            <button class="vibe-btn" id="vibeChatClear">Clear chat</button>
+          <div class="vibe-drawer-head-actions" style="display: flex; gap: 8px; align-items: center;">
+            <button class="vibe-btn" id="vibeChatClear" style="display: none;">Clear chat</button>
             <button class="vibe-drawer-close" id="vibeDrawerClose" aria-label="Close">×</button>
           </div>
         </div>
         <div class="vibe-role-card">
           <p class="vibe-role-card-eyebrow">You're talking to</p>
-          <p class="vibe-role-card-body"><strong>An assistive technology engineer.</strong> They specialize in Arduino Leonardo and Micro hardware for adaptive controllers. Tell them what your project needs to do and they'll write the code.</p>
+          <p class="vibe-role-card-body"><strong>An assistive-tech engineer</strong> who codes Arduino Leonardo and Micro for adaptive controllers.</p>
         </div>
         <div class="vibe-chat-scroll" id="vibeChatScroll"></div>
         <div class="vibe-stems" id="vibeStems"></div>
@@ -8368,13 +8368,8 @@
     if (!_vibeChat.length && !_vibeBusy) {
       scroll.innerHTML = `
         <div class="vibe-chat-empty">
-          <strong>Ask for help building your adaptive controller.</strong>
-          Try things like:<br>
-          "Use the joystick to move the mouse and left-click when pressed."<br>
-          "When a tactile button is pressed, send the W key."<br>
-          "Use sip-and-puff: sip = mouse left click, puff = right click."<br>
-          "Trigger spacebar when the IR sensor sees a hand."<br>
-          "Make the roller-lever microswitch act as the Enter key."
+          <strong>Tap a starter below or type your own prompt.</strong>
+          The cleaner your ask, the cleaner the code you get back.
         </div>
       `;
       return;
@@ -8789,19 +8784,43 @@
   }
 
   // ============== INIT ==============
-  const route = location.pathname.replace(/\/+$/, '');
-  if (route === '/hw') {
-    document.body.classList.add('view-hw');
-    renderHomework();
-  } else if (route === '/progress') {
-    document.body.classList.add('view-progress');
-    renderProgress();
-  } else if (route === '/tools') {
-    document.body.classList.add('view-tools');
-    renderTools();
-  } else {
-    renderProjects();
+  // Smooth in-page route switching via pushState; no full reload between
+  // Tools / Homework / Progress / Home, so nav doesn't flicker.
+  function applyRoute(path) {
+    const r = (path || '').replace(/\/+$/, '');
+    document.body.classList.remove('view-hw', 'view-progress', 'view-tools');
+    if (r === '/hw') {
+      document.body.classList.add('view-hw');
+      renderHomework();
+    } else if (r === '/progress') {
+      document.body.classList.add('view-progress');
+      renderProgress();
+    } else if (r === '/tools') {
+      document.body.classList.add('view-tools');
+      renderTools();
+    } else {
+      renderProjects();
+    }
+    window.scrollTo(0, 0);
   }
+
+  // Intercept top-nav links so navigation feels instant. Only intercept
+  // same-origin internal routes; external/admin links go through normal
+  // navigation.
+  document.addEventListener('click', (e) => {
+    const a = e.target && e.target.closest && e.target.closest('a');
+    if (!a) return;
+    if (a.classList.contains('nav-link') === false) return;
+    const href = a.getAttribute('href') || '';
+    if (!href.startsWith('/')) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    if (location.pathname !== href) history.pushState({}, '', href);
+    applyRoute(href);
+  });
+  window.addEventListener('popstate', () => applyRoute(location.pathname));
+
+  applyRoute(location.pathname);
   // Pull initial counts via getCountFromServer (1 read per benchmark).
   loadInitialCounts();
   // Deep link to an archive: ?admin=ramsey-d4sg&archive=2026-04-15T12-34-56

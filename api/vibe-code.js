@@ -127,7 +127,9 @@ export default async function handler(req, res) {
         ...cleanHistory,
         { role: 'user', content: prompt }
       ],
-      max_completion_tokens: 2048
+      // gpt-5 spends tokens on internal reasoning; bigger budget so the
+      // visible response isn't truncated to empty.
+      max_completion_tokens: 6000
     };
   }
 
