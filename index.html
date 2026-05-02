@@ -1391,7 +1391,7 @@
 
   .pf-slots {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 10px;
   }
   .pf-slot {
@@ -2301,8 +2301,8 @@
 
   /* ============== TABLET ============== */
   @media (max-width: 900px) and (min-width: 641px) {
-    .pf-slots { grid-template-columns: repeat(5, 1fr); gap: 8px; }
-    .pf-slot-tile { min-height: 110px; padding: 14px 8px; }
+    .pf-slots { grid-template-columns: repeat(6, 1fr); gap: 8px; }
+    .pf-slot-tile { min-height: 110px; padding: 12px 6px; }
     .pf-slot-icon { font-size: 22px; }
     .pf-slot-label { font-size: 11px; letter-spacing: 1px; }
     .pf-slot-status { font-size: 10px; }
@@ -2332,7 +2332,7 @@
     .modal-header { padding: 20px 22px 16px; }
     .modal-body { padding: 20px 22px 32px; }
     .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .pf-slots { grid-template-columns: repeat(2, 1fr); }
+    .pf-slots { grid-template-columns: repeat(3, 1fr); }
     .pf-slot.is-open { grid-column: 1 / -1; }
     .pf-row-body-inner { grid-template-columns: repeat(2, 1fr); }
     .pf-slot-tile { min-height: 100px; padding: 14px 8px; }
@@ -3815,6 +3815,7 @@
   const ICON_CODE    = `<svg ${_SVG_ATTRS}><path d="M8 7l-5 5 5 5"/><path d="M16 7l5 5-5 5"/><path d="M14 5l-4 14"/></svg>`;
   const ICON_SUMMARY = `<svg ${_SVG_ATTRS}><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/></svg>`;
   const ICON_LINK    = `<svg ${_SVG_ATTRS}><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.5-1.5"/></svg>`;
+  const ICON_WIRING  = `<svg ${_SVG_ATTRS}><path d="M13 2 L5 13 L11 13 L10 22 L19 10 L13 10 Z" fill="currentColor" stroke="currentColor" stroke-width="0.6"/></svg>`;
   const ICON_DOC     = `<svg ${_SVG_ATTRS}><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/></svg>`;
 
   function renderProjects() {
@@ -6422,7 +6423,7 @@
     { key: 'image',   label: 'Image',   icon: ICON_IMAGE,   accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
     { key: 'video',   label: 'Video',   icon: ICON_VIDEO,   accept: 'video/mp4',                                                     exts: 'MP4',       fileTypes: 'video', allowFile: true,  allowLink: true  },
     { key: 'cad',     label: 'CAD',     icon: ICON_CAD,     accept: '.stl,model/stl,application/sla,application/vnd.ms-pki.stl',    exts: 'STL',       fileTypes: 'cad',   allowFile: true,  allowLink: false },
-    { key: 'wiring',  label: 'Wiring',  icon: ICON_IMAGE,   accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
+    { key: 'wiring',  label: 'Wiring',  icon: ICON_WIRING,  accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
     { key: 'code',    label: 'Code',    icon: ICON_CODE,    accept: 'application/pdf',                                               exts: 'PDF',       fileTypes: 'pdf',  allowFile: true,  allowLink: false },
     { key: 'summary', label: 'Summary', icon: ICON_SUMMARY, accept: '',                                                              exts: 'Text only', fileTypes: 'text', allowFile: false, allowLink: false }
   ];
