@@ -4243,6 +4243,8 @@
   let _schemDrag = null;         // { id, startX, startY, originGx, originGy }
   let _schemResize = null;       // { id, startX, startY, startCols, startRows } - perfboard resize
   let _schemSvg = null;          // root <svg>
+  let _schemWireDrag = null;     // { fromPinId, startClientX, startClientY, moved }
+  let _schemSuppressNextPinClick = false; // skip the click that follows a wire-drag
   let _schemSelected = null;     // currently selected component id, or null
   let _schemPaletteDrag = null;  // { type, startX, startY, ghostEl, didMove }
   const _schemHistory = [];      // JSON snapshots of state for undo
@@ -4398,10 +4400,15 @@
     // Palette ghost-drag global listeners.
     document.addEventListener('mousemove', _schemOnPaletteDragMove);
     document.addEventListener('mouseup', _schemOnPaletteDragEnd);
+    // Wire-drag global listeners (drag from one pin to another).
+    document.addEventListener('mousemove', _schemWireDragMove);
+    document.addEventListener('mouseup', _schemWireDragEnd);
     // Detach when leaving the tool, small leak protection.
     document.getElementById('schemBack').addEventListener('click', () => {
       document.removeEventListener('keydown', schemKeyHandler);
       document.removeEventListener('mousemove', _schemOnPaletteDragMove);
+      document.removeEventListener('mousemove', _schemWireDragMove);
+      document.removeEventListener('mouseup', _schemWireDragEnd);
       document.removeEventListener('mouseup', _schemOnPaletteDragEnd);
       _schemCancelPaletteDrag();
       _schemSelected = null;
@@ -4681,7 +4688,16 @@
 
         click.addEventListener('click', (e) => {
           e.stopPropagation();
+          if (_schemSuppressNextPinClick) {
+            _schemSuppressNextPinClick = false;
+            return;
+          }
           handlePinClick(pinId);
+        });
+        click.addEventListener('mousedown', (e) => {
+          if (e.button !== 0) return;
+          e.stopPropagation();
+          _schemWireDragStartPin(pinId, e);
         });
         _attachPinTooltipHandlers(click, pin.name);
 
@@ -4718,12 +4734,46 @@
 
       pinCircle.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (_schemSuppressNextPinClick) {
+          _schemSuppressNextPinClick = false;
+          return;
+        }
         handlePinClick(pinId);
+      });
+      pinCircle.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        _schemWireDragStartPin(pinId, e);
       });
       _attachPinTooltipHandlers(pinCircle, pin.name);
 
       g.appendChild(pinG);
     });
+
+    // Visible rotate handle for non-perfboard components. Sits just outside
+    // the top-right corner so it doesn't overlap with the body. Click rotates
+    // 90 degrees clockwise — the same op as shift+click and the R key.
+    if (!isPerfboard) {
+      const hx = cw * SCHEM_GRID_PITCH + 4;
+      const hy = -8;
+      const rotHandle = document.createElementNS(svgNS, 'g');
+      rotHandle.setAttribute('class', 'schem-rotate-handle');
+      rotHandle.innerHTML = `
+        <circle cx="${hx}" cy="${hy}" r="9" fill="white" stroke="${'#3b82f6'}" stroke-width="1.4"/>
+        <path d="M ${hx - 3.5} ${hy - 1.5} A 4 4 0 1 1 ${hx + 3} ${hy + 2.5}" fill="none" stroke="#3b82f6" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M ${hx + 4.5} ${hy + 1} L ${hx + 2} ${hy + 4} L ${hx + 1} ${hy + 1} Z" fill="#3b82f6" stroke="none"/>
+      `;
+      rotHandle.style.cursor = 'pointer';
+      rotHandle.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        pushSchemHistory();
+        c.rotation = ((c.rotation || 0) + 90) % 360;
+        schemSave();
+        renderPerfboard();
+      });
+      g.appendChild(rotHandle);
+    }
 
     // Perfboard move handle (top-left, dotted square icon). Always-visible
     // grab target so students don't have to find the gap between pads.
@@ -4794,7 +4844,7 @@
     // Drag start on the body, not on pins or the corner handles.
     g.addEventListener('mousedown', (e) => {
       if (e.target.classList && e.target.classList.contains('schem-pin')) return;
-      if (e.target.closest && (e.target.closest('.schem-resize-handle') || e.target.closest('.schem-move-handle'))) return;
+      if (e.target.closest && (e.target.closest('.schem-resize-handle') || e.target.closest('.schem-move-handle') || e.target.closest('.schem-rotate-handle'))) return;
       if (e.button !== 0) return;
       // Shift+click rotates 90 degrees clockwise (skip perfboard).
       if (e.shiftKey && c.type !== 'perfboard') {
@@ -5228,6 +5278,54 @@
       return;
     }
     completeWire(_schemPendingPin, pinId);
+    _schemPendingPin = null;
+    highlightPendingPin(null);
+    _removeWirePreview();
+  }
+
+  // Drag-to-wire: mousedown on a pin starts tracking. If the cursor moves
+  // past a small threshold and releases on another pin, complete the wire.
+  // If it releases on the same pin (no real drag), the click handler runs
+  // normally and sets pending. Both flows coexist.
+  function _schemWireDragStartPin(pinId, e) {
+    _schemWireDrag = {
+      fromPinId: pinId,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      moved: false
+    };
+    // Show preview immediately so the wire visually anchors to the pin.
+    const a = pinIdToCoords(pinId);
+    if (a) _ensureWirePreview(a.x, a.y);
+  }
+
+  function _schemWireDragMove(e) {
+    if (!_schemWireDrag) return;
+    const dx = e.clientX - _schemWireDrag.startClientX;
+    const dy = e.clientY - _schemWireDrag.startClientY;
+    if (!_schemWireDrag.moved && (dx * dx + dy * dy) > 16) {
+      _schemWireDrag.moved = true;
+      // Lock pending pin so the preview tracks the cursor while we drag.
+      if (_schemPendingPin !== _schemWireDrag.fromPinId) {
+        _schemPendingPin = _schemWireDrag.fromPinId;
+        highlightPendingPin(_schemPendingPin);
+      }
+    }
+  }
+
+  function _schemWireDragEnd(e) {
+    if (!_schemWireDrag) return;
+    const drag = _schemWireDrag;
+    _schemWireDrag = null;
+    if (!drag.moved) return; // a click, let click handler take over
+    // Hit-test: is the mouseup target a pin?
+    const elem = document.elementFromPoint(e.clientX, e.clientY);
+    const pinEl = elem && elem.closest && elem.closest('[data-pin]');
+    const targetPinId = pinEl && pinEl.getAttribute('data-pin');
+    _schemSuppressNextPinClick = true;
+    if (targetPinId && targetPinId !== drag.fromPinId) {
+      completeWire(drag.fromPinId, targetPinId);
+    }
     _schemPendingPin = null;
     highlightPendingPin(null);
     _removeWirePreview();
