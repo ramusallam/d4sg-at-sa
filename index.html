@@ -3597,35 +3597,23 @@
         const H = 8 * SCHEM_GRID_PITCH;
         return `
           <!-- PCB body -->
-          <rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="#147DAD" stroke="#0a4763" stroke-width="2"/>
-          <!-- Top + bottom header strips -->
-          <rect x="${W*0.06}" y="${-4}" width="${W*0.36}" height="8" fill="#0c0c0c" stroke="#000" stroke-width="0.5"/>
-          <rect x="${W*0.46}" y="${-4}" width="${W*0.46}" height="8" fill="#0c0c0c" stroke="#000" stroke-width="0.5"/>
-          <rect x="${W*0.06}" y="${H-4}" width="${W*0.36}" height="8" fill="#0c0c0c" stroke="#000" stroke-width="0.5"/>
-          <rect x="${W*0.46}" y="${H-4}" width="${W*0.46}" height="8" fill="#0c0c0c" stroke="#000" stroke-width="0.5"/>
+          <rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="#0E6E97" stroke="#06405a" stroke-width="1.5"/>
+          <!-- Header strips, top + bottom (single clean strip each side) -->
+          <rect x="${W*0.07}" y="${-3}" width="${W*0.86}" height="6" fill="#1a1a1a"/>
+          <rect x="${W*0.07}" y="${H-3}" width="${W*0.86}" height="6" fill="#1a1a1a"/>
           <!-- USB-B connector (left side, top) -->
-          <rect x="${-14}" y="${H*0.10}" width="16" height="${H*0.30}" rx="1.5" fill="#cbd5e1" stroke="#374151" stroke-width="1"/>
-          <rect x="${-11}" y="${H*0.13}" width="11" height="${H*0.24}" fill="#1f2937"/>
+          <rect x="${-13}" y="${H*0.12}" width="14" height="${H*0.28}" rx="1" fill="#cfd5dc" stroke="#374151" stroke-width="0.8"/>
+          <rect x="${-10}" y="${H*0.16}" width="9" height="${H*0.20}" fill="#1f2937"/>
           <!-- Barrel jack (left side, bottom) -->
-          <rect x="${-12}" y="${H*0.56}" width="14" height="${H*0.30}" rx="2" fill="#0c0c0c" stroke="#000" stroke-width="0.5"/>
-          <circle cx="${-5}" cy="${H*0.71}" r="3" fill="#9ca3af"/>
-          <circle cx="${-5}" cy="${H*0.71}" r="1.4" fill="#1f2937"/>
-          <!-- ATmega32U4 (large square chip, center) -->
-          <rect x="${W*0.42}" y="${H*0.34}" width="${W*0.18}" height="${H*0.32}" fill="#0c0c0c" stroke="#000" stroke-width="0.5"/>
-          <circle cx="${W*0.435}" cy="${H*0.36}" r="1.4" fill="#374151"/>
-          <text x="${W*0.51}" y="${H*0.53}" text-anchor="middle" font-size="6" fill="#475569" font-family="system-ui, sans-serif" font-weight="700">ATmega</text>
+          <rect x="${-12}" y="${H*0.60}" width="13" height="${H*0.28}" rx="1.5" fill="#1a1a1a"/>
+          <circle cx="${-5.5}" cy="${H*0.74}" r="2.4" fill="#9ca3af"/>
+          <!-- ATmega32U4 chip (clean dark square, center) -->
+          <rect x="${W*0.44}" y="${H*0.38}" width="${W*0.16}" height="${H*0.28}" rx="1" fill="#161616"/>
+          <circle cx="${W*0.453}" cy="${H*0.40}" r="1" fill="#3a3a3a"/>
           <!-- Crystal -->
-          <rect x="${W*0.32}" y="${H*0.40}" width="${W*0.06}" height="${H*0.20}" rx="1" fill="#cbd5e1" stroke="#374151" stroke-width="0.5"/>
-          <!-- Reset button -->
-          <rect x="${W*0.20}" y="${H*0.18}" width="${W*0.05}" height="${W*0.05}" rx="1" fill="#1f2937" stroke="#000"/>
-          <!-- ICSP header (right side) -->
-          <rect x="${W*0.84}" y="${H*0.30}" width="${W*0.06}" height="${H*0.18}" rx="1" fill="#0c0c0c"/>
-          <!-- LEDs -->
-          <circle cx="${W*0.18}" cy="${H*0.34}" r="2.4" fill="#22c55e"/>
-          <circle cx="${W*0.18}" cy="${H*0.42}" r="2.4" fill="#facc15"/>
-          <circle cx="${W*0.18}" cy="${H*0.50}" r="2.4" fill="#ef4444"/>
-          <!-- Silkscreen ARDUINO LEONARDO -->
-          <text x="${W*0.66}" y="${H*0.78}" text-anchor="middle" font-size="11" fill="white" font-family="system-ui, sans-serif" font-weight="800" letter-spacing="0.6">ARDUINO LEONARDO</text>
+          <rect x="${W*0.34}" y="${H*0.44}" width="${W*0.05}" height="${H*0.16}" rx="1" fill="#cfd5dc"/>
+          <!-- Silkscreen -->
+          <text x="${W*0.52}" y="${H*0.85}" text-anchor="middle" font-size="10" fill="white" font-family="system-ui, sans-serif" font-weight="700" letter-spacing="0.5">ARDUINO LEONARDO</text>
         `;
       },
       pinLabels: true
@@ -3655,25 +3643,18 @@
         const W = 9 * SCHEM_GRID_PITCH;
         const H = 3 * SCHEM_GRID_PITCH;
         return `
-          <!-- PCB body, narrow + long -->
-          <rect x="0" y="0" width="${W}" height="${H}" rx="5" fill="#147DAD" stroke="#0a4763" stroke-width="1.5"/>
+          <!-- PCB body -->
+          <rect x="0" y="0" width="${W}" height="${H}" rx="4" fill="#0E6E97" stroke="#06405a" stroke-width="1.2"/>
           <!-- Header strips -->
-          <rect x="${W*0.04}" y="${-3}" width="${W*0.92}" height="6" fill="#0c0c0c"/>
-          <rect x="${W*0.04}" y="${H-3}" width="${W*0.92}" height="6" fill="#0c0c0c"/>
+          <rect x="${W*0.05}" y="${-2.5}" width="${W*0.90}" height="5" fill="#1a1a1a"/>
+          <rect x="${W*0.05}" y="${H-2.5}" width="${W*0.90}" height="5" fill="#1a1a1a"/>
           <!-- USB-Micro connector (top edge, centered) -->
-          <rect x="${W*0.46}" y="${-7}" width="${W*0.08}" height="6" rx="1" fill="#cbd5e1" stroke="#374151" stroke-width="0.5"/>
-          <rect x="${W*0.475}" y="${-6.2}" width="${W*0.05}" height="4" fill="#1f2937"/>
+          <rect x="${W*0.47}" y="${-6}" width="${W*0.06}" height="5" rx="0.8" fill="#cfd5dc" stroke="#374151" stroke-width="0.5"/>
+          <rect x="${W*0.482}" y="${-5.4}" width="${W*0.036}" height="3.4" fill="#1f2937"/>
           <!-- ATmega32U4 -->
-          <rect x="${W*0.44}" y="${H*0.32}" width="${W*0.12}" height="${H*0.36}" fill="#0c0c0c" stroke="#000" stroke-width="0.4"/>
-          <circle cx="${W*0.452}" cy="${H*0.36}" r="0.8" fill="#374151"/>
-          <!-- Silkscreen MICRO -->
-          <text x="${W*0.22}" y="${H*0.6}" text-anchor="middle" font-size="9" fill="white" font-family="system-ui, sans-serif" font-weight="800" letter-spacing="0.5">MICRO</text>
-          <text x="${W*0.78}" y="${H*0.6}" text-anchor="middle" font-size="6" fill="white" font-family="system-ui, sans-serif" font-weight="700" opacity="0.85">ARDUINO</text>
-          <!-- Crystal -->
-          <rect x="${W*0.34}" y="${H*0.38}" width="${W*0.04}" height="${H*0.24}" rx="0.5" fill="#cbd5e1" stroke="#374151" stroke-width="0.4"/>
-          <!-- Power LED -->
-          <circle cx="${W*0.62}" cy="${H*0.42}" r="1.4" fill="#22c55e"/>
-          <circle cx="${W*0.66}" cy="${H*0.42}" r="1.4" fill="#facc15"/>
+          <rect x="${W*0.44}" y="${H*0.36}" width="${W*0.12}" height="${H*0.32}" rx="0.8" fill="#161616"/>
+          <!-- Silkscreen -->
+          <text x="${W*0.5}" y="${H*0.62}" text-anchor="middle" font-size="8" fill="white" font-family="system-ui, sans-serif" font-weight="700" letter-spacing="0.4">ARDUINO MICRO</text>
         `;
       },
       pinLabels: true
@@ -3759,7 +3740,7 @@
 
     joystick: {
       group: 'components',
-      label: 'Joystick (KY-023)',
+      label: 'Joystick',
       w: 4, h: 4,
       pins: [
         { name: 'GND', gx: 0.5, gy: 4 },
@@ -3775,7 +3756,6 @@
           <rect x="0" y="0" width="${W}" height="${H}" rx="4" fill="#15803d" stroke="#064e3b" stroke-width="1.2"/>
           <circle cx="${W*0.5}" cy="${H*0.45}" r="${W*0.34}" fill="#0f172a" stroke="#000" stroke-width="1"/>
           <circle cx="${W*0.5}" cy="${H*0.45}" r="${W*0.18}" fill="#1f2937" stroke="#374151"/>
-          <text x="${W*0.5}" y="${H*0.92}" text-anchor="middle" font-size="6" fill="#dcfce7" font-family="system-ui, sans-serif" font-weight="700">KY-023</text>
         `;
       },
       pinLabels: true
@@ -3830,20 +3810,21 @@
       label: 'LED',
       w: 1.5, h: 2,
       pins: [
-        { name: 'A', gx: 0.4, gy: 2 },  // anode (longer, +)
-        { name: 'K', gx: 1.1, gy: 2 }   // cathode (shorter, -)
+        { name: 'A', gx: 0.4, gy: 2 },     // anode (long leg, +)
+        { name: 'K', gx: 1.1, gy: 1.55 }   // cathode (noticeably shorter leg, -)
       ],
       svg: function(opts) {
         const W = 1.5 * SCHEM_GRID_PITCH;
         const H = 2 * SCHEM_GRID_PITCH;
         const color = (opts && opts.ledColor) || 'red';
         const fill = { red:'#ef4444', yellow:'#facc15', green:'#22c55e', blue:'#3b82f6', white:'#f8fafc' }[color] || '#ef4444';
+        // Anode leg goes all the way down; cathode stops earlier so the difference is visible.
         return `
           <ellipse cx="${W*0.5}" cy="${H*0.42}" rx="${W*0.42}" ry="${H*0.42}" fill="${fill}" stroke="#7f1d1d" stroke-width="1" opacity="0.92"/>
-          <ellipse cx="${W*0.4}" cy="${H*0.32}" rx="${W*0.12}" ry="${H*0.18}" fill="white" opacity="0.5"/>
-          <line x1="${W*0.27}" y1="${H*0.78}" x2="${W*0.27}" y2="${H}" stroke="#374151" stroke-width="1.6"/>
-          <line x1="${W*0.73}" y1="${H*0.78}" x2="${W*0.73}" y2="${H}" stroke="#374151" stroke-width="1.6"/>
-          <text x="${W*0.27}" y="${H*0.88}" text-anchor="middle" font-size="7" fill="#374151" font-family="system-ui, sans-serif" font-weight="700">+</text>
+          <ellipse cx="${W*0.4}" cy="${H*0.32}" rx="${W*0.12}" ry="${H*0.18}" fill="white" opacity="0.55"/>
+          <line x1="${W*0.27}" y1="${H*0.78}" x2="${W*0.27}" y2="${H}"      stroke="#374151" stroke-width="1.6"/>
+          <line x1="${W*0.73}" y1="${H*0.78}" x2="${W*0.73}" y2="${H*0.78 + (H - H*0.78) * 0.55}" stroke="#374151" stroke-width="1.6"/>
+          <text x="${W*0.27}" y="${H*0.96}" text-anchor="middle" font-size="6" fill="#374151" font-family="system-ui, sans-serif" font-weight="700">+</text>
         `;
       },
       pinLabels: true,
@@ -3890,6 +3871,7 @@
   let _schemState = null;
   let _schemPendingPin = null;   // pinId waiting for second click
   let _schemDrag = null;         // { id, startX, startY, originGx, originGy }
+  let _schemResize = null;       // { id, startX, startY, startCols, startRows } - perfboard resize
   let _schemSvg = null;          // root <svg>
 
   function schemLoad() {
@@ -3953,10 +3935,6 @@
             <span class="schem-toolbar-label">Wire color</span>
             <div class="schem-color-row" id="schemColors"></div>
           </div>
-          <div class="schem-toolbar-group">
-            <span class="schem-toolbar-label">Board</span>
-            <button class="schem-btn" id="schemGridToggle">Toggle size</button>
-          </div>
           <div class="schem-toolbar-group" style="margin-left: auto;">
             <button class="schem-btn" id="schemClear">Clear</button>
             <button class="schem-btn" id="schemPortfolio">Add to Portfolio</button>
@@ -3983,18 +3961,6 @@
     renderComponentPalette();
     renderColorRow();
     renderPerfboard();
-
-    document.getElementById('schemGridToggle').addEventListener('click', () => {
-      if (_schemState.gridCols === 38) {
-        _schemState.gridCols = 50;
-        _schemState.gridRows = 32;
-      } else {
-        _schemState.gridCols = 38;
-        _schemState.gridRows = 24;
-      }
-      schemSave();
-      renderPerfboard();
-    });
 
     document.getElementById('schemClear').addEventListener('click', () => {
       if (!_schemState.components.length && !_schemState.wires.length) {
@@ -4065,9 +4031,47 @@
     addGroup('Components', groups.components);
   }
 
+  // Resize the canvas grid to fit all currently-placed components, plus a few
+  // cells of breathing room on the right and bottom.
+  function autoFitCanvas() {
+    let maxCol = 24;
+    let maxRow = 16;
+    _schemState.components.forEach(c => {
+      const w = _schemComponentW(c);
+      const h = _schemComponentH(c);
+      maxCol = Math.max(maxCol, c.x + w + 4);
+      maxRow = Math.max(maxRow, c.y + h + 3);
+    });
+    _schemState.gridCols = maxCol;
+    _schemState.gridRows = maxRow;
+  }
+
+  function _schemComponentW(c) {
+    const def = SCHEM_COMPONENTS[c.type];
+    if (!def) return 4;
+    if (c.type === 'perfboard') return c.cols || def.w;
+    return def.w;
+  }
+  function _schemComponentH(c) {
+    const def = SCHEM_COMPONENTS[c.type];
+    if (!def) return 4;
+    if (c.type === 'perfboard') return c.rows || def.h;
+    return def.h;
+  }
+  function _schemPerfboardPins(cols, rows) {
+    const out = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        out.push({ name: `r${r}c${c}`, gx: c + 0.5, gy: r + 0.5 });
+      }
+    }
+    return out;
+  }
+
   function renderPerfboard() {
     const wrap = document.getElementById('schemCanvasWrap');
     if (!wrap) return;
+    autoFitCanvas();
     wrap.innerHTML = '';
 
     const cols = _schemState.gridCols;
@@ -4131,6 +4135,10 @@
     const svgNS = 'http://www.w3.org/2000/svg';
     const layer = _schemSvg.querySelector('#schemLayerComponents');
 
+    const isPerfboard = c.type === 'perfboard';
+    const cw = _schemComponentW(c);
+    const ch = _schemComponentH(c);
+
     const g = document.createElementNS(svgNS, 'g');
     g.setAttribute('class', 'schem-component component-svg');
     g.setAttribute('data-component', c.type);
@@ -4140,11 +4148,25 @@
     // Body (innerSVG from definition). Pins drawn separately below.
     const body = document.createElementNS(svgNS, 'g');
     body.setAttribute('class', 'schem-component-body');
-    body.innerHTML = def.svg({ ledColor: c.ledColor || 'red' });
+    if (isPerfboard) {
+      const W = cw * SCHEM_GRID_PITCH;
+      const H = ch * SCHEM_GRID_PITCH;
+      body.innerHTML = `
+        <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#1f6f3e" stroke="#0c3a1f" stroke-width="2"/>
+        <rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="4" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+        <circle cx="${W*0.04}" cy="${H*0.06}" r="3.5" fill="#0c3a1f"/>
+        <circle cx="${W*0.96}" cy="${H*0.06}" r="3.5" fill="#0c3a1f"/>
+        <circle cx="${W*0.04}" cy="${H*0.94}" r="3.5" fill="#0c3a1f"/>
+        <circle cx="${W*0.96}" cy="${H*0.94}" r="3.5" fill="#0c3a1f"/>
+      `;
+    } else {
+      body.innerHTML = def.svg({ ledColor: c.ledColor || 'red' });
+    }
     g.appendChild(body);
 
-    // Pins.
-    def.pins.forEach(pin => {
+    // Pins (dynamic for perfboard, static otherwise).
+    const pins = isPerfboard ? _schemPerfboardPins(cw, ch) : def.pins;
+    pins.forEach(pin => {
       const px = pin.gx * SCHEM_GRID_PITCH;
       const py = pin.gy * SCHEM_GRID_PITCH;
       const pinG = document.createElementNS(svgNS, 'g');
@@ -4227,9 +4249,38 @@
       g.appendChild(pinG);
     });
 
-    // Drag start on the body, not on pins.
+    // Perfboard resize handle (bottom-right corner). Drag to grow/shrink.
+    if (isPerfboard) {
+      const W = cw * SCHEM_GRID_PITCH;
+      const H = ch * SCHEM_GRID_PITCH;
+      const handle = document.createElementNS(svgNS, 'g');
+      handle.setAttribute('class', 'schem-resize-handle');
+      handle.innerHTML = `
+        <path d="M ${W - 14} ${H} L ${W} ${H} L ${W} ${H - 14} Z" fill="#0c3a1f" stroke="#fff" stroke-width="0.6"/>
+        <line x1="${W - 8}" y1="${H - 2}" x2="${W - 2}" y2="${H - 8}" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="${W - 4}" y1="${H - 2}" x2="${W - 2}" y2="${H - 4}" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+      `;
+      handle.style.cursor = 'nwse-resize';
+      handle.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        e.preventDefault();
+        const pt = svgPoint(e);
+        _schemResize = {
+          id: c.id,
+          startX: pt.x,
+          startY: pt.y,
+          startCols: cw,
+          startRows: ch
+        };
+      });
+      g.appendChild(handle);
+    }
+
+    // Drag start on the body, not on pins or the resize handle.
     g.addEventListener('mousedown', (e) => {
       if (e.target.classList && e.target.classList.contains('schem-pin')) return;
+      if (e.target.closest && e.target.closest('.schem-resize-handle')) return;
       if (e.button !== 0) return;
       const pt = svgPoint(e);
       _schemDrag = {
@@ -4267,6 +4318,13 @@
     layer.appendChild(g);
   }
 
+  function _isPerfboardPin(pinId) {
+    if (!pinId) return false;
+    const compId = pinId.split(':')[0];
+    const c = _schemState.components.find(x => x.id === compId);
+    return !!(c && c.type === 'perfboard');
+  }
+
   function drawWire(w) {
     const svgNS = 'http://www.w3.org/2000/svg';
     const layer = _schemSvg.querySelector('#schemLayerWires');
@@ -4274,24 +4332,20 @@
     const b = pinIdToCoords(w.toPinId);
     if (!a || !b) return;
 
-    // Smooth curve between pins.
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const sag = Math.min(40, Math.max(10, dist * 0.18));
-    const cx1 = a.x + dx * 0.3;
-    const cy1 = a.y + dy * 0.3 + sag;
-    const cx2 = a.x + dx * 0.7;
-    const cy2 = a.y + dy * 0.7 + sag;
-    const d = `M ${a.x} ${a.y} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${b.x} ${b.y}`;
+    // Pad-to-pad connections render as silver "solder" traces. All other
+    // wires use the chosen wire color and render as straight lines.
+    const padToPad = _isPerfboardPin(w.fromPinId) && _isPerfboardPin(w.toPinId);
+    const stroke = padToPad ? '#9aa3ad' : (SCHEM_COLORS[w.color] || SCHEM_COLORS.red);
 
     const path = document.createElementNS(svgNS, 'path');
     path.setAttribute('class', 'schem-wire');
-    path.setAttribute('d', d);
-    path.setAttribute('stroke', SCHEM_COLORS[w.color] || SCHEM_COLORS.red);
-    path.setAttribute('stroke-width', '3');
+    path.setAttribute('d', `M ${a.x} ${a.y} L ${b.x} ${b.y}`);
+    path.setAttribute('stroke', stroke);
+    path.setAttribute('stroke-width', padToPad ? '2.4' : '3');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('fill', 'none');
     path.setAttribute('data-wire-id', w.id);
-    if (w.color === 'white') {
+    if (!padToPad && w.color === 'white') {
       path.setAttribute('stroke', '#f8fafc');
       path.style.filter = 'drop-shadow(0 0 1px rgba(0,0,0,0.4))';
     }
@@ -4329,7 +4383,20 @@
     if (!c) return null;
     const def = SCHEM_COMPONENTS[c.type];
     if (!def) return null;
-    const pin = def.pins.find(p => p.name === pinName);
+
+    let pin;
+    if (c.type === 'perfboard') {
+      const m = pinName && pinName.match(/^r(\d+)c(\d+)$/);
+      if (!m) return null;
+      const row = parseInt(m[1], 10);
+      const col = parseInt(m[2], 10);
+      const cols = _schemComponentW(c);
+      const rows = _schemComponentH(c);
+      if (row >= rows || col >= cols) return null;
+      pin = { name: pinName, gx: col + 0.5, gy: row + 0.5 };
+    } else {
+      pin = def.pins.find(p => p.name === pinName);
+    }
     if (!pin) return null;
     const x = (c.x + 0.5) * SCHEM_GRID_PITCH + pin.gx * SCHEM_GRID_PITCH;
     const y = (c.y + 0.5) * SCHEM_GRID_PITCH + pin.gy * SCHEM_GRID_PITCH;
@@ -4344,17 +4411,33 @@
   }
 
   function _schemOnDragMove(e) {
+    if (_schemResize) {
+      const pt = svgPoint(e);
+      const dx = (pt.x - _schemResize.startX) / SCHEM_GRID_PITCH;
+      const dy = (pt.y - _schemResize.startY) / SCHEM_GRID_PITCH;
+      const c = _schemState.components.find(x => x.id === _schemResize.id);
+      if (!c) return;
+      const newCols = Math.max(4, Math.round(_schemResize.startCols + dx));
+      const newRows = Math.max(4, Math.round(_schemResize.startRows + dy));
+      if (newCols !== (c.cols || 14) || newRows !== (c.rows || 10)) {
+        c.cols = newCols;
+        c.rows = newRows;
+        renderPerfboard();
+      }
+      return;
+    }
     if (!_schemDrag) return;
     const pt = svgPoint(e);
     const dx = (pt.x - _schemDrag.startX) / SCHEM_GRID_PITCH;
     const dy = (pt.y - _schemDrag.startY) / SCHEM_GRID_PITCH;
     const c = _schemState.components.find(x => x.id === _schemDrag.id);
     if (!c) return;
-    const def = SCHEM_COMPONENTS[c.type];
+    const cw = _schemComponentW(c);
+    const ch = _schemComponentH(c);
     let nx = Math.round(_schemDrag.originGx + dx);
     let ny = Math.round(_schemDrag.originGy + dy);
-    nx = Math.max(0, Math.min(_schemState.gridCols - def.w, nx));
-    ny = Math.max(0, Math.min(_schemState.gridRows - def.h, ny));
+    nx = Math.max(0, Math.min(_schemState.gridCols - cw, nx));
+    ny = Math.max(0, Math.min(_schemState.gridRows - ch, ny));
     if (nx !== c.x || ny !== c.y) {
       c.x = nx;
       c.y = ny;
@@ -4368,11 +4451,22 @@
   }
 
   function _schemOnDragEnd() {
+    if (_schemResize) {
+      // Trim wires that point at pads no longer existing on the resized perfboard.
+      _schemState.wires = _schemState.wires.filter(w =>
+        pinIdToCoords(w.fromPinId) && pinIdToCoords(w.toPinId)
+      );
+      _schemResize = null;
+      schemSave();
+      renderPerfboard();
+      return;
+    }
     if (!_schemDrag) return;
     const node = _schemSvg.querySelector(`[data-component-id="${_schemDrag.id}"]`);
     if (node) node.classList.remove('is-dragging');
     _schemDrag = null;
     schemSave();
+    renderPerfboard();
   }
 
   function redrawWires() {
@@ -4394,9 +4488,13 @@
     const id = schemNewId(type);
     const c = { id, type, x, y };
     if (def.hasColor) c.ledColor = 'red';
+    if (type === 'perfboard') {
+      c.cols = 14;
+      c.rows = 10;
+    }
     _schemState.components.push(c);
     schemSave();
-    drawComponent(c);
+    renderPerfboard();
 
     // LED reminder: offer 220 ohm resistor on first LED placement per session.
     if (type === 'led' && !_schemState.resistorReminderShown) {
