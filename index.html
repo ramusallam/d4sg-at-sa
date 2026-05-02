@@ -4245,6 +4245,7 @@
   let _schemSvg = null;          // root <svg>
   let _schemWireDrag = null;     // { fromPinId, startClientX, startClientY, moved }
   let _schemSuppressNextPinClick = false; // skip the click that follows a wire-drag
+  let _schemSelectedWire = null; // currently selected wire id, or null
   let _schemSelected = null;     // currently selected component id, or null
   let _schemPaletteDrag = null;  // { type, startX, startY, ghostEl, didMove }
   const _schemHistory = [];      // JSON snapshots of state for undo
@@ -4393,6 +4394,13 @@
         const id = _schemSelected;
         _schemSelected = null;
         deleteComponent(id);
+        return;
+      }
+      if ((key === 'Delete' || key === 'Backspace') && _schemSelectedWire) {
+        e.preventDefault();
+        const id = _schemSelectedWire;
+        _schemSelectedWire = null;
+        deleteWire(id);
         return;
       }
     };
@@ -4585,6 +4593,10 @@
         if (_schemSelected) {
           _schemSelected = null;
           renderPerfboard();
+        }
+        if (_schemSelectedWire) {
+          _schemSelectedWire = null;
+          redrawWires();
         }
       }
     });
@@ -4935,10 +4947,11 @@
     const b = pinIdToCoords(w.toPinId);
     if (!a || !b) return;
 
-    // Pad-to-pad connections render as silver "solder" traces. All other
-    // wires use the chosen wire color and render as straight lines.
-    const padToPad = _isPerfboardPin(w.fromPinId) && _isPerfboardPin(w.toPinId);
-    const stroke = padToPad ? '#9aa3ad' : (SCHEM_COLORS[w.color] || SCHEM_COLORS.red);
+    // Any wire touching the perfboard reads as a soldered joint, so it
+    // renders in silver. Off-board hookup wires keep the chosen color.
+    const touchesPad = _isPerfboardPin(w.fromPinId) || _isPerfboardPin(w.toPinId);
+    const stroke = touchesPad ? '#9aa3ad' : (SCHEM_COLORS[w.color] || SCHEM_COLORS.red);
+    const padToPad = touchesPad;
 
     const path = document.createElementNS(svgNS, 'path');
     path.setAttribute('class', 'schem-wire');
@@ -4963,12 +4976,38 @@
       deleteWire(w.id);
     });
     path.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (e.shiftKey) {
         deleteWire(w.id);
+        return;
       }
+      // Single-click: select this wire (and deselect any component).
+      _schemSelected = null;
+      _schemSelectedWire = w.id;
+      redrawWires();
     });
 
     layer.appendChild(path);
+
+    // Selection X icon at the wire's midpoint when this wire is selected.
+    if (_schemSelectedWire === w.id) {
+      const mx = (a.x + b.x) / 2;
+      const my = (a.y + b.y) / 2;
+      const xIcon = document.createElementNS(svgNS, 'g');
+      xIcon.setAttribute('class', 'schem-wire-x');
+      xIcon.style.cursor = 'pointer';
+      xIcon.innerHTML = `
+        <circle cx="${mx}" cy="${my}" r="9" fill="white" stroke="#dc2626" stroke-width="1.6"/>
+        <line x1="${mx - 3.5}" y1="${my - 3.5}" x2="${mx + 3.5}" y2="${my + 3.5}" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="${mx + 3.5}" y1="${my - 3.5}" x2="${mx - 3.5}" y2="${my + 3.5}" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round"/>
+      `;
+      xIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteWire(w.id);
+      });
+      xIcon.addEventListener('mousedown', (e) => e.stopPropagation());
+      layer.appendChild(xIcon);
+    }
 
     // Solder blobs at each end.
     [a, b].forEach(pt => {
