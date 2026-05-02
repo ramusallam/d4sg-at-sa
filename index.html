@@ -8087,6 +8087,12 @@
         const code = (data.code || '').trim();
         if (code) {
           _vibeChat.push({ role: 'assistant', content: code });
+          // Auto-paste the latest response into the IDE every time, so the
+          // editor always reflects the freshest generation. Detect libraries
+          // for the strip too.
+          vibeSetEditorText(code);
+          vibeSaveEditorText(code);
+          vibeUpdateLibraries();
         } else {
           _vibeChat.push({ role: 'error', content: 'The assistant did not return any code.' });
         }
