@@ -2652,7 +2652,7 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    background: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 50%, #6366f1 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 55%, var(--accent) 100%);
     color: white;
     border: none;
     border-radius: 999px;
@@ -2661,12 +2661,12 @@
     font-weight: 700;
     letter-spacing: 0.4px;
     cursor: pointer;
-    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.32), 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 14px 34px rgba(59, 130, 246, 0.30), 0 2px 6px rgba(0, 0, 0, 0.08);
     transition: transform 0.18s ease, box-shadow 0.18s ease;
   }
   .vibe-ai-fab:hover {
     transform: translateY(-2px);
-    box-shadow: 0 18px 42px rgba(99, 102, 241, 0.38), 0 2px 6px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 20px 48px rgba(59, 130, 246, 0.36), 0 2px 6px rgba(0, 0, 0, 0.10);
   }
   .vibe-ai-fab .vibe-ai-fab-icon {
     width: 22px;
@@ -2735,8 +2735,8 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #14b8a6, #6366f1);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+    background: linear-gradient(135deg, #14b8a6, var(--accent));
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
   }
   .vibe-drawer-close {
     background: transparent;
@@ -2759,9 +2759,9 @@
      is talking to an assistive-technology engineer. Read-only context. */
   .vibe-role-card {
     margin: 16px 18px 0;
-    padding: 16px;
-    background: linear-gradient(135deg, rgba(20, 184, 166, 0.10) 0%, rgba(99, 102, 241, 0.08) 100%);
-    border: 1px solid rgba(99, 102, 241, 0.22);
+    padding: 16px 18px;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.09) 0%, rgba(59, 130, 246, 0.08) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.22);
     border-radius: 14px;
     color: var(--ink-hi);
     line-height: 1.55;
@@ -2771,7 +2771,7 @@
     font-weight: 800;
     letter-spacing: 1.6px;
     text-transform: uppercase;
-    color: #6366f1;
+    color: var(--accent);
     margin: 0 0 6px;
   }
   .vibe-role-card-body {
@@ -2841,22 +2841,22 @@
   }
   .vibe-msg {
     max-width: 92%;
-    padding: 11px 14px;
-    border-radius: 12px;
-    font-size: 14px;
-    line-height: 1.55;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 14.5px;
+    line-height: 1.6;
     white-space: pre-wrap;
     word-break: break-word;
   }
   .vibe-msg-user {
     align-self: flex-end;
-    background: var(--accent-soft);
-    border: 1px solid #dbeafe;
-    color: var(--ink-hi);
+    background: var(--accent);
+    color: white;
+    border: none;
   }
   .vibe-msg-ai {
     align-self: flex-start;
-    background: var(--bg-0);
+    background: var(--bg-2);
     border: 1px solid var(--border);
     color: var(--ink-hi);
   }
@@ -2940,14 +2940,18 @@
     color: white;
     border: none;
     border-radius: 14px;
-    padding: 14px 22px;
-    font-size: 15px;
-    font-weight: 600;
+    padding: 0;
+    width: 56px;
+    height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: background 0.15s ease, opacity 0.15s ease;
-    align-self: stretch;
-    min-width: 88px;
+    transition: background 0.15s ease, transform 0.12s ease, opacity 0.15s ease;
+    align-self: flex-end;
+    flex-shrink: 0;
   }
+  .vibe-send-btn:hover { transform: translateY(-1px); }
   .vibe-send-btn:hover { background: #2563eb; }
   .vibe-send-btn:disabled {
     opacity: 0.5;
@@ -2987,19 +2991,10 @@
     resize: none;
     outline: none;
   }
-  .vibe-help-line {
-    padding: 8px 16px;
-    font-size: 12px;
-    color: var(--ink-mid);
-    background: var(--accent-soft);
-    border-top: 1px solid var(--border);
-    line-height: 1.5;
-  }
-
   .vibe-monitor-header {
-    background: #0a0a0a;
+    background: #0f172a;
     color: #cbd5e1;
-    padding: 9px 14px;
+    padding: 11px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -3009,7 +3004,7 @@
   .vibe-monitor-title {
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.6px;
     text-transform: uppercase;
     color: #94a3b8;
     margin: 0;
@@ -3021,30 +3016,35 @@
   }
   .vibe-monitor-controls select,
   .vibe-monitor-controls .vibe-mini-btn {
-    background: #1f2937;
+    background: #1e293b;
     color: #e2e8f0;
     border: 1px solid #334155;
-    border-radius: 6px;
-    padding: 4px 9px;
+    border-radius: 8px;
+    padding: 5px 11px;
     font-size: 11.5px;
     font-family: inherit;
     cursor: pointer;
+    transition: background 0.15s ease;
   }
   .vibe-monitor-controls .vibe-mini-btn:hover {
     background: #334155;
   }
   .vibe-monitor {
-    background: #050505;
+    background: #0b1220;
     color: #4ade80;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
     font-size: 13.5px;
     line-height: 1.6;
-    padding: 16px 18px;
+    padding: 18px 20px;
     height: 260px;
     overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-word;
   }
+  .vibe-monitor::-webkit-scrollbar { width: 10px; }
+  .vibe-monitor::-webkit-scrollbar-track { background: #0b1220; }
+  .vibe-monitor::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+  .vibe-monitor::-webkit-scrollbar-thumb:hover { background: #334155; }
   .vibe-monitor-empty {
     color: #475569;
     font-style: italic;
@@ -3054,10 +3054,11 @@
     background: var(--bg-1);
     border: 1px solid var(--border);
     color: var(--ink-mid);
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 12.5px;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
     font-weight: 600;
+    letter-spacing: 0.1px;
     cursor: pointer;
     transition: all 0.15s ease;
   }
@@ -3071,7 +3072,7 @@
     color: white;
   }
   .vibe-btn.is-primary:hover {
-    background: #2563eb;
+    background: var(--accent-hover);
     color: white;
   }
   .vibe-btn.is-active {
@@ -7570,7 +7571,6 @@
           <div class="vibe-editor-wrap" id="vibeEditorWrap">
             <textarea class="vibe-editor-fallback" id="vibeEditorFallback" spellcheck="false"></textarea>
           </div>
-          <div class="vibe-help-line">Paste this into the desktop Arduino IDE and upload to your Leonardo or Micro. The Serial Monitor below stays connected and will show output once your code is running.</div>
           <div>
             <div class="vibe-monitor-header">
               <p class="vibe-monitor-title">Serial Monitor</p>
@@ -7620,7 +7620,12 @@
         <div class="vibe-chat-scroll" id="vibeChatScroll"></div>
         <div class="vibe-input-row">
           <textarea class="vibe-input" id="vibeInput" placeholder="Try: 'Make a button on pin 2 send the spacebar key when pressed.'" rows="1"></textarea>
-          <button class="vibe-send-btn" id="vibeSend">Send</button>
+          <button class="vibe-send-btn" id="vibeSend" aria-label="Send">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 2 L11 13"/>
+              <path d="M22 2 L15 22 L11 13 L2 9 Z"/>
+            </svg>
+          </button>
         </div>
       </aside>
     `;
