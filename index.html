@@ -1612,6 +1612,16 @@
     font-weight: 600;
     color: var(--paper-ink);
     letter-spacing: 0.01em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .checkpoint-panel .cp-section-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 18px;
   }
   .checkpoint-panel .cp-reflection {
     width: 100%;
@@ -6427,7 +6437,7 @@
   const SLOT_DEFS = [
     { key: 'image',   label: 'Image',   icon: ICON_IMAGE,   accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
     { key: 'video',   label: 'Video',   icon: ICON_VIDEO,   accept: 'video/mp4',                                                     exts: 'MP4',       fileTypes: 'video', allowFile: true,  allowLink: true  },
-    { key: 'cad',     label: 'CAD',     icon: ICON_CAD,     accept: '.stl,model/stl,application/sla,application/vnd.ms-pki.stl',    exts: 'STL',       fileTypes: 'cad',   allowFile: true,  allowLink: false },
+    { key: 'cad',     label: 'CAD',     icon: ICON_CAD,     accept: '.stl,model/stl,application/sla,application/vnd.ms-pki.stl',    exts: 'STL',       fileTypes: 'cad',   allowFile: true,  allowLink: true  },
     { key: 'wiring',  label: 'Wiring',  icon: ICON_WIRING,  accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
     { key: 'code',    label: 'Code',    icon: ICON_CODE,    accept: 'application/pdf',                                               exts: 'PDF',       fileTypes: 'pdf',  allowFile: true,  allowLink: false },
     { key: 'summary', label: 'Summary', icon: ICON_SUMMARY, accept: '',                                                              exts: 'Text only', fileTypes: 'text', allowFile: false, allowLink: false }
@@ -6526,7 +6536,10 @@
         </div>
         <div class="pf-slot-body">
           <div class="pf-slot-head">
-            <div class="pf-slot-head-title">${def.label}</div>
+            <div class="pf-slot-head-title">
+              <span class="pf-slot-icon">${def.icon}</span>
+              ${def.label}
+            </div>
             <button type="button" class="pf-slot-collapse" data-pf-collapse aria-label="Collapse">×</button>
           </div>
           <div class="pf-slot-body-inner" data-pf-body-inner></div>
@@ -6648,7 +6661,6 @@
 
         const dropHtml = def.allowFile ? `
           <div class="pf-drop" data-pf-drop>
-            <div class="pf-drop-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg></div>
             <div class="pf-drop-text">Drop a file or click to upload</div>
             <div class="pf-drop-sub">${def.exts} · up to 100MB</div>
             <input type="file" data-pf-file accept="${def.accept}" style="display:none;" />
@@ -7042,9 +7054,8 @@
         <input id="cpNameInput" type="text" maxlength="80" placeholder="e.g. Alex Rivera" value="${escapeHtml(savedName)}" />
       </div>
       <div class="cp-section">
-        <div class="cp-section-label">Photo(s) of your work</div>
+        <div class="cp-section-label"><span class="cp-section-icon">${ICON_IMAGE}</span>Photo(s) of your work</div>
         <div class="pf-drop" data-cp-drop>
-          <div class="pf-drop-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg></div>
           <div class="pf-drop-text">Drop one or more photos, or click to upload</div>
           <div class="pf-drop-sub">JPG, PNG · up to 100MB each</div>
           <input type="file" data-cp-file accept="image/jpeg,image/png" multiple style="display:none;" />
