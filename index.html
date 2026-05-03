@@ -455,11 +455,11 @@
     color: var(--accent);
     background: var(--accent-soft);
   }
-  .nav-back { display: none; }
-  .nav-to-hw, .nav-to-progress, .nav-to-tools { display: inline-flex; }
-  body.view-hw .nav-back, body.view-progress .nav-back, body.view-tools .nav-back { display: inline-flex; }
-  /* Active-page pill: stays visible, fills indigo so the student sees which
-     view they're on. Behaves like a normal website nav. */
+  /* All four nav pills always visible: Home / Tools / Homework / Progress.
+     The pill for the current view fills indigo so the student sees where
+     they are. No layout jumps as they navigate. */
+  .nav-to-home, .nav-to-hw, .nav-to-progress, .nav-to-tools { display: inline-flex; }
+  body.view-home .nav-to-home,
   body.view-hw .nav-to-hw,
   body.view-progress .nav-to-progress,
   body.view-tools .nav-to-tools {
@@ -467,6 +467,7 @@
     border-color: var(--accent);
     color: white;
   }
+  body.view-home .nav-to-home:hover,
   body.view-hw .nav-to-hw:hover,
   body.view-progress .nav-to-progress:hover,
   body.view-tools .nav-to-tools:hover {
@@ -3541,9 +3542,9 @@
     <h1 class="header-title"><a href="/" class="header-title-link">D4SG <span class="at">@</span> SA</a></h1>
     <div class="header-meta">
       <a href="/tools" class="nav-link nav-to-tools">Tools</a>
+      <a href="/" class="nav-link nav-to-home">Home</a>
       <a href="/hw" class="nav-link nav-to-hw">Homework</a>
       <a href="/progress" class="nav-link nav-to-progress">Progress</a>
-      <a href="/" class="nav-link nav-back">← Back to class</a>
       <span class="admin-bar">
         <span class="admin-tag">Admin</span>
         <button class="archive-btn" id="archivesViewBtn">Archives</button>
@@ -9231,7 +9232,7 @@
   // Tools / Homework / Progress / Home, so nav doesn't flicker.
   function applyRoute(path) {
     const r = (path || '').replace(/\/+$/, '');
-    document.body.classList.remove('view-hw', 'view-progress', 'view-tools');
+    document.body.classList.remove('view-home', 'view-hw', 'view-progress', 'view-tools');
     if (r === '/hw') {
       document.body.classList.add('view-hw');
       renderHomework();
@@ -9242,6 +9243,7 @@
       document.body.classList.add('view-tools');
       renderTools();
     } else {
+      document.body.classList.add('view-home');
       renderProjects();
     }
     window.scrollTo(0, 0);
