@@ -3259,6 +3259,77 @@
     color: white;
   }
 
+  /* "+ Save to..." popover (shared by Schematic + Vibe Coding tools). */
+  .save-to-anchor {
+    position: relative;
+    display: inline-block;
+  }
+  .save-to-pop {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 60;
+    width: 320px;
+    max-height: 460px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.06);
+    padding: 6px 0;
+    text-align: left;
+  }
+  .save-to-section {
+    border-top: 1px solid var(--border);
+    padding: 8px 0 6px;
+  }
+  .save-to-section:first-child { border-top: none; }
+  .save-to-eyebrow {
+    display: block;
+    padding: 6px 14px 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+  }
+  .save-to-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 14px;
+    background: transparent;
+    border: 0;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .save-to-item:hover:not(:disabled) {
+    background: var(--bg-2);
+    color: var(--accent);
+  }
+  .save-to-item:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .save-to-item.is-portfolio {
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .save-to-item.is-portfolio:hover:not(:disabled) {
+    background: var(--accent-soft);
+  }
+  .save-to-item .save-to-arrow {
+    margin-right: 4px;
+    opacity: 0.6;
+  }
+
   /* Chat avatars — ChatGPT-style "AI" / "You" mini circles next to each
      message. Keeps the conversation legible at a glance. */
   .vibe-msg-row {
@@ -4452,7 +4523,7 @@
           <div class="schem-toolbar-group" style="margin-left: auto;">
             <button class="schem-btn" id="schemUndo" title="Undo last change (Cmd+Z / Ctrl+Z)">Undo</button>
             <button class="schem-btn" id="schemClear">Clear</button>
-            <button class="schem-btn" id="schemPortfolio">Add to Portfolio</button>
+            <button class="schem-btn" id="schemSaveTo">+ Save to…</button>
             <button class="schem-btn is-primary" id="schemDownload">Download Image</button>
           </div>
         </div>
@@ -4543,8 +4614,21 @@
       clearCanvas();
     });
 
-    document.getElementById('schemPortfolio').addEventListener('click', () => {
-      schemToast('Coming soon. For now, download and add manually.', 3200);
+    const schemSaveBtn = document.getElementById('schemSaveTo');
+    schemSaveBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // If popover is already open against this button, toggle closed.
+      if (_saveToPopOpen && _saveToPopOpen.anchorEl === schemSaveBtn) {
+        closeSaveToPop();
+        return;
+      }
+      const buildBlob = () => new Promise((resolve, reject) => {
+        buildSchemPngBlob((blob, err) => {
+          if (err || !blob) reject(err || new Error('no blob'));
+          else resolve(blob);
+        });
+      });
+      openSaveToPop(schemSaveBtn, 'schematic', buildBlob);
     });
 
     document.getElementById('schemDownload').addEventListener('click', () => {
@@ -5564,16 +5648,156 @@
     schemToast('Canvas cleared.');
   }
 
-  function exportPNG() {
-    if (!_schemSvg) return;
+  // ============== Save-to popover (shared by Schematic + Vibe Coding) ==============
+  // Pending artifact handed off to the next openModal() call. Consumed by
+  // buildCheckpointPanel / buildPortfolioPanel and then cleared.
+  // Shape: { blob, fileName, contentType, slotKey, benchmarkId, panelType, kind }
+  //   panelType: 'checkpoint' (benchmarks 1-4) | 'portfolio' (Portfolio Drop)
+  //   kind: 'schematic' | 'vibe' (for toast wording)
+  window._pendingArtifact = null;
+
+  let _saveToPopOpen = null; // { popEl, anchorEl, onDocClick, onKeyDown }
+  function closeSaveToPop() {
+    if (!_saveToPopOpen) return;
+    const { popEl, onDocClick, onKeyDown } = _saveToPopOpen;
+    document.removeEventListener('click', onDocClick, true);
+    document.removeEventListener('keydown', onKeyDown);
+    if (popEl && popEl.parentNode) popEl.parentNode.removeChild(popEl);
+    _saveToPopOpen = null;
+  }
+
+  // kind: 'schematic' (PNG) or 'vibe' (PDF). buildBlob: () => Promise<Blob>.
+  function openSaveToPop(anchorBtn, kind, buildBlob) {
+    closeSaveToPop();
+    // Wrap the button in a position:relative span if needed.
+    let host = anchorBtn.parentNode;
+    if (!host || !host.classList.contains('save-to-anchor')) {
+      const wrap = document.createElement('span');
+      wrap.className = 'save-to-anchor';
+      anchorBtn.parentNode.insertBefore(wrap, anchorBtn);
+      wrap.appendChild(anchorBtn);
+      host = wrap;
+    }
+
+    const pop = document.createElement('div');
+    pop.className = 'save-to-pop';
+    pop.setAttribute('role', 'menu');
+
+    PROJECTS.forEach(project => {
+      if (project.id === 'final') return; // Final / Instructable is excluded for both tools.
+      const sec = document.createElement('div');
+      sec.className = 'save-to-section';
+      const eye = document.createElement('span');
+      eye.className = 'save-to-eyebrow';
+      eye.textContent = project.title;
+      sec.appendChild(eye);
+
+      project.benchmarks.forEach(b => {
+        if (b.title === 'Portfolio Drop') return; // handled below
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'save-to-item';
+        const idx = project.benchmarks.indexOf(b) + 1;
+        item.textContent = `Benchmark ${idx}: ${b.title}`;
+        // Vibe Coding produces PDFs, which checkpoint slots (image-only) reject.
+        if (kind === 'vibe') {
+          item.disabled = true;
+          item.title = 'Benchmarks accept photos, not PDFs.';
+        } else {
+          item.addEventListener('click', async () => {
+            closeSaveToPop();
+            await handleSaveToPick({ kind, buildBlob, project, benchmark: b, panelType: 'checkpoint' });
+          });
+        }
+        sec.appendChild(item);
+      });
+
+      // Portfolio Drop sub-row
+      const drop = project.benchmarks.find(x => x.title === 'Portfolio Drop');
+      if (drop) {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'save-to-item is-portfolio';
+        const slotLabel = kind === 'vibe' ? 'Code slot' : 'Wiring slot';
+        item.innerHTML = `<span class="save-to-arrow">↳</span>Portfolio Drop (${slotLabel})`;
+        item.addEventListener('click', async () => {
+          closeSaveToPop();
+          await handleSaveToPick({ kind, buildBlob, project, benchmark: drop, panelType: 'portfolio' });
+        });
+        sec.appendChild(item);
+      }
+
+      pop.appendChild(sec);
+    });
+
+    host.appendChild(pop);
+
+    const onDocClick = (e) => {
+      if (host.contains(e.target)) return;
+      closeSaveToPop();
+    };
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); closeSaveToPop(); }
+    };
+    // Defer attaching click handler so the click that opened the popover
+    // doesn't immediately close it.
+    setTimeout(() => document.addEventListener('click', onDocClick, true), 0);
+    document.addEventListener('keydown', onKeyDown);
+
+    _saveToPopOpen = { popEl: pop, anchorEl: anchorBtn, onDocClick, onKeyDown };
+  }
+
+  async function handleSaveToPick({ kind, buildBlob, project, benchmark, panelType }) {
+    let blob;
+    try {
+      // buildBlob is always a () => Promise<Blob> wrapper, normalized by the caller.
+      blob = await buildBlob();
+    } catch (err) {
+      console.warn('save-to capture failed', err);
+      schemToast(kind === 'vibe' ? 'Could not build PDF. Try again.' : 'Could not build image. Try again.');
+      return;
+    }
+    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+    if (kind === 'schematic') {
+      const slotKey = panelType === 'portfolio' ? 'wiring' : 'image';
+      window._pendingArtifact = {
+        blob,
+        fileName: `wiring-schematic-${stamp}.png`,
+        contentType: 'image/png',
+        slotKey,
+        benchmarkId: benchmark.id,
+        panelType,
+        kind
+      };
+    } else {
+      window._pendingArtifact = {
+        blob,
+        fileName: `arduino-sketch-${new Date().toISOString().slice(0, 10)}.pdf`,
+        contentType: 'application/pdf',
+        slotKey: 'code',
+        benchmarkId: benchmark.id,
+        panelType,
+        kind
+      };
+    }
+    // Navigate to the benchmark modal. openModal triggers panel build, which
+    // consumes _pendingArtifact and clears it.
+    const target = findBenchmarkById(benchmark.id);
+    if (target) openModal(target);
+  }
+
+  // Build a PNG Blob from the current schematic SVG. Calls cb(blob) on success,
+  // or cb(null, err) on failure. Shared by exportPNG() (download) and the
+  // "+ Save to..." flow (drops the Blob into a benchmark/Portfolio slot).
+  function buildSchemPngBlob(cb) {
+    if (!_schemSvg) { cb(null, new Error('no svg')); return; }
     try {
       const serializer = new XMLSerializer();
-      // Clone so we can strip interactive cursor classes.
       const clone = _schemSvg.cloneNode(true);
       clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       const svgStr = serializer.serializeToString(clone);
-      const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
+      const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
       const img = new Image();
       img.onload = () => {
         const w = _schemSvg.viewBox.baseVal.width || _schemSvg.clientWidth;
@@ -5587,30 +5811,37 @@
         ctx.drawImage(img, 0, 0, w, h);
         URL.revokeObjectURL(url);
         canvas.toBlob((pngBlob) => {
-          if (!pngBlob) {
-            schemToast('Could not generate image. Try again.');
-            return;
-          }
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(pngBlob);
-          const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
-          a.download = `wiring-schematic-${stamp}.png`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-          schemToast('Image saved.');
+          if (!pngBlob) { cb(null, new Error('toBlob returned null')); return; }
+          cb(pngBlob);
         }, 'image/png');
       };
       img.onerror = (err) => {
-        console.error('image load error', err);
-        schemToast('Could not generate image. Try again.');
+        URL.revokeObjectURL(url);
+        cb(null, err);
       };
       img.src = url;
     } catch (err) {
-      console.error('export PNG failed', err);
-      schemToast('Could not generate image. Try again.');
+      cb(null, err);
     }
+  }
+
+  function exportPNG() {
+    buildSchemPngBlob((pngBlob, err) => {
+      if (!pngBlob) {
+        console.error('export PNG failed', err);
+        schemToast('Could not generate image. Try again.');
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(pngBlob);
+      const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+      a.download = `wiring-schematic-${stamp}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      schemToast('Image saved.');
+    });
   }
 
   // ============== PROGRESS page ==============
@@ -7035,6 +7266,48 @@
       }
     });
 
+    // Consume any pending artifact handed off by a Tool's "+ Save to..." flow.
+    // Drops the Blob into the right slot (wiring/code), opens Summary, scrolls.
+    if (window._pendingArtifact &&
+        window._pendingArtifact.panelType === 'portfolio' &&
+        window._pendingArtifact.benchmarkId === benchmarkId) {
+      const pa = window._pendingArtifact;
+      window._pendingArtifact = null;
+      const slotKey = pa.slotKey; // 'wiring' or 'code'
+      // Build a synthetic File from the Blob and seed slot state.
+      const synthFile = new File([pa.blob], pa.fileName, { type: pa.contentType });
+      pendingFiles[slotKey] = synthFile;
+      const objUrl = URL.createObjectURL(synthFile);
+      state[slotKey] = {
+        mode: 'file',
+        url: objUrl,
+        fileName: pa.fileName,
+        contentType: pa.contentType,
+        _localPreview: true
+      };
+      // Defer DOM-touching work until after this builder returns and the panel
+      // is mounted. refreshTile / openSlot / scrollIntoView all rely on it
+      // being attached.
+      setTimeout(() => {
+        refreshTile(slotKey);
+        refreshSubmit();
+        // Refresh the source slot's body too if it's open (rare, but safe).
+        const srcSlot = slotsEl.querySelector(`.pf-slot[data-slot="${slotKey}"]`);
+        if (srcSlot && srcSlot._renderBody && srcSlot.classList.contains('is-open')) {
+          srcSlot._renderBody();
+        }
+        // Open Summary slot for editing.
+        const summarySlot = slotsEl.querySelector('.pf-slot[data-slot="summary"]');
+        if (summarySlot && summarySlot._openSlot) {
+          summarySlot._openSlot('summary');
+          // Scroll the Summary slot into view inside the modal.
+          summarySlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        const verb = pa.kind === 'vibe' ? 'Code' : 'Wiring';
+        schemToast(`${verb} loaded. Write your summary and hit Submit.`, 3200);
+      }, 60);
+    }
+
     refreshSubmit();
     return panel;
   }
@@ -7169,6 +7442,25 @@
 
     nameInput.addEventListener('input', refreshSubmit);
     textarea.addEventListener('input', refreshSubmit);
+
+    // Consume any pending artifact handed off by a Tool's "+ Save to..." flow.
+    // Only checkpoint panels (benchmarks 1-4) accept image blobs here; PDF
+    // blobs are blocked at the popover level, so we still gate on contentType.
+    if (window._pendingArtifact &&
+        window._pendingArtifact.panelType === 'checkpoint' &&
+        window._pendingArtifact.benchmarkId === benchmarkId &&
+        (window._pendingArtifact.contentType || '').startsWith('image/')) {
+      const pa = window._pendingArtifact;
+      window._pendingArtifact = null;
+      const synthFile = new File([pa.blob], pa.fileName, { type: pa.contentType });
+      pendingFiles.push({ file: synthFile, url: URL.createObjectURL(synthFile) });
+      // Defer to next tick so the panel is in the DOM before we render previews.
+      setTimeout(() => {
+        renderPreviews();
+        textarea.focus();
+        schemToast('Photo loaded. Write your reflection and hit Submit.', 3200);
+      }, 60);
+    }
 
     let isSubmitting = false;
     submitBtn.addEventListener('click', async () => {
@@ -8118,6 +8410,52 @@
     });
   }
 
+  // Build the jsPDF doc from current editor text. Throws if editor is empty.
+  // Shared by vibeExportPdf() (saves) and vibeBuildPdfBlob() (Save-to flow).
+  async function vibeBuildPdfDoc() {
+    const txt = vibeGetEditorText();
+    if (!txt || !txt.trim()) throw new Error('empty');
+    await vibeLoadJsPdf();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const marginX = 48;
+    const marginY = 56;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('Arduino Sketch', marginX, marginY);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    const stamp = new Date().toLocaleString();
+    doc.text(stamp, pageW - marginX, marginY, { align: 'right' });
+    doc.setTextColor(0);
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(10);
+    const lineHeight = 13;
+    const wrappedLines = [];
+    txt.split('\n').forEach(line => {
+      const fitted = doc.splitTextToSize(line || ' ', pageW - marginX * 2);
+      fitted.forEach(l => wrappedLines.push(l));
+    });
+    let y = marginY + 28;
+    wrappedLines.forEach(line => {
+      if (y + lineHeight > pageH - marginY) {
+        doc.addPage();
+        y = marginY;
+      }
+      doc.text(line, marginX, y);
+      y += lineHeight;
+    });
+    return doc;
+  }
+
+  async function vibeBuildPdfBlob() {
+    const doc = await vibeBuildPdfDoc();
+    return doc.output('blob');
+  }
+
   async function vibeExportPdf() {
     const btn = document.getElementById('vibeDownloadPdf');
     const txt = vibeGetEditorText();
@@ -8129,41 +8467,7 @@
     const original = btn.textContent;
     btn.textContent = 'Building PDF...';
     try {
-      await vibeLoadJsPdf();
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit: 'pt', format: 'letter' });
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      const marginX = 48;
-      const marginY = 56;
-      // Header
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14);
-      doc.text('Arduino Sketch', marginX, marginY);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(120);
-      const stamp = new Date().toLocaleString();
-      doc.text(stamp, pageW - marginX, marginY, { align: 'right' });
-      doc.setTextColor(0);
-      // Code body
-      doc.setFont('courier', 'normal');
-      doc.setFontSize(10);
-      const lineHeight = 13;
-      const wrappedLines = [];
-      txt.split('\n').forEach(line => {
-        const fitted = doc.splitTextToSize(line || ' ', pageW - marginX * 2);
-        fitted.forEach(l => wrappedLines.push(l));
-      });
-      let y = marginY + 28;
-      wrappedLines.forEach(line => {
-        if (y + lineHeight > pageH - marginY) {
-          doc.addPage();
-          y = marginY;
-        }
-        doc.text(line, marginX, y);
-        y += lineHeight;
-      });
+      const doc = await vibeBuildPdfDoc();
       const filename = `arduino-sketch-${new Date().toISOString().slice(0, 10)}.pdf`;
       doc.save(filename);
       btn.textContent = 'Saved!';
@@ -8200,6 +8504,7 @@
               <button class="vibe-btn is-primary" id="vibeConnect">Connect Arduino</button>
               <button class="vibe-btn" id="vibeCheckCode" title="Ask the assistant to review your code">Check Code</button>
               <button class="vibe-btn is-primary" id="vibeDownloadPdf">Download PDF</button>
+              <button class="vibe-btn" id="vibeSaveTo">+ Save to…</button>
               <button class="vibe-btn" id="vibeClearEditor">Clear Editor</button>
             </div>
           </div>
@@ -8328,6 +8633,22 @@
     });
 
     document.getElementById('vibeDownloadPdf').addEventListener('click', () => vibeExportPdf());
+
+    const vibeSaveBtn = document.getElementById('vibeSaveTo');
+    vibeSaveBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (_saveToPopOpen && _saveToPopOpen.anchorEl === vibeSaveBtn) {
+        closeSaveToPop();
+        return;
+      }
+      const txt = vibeGetEditorText();
+      if (!txt || !txt.trim()) {
+        schemToast('Editor is empty. Generate or paste code first.');
+        return;
+      }
+      const buildBlob = () => vibeBuildPdfBlob();
+      openSaveToPop(vibeSaveBtn, 'vibe', buildBlob);
+    });
 
     document.getElementById('vibeCheckCode').addEventListener('click', () => {
       const txt = vibeGetEditorText();
