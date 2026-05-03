@@ -70,6 +70,13 @@
     color: var(--accent);
     font-weight: 700;
   }
+  .header-title-link {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  .header-title-link:hover { opacity: 0.7; }
   .header-meta {
     font-size: 12px;
     font-weight: 600;
@@ -3518,7 +3525,7 @@
 
 <header>
   <div class="header-inner">
-    <h1 class="header-title">D4SG <span class="at">@</span> SA</h1>
+    <h1 class="header-title"><a href="/" class="header-title-link">D4SG <span class="at">@</span> SA</a></h1>
     <div class="header-meta">
       <a href="/tools" class="nav-link nav-to-tools">Tools</a>
       <a href="/hw" class="nav-link nav-to-hw">Homework</a>
@@ -9233,7 +9240,7 @@
   document.addEventListener('click', (e) => {
     const a = e.target && e.target.closest && e.target.closest('a');
     if (!a) return;
-    if (a.classList.contains('nav-link') === false) return;
+    if (!(a.classList.contains('nav-link') || a.classList.contains('header-title-link'))) return;
     const href = a.getAttribute('href') || '';
     if (!href.startsWith('/')) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
