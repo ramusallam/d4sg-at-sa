@@ -790,7 +790,7 @@
 
   /* Homework modal: two-column layout (Step 1 left, Step 2 right, no outer scroll) */
   .modal-body.is-hw {
-    overflow: hidden;
+    overflow-y: auto;
     padding: 24px 30px 30px;
   }
   .hw-grid {
@@ -806,7 +806,7 @@
     min-height: 0;
   }
   .hw-col .step-section { margin-bottom: 0; flex: 1; display: flex; flex-direction: column; min-height: 0; }
-  .hw-col .video-wrap { flex-shrink: 0; }
+  .hw-col .video-wrap { flex-shrink: 0; max-height: 56vh; aspect-ratio: 16 / 9; }
   .hw-step2-scroll {
     flex: 1;
     overflow-y: auto;
