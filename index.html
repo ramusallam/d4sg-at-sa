@@ -458,9 +458,22 @@
   .nav-back { display: none; }
   .nav-to-hw, .nav-to-progress, .nav-to-tools { display: inline-flex; }
   body.view-hw .nav-back, body.view-progress .nav-back, body.view-tools .nav-back { display: inline-flex; }
-  body.view-hw .nav-to-hw { display: none; }
-  body.view-progress .nav-to-progress { display: none; }
-  body.view-tools .nav-to-tools { display: none; }
+  /* Active-page pill: stays visible, fills indigo so the student sees which
+     view they're on. Behaves like a normal website nav. */
+  body.view-hw .nav-to-hw,
+  body.view-progress .nav-to-progress,
+  body.view-tools .nav-to-tools {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  body.view-hw .nav-to-hw:hover,
+  body.view-progress .nav-to-progress:hover,
+  body.view-tools .nav-to-tools:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: white;
+  }
 
   /* ============== PROGRESS page ============== */
   /* Per-student cards stacked vertically. Each card mirrors the project
