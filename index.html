@@ -1410,6 +1410,11 @@
     box-shadow: 0 6px 18px rgba(59, 130, 246, 0.12);
     grid-column: 1 / -1;
   }
+  /* When a slot is open, the small tile of that slot hides (we render the
+     full body instead), and every OTHER slot in the row hides too — the
+     student focuses on one upload at a time, no clutter. */
+  .pf-slot.is-open .pf-slot-tile { display: none; }
+  .pf-slots:has(.pf-slot.is-open) .pf-slot:not(.is-open) { display: none; }
   .pf-slot.is-filled:not(.is-open) {
     border-style: solid;
     background: white;
@@ -6521,10 +6526,7 @@
         </div>
         <div class="pf-slot-body">
           <div class="pf-slot-head">
-            <div class="pf-slot-head-title">
-              <span class="pf-slot-icon">${def.icon}</span>
-              ${def.label}
-            </div>
+            <div class="pf-slot-head-title">${def.label}</div>
             <button type="button" class="pf-slot-collapse" data-pf-collapse aria-label="Collapse">×</button>
           </div>
           <div class="pf-slot-body-inner" data-pf-body-inner></div>
