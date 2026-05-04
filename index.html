@@ -3256,49 +3256,52 @@
     transition: all 0.15s ease;
     white-space: nowrap;
   }
-  /* Slick segmented-control toolbar: two grouped pill-bars with internal
-     dividers, transparent buttons, soft hover. Reads as a designed unit
-     instead of a row of generic pills. */
+  /* Icon-only segmented toolbar: each button is a 34x34 square with the
+     icon centered. Buttons within a group share a soft container with
+     internal dividers. Hover lifts to white + indigo icon; active state
+     fills indigo. Reads as a deliberate, slick toolbar component. */
   .vibe-toolbar-group {
     display: inline-flex;
     align-items: stretch;
     background: var(--bg-2);
     border: 1px solid var(--border);
-    border-radius: 9px;
+    border-radius: 10px;
     overflow: hidden;
     padding: 0;
+    box-shadow: 0 1px 0 rgba(17, 17, 17, 0.02);
   }
   .vibe-tool-btn {
     background: transparent;
     border: none;
     color: var(--ink-mid);
-    padding: 6px 11px;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.2px;
+    width: 36px;
+    height: 32px;
+    padding: 0;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    transition: background 0.12s ease, color 0.12s ease;
-    white-space: nowrap;
+    justify-content: center;
+    transition: background 0.14s ease, color 0.14s ease, transform 0.12s ease;
     line-height: 1;
     font-family: inherit;
   }
   .vibe-tool-btn + .vibe-tool-btn { border-left: 1px solid var(--border); }
+  .vibe-tool-btn svg {
+    color: var(--ink-mid);
+    transition: color 0.14s ease, transform 0.12s ease;
+    display: block;
+  }
   .vibe-tool-btn:hover {
     background: white;
-    color: var(--paper-ink);
   }
-  .vibe-tool-btn svg {
-    color: var(--ink-low);
-    transition: color 0.12s ease;
+  .vibe-tool-btn:hover svg {
+    color: var(--accent);
+    transform: scale(1.08);
   }
-  .vibe-tool-btn:hover svg { color: var(--accent); }
+  .vibe-tool-btn:active svg { transform: scale(0.94); }
   .vibe-tool-btn.is-active,
   .vibe-tool-btn.is-copied {
     background: var(--accent);
-    color: white;
   }
   .vibe-tool-btn.is-active svg,
   .vibe-tool-btn.is-copied svg { color: white; }
@@ -8571,31 +8574,25 @@
             <p class="vibe-panel-title">Arduino Code Editor</p>
             <div class="vibe-panel-actions">
               <div class="vibe-toolbar-group">
-                <button class="vibe-tool-btn" id="vibeConnect" title="Connect Arduino via Web Serial">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7v4M15 7v4"/><path d="M6 11h12v3a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4z"/><path d="M12 18v4"/></svg>
-                  <span>Connect</span>
+                <button class="vibe-tool-btn" id="vibeConnect" title="Connect Arduino" aria-label="Connect Arduino">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V4M15 7V4"/><path d="M6 11h12v3a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4z"/><path d="M12 18v3"/></svg>
                 </button>
-                <button class="vibe-tool-btn" id="vibeCheckCode" title="Ask the assistant to review your code">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
-                  <span>Check</span>
+                <button class="vibe-tool-btn" id="vibeCheckCode" title="Check code" aria-label="Check code">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
                 </button>
-                <button class="vibe-tool-btn" id="vibeLoadCode" title="Open a .ino or .txt file from your computer">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg>
-                  <span>Load</span>
+                <button class="vibe-tool-btn" id="vibeLoadCode" title="Load code from file" aria-label="Load code from file">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg>
                 </button>
-                <button class="vibe-tool-btn" id="vibeClearEditor" title="Clear the editor">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg>
-                  <span>Clear</span>
+                <button class="vibe-tool-btn" id="vibeClearEditor" title="Clear editor" aria-label="Clear editor">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg>
                 </button>
               </div>
               <div class="vibe-toolbar-group">
-                <button class="vibe-tool-btn" id="vibeDownloadPdf" title="Download the editor contents as a PDF">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/></svg>
-                  <span>PDF</span>
+                <button class="vibe-tool-btn" id="vibeDownloadPdf" title="Download as PDF" aria-label="Download as PDF">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M9 14l3 3 3-3"/><path d="M12 11v6"/></svg>
                 </button>
-                <button class="vibe-tool-btn" id="vibeSaveTo" title="Save this code into a benchmark or Portfolio Drop">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                  <span>Save to</span>
+                <button class="vibe-tool-btn" id="vibeSaveTo" title="Save to benchmark or Portfolio Drop" aria-label="Save to benchmark or Portfolio Drop">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
                 </button>
               </div>
               <input type="file" id="vibeLoadCodeFile" accept=".ino,.txt,.cpp,.c,.h,.pde,text/plain" style="display:none;" />
