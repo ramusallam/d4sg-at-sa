@@ -8505,7 +8505,7 @@
   }
 
   // Build the jsPDF doc from current editor text. Throws if editor is empty.
-  // Shared by vibeExportPdf() (saves) and vibeBuildPdfBlob() (Save-to flow).
+  // Used by the "+ Save to..." popover to drop a PDF into a benchmark slot.
   async function vibeBuildPdfDoc() {
     const txt = vibeGetEditorText();
     if (!txt || !txt.trim()) throw new Error('empty');
@@ -8550,35 +8550,6 @@
     return doc.output('blob');
   }
 
-  async function vibeExportPdf() {
-    const btn = document.getElementById('vibeDownloadPdf');
-    const txt = vibeGetEditorText();
-    if (!txt || !txt.trim()) {
-      schemToast('Editor is empty. Generate or paste code first.');
-      return;
-    }
-    btn.disabled = true;
-    const original = btn.textContent;
-    btn.textContent = 'Building PDF...';
-    try {
-      const doc = await vibeBuildPdfDoc();
-      const filename = `arduino-sketch-${new Date().toISOString().slice(0, 10)}.pdf`;
-      doc.save(filename);
-      btn.textContent = 'Saved!';
-      btn.classList.add('is-copied');
-      setTimeout(() => {
-        btn.textContent = original;
-        btn.classList.remove('is-copied');
-        btn.disabled = false;
-      }, 1600);
-    } catch (err) {
-      console.warn('PDF export failed', err);
-      schemToast('Could not build PDF. Check your connection and try again.');
-      btn.textContent = original;
-      btn.disabled = false;
-    }
-  }
-
   function initVibeCodingTool() {
     _vibeChat = vibeLoadChat();
 
@@ -8596,11 +8567,16 @@
             <p class="vibe-panel-title">Arduino Code Editor</p>
             <div class="vibe-panel-actions">
               <div class="vibe-toolbar-group">
-                <button class="vibe-tool-btn" id="vibeConnect" title="Connect Arduino" aria-label="Connect Arduino">
-                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V4M15 7V4"/><path d="M6 11h12v3a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4z"/><path d="M12 18v3"/></svg>
-                </button>
-                <button class="vibe-tool-btn" id="vibeCheckCode" title="Check code" aria-label="Check code">
+                <button class="vibe-tool-btn" id="vibeVerify" title="Verify (compile only)" aria-label="Verify">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
+                </button>
+                <button class="vibe-tool-btn" id="vibeUpload" title="Upload to Arduino" aria-label="Upload to Arduino">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h12"/><path d="M13 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+              <div class="vibe-toolbar-group">
+                <button class="vibe-tool-btn" id="vibeConnect" title="Open Serial Monitor" aria-label="Open Serial Monitor">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V4M15 7V4"/><path d="M6 11h12v3a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4z"/><path d="M12 18v3"/></svg>
                 </button>
                 <button class="vibe-tool-btn" id="vibeLoadCode" title="Load code from file" aria-label="Load code from file">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg>
@@ -8610,9 +8586,6 @@
                 </button>
               </div>
               <div class="vibe-toolbar-group">
-                <button class="vibe-tool-btn" id="vibeDownloadPdf" title="Download as PDF" aria-label="Download as PDF">
-                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M9 14l3 3 3-3"/><path d="M12 11v6"/></svg>
-                </button>
                 <button class="vibe-tool-btn" id="vibeSaveTo" title="Save to benchmark or Portfolio Drop" aria-label="Save to benchmark or Portfolio Drop">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
                 </button>
@@ -8744,7 +8717,8 @@
       vibeUpdateLibraries();
     });
 
-    document.getElementById('vibeDownloadPdf').addEventListener('click', () => vibeExportPdf());
+    document.getElementById('vibeVerify').addEventListener('click', () => vibeVerifyCode());
+    document.getElementById('vibeUpload').addEventListener('click', () => vibeUploadToArduino());
 
     // Load Code from disk — accepts .ino / .txt / .cpp / .c / .h / .pde
     const vibeLoadFileInput = document.getElementById('vibeLoadCodeFile');
@@ -8785,38 +8759,6 @@
       }
       const buildBlob = () => vibeBuildPdfBlob();
       openSaveToPop(vibeSaveBtn, 'vibe', buildBlob);
-    });
-
-    document.getElementById('vibeCheckCode').addEventListener('click', () => {
-      const txt = vibeGetEditorText();
-      if (!txt || !txt.trim()) {
-        schemToast('Editor is empty. Generate or paste some code first.', 2400);
-        return;
-      }
-      // Open the AI drawer with a pre-filled review prompt; student hits Send.
-      const inp = document.getElementById('vibeInput');
-      const escape = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      const before = "Review this Arduino sketch for bugs, style issues, and improvements. Return a clean, fixed version with inline comments explaining what changed and why:\n\n```\n";
-      const after = "\n```";
-      inp.innerHTML =
-        `<span class="vibe-input-template">${escape(before)}</span>` +
-        `<span class="vibe-input-user">${escape(txt)}</span>` +
-        `<span class="vibe-input-template">${escape(after)}</span>`;
-      // Open the drawer
-      const drawer = document.getElementById('vibeDrawer');
-      const backdrop = document.getElementById('vibeDrawerBackdrop');
-      if (drawer && backdrop && !drawer.classList.contains('is-open')) {
-        drawer.classList.add('is-open');
-        backdrop.classList.add('is-open');
-      }
-      inp.focus();
-      // Place caret at the end so they can append context if they want.
-      const range = document.createRange();
-      range.selectNodeContents(inp);
-      range.collapse(false);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
     });
 
     document.getElementById('vibeConnect').addEventListener('click', () => {
@@ -9247,6 +9189,443 @@
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); submit(); }
     });
+  }
+
+  // ============== Verify + Upload (Arduino IDE-style) ==============
+  // Verify: POST sketch to /api/compile (Wokwi hexi proxy) — show stdout/stderr
+  //   in the serial monitor, like Arduino IDE's bottom pane.
+  // Upload: compile the same way, parse the resulting Intel HEX, then flash
+  //   it to a connected Leonardo / Micro using AVR109 (Caterina bootloader)
+  //   over Web Serial. The 1200-baud "knock" reboots the board into the
+  //   bootloader, which appears as a NEW USB serial port; we wait for that
+  //   port via the navigator.serial 'connect' event, open it, and stream
+  //   pages of flash. After flashing we 'L' (leave) and 'E' (exit), the
+  //   sketch port reappears, and we can reconnect the monitor.
+  //
+  //   Web Serial requires user permission once per port. First time a
+  //   student uploads, the bootloader port may need a manual pick from the
+  //   browser's port picker. Subsequent uploads find it via getPorts().
+
+  // Arduino USB vendor ID (used for picker filters and getPorts matching).
+  const ARDUINO_USB_VID = 0x2341;
+  // Tracks whether the user had the monitor open before we started flashing,
+  // so we can auto-reconnect after the upload finishes.
+  let _vibeWasMonitoring = false;
+
+  function vibeMonitorLine(text, kind) {
+    const m = document.getElementById('vibeMonitor');
+    if (!m) return;
+    const empty = m.querySelector('.vibe-monitor-empty');
+    if (empty) empty.remove();
+    const line = document.createElement('div');
+    line.style.whiteSpace = 'pre-wrap';
+    if (kind === 'ok')   line.style.color = '#4ade80';
+    if (kind === 'err')  line.style.color = '#f87171';
+    if (kind === 'info') line.style.color = '#93c5fd';
+    if (kind === 'dim')  line.style.color = '#94a3b8';
+    line.textContent = text;
+    m.appendChild(line);
+    m.scrollTop = m.scrollHeight;
+  }
+
+  async function vibeCompileSketch(sketch) {
+    const r = await fetch('/api/compile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sketch, board: 'leonardo' })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      throw new Error(data.error || ('compile HTTP ' + r.status));
+    }
+    return data; // { hex, stdout, stderr, board }
+  }
+
+  async function vibeVerifyCode() {
+    const sketch = vibeGetEditorText();
+    if (!sketch || !sketch.trim()) {
+      schemToast('Editor is empty. Generate or paste code first.', 2400);
+      return;
+    }
+    const btn = document.getElementById('vibeVerify');
+    btn.disabled = true;
+    btn.classList.add('is-active');
+    vibeMonitorLine('[ Verifying… ]', 'info');
+    try {
+      const data = await vibeCompileSketch(sketch);
+      if (data.stdout) vibeMonitorLine(data.stdout.trimEnd(), 'dim');
+      if (data.hex) {
+        vibeMonitorLine('[ ✓ Compile succeeded ]', 'ok');
+      } else {
+        if (data.stderr) vibeMonitorLine(data.stderr.trimEnd(), 'err');
+        vibeMonitorLine('[ ✗ Verify failed ]', 'err');
+      }
+    } catch (err) {
+      vibeMonitorLine('[ Verify error: ' + (err.message || err) + ' ]', 'err');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('is-active');
+    }
+  }
+
+  async function vibeUploadToArduino() {
+    const sketch = vibeGetEditorText();
+    if (!sketch || !sketch.trim()) {
+      schemToast('Editor is empty. Generate or paste code first.', 2400);
+      return;
+    }
+    if (!('serial' in navigator)) {
+      vibeMonitorLine('Web Serial not supported. Use Chrome or Edge on a desktop.', 'err');
+      return;
+    }
+    const btn = document.getElementById('vibeUpload');
+    btn.disabled = true;
+    btn.classList.add('is-active');
+
+    // 1. Compile.
+    let hexText;
+    vibeMonitorLine('[ Compiling… ]', 'info');
+    try {
+      const data = await vibeCompileSketch(sketch);
+      if (data.stdout) vibeMonitorLine(data.stdout.trimEnd(), 'dim');
+      if (!data.hex) {
+        if (data.stderr) vibeMonitorLine(data.stderr.trimEnd(), 'err');
+        vibeMonitorLine('[ ✗ Compile failed — fix errors above and try again ]', 'err');
+        return;
+      }
+      hexText = data.hex;
+    } catch (err) {
+      vibeMonitorLine('[ Compile error: ' + (err.message || err) + ' ]', 'err');
+      return;
+    } finally {
+      // Reactivated after the upload step (or on early return).
+      if (btn.disabled === false) { btn.classList.remove('is-active'); }
+    }
+
+    vibeMonitorLine('[ ✓ Compiled. Resetting board into bootloader… ]', 'info');
+
+    // 2. Flash.
+    try {
+      _vibeWasMonitoring = !!_vibeSerialPort;
+      const hexBytes = parseIntelHex(hexText);
+      await vibeFlashHexToArduino(hexBytes);
+      vibeMonitorLine('[ ✓ Upload complete ]', 'ok');
+      // Reopen the serial monitor for sketch output.
+      setTimeout(() => {
+        if (_vibeWasMonitoring) {
+          vibeReconnectSketchPort();
+        } else {
+          vibeMonitorLine('Click the monitor icon to watch Serial output.', 'dim');
+        }
+      }, 1500);
+    } catch (err) {
+      vibeMonitorLine('[ Upload error: ' + (err.message || err) + ' ]', 'err');
+      vibeMonitorLine('Tip: unplug + replug the board and try again. Make sure no other app (like Arduino IDE) has the port open.', 'dim');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('is-active');
+    }
+  }
+
+  // ---- Intel HEX parser ----
+  // Parses standard Intel HEX (the format Arduino .hex files use). Returns a
+  // Uint8Array with bytes laid out at their flash addresses, padded with 0xFF.
+  function parseIntelHex(hexText) {
+    const lines = hexText.split(/\r?\n/);
+    const recs = [];
+    let extAddr = 0;
+    let maxAddr = 0;
+    for (const line of lines) {
+      if (!line.startsWith(':')) continue;
+      const len  = parseInt(line.substr(1, 2), 16);
+      const addr = parseInt(line.substr(3, 4), 16);
+      const type = parseInt(line.substr(7, 2), 16);
+      if (type === 0x00) {
+        const data = new Uint8Array(len);
+        for (let i = 0; i < len; i++) data[i] = parseInt(line.substr(9 + i * 2, 2), 16);
+        const fullAddr = extAddr + addr;
+        recs.push({ addr: fullAddr, data });
+        if (fullAddr + len > maxAddr) maxAddr = fullAddr + len;
+      } else if (type === 0x02) {
+        extAddr = parseInt(line.substr(9, 4), 16) << 4;
+      } else if (type === 0x04) {
+        extAddr = parseInt(line.substr(9, 4), 16) << 16;
+      } else if (type === 0x01) {
+        break;
+      }
+    }
+    const buf = new Uint8Array(maxAddr);
+    buf.fill(0xFF);
+    for (const rec of recs) buf.set(rec.data, rec.addr);
+    return buf;
+  }
+
+  // ---- Web Serial AVR109 (Caterina) flash ----
+  // Procedure (Leonardo/Micro):
+  //   1. Open the currently-known sketch port at 1200 baud and immediately
+  //      close it. The Caterina sketch USB stack sees this and triggers a
+  //      watchdog reset, jumping into the bootloader. The bootloader then
+  //      enumerates as a NEW USB CDC device (different VID/PID).
+  //   2. Wait for navigator.serial 'connect' to fire with the new port (or
+  //      poll getPorts as a fallback). If we've never seen it, prompt the
+  //      user with requestPort() filtered to the Arduino vendor.
+  //   3. Open the bootloader port and run AVR109:
+  //        S — programmer ID (7 bytes, "CATERIN")
+  //        T 0x44 — select device (m32u4)
+  //        P — enter programming mode
+  //        e — chip erase
+  //        for each 128-byte page:
+  //          A addrH addrL — set word address
+  //          B 0x00 0x80 0x46 + 128 bytes — write block (memtype 'F' = flash)
+  //        L — leave programming mode
+  //        E — exit bootloader (board reboots back into the new sketch)
+  async function vibeFlashHexToArduino(hexBytes) {
+    // Snapshot the ports we already had access to so we can spot the new
+    // bootloader port that appears after the 1200-baud knock.
+    const beforePorts = await navigator.serial.getPorts();
+
+    // Knock the current sketch port down to the bootloader.
+    let knockedPort = _vibeSerialPort;
+    if (!knockedPort) {
+      // No active connection. Try a previously-granted Arduino port; if none,
+      // ask the user to pick one (so we can knock it).
+      const prior = beforePorts.find(p => (p.getInfo() || {}).usbVendorId === ARDUINO_USB_VID);
+      if (prior) {
+        knockedPort = prior;
+      } else {
+        try {
+          knockedPort = await navigator.serial.requestPort({
+            filters: [{ usbVendorId: ARDUINO_USB_VID }]
+          });
+        } catch (_) {
+          throw new Error('No Arduino selected.');
+        }
+      }
+    } else {
+      // Stop the read loop and release the port before we touch it.
+      await vibeDisconnectSerial();
+    }
+
+    // Open at 1200 then close — that's the magic reset signal.
+    try {
+      await knockedPort.open({ baudRate: 1200 });
+      // Tiny delay so the host sees the open before we close.
+      await new Promise(r => setTimeout(r, 50));
+      await knockedPort.close();
+    } catch (err) {
+      // If the port was already closed by the disconnect above, that's fine.
+      if (!String(err).includes('closed')) {
+        throw new Error('Could not reset board: ' + (err.message || err));
+      }
+    }
+
+    // 2. Wait for the bootloader port to appear.
+    const beforeKey = (p) => {
+      const i = p.getInfo() || {};
+      return (i.usbVendorId || 0) + ':' + (i.usbProductId || 0);
+    };
+    const beforeKeys = new Set(beforePorts.map(beforeKey));
+
+    const bootloaderPort = await new Promise((resolve, reject) => {
+      let resolved = false;
+      const onConnect = (ev) => {
+        if (resolved) return;
+        const p = ev.target || ev.port;
+        if (!p) return;
+        const info = p.getInfo() || {};
+        if (info.usbVendorId !== ARDUINO_USB_VID) return;
+        resolved = true;
+        cleanup();
+        resolve(p);
+      };
+      const cleanup = () => {
+        navigator.serial.removeEventListener('connect', onConnect);
+        clearInterval(poll);
+        clearTimeout(timeout);
+      };
+      // Poll getPorts() in parallel — 'connect' only fires for ports the
+      // user previously authorized. On first upload the new bootloader VID/PID
+      // hasn't been authorized, so we fall back to manual requestPort below.
+      const poll = setInterval(async () => {
+        if (resolved) return;
+        const ports = await navigator.serial.getPorts();
+        for (const p of ports) {
+          const info = p.getInfo() || {};
+          if (info.usbVendorId !== ARDUINO_USB_VID) continue;
+          if (!beforeKeys.has(beforeKey(p))) {
+            resolved = true;
+            cleanup();
+            resolve(p);
+            return;
+          }
+        }
+      }, 250);
+      navigator.serial.addEventListener('connect', onConnect);
+      const timeout = setTimeout(async () => {
+        if (resolved) return;
+        cleanup();
+        // Last resort: ask the user to pick the bootloader port.
+        try {
+          vibeMonitorLine('Pick the Arduino bootloader port (it usually shows up as "Arduino Leonardo bootloader" or similar).', 'info');
+          const p = await navigator.serial.requestPort({
+            filters: [{ usbVendorId: ARDUINO_USB_VID }]
+          });
+          resolve(p);
+        } catch (e) {
+          reject(new Error('Bootloader port did not appear within 6s.'));
+        }
+      }, 6000);
+    });
+
+    // Caterina runs USB CDC; baud rate is ignored. 57600 is conventional.
+    await bootloaderPort.open({ baudRate: 57600 });
+    try {
+      await avr109WriteFlash(bootloaderPort, hexBytes, (msg, kind) => vibeMonitorLine(msg, kind));
+    } finally {
+      try { await bootloaderPort.close(); } catch (_) {}
+    }
+  }
+
+  // Talk AVR109 (Atmel butterfly bootloader protocol) over the open port.
+  async function avr109WriteFlash(port, hexBytes, log) {
+    const writer = port.writable.getWriter();
+    const reader = port.readable.getReader();
+    let leftover = new Uint8Array(0);
+
+    const writeBytes = async (data) => {
+      const arr = (data instanceof Uint8Array) ? data
+                : (typeof data === 'string') ? new TextEncoder().encode(data)
+                : new Uint8Array(data);
+      await writer.write(arr);
+    };
+    const readN = async (n, timeoutMs = 4000) => {
+      if (leftover.length >= n) {
+        const out = leftover.slice(0, n);
+        leftover = leftover.slice(n);
+        return out;
+      }
+      const out = new Uint8Array(n);
+      let read = 0;
+      if (leftover.length) {
+        out.set(leftover, 0);
+        read = leftover.length;
+        leftover = new Uint8Array(0);
+      }
+      const deadline = Date.now() + timeoutMs;
+      while (read < n) {
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) throw new Error('AVR109 read timeout');
+        const result = await Promise.race([
+          reader.read(),
+          new Promise((res) => setTimeout(() => res({ value: null, done: false }), remaining))
+        ]);
+        if (result.done) throw new Error('AVR109 stream closed');
+        if (!result.value) throw new Error('AVR109 read timeout');
+        const v = result.value;
+        const need = n - read;
+        if (v.length <= need) {
+          out.set(v, read);
+          read += v.length;
+        } else {
+          out.set(v.subarray(0, need), read);
+          leftover = v.slice(need);
+          read = n;
+        }
+      }
+      return out;
+    };
+    const expectAck = async () => {
+      const r = await readN(1, 4000);
+      if (r[0] !== 0x0D) throw new Error('AVR109 NAK (got 0x' + r[0].toString(16) + ')');
+    };
+
+    try {
+      // Identify the bootloader (sanity check).
+      await writeBytes('S');
+      const id = new TextDecoder().decode(await readN(7, 2000));
+      log('bootloader: ' + id, 'dim');
+      await writeBytes('V');
+      const ver = new TextDecoder().decode(await readN(2, 2000));
+      log('caterina v' + ver, 'dim');
+
+      // Select device — 0x44 = ATmega32U4.
+      await writeBytes(new Uint8Array([0x54, 0x44])); // 'T'
+      await expectAck();
+      // Enter programming mode.
+      await writeBytes('P');
+      await expectAck();
+      // Chip erase.
+      log('erasing flash…', 'dim');
+      await writeBytes('e');
+      await expectAck();
+
+      // 128-byte pages for ATmega32U4.
+      const PAGE = 128;
+      const total = hexBytes.length;
+      const totalPages = Math.ceil(total / PAGE);
+      log('writing ' + total + ' bytes in ' + totalPages + ' pages…', 'dim');
+
+      for (let addr = 0; addr < total; addr += PAGE) {
+        // AVR109 'A' takes a WORD address (byte address >> 1).
+        const wordAddr = addr >> 1;
+        await writeBytes(new Uint8Array([0x41, (wordAddr >> 8) & 0xFF, wordAddr & 0xFF]));
+        await expectAck();
+
+        const len = Math.min(PAGE, total - addr);
+        let block = hexBytes.subarray(addr, addr + len);
+        if (block.length < PAGE) {
+          const padded = new Uint8Array(PAGE);
+          padded.fill(0xFF);
+          padded.set(block);
+          block = padded;
+        }
+        const header = new Uint8Array([0x42, 0x00, PAGE, 0x46]); // 'B' sizeH sizeL 'F'
+        const packet = new Uint8Array(header.length + PAGE);
+        packet.set(header, 0);
+        packet.set(block, header.length);
+        await writeBytes(packet);
+        await expectAck();
+      }
+
+      // Leave programming mode and exit bootloader (reboot into new sketch).
+      await writeBytes('L');
+      await expectAck();
+      await writeBytes('E');
+      await expectAck();
+    } finally {
+      try { reader.releaseLock(); } catch (_) {}
+      try { writer.releaseLock(); } catch (_) {}
+    }
+  }
+
+  // After upload, the sketch port reappears under the original (sketch) VID/PID.
+  // Try to reopen it for the serial monitor without prompting the user.
+  async function vibeReconnectSketchPort() {
+    try {
+      const ports = await navigator.serial.getPorts();
+      const sketchPort = ports.find(p => {
+        const info = p.getInfo() || {};
+        // Sketch port is the Arduino vendor entry that's not still in bootloader
+        // VID/PID. Caterina's bootloader uses 0x0036/0x0037; sketches usually
+        // use 0x8036/0x8037 or higher.
+        return info.usbVendorId === ARDUINO_USB_VID && (info.usbProductId & 0x8000);
+      }) || ports.find(p => (p.getInfo() || {}).usbVendorId === ARDUINO_USB_VID);
+      if (!sketchPort) return;
+      const baud = parseInt(document.getElementById('vibeBaudRate').value, 10) || 9600;
+      await sketchPort.open({ baudRate: baud });
+      _vibeSerialPort = sketchPort;
+      _vibeSerialKeepReading = true;
+      const btn = document.getElementById('vibeConnect');
+      if (btn) {
+        btn.classList.remove('is-primary');
+        btn.classList.add('is-active');
+      }
+      vibeMonitorLine('[ reconnected at ' + baud + ' baud ]', 'info');
+      vibeSetStatus('connected', `Connected at ${baud} baud.`);
+      vibeReadLoop();
+    } catch (err) {
+      vibeMonitorLine('Could not reopen serial monitor — click the monitor icon to reconnect.', 'dim');
+    }
   }
 
   // ---- Web Serial ----
