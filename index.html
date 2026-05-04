@@ -3337,10 +3337,8 @@
     display: inline-block;
   }
   .save-to-pop {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    z-index: 60;
+    position: fixed;
+    z-index: 1200;
     width: 320px;
     max-height: 460px;
     overflow-y: auto;
@@ -5738,32 +5736,31 @@
   //   kind: 'schematic' | 'vibe' (for toast wording)
   window._pendingArtifact = null;
 
-  let _saveToPopOpen = null; // { popEl, anchorEl, onDocClick, onKeyDown }
+  let _saveToPopOpen = null; // { popEl, anchorEl, onDocClick, onKeyDown, onReposition }
   function closeSaveToPop() {
     if (!_saveToPopOpen) return;
-    const { popEl, onDocClick, onKeyDown } = _saveToPopOpen;
+    const { popEl, onDocClick, onKeyDown, onReposition } = _saveToPopOpen;
     document.removeEventListener('click', onDocClick, true);
     document.removeEventListener('keydown', onKeyDown);
+    if (onReposition) {
+      window.removeEventListener('scroll', onReposition, true);
+      window.removeEventListener('resize', onReposition);
+    }
     if (popEl && popEl.parentNode) popEl.parentNode.removeChild(popEl);
     _saveToPopOpen = null;
   }
 
   // kind: 'schematic' (PNG) or 'vibe' (PDF). buildBlob: () => Promise<Blob>.
+  // Popover is appended to document.body and positioned from the button's
+  // viewport rect, so it can't be clipped by an ancestor's overflow: hidden
+  // (the toolbar group uses overflow:hidden for its rounded segmented look).
   function openSaveToPop(anchorBtn, kind, buildBlob) {
     closeSaveToPop();
-    // Wrap the button in a position:relative span if needed.
-    let host = anchorBtn.parentNode;
-    if (!host || !host.classList.contains('save-to-anchor')) {
-      const wrap = document.createElement('span');
-      wrap.className = 'save-to-anchor';
-      anchorBtn.parentNode.insertBefore(wrap, anchorBtn);
-      wrap.appendChild(anchorBtn);
-      host = wrap;
-    }
 
     const pop = document.createElement('div');
     pop.className = 'save-to-pop';
     pop.setAttribute('role', 'menu');
+    pop.style.position = 'fixed';
 
     PROJECTS.forEach(project => {
       if (project.id === 'final') return; // Final / Instructable is excluded for both tools.
@@ -5812,21 +5809,36 @@
       pop.appendChild(sec);
     });
 
-    host.appendChild(pop);
+    document.body.appendChild(pop);
+
+    function reposition() {
+      const r = anchorBtn.getBoundingClientRect();
+      const popW = pop.offsetWidth || 320;
+      // Right-align the popover to the button, clamped to the viewport.
+      let left = r.right - popW;
+      if (left < 8) left = 8;
+      if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+      pop.style.left = left + 'px';
+      pop.style.top = (r.bottom + 8) + 'px';
+    }
+    reposition();
 
     const onDocClick = (e) => {
-      if (host.contains(e.target)) return;
+      if (pop.contains(e.target) || anchorBtn.contains(e.target)) return;
       closeSaveToPop();
     };
     const onKeyDown = (e) => {
       if (e.key === 'Escape') { e.preventDefault(); closeSaveToPop(); }
     };
+    const onReposition = () => reposition();
     // Defer attaching click handler so the click that opened the popover
     // doesn't immediately close it.
     setTimeout(() => document.addEventListener('click', onDocClick, true), 0);
     document.addEventListener('keydown', onKeyDown);
+    window.addEventListener('scroll', onReposition, true);
+    window.addEventListener('resize', onReposition);
 
-    _saveToPopOpen = { popEl: pop, anchorEl: anchorBtn, onDocClick, onKeyDown };
+    _saveToPopOpen = { popEl: pop, anchorEl: anchorBtn, onDocClick, onKeyDown, onReposition };
   }
 
   async function handleSaveToPick({ kind, buildBlob, project, benchmark, panelType }) {
