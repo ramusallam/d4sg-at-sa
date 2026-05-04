@@ -8523,10 +8523,12 @@
             <p class="vibe-panel-title">Arduino Code Editor</p>
             <div class="vibe-panel-actions">
               <button class="vibe-btn" id="vibeConnect">Connect Arduino</button>
+              <button class="vibe-btn" id="vibeLoadCode" title="Open a .ino or .txt file from your computer">Load Code</button>
               <button class="vibe-btn" id="vibeCheckCode" title="Ask the assistant to review your code">Check Code</button>
               <button class="vibe-btn" id="vibeDownloadPdf">Download PDF</button>
               <button class="vibe-btn" id="vibeSaveTo">+ Save to…</button>
               <button class="vibe-btn" id="vibeClearEditor">Clear Editor</button>
+              <input type="file" id="vibeLoadCodeFile" accept=".ino,.txt,.cpp,.c,.h,.pde,text/plain" style="display:none;" />
             </div>
           </div>
           <div class="vibe-libs">
@@ -8654,6 +8656,31 @@
     });
 
     document.getElementById('vibeDownloadPdf').addEventListener('click', () => vibeExportPdf());
+
+    // Load Code from disk — accepts .ino / .txt / .cpp / .c / .h / .pde
+    const vibeLoadFileInput = document.getElementById('vibeLoadCodeFile');
+    document.getElementById('vibeLoadCode').addEventListener('click', () => {
+      vibeLoadFileInput.value = '';
+      vibeLoadFileInput.click();
+    });
+    vibeLoadFileInput.addEventListener('change', () => {
+      const f = vibeLoadFileInput.files && vibeLoadFileInput.files[0];
+      if (!f) return;
+      if (f.size > 256 * 1024) {
+        schemToast('File is too large. Try something under 256 KB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = String(reader.result || '');
+        vibeSetEditorText(text);
+        vibeSaveEditorText(text);
+        vibeUpdateLibraries();
+        schemToast('Loaded ' + f.name + ' into the editor.');
+      };
+      reader.onerror = () => schemToast('Could not read that file.');
+      reader.readAsText(f);
+    });
 
     const vibeSaveBtn = document.getElementById('vibeSaveTo');
     vibeSaveBtn.addEventListener('click', (e) => {
