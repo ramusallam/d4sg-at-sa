@@ -3256,15 +3256,52 @@
     transition: all 0.15s ease;
     white-space: nowrap;
   }
-  /* Thin vertical divider between the IDE-action group and the output
-     group inside the toolbar. Subtle, non-clickable. */
-  .vibe-btn-sep {
-    width: 1px;
-    height: 20px;
-    background: var(--border);
-    margin: 0 4px;
-    flex-shrink: 0;
+  /* Slick segmented-control toolbar: two grouped pill-bars with internal
+     dividers, transparent buttons, soft hover. Reads as a designed unit
+     instead of a row of generic pills. */
+  .vibe-toolbar-group {
+    display: inline-flex;
+    align-items: stretch;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    overflow: hidden;
+    padding: 0;
   }
+  .vibe-tool-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-mid);
+    padding: 6px 11px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.12s ease, color 0.12s ease;
+    white-space: nowrap;
+    line-height: 1;
+    font-family: inherit;
+  }
+  .vibe-tool-btn + .vibe-tool-btn { border-left: 1px solid var(--border); }
+  .vibe-tool-btn:hover {
+    background: white;
+    color: var(--paper-ink);
+  }
+  .vibe-tool-btn svg {
+    color: var(--ink-low);
+    transition: color 0.12s ease;
+  }
+  .vibe-tool-btn:hover svg { color: var(--accent); }
+  .vibe-tool-btn.is-active,
+  .vibe-tool-btn.is-copied {
+    background: var(--accent);
+    color: white;
+  }
+  .vibe-tool-btn.is-active svg,
+  .vibe-tool-btn.is-copied svg { color: white; }
   .vibe-btn:hover {
     border-color: var(--accent);
     color: var(--accent);
@@ -8533,13 +8570,34 @@
           <div class="vibe-panel-header">
             <p class="vibe-panel-title">Arduino Code Editor</p>
             <div class="vibe-panel-actions">
-              <button class="vibe-btn" id="vibeConnect" title="Connect Arduino via Web Serial">Connect</button>
-              <button class="vibe-btn" id="vibeCheckCode" title="Ask the assistant to review your code">Check</button>
-              <button class="vibe-btn" id="vibeLoadCode" title="Open a .ino or .txt file from your computer">Load</button>
-              <button class="vibe-btn" id="vibeClearEditor" title="Clear the editor">Clear</button>
-              <span class="vibe-btn-sep" aria-hidden="true"></span>
-              <button class="vibe-btn" id="vibeDownloadPdf" title="Download the editor contents as a PDF">PDF</button>
-              <button class="vibe-btn" id="vibeSaveTo" title="Save this code into a benchmark or Portfolio Drop">+ Save to…</button>
+              <div class="vibe-toolbar-group">
+                <button class="vibe-tool-btn" id="vibeConnect" title="Connect Arduino via Web Serial">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7v4M15 7v4"/><path d="M6 11h12v3a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4z"/><path d="M12 18v4"/></svg>
+                  <span>Connect</span>
+                </button>
+                <button class="vibe-tool-btn" id="vibeCheckCode" title="Ask the assistant to review your code">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
+                  <span>Check</span>
+                </button>
+                <button class="vibe-tool-btn" id="vibeLoadCode" title="Open a .ino or .txt file from your computer">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg>
+                  <span>Load</span>
+                </button>
+                <button class="vibe-tool-btn" id="vibeClearEditor" title="Clear the editor">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg>
+                  <span>Clear</span>
+                </button>
+              </div>
+              <div class="vibe-toolbar-group">
+                <button class="vibe-tool-btn" id="vibeDownloadPdf" title="Download the editor contents as a PDF">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/></svg>
+                  <span>PDF</span>
+                </button>
+                <button class="vibe-tool-btn" id="vibeSaveTo" title="Save this code into a benchmark or Portfolio Drop">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                  <span>Save to</span>
+                </button>
+              </div>
               <input type="file" id="vibeLoadCodeFile" accept=".ino,.txt,.cpp,.c,.h,.pde,text/plain" style="display:none;" />
             </div>
           </div>
