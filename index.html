@@ -4592,11 +4592,21 @@
             <span class="schem-toolbar-label">Wire color</span>
             <div class="schem-color-row" id="schemColors"></div>
           </div>
-          <div class="schem-toolbar-group" style="margin-left: auto;">
-            <button class="schem-btn" id="schemUndo" title="Undo last change (Cmd+Z / Ctrl+Z)">Undo</button>
-            <button class="schem-btn" id="schemClear">Clear</button>
-            <button class="schem-btn" id="schemSaveTo">+ Save to…</button>
-            <button class="schem-btn" id="schemDownload">Download Image</button>
+          <div class="vibe-toolbar-group" style="margin-left: auto;">
+            <button class="vibe-tool-btn" id="schemUndo" title="Undo (Cmd+Z / Ctrl+Z)" aria-label="Undo">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
+            </button>
+            <button class="vibe-tool-btn" id="schemClear" title="Clear canvas" aria-label="Clear canvas">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg>
+            </button>
+          </div>
+          <div class="vibe-toolbar-group">
+            <button class="vibe-tool-btn" id="schemSaveTo" title="Save to benchmark or Portfolio Drop" aria-label="Save to benchmark or Portfolio Drop">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
+            </button>
+            <button class="vibe-tool-btn" id="schemDownload" title="Download image" aria-label="Download image">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+            </button>
           </div>
         </div>
 
