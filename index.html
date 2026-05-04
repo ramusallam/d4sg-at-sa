@@ -1690,6 +1690,20 @@
     border-radius: 8px;
     flex-shrink: 0;
   }
+  .checkpoint-panel .cp-preview-pdf {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+  }
   .checkpoint-panel .cp-preview-meta {
     display: flex;
     flex: 1;
@@ -5778,16 +5792,10 @@
         item.className = 'save-to-item';
         const idx = project.benchmarks.indexOf(b) + 1;
         item.textContent = `Benchmark ${idx}: ${b.title}`;
-        // Vibe Coding produces PDFs, which checkpoint slots (image-only) reject.
-        if (kind === 'vibe') {
-          item.disabled = true;
-          item.title = 'Benchmarks accept photos, not PDFs.';
-        } else {
-          item.addEventListener('click', async () => {
-            closeSaveToPop();
-            await handleSaveToPick({ kind, buildBlob, project, benchmark: b, panelType: 'checkpoint' });
-          });
-        }
+        item.addEventListener('click', async () => {
+          closeSaveToPop();
+          await handleSaveToPick({ kind, buildBlob, project, benchmark: b, panelType: 'checkpoint' });
+        });
         sec.appendChild(item);
       });
 
@@ -7421,11 +7429,11 @@
         <input id="cpNameInput" type="text" maxlength="80" placeholder="e.g. Alex Rivera" value="${escapeHtml(savedName)}" />
       </div>
       <div class="cp-section">
-        <div class="cp-section-label"><span class="cp-section-icon">${ICON_IMAGE}</span>Photo(s) of your work</div>
+        <div class="cp-section-label"><span class="cp-section-icon">${ICON_IMAGE}</span>Photo(s) or sketch PDF</div>
         <div class="pf-drop" data-cp-drop>
-          <div class="pf-drop-text">Drop one or more photos, or click to upload</div>
-          <div class="pf-drop-sub">JPG, PNG · up to 100MB each</div>
-          <input type="file" data-cp-file accept="image/jpeg,image/png" multiple style="display:none;" />
+          <div class="pf-drop-text">Drop photos or a sketch PDF, or click to upload</div>
+          <div class="pf-drop-sub">JPG, PNG, PDF · up to 100MB each</div>
+          <input type="file" data-cp-file accept="image/jpeg,image/png,application/pdf" multiple style="display:none;" />
         </div>
         <div class="cp-preview" data-cp-preview hidden></div>
       </div>
@@ -7480,15 +7488,20 @@
       }
     }
     function renderPreviews() {
-      preview.innerHTML = pendingFiles.map((p, i) => `
-        <div class="cp-preview-item">
-          <img src="${p.url}" alt="" />
-          <div class="cp-preview-meta">
-            <div class="cp-preview-name">${escapeHtml(p.file.name)}</div>
-            <button type="button" class="cp-preview-remove" data-cp-remove="${i}" aria-label="Remove">×</button>
+      preview.innerHTML = pendingFiles.map((p, i) => {
+        const thumb = p.kind === 'pdf'
+          ? `<div class="cp-preview-pdf" aria-hidden="true">PDF</div>`
+          : `<img src="${p.url}" alt="" />`;
+        return `
+          <div class="cp-preview-item">
+            ${thumb}
+            <div class="cp-preview-meta">
+              <div class="cp-preview-name">${escapeHtml(p.file.name)}</div>
+              <button type="button" class="cp-preview-remove" data-cp-remove="${i}" aria-label="Remove">×</button>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
       preview.querySelectorAll('[data-cp-remove]').forEach(b => {
         b.addEventListener('click', () => removeOne(parseInt(b.getAttribute('data-cp-remove'), 10)));
       });
@@ -7501,13 +7514,15 @@
       let added = 0;
       for (const f of arr) {
         const ct = (f.type || '').toLowerCase();
-        if (ct !== 'image/jpeg' && ct !== 'image/png') continue;
+        const isImage = ct === 'image/jpeg' || ct === 'image/png';
+        const isPdf = ct === 'application/pdf';
+        if (!isImage && !isPdf) continue;
         if (f.size > PORTFOLIO_MAX_FILE) continue;
-        pendingFiles.push({ file: f, url: URL.createObjectURL(f) });
+        pendingFiles.push({ file: f, url: URL.createObjectURL(f), kind: isPdf ? 'pdf' : 'image' });
         added++;
       }
       if (!added && arr.length) {
-        setStatus('Photos must be JPG or PNG, up to 100MB each.', true);
+        setStatus('Files must be JPG, PNG, or PDF, up to 100MB each.', true);
       } else {
         setStatus('');
       }
@@ -7538,22 +7553,31 @@
     textarea.addEventListener('input', refreshSubmit);
 
     // Consume any pending artifact handed off by a Tool's "+ Save to..." flow.
-    // Only checkpoint panels (benchmarks 1-4) accept image blobs here; PDF
-    // blobs are blocked at the popover level, so we still gate on contentType.
+    // Schematic drops a PNG (kind: image), Vibe Coding drops a sketch PDF
+    // (kind: pdf). Reflection is still required for benchmark submissions.
     if (window._pendingArtifact &&
         window._pendingArtifact.panelType === 'checkpoint' &&
-        window._pendingArtifact.benchmarkId === benchmarkId &&
-        (window._pendingArtifact.contentType || '').startsWith('image/')) {
+        window._pendingArtifact.benchmarkId === benchmarkId) {
       const pa = window._pendingArtifact;
-      window._pendingArtifact = null;
-      const synthFile = new File([pa.blob], pa.fileName, { type: pa.contentType });
-      pendingFiles.push({ file: synthFile, url: URL.createObjectURL(synthFile) });
-      // Defer to next tick so the panel is in the DOM before we render previews.
-      setTimeout(() => {
-        renderPreviews();
-        textarea.focus();
-        schemToast('Photo loaded. Write your reflection and hit Submit.', 3200);
-      }, 60);
+      const ct = (pa.contentType || '').toLowerCase();
+      const isPdf = ct === 'application/pdf';
+      const isImage = ct.startsWith('image/');
+      if (isPdf || isImage) {
+        window._pendingArtifact = null;
+        const synthFile = new File([pa.blob], pa.fileName, { type: pa.contentType });
+        pendingFiles.push({
+          file: synthFile,
+          url: URL.createObjectURL(synthFile),
+          kind: isPdf ? 'pdf' : 'image'
+        });
+        // Defer to next tick so the panel is in the DOM before we render previews.
+        setTimeout(() => {
+          renderPreviews();
+          textarea.focus();
+          const verb = isPdf ? 'Sketch PDF' : 'Photo';
+          schemToast(`${verb} loaded. Write your reflection and hit Submit.`, 3200);
+        }, 60);
+      }
     }
 
     let isSubmitting = false;
@@ -7569,26 +7593,33 @@
       localStorage.setItem(NAME_KEY, name);
 
       try {
-        const uploaded = [];
+        const uploadedImages = [];
+        let uploadedCode = null;
         for (let i = 0; i < pendingFiles.length; i++) {
           const f = pendingFiles[i].file;
+          const kind = pendingFiles[i].kind === 'pdf' ? 'pdf' : 'image';
           const ext = (f.name.match(/\.[a-z0-9]+$/i) || [''])[0];
-          const path = `portfolios/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-image${ext}`;
+          const path = `portfolios/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${kind === 'pdf' ? 'code' : 'image'}${ext}`;
           const ref = storageRef(storage, path);
-          const ct = f.type || 'image/jpeg';
+          const ct = f.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg');
           const task = uploadBytesResumable(ref, f, { contentType: ct });
           await new Promise((resolve, reject) => {
             task.on('state_changed',
               (snap) => {
                 const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-                setStatus(`Uploading photo ${i + 1} of ${pendingFiles.length} (${pct}%)…`);
+                setStatus(`Uploading ${i + 1} of ${pendingFiles.length} (${pct}%)…`);
               },
               reject,
               resolve
             );
           });
           const url = await getDownloadURL(task.snapshot.ref);
-          uploaded.push({ mode: 'file', url, fileName: f.name, contentType: ct, filePath: path });
+          const slot = { mode: 'file', url, fileName: f.name, contentType: ct, filePath: path };
+          if (kind === 'pdf') {
+            uploadedCode = slot;
+          } else {
+            uploadedImages.push(slot);
+          }
         }
 
         await addDoc(collection(db, 'portfolios'), {
@@ -7597,12 +7628,13 @@
           createdAt: serverTimestamp(),
           slots: {
             // First photo stays under `image` for backward compatibility with
-            // existing gallery code; full list lives under `images` so all of
-            // them render when galleries support arrays.
-            image: uploaded[0],
-            images: uploaded,
+            // existing gallery code; full list lives under `images`. Sketch
+            // PDFs go into `code` so the existing portfolio gallery renders
+            // them as a PDF tile alongside any photos.
+            image: uploadedImages[0] || null,
+            images: uploadedImages,
             video: null,
-            code: null,
+            code: uploadedCode,
             cad: null,
             summary: { mode: 'text', text: text.slice(0, 1500) }
           }
