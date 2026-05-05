@@ -8729,6 +8729,9 @@
                 <button class="vibe-tool-btn" id="vibeSaveTo" title="Save to benchmark or Portfolio Drop" aria-label="Save to benchmark or Portfolio Drop">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
                 </button>
+                <button class="vibe-tool-btn" id="vibeDownloadPdf" title="Download as PDF" aria-label="Download as PDF">
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M9 14l3 3 3-3"/><path d="M12 11v6"/></svg>
+                </button>
               </div>
               <input type="file" id="vibeLoadCodeFile" accept=".ino,.txt,.cpp,.c,.h,.pde,text/plain" style="display:none;" />
             </div>
@@ -8859,6 +8862,21 @@
 
     document.getElementById('vibeVerify').addEventListener('click', () => vibeVerifyCode());
     document.getElementById('vibeUpload').addEventListener('click', () => vibeUploadToArduino());
+    document.getElementById('vibeDownloadPdf').addEventListener('click', async () => {
+      const txt = vibeGetEditorText();
+      if (!txt || !txt.trim()) {
+        schemToast('Editor is empty. Generate or paste code first.');
+        return;
+      }
+      try {
+        const doc = await vibeBuildPdfDoc();
+        doc.save(`arduino-sketch-${new Date().toISOString().slice(0, 10)}.pdf`);
+        schemToast('PDF saved.');
+      } catch (err) {
+        console.warn('PDF export failed', err);
+        schemToast('Could not build PDF. Try again.');
+      }
+    });
 
     // Load Code from disk — accepts .ino / .txt / .cpp / .c / .h / .pde
     const vibeLoadFileInput = document.getElementById('vibeLoadCodeFile');
