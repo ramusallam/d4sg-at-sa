@@ -3319,6 +3319,32 @@
   }
   .vibe-tool-btn.is-active svg,
   .vibe-tool-btn.is-copied svg { color: white; }
+
+  /* Floating hover tooltip for tool buttons. Body-mounted so the toolbar
+     group's overflow:hidden can't clip it. */
+  .tt-tooltip {
+    position: fixed;
+    z-index: 1300;
+    background: #111827;
+    color: #f9fafb;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    padding: 6px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18), 0 1px 3px rgba(15, 23, 42, 0.08);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .tt-tooltip.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
   .vibe-btn:hover {
     border-color: var(--accent);
     color: var(--accent);
@@ -4583,6 +4609,88 @@
       el.classList.remove('is-visible');
     }, ms || 2400);
   }
+
+  // ============== Hover tooltips for tool icons ==============
+  // Floats a styled label below the tool button on hover. Lives on
+  // document.body so the toolbar group's overflow:hidden can't clip it
+  // (same trick as the Save-to popover). Reads its text from the button's
+  // title attribute on first hover, then strips it so the OS tooltip
+  // doesn't double up. aria-label stays for screen readers.
+  let _ttEl = null;
+  let _ttActive = null;
+  let _ttShowTimer = null;
+
+  function vibeSetTooltip(btn, text) {
+    if (!btn) return;
+    btn.dataset.tt = text || '';
+    if (btn.hasAttribute('title')) btn.removeAttribute('title');
+    btn.setAttribute('aria-label', text || btn.getAttribute('aria-label') || '');
+    if (_ttActive === btn && _ttEl && _ttEl.classList.contains('is-visible')) {
+      _ttEl.textContent = text || '';
+    }
+  }
+
+  function _ttEnsure() {
+    if (_ttEl) return _ttEl;
+    _ttEl = document.createElement('div');
+    _ttEl.className = 'tt-tooltip';
+    document.body.appendChild(_ttEl);
+    return _ttEl;
+  }
+
+  function _ttShow(btn) {
+    const txt = btn.dataset.tt;
+    if (!txt) return;
+    const el = _ttEnsure();
+    el.textContent = txt;
+    el.classList.add('is-visible');
+    const r = btn.getBoundingClientRect();
+    const w = el.offsetWidth;
+    let left = r.left + r.width / 2 - w / 2;
+    let top = r.bottom + 8;
+    if (left < 8) left = 8;
+    if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+  }
+
+  function _ttHide() {
+    _ttActive = null;
+    clearTimeout(_ttShowTimer);
+    if (_ttEl) _ttEl.classList.remove('is-visible');
+  }
+
+  function _ttPrep(root) {
+    if (!root) return;
+    root.querySelectorAll('.vibe-tool-btn[title]').forEach(b => {
+      b.dataset.tt = b.getAttribute('title');
+      b.removeAttribute('title');
+    });
+  }
+
+  // Tool buttons render dynamically when initSchematicTool / initVibeCodingTool
+  // run, so prep on every DOM mutation. Cheap because the selector is fast.
+  (function initToolTooltips() {
+    if (typeof window === 'undefined') return;
+    _ttPrep(document.body);
+    const obs = new MutationObserver(() => _ttPrep(document.body));
+    obs.observe(document.body, { childList: true, subtree: true });
+    document.addEventListener('mouseover', (e) => {
+      const btn = e.target.closest('.vibe-tool-btn');
+      if (!btn || _ttActive === btn) return;
+      _ttActive = btn;
+      clearTimeout(_ttShowTimer);
+      _ttShowTimer = setTimeout(() => {
+        if (_ttActive === btn) _ttShow(btn);
+      }, 350);
+    });
+    document.addEventListener('mouseout', (e) => {
+      const btn = e.target.closest('.vibe-tool-btn');
+      if (btn) _ttHide();
+    });
+    window.addEventListener('scroll', _ttHide, true);
+    window.addEventListener('blur', _ttHide);
+  })();
 
   function initSchematicTool() {
     _schemState = schemLoad();
@@ -9651,6 +9759,7 @@
       if (btn) {
         btn.classList.remove('is-primary');
         btn.classList.add('is-active');
+        vibeSetTooltip(btn, 'Disconnect serial monitor');
       }
       vibeMonitorLine('[ reconnected at ' + baud + ' baud ]', 'info');
       vibeSetStatus('connected', `Connected at ${baud} baud.`);
@@ -9675,9 +9784,9 @@
       _vibeSerialPort = port;
       _vibeSerialKeepReading = true;
       const btn = document.getElementById('vibeConnect');
-      btn.textContent = 'Disconnect';
       btn.classList.remove('is-primary');
       btn.classList.add('is-active');
+      vibeSetTooltip(btn, 'Disconnect serial monitor');
       monitor.innerHTML = '';
       vibeAppendMonitor('[ connected at ' + baud + ' baud ]\n');
       vibeSetStatus('connected', `Connected at ${baud} baud. Upload your sketch in the desktop Arduino IDE; output streams here.`);
@@ -9721,9 +9830,9 @@
     _vibeSerialPort = null;
     const btn = document.getElementById('vibeConnect');
     if (btn) {
-      btn.textContent = 'Connect Arduino';
       btn.classList.add('is-primary');
       btn.classList.remove('is-active');
+      vibeSetTooltip(btn, 'Open Serial Monitor');
     }
     vibeAppendMonitor('[ disconnected ]\n');
     vibeSetStatus('disconnected', 'Disconnected. Choose your Leonardo or Micro after clicking Connect Arduino.');
