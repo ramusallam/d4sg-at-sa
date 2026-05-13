@@ -4023,7 +4023,7 @@
       benchmarks: [
         {
           id: 'p1b1',
-          title: 'Button Switch',
+          title: 'Button',
           points: 2,
           instructions: [
             'Open the [Vibe Coding Tool](tools#vibe), click **Build for me**, and describe this behavior in the input: *"Activate the W key each time a simple tactile button is pressed."*',
@@ -4038,11 +4038,11 @@
         },
         {
           id: 'p1b2',
-          title: 'Lever Switch',
+          title: 'Lever',
           points: 2,
           instructions: [
-            '**Keep your Button Switch wiring intact.** You will keep building on the same breadboard — add the lever switch alongside your existing button. Do not unplug or remove anything from the previous benchmark.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button Switch code in the editor — you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: activate the A key each time a simple lever switch is triggered. Keep the W-key button behavior I already have."*',
+            '**Keep your Button wiring intact.** You will keep building on the same breadboard — add the lever switch alongside your existing button. Do not unplug or remove anything from the previous benchmark.',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button code in the editor — you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: activate the A key each time a simple lever switch is triggered. Keep the W-key button behavior I already have."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the lever switch to your existing schematic on the **breadboard**.',
             'Wire the lever switch into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
             'Test it. Modify the code until the behavior works exactly the way you described it.',
@@ -4054,16 +4054,22 @@
         },
         {
           id: 'p1b3',
-          title: 'Perfboard Soldering',
+          title: 'Perfboard',
           points: 2,
-          instructions: 'Build a lever-arm micro switch that triggers from a small movement (chin, finger, foot). Tune the lever for sensitivity without false triggers.',
+          instructions: [
+            '**Same code as the Lever benchmark — do not change it.** Open the [Vibe Coding Tool](tools#vibe) to confirm your Button + Lever code is still there (W key for the button, A key for the lever). This benchmark is about moving your circuit from breadboard to perfboard, not rewriting code.',
+            'Open the [Wiring Schematic Tool](tools#schematic) and **transfer your breadboard schematic to a perfboard layout.** Same components, same connections, just laid out on the perfboard grid for soldering.',
+            'Solder your button and lever switch onto the physical perfboard to match your perfboard schematic, then load the same code from the Vibe Coding editor.',
+            'Test it. The behavior should be identical to your Lever benchmark — W key on button press, A key on lever trigger.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your perfboard wiring schematic, PDF of your code, photo of your soldered perfboard circuit. The wiring schematic and code can be saved straight into this benchmark from inside their tools.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
         },
         {
           id: 'p1b4',
-          title: 'CAD Integration',
+          title: 'Product',
           points: 2,
           instructions: 'Move from breadboard to perfboard with clean solder joints. Design and 3D-print a CAD mount for one of your switches.',
           videoUrl: '',
@@ -4072,7 +4078,7 @@
         },
         {
           id: 'p1b5',
-          title: 'Portfolio Drop',
+          title: 'Portfolio',
           points: 60,
           instructions: 'Submit your full portfolio for Project 1: photos of each prototype, a video of switches working, your CAD files or screenshots, your Arduino code, and a written summary.',
           videoUrl: '',
@@ -4131,7 +4137,7 @@
         },
         {
           id: 'p2b5',
-          title: 'Portfolio Drop',
+          title: 'Portfolio',
           points: 60,
           instructions: 'Submit your full portfolio for Project 2: photos and video of each input type, your code, any CAD/wiring diagrams, and a written summary of what you learned about matching input types to user needs.',
           videoUrl: '',
@@ -4190,7 +4196,7 @@
         },
         {
           id: 'p3b5',
-          title: 'Portfolio Drop',
+          title: 'Portfolio',
           points: 60,
           instructions: 'Submit your full Project 3 portfolio: hub photos and video, input map document, code, test results, and a written summary of what makes your hub modular.',
           videoUrl: '',
@@ -4249,7 +4255,7 @@
         },
         {
           id: 'p4b5',
-          title: 'Portfolio Drop',
+          title: 'Portfolio',
           points: 60,
           instructions: 'Submit your complete final portfolio: photos and video of the finished controller, full code, CAD files, the system plan, user testing notes, and a written reflection. This is the artifact you will publish to Instructables next.',
           videoUrl: '',
@@ -6360,7 +6366,7 @@
       sec.appendChild(eye);
 
       project.benchmarks.forEach(b => {
-        if (b.title === 'Portfolio Drop') return; // handled below
+        if (b.title === 'Portfolio') return; // handled below
         const item = document.createElement('button');
         item.type = 'button';
         item.className = 'save-to-item';
@@ -6374,13 +6380,13 @@
       });
 
       // Portfolio Drop sub-row
-      const drop = project.benchmarks.find(x => x.title === 'Portfolio Drop');
+      const drop = project.benchmarks.find(x => x.title === 'Portfolio');
       if (drop) {
         const item = document.createElement('button');
         item.type = 'button';
         item.className = 'save-to-item is-portfolio';
         const slotLabel = kind === 'vibe' ? 'Code slot' : 'Wiring slot';
-        item.innerHTML = `<span class="save-to-arrow">↳</span>Portfolio Drop (${slotLabel})`;
+        item.innerHTML = `<span class="save-to-arrow">↳</span>Portfolio (${slotLabel})`;
         item.addEventListener('click', async () => {
           closeSaveToPop();
           await handleSaveToPick({ kind, buildBlob, project, benchmark: drop, panelType: 'portfolio' });
@@ -6848,7 +6854,7 @@
     }
 
     // Submission panel — instructable (link-only), Portfolio Drop (multi-slot), or checkpoint (photo + reflection)
-    const isPortfolioDrop = b.title === 'Portfolio Drop';
+    const isPortfolioDrop = b.title === 'Portfolio';
     const isInstructable = b.id === 'instructable';
     const portfolioSec = document.createElement('div');
     portfolioSec.className = 'modal-section';
