@@ -4027,10 +4027,10 @@
           points: 2,
           instructions: [
             'Open the [Vibe Coding Tool](tools#vibe), click **Build for me**, and describe this behavior in the input: *"Activate the W key each time a simple tactile button is pressed."*',
-            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to lay out a digital schematic of your circuit.',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to lay out a digital schematic of your circuit using a **breadboard**.',
             'Wire your physical Arduino to match your schematic, then load the code from the Vibe Coding editor.',
             'Test it. Modify the code until the behavior works exactly the way you described it.',
-            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit. The wiring schematic and code can be saved straight into this benchmark from inside their tools.'
           ],
           videoUrl: '',
           links: [],
@@ -4638,6 +4638,43 @@
       },
       pinLabels: false,
       pinStyle: 'pad'
+    },
+
+    // Mini-breadboard: 17 columns × 5 rows top + 17 columns × 5 rows bottom,
+    // with a horizontal channel between them. No power rails — matches the
+    // small white prototyping breadboards the class uses. Pins on the middle
+    // (channel) row are intentionally omitted.
+    breadboard: {
+      group: 'boards',
+      label: 'Breadboard',
+      w: 17, h: 11,
+      pins: (() => {
+        const out = [];
+        for (let r = 0; r < 11; r++) {
+          if (r === 5) continue; // center channel — no tie-points here
+          for (let c = 0; c < 17; c++) {
+            out.push({ name: `r${r}c${c}`, gx: c + 0.5, gy: r + 0.5 });
+          }
+        }
+        return out;
+      })(),
+      svg: function() {
+        const W = 17 * SCHEM_GRID_PITCH;
+        const H = 11 * SCHEM_GRID_PITCH;
+        const channelY = 5 * SCHEM_GRID_PITCH;
+        const channelH = SCHEM_GRID_PITCH;
+        return `
+          <!-- Cream/ivory substrate, matches the real mini breadboard look -->
+          <rect x="0" y="0" width="${W}" height="${H}" rx="5" fill="#f5f1e6" stroke="#cbc4b3" stroke-width="1.6"/>
+          <!-- Subtle inner edge for depth -->
+          <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="3.5" fill="none" stroke="rgba(0,0,0,0.04)" stroke-width="0.8"/>
+          <!-- Center channel (the gap between the two banks of pins) -->
+          <rect x="${W * 0.025}" y="${channelY + channelH * 0.18}" width="${W * 0.95}" height="${channelH * 0.64}" rx="1.5" fill="#e3dccb" stroke="#b5ad97" stroke-width="0.5"/>
+          <rect x="${W * 0.025}" y="${channelY + channelH * 0.18 + 0.5}" width="${W * 0.95}" height="1.4" fill="rgba(0,0,0,0.08)"/>
+        `;
+      },
+      pinLabels: false,
+      pinStyle: 'socket'
     },
 
     microswitch: {
@@ -5442,6 +5479,50 @@
         return;
       }
 
+      if (def.pinStyle === 'socket') {
+        // Breadboard tie-point: small dark square hole with a thin rim, plus
+        // a transparent click target sized for comfortable wire-dragging.
+        const hole = document.createElementNS(svgNS, 'rect');
+        hole.setAttribute('x', px - 2.2);
+        hole.setAttribute('y', py - 2.2);
+        hole.setAttribute('width', 4.4);
+        hole.setAttribute('height', 4.4);
+        hole.setAttribute('rx', 0.6);
+        hole.setAttribute('fill', '#1c1c1c');
+        hole.setAttribute('stroke', '#a8a08e');
+        hole.setAttribute('stroke-width', '0.6');
+        hole.setAttribute('pointer-events', 'none');
+        pinG.appendChild(hole);
+
+        const click = document.createElementNS(svgNS, 'circle');
+        click.setAttribute('class', 'schem-pin schem-socket');
+        click.setAttribute('cx', px);
+        click.setAttribute('cy', py);
+        click.setAttribute('r', 6.5);
+        click.setAttribute('fill', 'transparent');
+        click.setAttribute('stroke', 'transparent');
+        click.setAttribute('data-pin', pinId);
+        pinG.appendChild(click);
+
+        click.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (_schemSuppressNextPinClick) {
+            _schemSuppressNextPinClick = false;
+            return;
+          }
+          handlePinClick(pinId);
+        });
+        click.addEventListener('mousedown', (e) => {
+          if (e.button !== 0) return;
+          e.stopPropagation();
+          _schemWireDragStartPin(pinId, e);
+        });
+        _attachPinTooltipHandlers(click, pin.name);
+
+        g.appendChild(pinG);
+        return;
+      }
+
       const pinCircle = document.createElementNS(svgNS, 'circle');
       pinCircle.setAttribute('class', 'schem-pin');
       pinCircle.setAttribute('cx', px);
@@ -5487,10 +5568,10 @@
       g.appendChild(pinG);
     });
 
-    // Visible rotate handle for non-perfboard components. Sits just outside
-    // the top-right corner so it doesn't overlap with the body. Click rotates
-    // 90 degrees clockwise — the same op as shift+click and the R key.
-    if (!isPerfboard) {
+    // Visible rotate handle for non-board components. Boards (perfboard,
+    // breadboard) are large fixtures students rarely rotate, so we suppress
+    // the handle on them to keep the canvas clean.
+    if (!isPerfboard && c.type !== 'breadboard') {
       const hx = cw * SCHEM_GRID_PITCH + 4;
       const hy = -8;
       const rotHandle = document.createElementNS(svgNS, 'g');
