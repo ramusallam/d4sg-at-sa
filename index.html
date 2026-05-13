@@ -3084,6 +3084,20 @@
     color: var(--accent);
     background: var(--accent-soft);
   }
+  .vibe-stem--primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  }
+  .vibe-stem--primary:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+  }
+  .vibe-stem--primary .vibe-stem-icon {
+    opacity: 1;
+  }
   .vibe-stem-icon {
     font-size: 11px;
     opacity: 0.7;
@@ -9081,13 +9095,9 @@
   //   placeholder: substring inside `text` to highlight (cursor lands here)
   const VIBE_STEMS = [
     {
-      label: 'Act like an engineer',
-      text: "Act like a senior firmware engineer at an assistive technology company. I'm working with an Arduino Leonardo. Walk me through code that <DESCRIBE WHAT YOU WANT IT TO DO>.",
-      placeholder: '<DESCRIBE WHAT YOU WANT IT TO DO>'
-    },
-    {
       label: 'Build for me',
-      text: "I'm building an adaptive controller with an Arduino Leonardo. Write stable, durable, professional Arduino code that <DESCRIBE THE BEHAVIOR>. Use the appropriate HID library if it should send keyboard or mouse input. Include thorough inline comments so I understand what each variable, function, and section does. At the end of your response, outline the wiring clearly: list which Arduino pin every component connects to, specify the resistor values (220 ohm for any LED), and explain how the connections are made between components. Do not mention breadboards. I will figure out how to physically lay it out on a perfboard myself.",
+      primary: true,
+      text: "I'm building an adaptive controller with an Arduino Leonardo. Write stable, durable, professional Arduino code that <DESCRIBE THE BEHAVIOR>. Use the appropriate HID library if it should send keyboard or mouse input. Include thorough inline comments so I understand what each variable, function, and section does. At the end of your response, outline the wiring clearly: list which Arduino pin every component connects to, specify the resistor values (220 ohm for any LED), and explain how the connections are made between components. I will figure out how to physically lay it out on a breadboard or perfboard myself.",
       placeholder: '<DESCRIBE THE BEHAVIOR>'
     },
     {
@@ -9118,7 +9128,7 @@
     wrap.innerHTML = '';
     VIBE_STEMS.forEach(stem => {
       const btn = document.createElement('button');
-      btn.className = 'vibe-stem';
+      btn.className = 'vibe-stem' + (stem.primary ? ' vibe-stem--primary' : '');
       btn.type = 'button';
       btn.innerHTML = `<span class="vibe-stem-icon">✦</span><span>${stem.label}</span>`;
       btn.title = stem.text.length > 80 ? stem.text.slice(0, 77) + '...' : stem.text;
