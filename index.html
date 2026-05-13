@@ -450,6 +450,60 @@
   .name-picker-add-btn:hover { background: var(--accent-hover); }
   .name-picker-add-btn:active { transform: scale(0.97); }
 
+  /* ===== Identity strip on Tool views ===== */
+  .identity-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    margin: 0 0 16px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 12px;
+    max-width: 520px;
+  }
+  .identity-strip-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .identity-strip-picker {
+    flex: 1;
+    min-width: 0;
+  }
+  .identity-strip-picker .name-picker {
+    margin-bottom: 0;
+  }
+  .identity-strip-picker .name-picker-select {
+    background-color: white;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    min-height: 38px;
+    font-size: 14px;
+  }
+  .identity-strip-picker .name-picker-input {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    min-height: 38px;
+  }
+  .identity-strip-picker .name-picker-add-btn {
+    padding-top: 0;
+    padding-bottom: 0;
+    min-height: 38px;
+  }
+  @media (max-width: 640px) {
+    .identity-strip {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+    }
+    .identity-strip-label {
+      font-size: 11px;
+    }
+  }
+
   /* ===== Saved-state pill near Submit ===== */
   .pf-saved-pill {
     font-size: 12px;
@@ -3934,6 +3988,31 @@
     }
   }
 
+  // Lightweight identity strip for the Tool views (Vibe Coding, Schematic).
+  // Shows the student "saving as" + a quick name picker so identity is set
+  // BEFORE they do work. Saves into the same LAST_PICK_KEY so the benchmark
+  // panels pre-select correctly when they hit "Save to benchmark".
+  function renderIdentityStrip(opts = {}) {
+    const wrap = document.createElement('div');
+    wrap.className = 'identity-strip';
+    wrap.innerHTML = `
+      <span class="identity-strip-label">Saving as</span>
+      <div class="identity-strip-picker" data-identity-picker></div>
+    `;
+    const mount = wrap.querySelector('[data-identity-picker]');
+    const picker = renderNamePicker({
+      label: '',
+      initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      onChange: (n) => { if (n) ensureRosterEntry(n); if (typeof opts.onChange === 'function') opts.onChange(n); }
+    });
+    // Hide the "Who's adding this?" label inside the picker (the strip has its own).
+    const innerLabel = picker.element.querySelector('.name-picker-label');
+    if (innerLabel) innerLabel.style.display = 'none';
+    mount.appendChild(picker.element);
+    wrap._cleanup = () => picker.destroy();
+    return wrap;
+  }
+
   // ============== CONTENT ==============
   // Placeholder benchmarks — swap text/video/links/rubric in as the curriculum is built.
   const PROJECTS = [
@@ -4946,6 +5025,7 @@
     wrap.innerHTML = `
       <button class="schem-back" id="schemBack">← Back</button>
       <h2 class="project-title">Wiring Schematic</h2>
+      <div data-schem-identity></div>
 
       <div class="schem-wrap">
         <div class="schem-toolbar">
@@ -4979,6 +5059,12 @@
       </div>
     `;
     app.appendChild(wrap);
+
+    // Identity strip so the student picks their name before they wire anything.
+    const schemIdentityMount = wrap.querySelector('[data-schem-identity]');
+    if (schemIdentityMount) {
+      schemIdentityMount.appendChild(renderIdentityStrip());
+    }
 
     document.getElementById('schemBack').addEventListener('click', () => {
       history.pushState({}, '', '/tools');
@@ -6231,6 +6317,10 @@
         kind
       };
     }
+    // Close the open Tool overlay (Vibe / Schematic) so the modal isn't
+    // stacking on top of a still-visible tool. The body returns to /tools so
+    // closing the modal lands the kid back on the Tools page, not in the tool.
+    document.body.classList.remove('view-tools-detail');
     // Navigate to the benchmark modal. openModal triggers panel build, which
     // consumes _pendingArtifact and clears it.
     const target = findBenchmarkById(benchmark.id);
@@ -8088,11 +8178,24 @@
           setTimeout(() => {
             handleFiles([synth]);
             const verb = isPdf ? 'Code PDF' : 'Wiring schematic';
-            schemToast(`${verb} added. Reflection still needed.`, 3000);
+            schemToast(`${verb} added to ${getCurrentName()}'s draft. Reflection still needed.`, 3200);
+            // Drop the student straight into the reflection so they can type
+            // without hunting for the textarea.
+            setTimeout(() => {
+              if (typeof textarea.scrollIntoView === 'function') {
+                textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+              textarea.focus({ preventScroll: true });
+            }, 200);
           }, 80);
         } else {
           _queuedArtifact = synth;
           setStatus('Pick your name above to attach this file.', true);
+          // Focus the name picker so they don't have to find it.
+          setTimeout(() => {
+            const sel = panel.querySelector('[data-name-select]');
+            if (sel) sel.focus();
+          }, 100);
         }
       }
     }
@@ -8327,11 +8430,6 @@
       // Suppress entry animation for rows we've already shown — only NEW submissions slide in.
       if (knownIds.has(item.id)) row.style.animation = 'none';
       const slots = item.slots || {};
-      const filledKeys = SLOT_DEFS.filter(d => slots[d.key]).map(d => d.key);
-      const chips = filledKeys.map(k => {
-        const def = SLOT_DEFS.find(d => d.key === k);
-        return `<span class="pf-row-chip" title="${escapeHtml(def.label)}" aria-label="${escapeHtml(def.label)} attached"><span class="pf-chip-icon">${def.icon}</span></span>`;
-      }).join('');
 
       const deleteBtnHtml = readOnly
         ? ''
@@ -8339,7 +8437,6 @@
       row.innerHTML = `
         <div class="pf-row-head" data-pf-row-head>
           <span class="pf-row-name">${escapeHtml(item.studentName || 'Unnamed')}</span>
-          <span class="pf-row-icons">${chips || '<span class="pf-row-chip is-empty">empty</span>'}</span>
           ${deleteBtnHtml}
           <span class="pf-row-caret">▶</span>
         </div>
@@ -9093,6 +9190,7 @@
     wrap.innerHTML = `
       <button class="schem-back" id="vibeBack">← Back</button>
       <h2 class="project-title">Vibe Coding</h2>
+      <div data-vibe-identity></div>
 
       <div class="vibe-wrap">
         <div class="vibe-panel vibe-right">
@@ -9197,6 +9295,12 @@
       </aside>
     `;
     app.appendChild(wrap);
+
+    // Identity strip so the student picks their name before they generate code.
+    const vibeIdentityMount = wrap.querySelector('[data-vibe-identity]');
+    if (vibeIdentityMount) {
+      vibeIdentityMount.appendChild(renderIdentityStrip());
+    }
 
     document.getElementById('vibeBack').addEventListener('click', () => {
       vibeStopReading();

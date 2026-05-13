@@ -1,0 +1,8 @@
+{
+  "name": "d4sg-scripts",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "firebase": "^10.13.2"
+  }
+}
