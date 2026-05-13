@@ -6472,7 +6472,8 @@
     // Viewer's localStorage name — they always see their own card first, even
     // if they haven't submitted anything yet. Lets every student walk up to
     // Progress and see their full track ready to fill.
-    const myName = (localStorage.getItem(NAME_KEY) || '').trim();
+    // Prefer the new universal picker key; fall back to the legacy text-input key.
+    const myName = (localStorage.getItem(LAST_PICK_KEY) || localStorage.getItem(NAME_KEY) || '').trim();
     const merged = { ..._progressData };
 
     const allNames = new Set(Object.keys(merged));
@@ -6908,12 +6909,15 @@
     addTile.className = 'add-tile';
     addTile.innerHTML = `<div class="plus">+</div><div>${opts.linkOnly ? 'Submit link' : 'Add your work'}</div>`;
     addTile.addEventListener('click', () => {
-      const form = buildUploadForm(benchmarkId, () => {
-        // re-render handled by snapshot
+      let formRef;
+      formRef = buildUploadForm(benchmarkId, () => {
+        // re-render handled by snapshot; cleanup picker subscription.
+        if (formRef && typeof formRef._cleanup === 'function') formRef._cleanup();
       }, () => {
+        if (formRef && typeof formRef._cleanup === 'function') formRef._cleanup();
         renderGallery(grid, benchmarkId, items, opts);
       }, opts);
-      grid.replaceChild(form, addTile);
+      grid.replaceChild(formRef, addTile);
     });
     grid.appendChild(addTile);
   }
@@ -6923,7 +6927,6 @@
     const descPlaceholder = opts.descriptionPlaceholder || 'What is this and what should we look at?';
     const form = document.createElement('div');
     form.className = 'upload-form';
-    const savedName = localStorage.getItem(NAME_KEY) || '';
     const UPLOAD_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg>';
     const LINK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.5-1.5"/></svg>';
 
@@ -6938,7 +6941,7 @@
     `;
 
     form.innerHTML = `
-      <label>Your name<input type="text" data-name maxlength="80" placeholder="e.g. Alex Rivera" value="${escapeHtml(savedName)}" /></label>
+      <div data-hw-namepicker></div>
       <label>Brief description<textarea data-desc rows="2" maxlength="500" placeholder="${escapeHtml(descPlaceholder)}"></textarea></label>
 
       <div class="attach ${linkOnly ? 'is-link-entry' : ''}" data-attach>
@@ -6957,7 +6960,17 @@
       </div>
     `;
 
-    const nameInput = form.querySelector('[data-name]');
+    // Universal roster picker (same instance used everywhere submissions happen).
+    const hwPickerMount = form.querySelector('[data-hw-namepicker]');
+    const hwPicker = renderNamePicker({
+      initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      onChange: (n) => { if (n) ensureRosterEntry(n); }
+    });
+    hwPickerMount.appendChild(hwPicker.element);
+    // Compat shim so the existing submit code that reads `nameInput.value` keeps working.
+    const nameInput = { get value() { return hwPicker.getName(); }, set value(v) { hwPicker.setName(v); } };
+    form._cleanup = () => hwPicker.destroy();
+
     const descInput = form.querySelector('[data-desc]');
     const statusEl = form.querySelector('[data-status]');
     const submitBtn = form.querySelector('[data-submit]');
@@ -7130,9 +7143,10 @@
         attachLink(t);
       }
     });
-    // Paste a URL anywhere else on the form (not in name/desc inputs) → auto-attach
+    // Paste a URL anywhere else on the form (not in desc/link/name-add inputs) → auto-attach
     form.addEventListener('paste', (e) => {
-      if (e.target === nameInput || e.target === descInput || e.target === linkInput) return;
+      if (e.target === descInput || e.target === linkInput) return;
+      if (e.target && e.target.closest && e.target.closest('.name-picker')) return;
       const t = (e.clipboardData?.getData('text/plain') || '').trim();
       if (/^https?:\/\//i.test(t)) {
         e.preventDefault();
@@ -7148,7 +7162,7 @@
       if (!attachedFile && !attachedLink) { setErr(linkOnly ? 'Paste a link to your design.' : 'Drop a file or paste a link.'); return; }
       submitBtn.disabled = true;
       clearStatus();
-      localStorage.setItem(NAME_KEY, name);
+      localStorage.setItem(LAST_PICK_KEY, name);
       try {
         if (attachedFile) {
           statusEl.textContent = 'Uploading…';
