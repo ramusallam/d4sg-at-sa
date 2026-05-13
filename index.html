@@ -376,6 +376,44 @@
     line-height: 1.55;
   }
 
+  /* ===== Benchmark step instructions — gorgeous, simple, scannable ===== */
+  .cp-steps {
+    display: flex;
+    flex-direction: column;
+  }
+  .cp-step {
+    padding: 14px 0;
+  }
+  .cp-step + .cp-step {
+    border-top: 1px solid rgba(17, 17, 17, 0.06);
+  }
+  .cp-step-eyebrow {
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .cp-step-body {
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--paper-ink);
+  }
+  .cp-step-body strong { font-weight: 700; color: var(--paper-ink); }
+  .cp-step-body em { font-style: italic; color: var(--paper-ink-mid); }
+  .cp-step-body a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1.5px;
+    font-weight: 600;
+  }
+  .cp-step-body a:hover { color: var(--accent-hover); }
+  .cp-step-tool {
+    cursor: pointer;
+  }
+
   .video-wrap {
     position: relative;
     width: 100%;
@@ -3725,7 +3763,13 @@
           id: 'p1b1',
           title: 'Arduino Programming',
           points: 2,
-          instructions: 'Wire your Arduino safely on a breadboard. Demonstrate proper grounding, current limits, and a clean LED-on-button circuit. No short circuits, no smoke.',
+          instructions: [
+            'Open the [Vibe Coding Tool](tools#vibe), click **Build for me**, and describe this behavior in the input: *"Activate the W key once each time a simple tactile button is pressed."*',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to lay out a digital schematic of your circuit.',
+            'Wire your physical Arduino to match your schematic, then load the code from the Vibe Coding editor.',
+            'Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
@@ -6309,12 +6353,46 @@
     let n = 0;
     const badge = () => `<span class="step-num">${++n}</span>`;
 
-    // Instructions
+    // Instructions — accepts a plain string (legacy) OR an array of step
+    // strings. Step strings support a small markup vocabulary:
+    //   **bold**             → <strong>
+    //   *italic*             → <em>
+    //   [label](tools#vibe)  → inline tool launcher (Vibe Coding)
+    //   [label](tools#schematic) → inline tool launcher (Schematic)
+    //   [label](https://…)   → external link, new tab
     if (b.instructions) {
       const sec = document.createElement('div');
       sec.className = 'modal-section';
-      sec.innerHTML = `<h3>${badge()}Instructions</h3><p>${escapeHtml(b.instructions)}</p>`;
+      if (Array.isArray(b.instructions) && b.instructions.length) {
+        const stepsHtml = b.instructions.map((stepText, i) => `
+          <div class="cp-step">
+            <div class="cp-step-eyebrow">Step ${String(i + 1).padStart(2, '0')}</div>
+            <div class="cp-step-body">${formatStepMarkup(stepText)}</div>
+          </div>
+        `).join('');
+        sec.innerHTML = `<h3>${badge()}Instructions</h3><div class="cp-steps">${stepsHtml}</div>`;
+      } else {
+        sec.innerHTML = `<h3>${badge()}Instructions</h3><p>${escapeHtml(b.instructions)}</p>`;
+      }
       modalBody.appendChild(sec);
+      // Wire tool-launcher links to close the modal and open the right tool.
+      sec.querySelectorAll('a[data-tool-link]').forEach(a => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const tool = a.getAttribute('data-tool-link');
+          closeModal();
+          // Switch route to /tools, then open the requested tool overlay.
+          if (typeof applyRoute === 'function') {
+            history.pushState({}, '', '/tools');
+            applyRoute('/tools');
+          }
+          // Tool overlays sit on top of the route page; open after route render.
+          setTimeout(() => {
+            if (tool === 'vibe' && typeof initVibeCodingTool === 'function') initVibeCodingTool();
+            else if (tool === 'schematic' && typeof initSchematicTool === 'function') initSchematicTool();
+          }, 30);
+        });
+      });
     }
     // Video
     if (b.videoUrl) {
@@ -9889,6 +9967,24 @@
     return String(s).replace(/[&<>"']/g, c => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
+  }
+
+  // Small inline-markup formatter for benchmark step text. Order matters:
+  // 1) escape, 2) link tokens, 3) bold, 4) italic.
+  function formatStepMarkup(text) {
+    let s = escapeHtml(text);
+    // [label](href) — internal tool links resolve to data-tool-link, others to <a target=_blank>.
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, label, href) => {
+      const internal = href.match(/^tools#(vibe|schematic)$/);
+      if (internal) {
+        return `<a href="#" class="cp-step-tool" data-tool-link="${internal[1]}">${label}</a>`;
+      }
+      const safeHref = href.replace(/"/g, '');
+      return `<a href="${safeHref}" target="_blank" rel="noopener">${label}</a>`;
+    });
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+    return s;
   }
 
   // ============== INIT ==============
