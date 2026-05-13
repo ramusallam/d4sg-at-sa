@@ -4040,7 +4040,14 @@
           id: 'p1b2',
           title: 'Lever Switch',
           points: 2,
-          instructions: 'Build a large, low-force button that someone with limited fine motor control can press reliably. Test it triggers a clean signal every time.',
+          instructions: [
+            '**Keep your Button Switch wiring intact.** You will keep building on the same breadboard — add the lever switch alongside your existing button. Do not unplug or remove anything from the previous benchmark.',
+            'Open the [Vibe Coding Tool](tools#vibe), click **Build for me**, and describe this behavior in the input: *"Activate the W key each time a simple lever switch is triggered."*',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the lever switch to your existing schematic on the **breadboard**.',
+            'Wire the lever switch into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
+            'Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit. The wiring schematic and code can be saved straight into this benchmark from inside their tools.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
