@@ -376,6 +376,108 @@
     line-height: 1.55;
   }
 
+  /* ===== Name picker (roster dropdown + "+ Add me" fallback) ===== */
+  .name-picker {
+    margin-bottom: 18px;
+  }
+  .name-picker-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--ink-mid);
+    margin-bottom: 6px;
+  }
+  .name-picker-select {
+    width: 100%;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--ink-hi);
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 38px 12px 14px;
+    min-height: 44px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path fill='%23555' d='M6 8L0 0h12z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 10px 7px;
+  }
+  .name-picker-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .name-picker-add {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .name-picker-input {
+    flex: 1;
+    font-size: 16px; /* prevents iOS zoom on focus */
+    font-family: inherit;
+    color: var(--ink-hi);
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    min-height: 44px;
+  }
+  .name-picker-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .name-picker-add-btn {
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    color: white;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    min-height: 44px;
+    min-width: 72px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .name-picker-add-btn:hover { background: var(--accent-hover); }
+  .name-picker-add-btn:active { transform: scale(0.97); }
+
+  /* ===== Saved-state pill near Submit ===== */
+  .pf-saved-pill {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-mid);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.10);
+    color: #15803d;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .pf-saved-pill.is-visible { opacity: 1; }
+  .pf-saved-pill::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .pf-saved-pill.is-saving {
+    color: var(--ink-mid);
+    background: rgba(0, 0, 0, 0.04);
+  }
+
   /* ===== Benchmark step instructions — gorgeous, simple, scannable ===== */
   .cp-steps {
     display: flex;
@@ -1713,6 +1815,7 @@
   }
   .checkpoint-panel .cp-preview[hidden] { display: none; }
   .checkpoint-panel .cp-preview-item {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -1721,6 +1824,23 @@
     border-radius: 11px;
     background: var(--bg-2);
   }
+  .checkpoint-panel .cp-preview-item[data-status="uploading"] { opacity: 0.7; }
+  .checkpoint-panel .cp-preview-item[data-status="failed"] { border-color: #fca5a5; background: #fef2f2; }
+  .checkpoint-panel .cp-preview-uploading,
+  .checkpoint-panel .cp-preview-failed {
+    position: absolute;
+    top: 4px;
+    right: 36px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.06);
+    color: var(--ink-mid);
+  }
+  .checkpoint-panel .cp-preview-failed { background: rgba(239, 68, 68, 0.12); color: #b91c1c; }
   .checkpoint-panel .cp-preview img {
     width: 64px;
     height: 64px;
@@ -3750,6 +3870,69 @@
   const urlParams = new URLSearchParams(location.search);
   const isAdmin = urlParams.get('admin') === ADMIN_TOKEN;
   if (isAdmin) document.body.classList.add('is-admin');
+
+  // ============== CLASS ROSTER ==============
+  // Hardcoded seed list. The live dropdown unions this with any names added
+  // through the "+ I'm new — add me" flow (stored in the `students` Firestore
+  // collection). Tell Claude "add Carla F." to grow this list.
+  const ROSTER = [
+    'Maya R.',
+    'James T.',
+    'Aisha K.',
+    'Diego M.',
+    'Sophia L.',
+    'Noah W.',
+    'Priya S.',
+    'Ethan H.',
+    'Zara B.',
+    'Liam C.',
+  ];
+  const LAST_PICK_KEY = 'd4sg-last-pick-v1';
+  // "Maya R." → "maya-r", used as a stable id in Firestore doc paths.
+  function nameSlug(name) {
+    return String(name || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+  // Live roster: ROSTER ∪ any names ever added through the picker.
+  // Subscribes once on load; subsequent reads use _liveRoster.
+  let _liveRoster = [...ROSTER];
+  const _rosterSubs = new Set();
+  function subscribeRoster(cb) {
+    _rosterSubs.add(cb);
+    cb(_liveRoster);
+    return () => _rosterSubs.delete(cb);
+  }
+  function _setLiveRoster(names) {
+    const merged = Array.from(new Set([...ROSTER, ...names])).sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' })
+    );
+    _liveRoster = merged;
+    _rosterSubs.forEach(cb => { try { cb(_liveRoster); } catch (e) {} });
+  }
+  onSnapshot(collection(db, 'students'), (snap) => {
+    const fromFirestore = [];
+    snap.forEach(d => {
+      const v = d.data();
+      if (v && typeof v.name === 'string' && v.name.trim()) fromFirestore.push(v.name.trim());
+    });
+    _setLiveRoster(fromFirestore);
+  });
+  async function ensureRosterEntry(name) {
+    const slug = nameSlug(name);
+    if (!slug) return;
+    try {
+      await setDoc(
+        doc(db, 'students', slug),
+        { name: name.trim(), joinedAt: serverTimestamp() },
+        { merge: true }
+      );
+    } catch (e) {
+      console.warn('roster add failed', e);
+    }
+  }
 
   // ============== CONTENT ==============
   // Placeholder benchmarks — swap text/video/links/rubric in as the curriculum is built.
@@ -6474,6 +6657,10 @@
     document.body.style.overflow = '';
     currentBenchmark = null;
     _focusStudent = null;
+    // Let any mounted submission panel detach Firestore listeners / picker subs.
+    modalBody.querySelectorAll('.portfolio-panel').forEach(p => {
+      if (typeof p._cleanup === 'function') { try { p._cleanup(); } catch (_) {} }
+    });
     if (unsubscribeGallery) { unsubscribeGallery(); unsubscribeGallery = null; }
     if (unsubscribePortfolios) { unsubscribePortfolios(); unsubscribePortfolios = null; }
     // Cancel any pending debounced renders so they don't paint into a closed modal.
@@ -7029,12 +7216,8 @@
     const panel = document.createElement('div');
     panel.className = 'portfolio-panel';
 
-    const savedName = localStorage.getItem(NAME_KEY) || '';
     panel.innerHTML = `
-      <div class="pf-name-row">
-        <label for="pfNameInput">Your name</label>
-        <input id="pfNameInput" type="text" maxlength="80" placeholder="e.g. Alex Rivera" value="${escapeHtml(savedName)}" />
-      </div>
+      <div data-pf-namepicker></div>
       <div class="pf-slots" data-pf-slots></div>
       <div class="pf-actions">
         <div class="pf-status" data-pf-status></div>
@@ -7042,7 +7225,15 @@
       </div>
     `;
 
-    const nameInput = panel.querySelector('#pfNameInput');
+    const namePickerMount = panel.querySelector('[data-pf-namepicker]');
+    const picker = renderNamePicker({
+      initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      onChange: (n) => { if (n) ensureRosterEntry(n); }
+    });
+    namePickerMount.appendChild(picker.element);
+    // Compat shim so existing code that reads `nameInput.value` keeps working.
+    const nameInput = { get value() { return picker.getName(); }, set value(v) { picker.setName(v); } };
+    panel._cleanup = () => picker.destroy();
     const slotsEl = panel.querySelector('[data-pf-slots]');
     const submitBtn = panel.querySelector('[data-pf-submit]');
     const statusEl = panel.querySelector('[data-pf-status]');
@@ -7401,7 +7592,14 @@
       const anyFilled = Object.values(state).some(v => v !== null);
       submitBtn.disabled = !(name && anyFilled);
     }
-    nameInput.addEventListener('input', refreshSubmit);
+    // Compat shim doesn't expose addEventListener; the picker's onChange does
+    // the equivalent. We rebind to also refresh submit on name change.
+    {
+      const origOnChange = picker.element.querySelector('[data-name-select]');
+      if (origOnChange) origOnChange.addEventListener('change', refreshSubmit);
+      const addBtn = picker.element.querySelector('[data-name-add-btn]');
+      if (addBtn) addBtn.addEventListener('click', () => setTimeout(refreshSubmit, 0));
+    }
 
     let statusTimeout = null;
     function setStatus(msg, isErr) {
@@ -7428,7 +7626,7 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting…';
       setStatus('Submitting…');
-      localStorage.setItem(NAME_KEY, name);
+      localStorage.setItem(LAST_PICK_KEY, name);
 
       // Track per-slot upload outcome so a single failure doesn't wipe the
       // student's other filled slots. Failed slots stay in state with a
@@ -7614,24 +7812,20 @@
     return panel;
   }
 
-  // ----- Checkpoint panel (benchmarks 1-4): photo + 3-sentence reflection -----
-  // Writes to the same `portfolios` collection as the full Portfolio Drop, with
-  // only the `image` and `summary` slots filled — so the existing gallery
-  // renders checkpoint submissions with no extra code path.
+  // ----- Checkpoint panel (benchmarks 1-4): name picker + photos/PDF + reflection -----
+  // Now writes drafts to Firestore continuously so a student can leave and come
+  // back later (any device) and find their stuff. Files upload to Storage at a
+  // draft path immediately on add; on Submit, the draft is promoted to a doc
+  // in the `portfolios` collection and cleared.
   function buildCheckpointPanel(benchmarkId) {
     const panel = document.createElement('div');
     panel.className = 'portfolio-panel checkpoint-panel';
-
-    const savedName = localStorage.getItem(NAME_KEY) || '';
     panel.innerHTML = `
-      <div class="pf-name-row">
-        <label for="cpNameInput">Your name</label>
-        <input id="cpNameInput" type="text" maxlength="80" placeholder="e.g. Alex Rivera" value="${escapeHtml(savedName)}" />
-      </div>
+      <div data-cp-namepicker></div>
       <div class="cp-section">
         <div class="cp-section-label">Evidence</div>
         <div class="pf-drop" data-cp-drop>
-          <div class="pf-drop-text">Drop photos or a sketch PDF, or click to upload</div>
+          <div class="pf-drop-text">Tap to add photos, a code PDF, or a wiring image</div>
           <div class="pf-drop-sub">JPG, PNG, PDF · up to 100MB each</div>
           <input type="file" data-cp-file accept="image/jpeg,image/png,application/pdf" multiple style="display:none;" />
         </div>
@@ -7643,90 +7837,205 @@
           placeholder="1. Summarize what you made.&#10;2. Describe any problems you ran into and how you worked through them.&#10;3. List at least three new things you learned."></textarea>
       </div>
       <div class="pf-actions">
+        <span class="pf-saved-pill" data-cp-saved>Saved</span>
         <div class="pf-status" data-cp-status></div>
         <button class="pf-submit" data-cp-submit type="button" disabled>Submit</button>
       </div>
     `;
 
-    const nameInput = panel.querySelector('#cpNameInput');
     const drop = panel.querySelector('[data-cp-drop]');
     const fileInput = panel.querySelector('[data-cp-file]');
     const preview = panel.querySelector('[data-cp-preview]');
     const textarea = panel.querySelector('[data-cp-text]');
     const submitBtn = panel.querySelector('[data-cp-submit]');
     const statusEl = panel.querySelector('[data-cp-status]');
+    const savedPill = panel.querySelector('[data-cp-saved]');
 
-    // Multiple photos per checkpoint submission. Each entry: { file, url }.
+    // Entry shape: { url, fileName, kind, contentType, filePath, status, _localObjUrl }
     let pendingFiles = [];
+    let _hydrating = false;
 
+    const namePickerMount = panel.querySelector('[data-cp-namepicker]');
+    const picker = renderNamePicker({
+      initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      onChange: (newName) => {
+        if (!newName) return;
+        ensureRosterEntry(newName);
+        hydrateFromDraft(newName);
+        flushPendingArtifactIfQueued();
+      }
+    });
+    namePickerMount.appendChild(picker.element);
+
+    function getCurrentName() { return picker.getName(); }
+
+    function showSaved(text = 'Saved', state = 'saved') {
+      savedPill.textContent = text;
+      savedPill.classList.toggle('is-saving', state === 'saving');
+      savedPill.classList.add('is-visible');
+      if (state === 'saved') {
+        clearTimeout(savedPill._t);
+        savedPill._t = setTimeout(() => savedPill.classList.remove('is-visible'), 1800);
+      }
+    }
     function setStatus(msg, isError) {
       statusEl.textContent = msg || '';
       statusEl.classList.toggle('is-error', !!isError);
     }
     function refreshSubmit() {
-      const ok = !!(nameInput.value.trim() && pendingFiles.length && textarea.value.trim());
+      const ok = !!(
+        getCurrentName() &&
+        pendingFiles.length &&
+        pendingFiles.every(p => p.status === 'uploaded') &&
+        textarea.value.trim()
+      );
       submitBtn.disabled = !ok;
-    }
-    function clearAllPhotos() {
-      pendingFiles.forEach(p => { try { URL.revokeObjectURL(p.url); } catch (_) {} });
-      pendingFiles = [];
-      preview.innerHTML = '';
-      preview.hidden = true;
-      drop.style.display = '';
-      fileInput.value = '';
-      refreshSubmit();
-    }
-    function removeOne(idx) {
-      const p = pendingFiles[idx];
-      if (!p) return;
-      try { URL.revokeObjectURL(p.url); } catch (_) {}
-      pendingFiles.splice(idx, 1);
-      if (!pendingFiles.length) {
-        clearAllPhotos();
-      } else {
-        renderPreviews();
-      }
     }
     function renderPreviews() {
       preview.innerHTML = pendingFiles.map((p, i) => {
         const thumb = p.kind === 'pdf'
           ? `<div class="cp-preview-pdf" aria-hidden="true">PDF</div>`
           : `<img src="${p.url}" alt="" />`;
+        const overlay = p.status === 'uploading'
+          ? `<div class="cp-preview-uploading">Uploading…</div>`
+          : (p.status === 'failed' ? `<div class="cp-preview-failed">Failed</div>` : '');
         return `
-          <div class="cp-preview-item">
+          <div class="cp-preview-item" data-status="${p.status}">
             ${thumb}
             <div class="cp-preview-meta">
-              <div class="cp-preview-name">${escapeHtml(p.file.name)}</div>
+              <div class="cp-preview-name">${escapeHtml(p.fileName)}</div>
               <button type="button" class="cp-preview-remove" data-cp-remove="${i}" aria-label="Remove">×</button>
             </div>
+            ${overlay}
           </div>
         `;
       }).join('');
       preview.querySelectorAll('[data-cp-remove]').forEach(b => {
         b.addEventListener('click', () => removeOne(parseInt(b.getAttribute('data-cp-remove'), 10)));
       });
-      preview.hidden = false;
-      drop.style.display = '';
+      preview.hidden = pendingFiles.length === 0;
       refreshSubmit();
     }
+
+    function persistDraftFiles() {
+      const name = getCurrentName();
+      if (!name || _hydrating) return;
+      const files = pendingFiles
+        .filter(p => p.status === 'uploaded')
+        .map(p => ({
+          url: p.url,
+          fileName: p.fileName,
+          kind: p.kind,
+          contentType: p.contentType,
+          filePath: p.filePath
+        }));
+      showSaved('Saving…', 'saving');
+      saveDraft(name, benchmarkId, { files }).then(() => showSaved('Saved'));
+    }
+    const persistDraftReflection = debounce(() => {
+      const name = getCurrentName();
+      if (!name || _hydrating) return;
+      showSaved('Saving…', 'saving');
+      saveDraft(name, benchmarkId, { reflection: textarea.value }).then(() => showSaved('Saved'));
+    }, 600);
+
+    async function uploadOne(file, kind, entry) {
+      const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0];
+      const name = getCurrentName();
+      const slug = nameSlug(name);
+      const path = `drafts/${slug}__${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${kind}${ext}`;
+      const ref = storageRef(storage, path);
+      const ct = file.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg');
+      const task = uploadBytesResumable(ref, file, { contentType: ct });
+      await new Promise((resolve, reject) => {
+        task.on('state_changed', null, reject, resolve);
+      });
+      const url = await getDownloadURL(task.snapshot.ref);
+      return { url, fileName: file.name, kind, contentType: ct, filePath: path };
+    }
     function handleFiles(files) {
+      const name = getCurrentName();
+      if (!name) {
+        setStatus('Pick your name first.', true);
+        return;
+      }
       const arr = Array.from(files || []);
-      let added = 0;
       for (const f of arr) {
         const ct = (f.type || '').toLowerCase();
         const isImage = ct === 'image/jpeg' || ct === 'image/png';
         const isPdf = ct === 'application/pdf';
         if (!isImage && !isPdf) continue;
         if (f.size > PORTFOLIO_MAX_FILE) continue;
-        pendingFiles.push({ file: f, url: URL.createObjectURL(f), kind: isPdf ? 'pdf' : 'image' });
-        added++;
+        const kind = isPdf ? 'pdf' : 'image';
+        const entry = {
+          url: URL.createObjectURL(f),
+          fileName: f.name,
+          kind,
+          contentType: f.type,
+          filePath: '',
+          status: 'uploading',
+          _localObjUrl: true
+        };
+        pendingFiles.push(entry);
+        renderPreviews();
+        uploadOne(f, kind, entry).then(remote => {
+          try { URL.revokeObjectURL(entry.url); } catch (_) {}
+          Object.assign(entry, remote, { status: 'uploaded', _localObjUrl: false });
+          renderPreviews();
+          persistDraftFiles();
+        }).catch(err => {
+          console.error('upload failed', err);
+          entry.status = 'failed';
+          renderPreviews();
+          setStatus('Upload failed. Remove and retry.', true);
+        });
       }
-      if (!added && arr.length) {
-        setStatus('Files must be JPG, PNG, or PDF, up to 100MB each.', true);
-      } else {
-        setStatus('');
+    }
+
+    function removeOne(idx) {
+      const p = pendingFiles[idx];
+      if (!p) return;
+      if (p._localObjUrl) {
+        try { URL.revokeObjectURL(p.url); } catch (_) {}
       }
+      if (p.filePath) {
+        try { deleteObject(storageRef(storage, p.filePath)); } catch (_) {}
+      }
+      pendingFiles.splice(idx, 1);
       renderPreviews();
+      persistDraftFiles();
+    }
+
+    async function hydrateFromDraft(name) {
+      _hydrating = true;
+      pendingFiles.forEach(p => { if (p._localObjUrl) { try { URL.revokeObjectURL(p.url); } catch (_) {} } });
+      pendingFiles = [];
+      textarea.value = '';
+      renderPreviews();
+      setStatus('Loading your saved work…');
+      const draft = await loadDraft(name, benchmarkId);
+      if (draft) {
+        if (Array.isArray(draft.files)) {
+          for (const f of draft.files) {
+            pendingFiles.push({
+              url: f.url,
+              fileName: f.fileName,
+              kind: f.kind,
+              contentType: f.contentType,
+              filePath: f.filePath,
+              status: 'uploaded',
+              _localObjUrl: false
+            });
+          }
+        }
+        if (typeof draft.reflection === 'string') {
+          textarea.value = draft.reflection;
+        }
+        if (pendingFiles.length || textarea.value) showSaved('Loaded');
+      }
+      setStatus('');
+      renderPreviews();
+      _hydrating = false;
     }
 
     drop.addEventListener('click', () => fileInput.click());
@@ -7749,12 +8058,22 @@
       handleFiles(files);
     });
 
-    nameInput.addEventListener('input', refreshSubmit);
-    textarea.addEventListener('input', refreshSubmit);
+    textarea.addEventListener('input', () => {
+      refreshSubmit();
+      persistDraftReflection();
+    });
 
-    // Consume any pending artifact handed off by a Tool's "+ Save to..." flow.
-    // Schematic drops a PNG (kind: image), Vibe Coding drops a sketch PDF
-    // (kind: pdf). Reflection is still required for benchmark submissions.
+    // Pending artifact from a Tool's "Save to benchmark" flow. If a name is
+    // already picked, we feed it straight into handleFiles. If not, we stash
+    // the synth file and flush as soon as the picker resolves to a name.
+    let _queuedArtifact = null;
+    function flushPendingArtifactIfQueued() {
+      if (_queuedArtifact && getCurrentName()) {
+        const q = _queuedArtifact;
+        _queuedArtifact = null;
+        setTimeout(() => handleFiles([q]), 20);
+      }
+    }
     if (window._pendingArtifact &&
         window._pendingArtifact.panelType === 'checkpoint' &&
         window._pendingArtifact.benchmarkId === benchmarkId) {
@@ -7764,73 +8083,51 @@
       const isImage = ct.startsWith('image/');
       if (isPdf || isImage) {
         window._pendingArtifact = null;
-        const synthFile = new File([pa.blob], pa.fileName, { type: pa.contentType });
-        pendingFiles.push({
-          file: synthFile,
-          url: URL.createObjectURL(synthFile),
-          kind: isPdf ? 'pdf' : 'image'
-        });
-        // Defer to next tick so the panel is in the DOM before we render previews.
-        setTimeout(() => {
-          renderPreviews();
-          textarea.focus();
-          const verb = isPdf ? 'Sketch PDF' : 'Photo';
-          schemToast(`${verb} loaded. Write your reflection and hit Submit.`, 3200);
-        }, 60);
+        const synth = new File([pa.blob], pa.fileName, { type: pa.contentType });
+        if (getCurrentName()) {
+          setTimeout(() => {
+            handleFiles([synth]);
+            const verb = isPdf ? 'Code PDF' : 'Wiring schematic';
+            schemToast(`${verb} added. Reflection still needed.`, 3000);
+          }, 80);
+        } else {
+          _queuedArtifact = synth;
+          setStatus('Pick your name above to attach this file.', true);
+        }
       }
+    }
+
+    // Hydrate immediately if a name is already picked from localStorage.
+    const initialName = picker.getName();
+    if (initialName) {
+      setTimeout(() => hydrateFromDraft(initialName).then(flushPendingArtifactIfQueued), 30);
     }
 
     let isSubmitting = false;
     submitBtn.addEventListener('click', async () => {
       if (isSubmitting) return;
-      const name = nameInput.value.trim();
+      const name = getCurrentName();
       const text = textarea.value.trim();
-      if (!name || !pendingFiles.length || !text) return;
+      const usable = pendingFiles.filter(p => p.status === 'uploaded');
+      if (!name || !usable.length || !text) return;
       isSubmitting = true;
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting…';
-      setStatus('Uploading…');
-      localStorage.setItem(NAME_KEY, name);
 
       try {
         const uploadedImages = [];
         let uploadedCode = null;
-        for (let i = 0; i < pendingFiles.length; i++) {
-          const f = pendingFiles[i].file;
-          const kind = pendingFiles[i].kind === 'pdf' ? 'pdf' : 'image';
-          const ext = (f.name.match(/\.[a-z0-9]+$/i) || [''])[0];
-          const path = `portfolios/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${kind === 'pdf' ? 'code' : 'image'}${ext}`;
-          const ref = storageRef(storage, path);
-          const ct = f.type || (kind === 'pdf' ? 'application/pdf' : 'image/jpeg');
-          const task = uploadBytesResumable(ref, f, { contentType: ct });
-          await new Promise((resolve, reject) => {
-            task.on('state_changed',
-              (snap) => {
-                const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-                setStatus(`Uploading ${i + 1} of ${pendingFiles.length} (${pct}%)…`);
-              },
-              reject,
-              resolve
-            );
-          });
-          const url = await getDownloadURL(task.snapshot.ref);
-          const slot = { mode: 'file', url, fileName: f.name, contentType: ct, filePath: path };
-          if (kind === 'pdf') {
-            uploadedCode = slot;
-          } else {
-            uploadedImages.push(slot);
-          }
+        for (const p of usable) {
+          const slot = { mode: 'file', url: p.url, fileName: p.fileName, contentType: p.contentType, filePath: p.filePath };
+          if (p.kind === 'pdf') uploadedCode = slot;
+          else uploadedImages.push(slot);
         }
-
         await addDoc(collection(db, 'portfolios'), {
           benchmarkId,
           studentName: name,
+          nameSlug: nameSlug(name),
           createdAt: serverTimestamp(),
           slots: {
-            // First photo stays under `image` for backward compatibility with
-            // existing gallery code; full list lives under `images`. Sketch
-            // PDFs go into `code` so the existing portfolio gallery renders
-            // them as a PDF tile alongside any photos.
             image: uploadedImages[0] || null,
             images: uploadedImages,
             video: null,
@@ -7839,12 +8136,12 @@
             summary: { mode: 'text', text: text.slice(0, 1500) }
           }
         });
-
-        clearAllPhotos();
+        await clearDraft(name, benchmarkId);
+        pendingFiles = [];
         textarea.value = '';
+        renderPreviews();
         refreshCountBadge(benchmarkId);
         markChecked(benchmarkId);
-
         submitBtn.textContent = '✓ Submitted!';
         submitBtn.classList.add('is-success');
         setStatus('Your submission is in the gallery below.');
@@ -7864,6 +8161,7 @@
       }
     });
 
+    panel._cleanup = () => picker.destroy();
     return panel;
   }
 
@@ -7874,12 +8172,8 @@
     const panel = document.createElement('div');
     panel.className = 'portfolio-panel checkpoint-panel instructable-panel';
 
-    const savedName = localStorage.getItem(NAME_KEY) || '';
     panel.innerHTML = `
-      <div class="pf-name-row">
-        <label for="instNameInput">Your name</label>
-        <input id="instNameInput" type="text" maxlength="80" placeholder="e.g. Alex Rivera" value="${escapeHtml(savedName)}" />
-      </div>
+      <div data-inst-namepicker></div>
       <div class="cp-section">
         <div class="cp-section-label">Public Instructable URL</div>
         <input class="inst-link-input" type="url" data-inst-link placeholder="https://www.instructables.com/..." />
@@ -7890,7 +8184,15 @@
       </div>
     `;
 
-    const nameInput = panel.querySelector('#instNameInput');
+    const namePickerMount = panel.querySelector('[data-inst-namepicker]');
+    const picker = renderNamePicker({
+      initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      onChange: (n) => { if (n) ensureRosterEntry(n); setTimeout(refresh, 0); }
+    });
+    namePickerMount.appendChild(picker.element);
+    const nameInput = { get value() { return picker.getName(); }, set value(v) { picker.setName(v); } };
+    panel._cleanup = () => picker.destroy();
+
     const linkInput = panel.querySelector('[data-inst-link]');
     const submitBtn = panel.querySelector('[data-inst-submit]');
     const statusEl = panel.querySelector('[data-inst-status]');
@@ -7903,7 +8205,6 @@
       const ok = nameInput.value.trim() && /^https?:\/\/\S+/i.test(linkInput.value.trim());
       submitBtn.disabled = !ok;
     }
-    nameInput.addEventListener('input', refresh);
     linkInput.addEventListener('input', refresh);
 
     let isSubmitting = false;
@@ -7918,7 +8219,7 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting…';
       setStatus('');
-      localStorage.setItem(NAME_KEY, name);
+      localStorage.setItem(LAST_PICK_KEY, name);
 
       try {
         await addDoc(collection(db, 'portfolios'), {
@@ -9967,6 +10268,148 @@
     return String(s).replace(/[&<>"']/g, c => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
+  }
+
+  // ============== NAME PICKER ==============
+  // Mobile-first roster picker. Native <select> for the wheel-spinner UX on
+  // iOS, an inline "+ I'm new — add me" fallback that grows the live roster.
+  // Returns { element, getName(), setName(name), destroy() }.
+  function renderNamePicker(opts = {}) {
+    const wrap = document.createElement('div');
+    wrap.className = 'name-picker';
+    wrap.innerHTML = `
+      <label class="name-picker-label">${escapeHtml(opts.label || "Who's adding this?")}</label>
+      <select class="name-picker-select" data-name-select aria-label="Pick your name"></select>
+      <div class="name-picker-add" data-name-add hidden>
+        <input type="text" class="name-picker-input" data-name-input
+               placeholder="First name + last initial (e.g. Maya R.)"
+               autocapitalize="words" autocomplete="off" maxlength="40" />
+        <button type="button" class="name-picker-add-btn" data-name-add-btn>Add</button>
+      </div>
+    `;
+    const select = wrap.querySelector('[data-name-select]');
+    const addRow = wrap.querySelector('[data-name-add]');
+    const addInput = wrap.querySelector('[data-name-input]');
+    const addBtn = wrap.querySelector('[data-name-add-btn]');
+
+    let currentName = opts.initial || localStorage.getItem(LAST_PICK_KEY) || '';
+
+    function rebuildOptions(names) {
+      const seen = new Set(names.map(n => n.toLowerCase()));
+      // If the current pick isn't in the live roster yet (just added, not
+      // round-tripped through Firestore), keep it visible.
+      if (currentName && !seen.has(currentName.toLowerCase())) {
+        names = [...names, currentName].sort((a, b) =>
+          a.localeCompare(b, undefined, { sensitivity: 'base' })
+        );
+      }
+      const opts = [`<option value="">Pick your name…</option>`];
+      for (const n of names) {
+        const sel = (n === currentName) ? ' selected' : '';
+        opts.push(`<option value="${escapeHtml(n)}"${sel}>${escapeHtml(n)}</option>`);
+      }
+      opts.push(`<option value="__add__">+ I'm new — add me</option>`);
+      select.innerHTML = opts.join('');
+    }
+
+    const unsub = subscribeRoster(rebuildOptions);
+
+    select.addEventListener('change', () => {
+      const v = select.value;
+      if (v === '__add__') {
+        addRow.hidden = false;
+        select.value = currentName || '';
+        setTimeout(() => addInput.focus(), 30);
+        return;
+      }
+      currentName = v;
+      if (currentName) localStorage.setItem(LAST_PICK_KEY, currentName);
+      if (typeof opts.onChange === 'function') opts.onChange(currentName);
+    });
+
+    function commitAdd() {
+      const raw = addInput.value.trim();
+      if (!raw) { addInput.focus(); return; }
+      currentName = raw;
+      localStorage.setItem(LAST_PICK_KEY, currentName);
+      ensureRosterEntry(currentName); // async, fire-and-forget
+      // Force a local roster bump so the dropdown shows the new name now,
+      // even before the Firestore snapshot round-trips back.
+      _setLiveRoster(_liveRoster.includes(currentName) ? _liveRoster : [..._liveRoster, currentName]);
+      addInput.value = '';
+      addRow.hidden = true;
+      if (typeof opts.onChange === 'function') opts.onChange(currentName);
+    }
+    addBtn.addEventListener('click', commitAdd);
+    addInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commitAdd(); }
+    });
+
+    return {
+      element: wrap,
+      getName: () => currentName,
+      setName: (n) => {
+        currentName = n || '';
+        if (currentName) localStorage.setItem(LAST_PICK_KEY, currentName);
+        // Trigger rebuild so the new selection actually shows in the <select>.
+        rebuildOptions(_liveRoster);
+      },
+      destroy: () => { unsub(); }
+    };
+  }
+
+  // ============== STUDENT DRAFTS ==============
+  // Per-student per-benchmark drafts persisted to Firestore so the student
+  // can leave, switch devices, come back, and find their stuff. Doc path:
+  //   drafts/${nameSlug}__${benchmarkId}
+  // Storage path for files:
+  //   drafts/${nameSlug}__${benchmarkId}/${stamp}-${fileName}
+  function draftDocId(name, benchmarkId) {
+    const slug = nameSlug(name);
+    return slug && benchmarkId ? `${slug}__${benchmarkId}` : '';
+  }
+  async function loadDraft(name, benchmarkId) {
+    const id = draftDocId(name, benchmarkId);
+    if (!id) return null;
+    try {
+      const snap = await getDoc(doc(db, 'drafts', id));
+      return snap.exists() ? snap.data() : null;
+    } catch (e) {
+      console.warn('loadDraft failed', e);
+      return null;
+    }
+  }
+  async function saveDraft(name, benchmarkId, partial) {
+    const id = draftDocId(name, benchmarkId);
+    if (!id) return;
+    try {
+      await setDoc(
+        doc(db, 'drafts', id),
+        {
+          studentName: name,
+          nameSlug: nameSlug(name),
+          benchmarkId,
+          ...partial,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+    } catch (e) {
+      console.warn('saveDraft failed', e);
+    }
+  }
+  async function clearDraft(name, benchmarkId) {
+    const id = draftDocId(name, benchmarkId);
+    if (!id) return;
+    try { await deleteDoc(doc(db, 'drafts', id)); } catch (e) {}
+  }
+  // Debounce helper for keystroke autosave.
+  function debounce(fn, ms) {
+    let t = null;
+    return function (...args) {
+      if (t) clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), ms);
+    };
   }
 
   // Small inline-markup formatter for benchmark step text. Order matters:

@@ -55,5 +55,28 @@ service cloud.firestore {
       allow update: if false;
       allow delete: if true;
     }
+
+    // Class roster: students self-identify on first add. Honor-code class
+    // means anyone can read/write; the slug-doc-id ensures we don't dupe.
+    match /students/{studentSlug} {
+      allow read: if true;
+      allow create, update: if request.resource.data.name is string &&
+                                request.resource.data.name.size() > 0 &&
+                                request.resource.data.name.size() <= 80;
+      allow delete: if true;
+    }
+
+    // Per-student per-benchmark drafts. Doc id = `${nameSlug}__${benchmarkId}`.
+    // Auto-save target for evidence uploads + reflection text. Promoted to
+    // /portfolios on Submit and deleted from here. Permissive by design.
+    match /drafts/{draftId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.studentName is string &&
+                               request.resource.data.studentName.size() > 0 &&
+                               request.resource.data.studentName.size() <= 80 &&
+                               request.resource.data.benchmarkId is string &&
+                               request.resource.data.benchmarkId.size() <= 40;
+      allow delete: if true;
+    }
   }
 }
