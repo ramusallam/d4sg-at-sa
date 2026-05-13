@@ -4023,7 +4023,7 @@
       benchmarks: [
         {
           id: 'p1b1',
-          title: 'Arduino Programming',
+          title: 'Button Switch',
           points: 2,
           instructions: [
             'Open the [Vibe Coding Tool](tools#vibe), click **Build for me**, and describe this behavior in the input: *"Activate the W key each time a simple tactile button is pressed."*',
@@ -4038,7 +4038,7 @@
         },
         {
           id: 'p1b2',
-          title: 'Tactile & Lever Switch',
+          title: 'Lever Switch',
           points: 2,
           instructions: 'Build a large, low-force button that someone with limited fine motor control can press reliably. Test it triggers a clean signal every time.',
           videoUrl: '',
@@ -4883,7 +4883,10 @@
       gridRows: 24,
       components: [],
       wires: [],
-      selectedColor: 'red',
+      // Black is the default jumper color — wires between devices read clean
+      // and obvious. The student can still switch to red/yellow/green/blue/
+      // white from the palette per-wire.
+      selectedColor: 'black',
       resistorReminderShown: false,
       _idCounter: 1
     };
@@ -5279,16 +5282,19 @@
     _schemState.gridRows = maxRow;
   }
 
+  function _isResizableBoard(c) {
+    return c && (c.type === 'perfboard' || c.type === 'breadboard');
+  }
   function _schemComponentW(c) {
     const def = SCHEM_COMPONENTS[c.type];
     if (!def) return 4;
-    if (c.type === 'perfboard') return c.cols || def.w;
+    if (_isResizableBoard(c)) return c.cols || def.w;
     return def.w;
   }
   function _schemComponentH(c) {
     const def = SCHEM_COMPONENTS[c.type];
     if (!def) return 4;
-    if (c.type === 'perfboard') return c.rows || def.h;
+    if (_isResizableBoard(c)) return c.rows || def.h;
     return def.h;
   }
   function _schemPerfboardPins(cols, rows) {
@@ -5299,6 +5305,34 @@
       }
     }
     return out;
+  }
+  function _schemBreadboardChannelRow(rows) {
+    // Channel sits in the middle, so the board mirrors top/bottom.
+    return Math.floor(rows / 2);
+  }
+  function _schemBreadboardPins(cols, rows) {
+    const channelRow = _schemBreadboardChannelRow(rows);
+    const out = [];
+    for (let r = 0; r < rows; r++) {
+      if (r === channelRow) continue; // no tie-points in the channel
+      for (let c = 0; c < cols; c++) {
+        out.push({ name: `r${r}c${c}`, gx: c + 0.5, gy: r + 0.5 });
+      }
+    }
+    return out;
+  }
+  function _schemBreadboardBodySvg(cw, ch) {
+    const W = cw * SCHEM_GRID_PITCH;
+    const H = ch * SCHEM_GRID_PITCH;
+    const channelRow = _schemBreadboardChannelRow(ch);
+    const channelY = channelRow * SCHEM_GRID_PITCH;
+    const channelH = SCHEM_GRID_PITCH;
+    return `
+      <rect x="0" y="0" width="${W}" height="${H}" rx="5" fill="#f5f1e6" stroke="#cbc4b3" stroke-width="1.6"/>
+      <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="3.5" fill="none" stroke="rgba(0,0,0,0.04)" stroke-width="0.8"/>
+      <rect x="${W * 0.025}" y="${channelY + channelH * 0.18}" width="${W * 0.95}" height="${channelH * 0.64}" rx="1.5" fill="#e3dccb" stroke="#b5ad97" stroke-width="0.5"/>
+      <rect x="${W * 0.025}" y="${channelY + channelH * 0.18 + 0.5}" width="${W * 0.95}" height="1.4" fill="rgba(0,0,0,0.08)"/>
+    `;
   }
 
   function renderPerfboard() {
@@ -5385,6 +5419,7 @@
     const layer = _schemSvg.querySelector('#schemLayerComponents');
 
     const isPerfboard = c.type === 'perfboard';
+    const isBreadboard = c.type === 'breadboard';
     const cw = _schemComponentW(c);
     const ch = _schemComponentH(c);
 
@@ -5414,13 +5449,20 @@
         <circle cx="${W*0.04}" cy="${H*0.94}" r="3.5" fill="#0c3a1f"/>
         <circle cx="${W*0.96}" cy="${H*0.94}" r="3.5" fill="#0c3a1f"/>
       `;
+    } else if (isBreadboard) {
+      body.innerHTML = _schemBreadboardBodySvg(cw, ch);
     } else {
       body.innerHTML = def.svg({ ledColor: c.ledColor || 'red' });
     }
     g.appendChild(body);
 
-    // Pins (dynamic for perfboard, static otherwise).
-    const pins = isPerfboard ? _schemPerfboardPins(cw, ch) : def.pins;
+    // Pins: dynamic for both perfboard (full grid) and breadboard
+    // (grid minus the channel row), static for everything else.
+    const pins = isPerfboard
+      ? _schemPerfboardPins(cw, ch)
+      : isBreadboard
+        ? _schemBreadboardPins(cw, ch)
+        : def.pins;
     pins.forEach(pin => {
       const px = pin.gx * SCHEM_GRID_PITCH;
       const py = pin.gy * SCHEM_GRID_PITCH;
@@ -5630,16 +5672,20 @@
       g.appendChild(moveHandle);
     }
 
-    // Perfboard resize handle (bottom-right corner). Drag to grow/shrink.
-    if (isPerfboard) {
+    // Board resize handle (bottom-right corner). Drag to grow/shrink the
+    // grid. Works for both perfboard and breadboard; the breadboard's
+    // channel row stays centered automatically as height changes.
+    if (isPerfboard || isBreadboard) {
       const W = cw * SCHEM_GRID_PITCH;
       const H = ch * SCHEM_GRID_PITCH;
+      const triFill = isPerfboard ? '#0c3a1f' : '#b5ad97';
+      const tickStroke = isPerfboard ? '#fff' : '#5b554a';
       const handle = document.createElementNS(svgNS, 'g');
       handle.setAttribute('class', 'schem-resize-handle');
       handle.innerHTML = `
-        <path d="M ${W - 14} ${H} L ${W} ${H} L ${W} ${H - 14} Z" fill="#0c3a1f" stroke="#fff" stroke-width="0.6"/>
-        <line x1="${W - 8}" y1="${H - 2}" x2="${W - 2}" y2="${H - 8}" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
-        <line x1="${W - 4}" y1="${H - 2}" x2="${W - 2}" y2="${H - 4}" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M ${W - 14} ${H} L ${W} ${H} L ${W} ${H - 14} Z" fill="${triFill}" stroke="#fff" stroke-width="0.6"/>
+        <line x1="${W - 8}" y1="${H - 2}" x2="${W - 2}" y2="${H - 8}" stroke="${tickStroke}" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="${W - 4}" y1="${H - 2}" x2="${W - 2}" y2="${H - 4}" stroke="${tickStroke}" stroke-width="1.2" stroke-linecap="round"/>
       `;
       handle.style.cursor = 'nwse-resize';
       handle.addEventListener('mousedown', (e) => {
@@ -5754,9 +5800,10 @@
     if (!a || !b) return;
 
     // Any wire touching the perfboard reads as a soldered joint, so it
-    // renders in silver. Off-board hookup wires keep the chosen color.
+    // renders in silver. Off-board hookup wires default to black; the
+    // student can pick a different color from the palette per wire.
     const touchesPad = _isPerfboardPin(w.fromPinId) || _isPerfboardPin(w.toPinId);
-    const stroke = touchesPad ? '#9aa3ad' : (SCHEM_COLORS[w.color] || SCHEM_COLORS.red);
+    const stroke = touchesPad ? '#9aa3ad' : (SCHEM_COLORS[w.color] || SCHEM_COLORS.black);
     const padToPad = touchesPad;
 
     const path = document.createElementNS(svgNS, 'path');
@@ -6014,6 +6061,10 @@
     if (type === 'perfboard') {
       c.cols = 14;
       c.rows = 10;
+    }
+    if (type === 'breadboard') {
+      c.cols = 17;
+      c.rows = 11;
     }
     _schemState.components.push(c);
     _schemSelected = id;
