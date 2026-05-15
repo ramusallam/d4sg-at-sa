@@ -2812,18 +2812,35 @@
     color: #dc2626;
     background: #fef2f2;
   }
+  /* Big, foolproof "Back to Tools" pill at the top of every tool detail page.
+     Visually a real button so ADHD students never lose the way out. */
   .schem-back {
-    background: none;
-    border: none;
-    color: var(--ink-mid);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border: 1.5px solid var(--border);
+    color: var(--ink-hi);
     cursor: pointer;
-    padding: 0;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
+    padding: 9px 18px 9px 14px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    margin-bottom: 18px;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
-  .schem-back:hover { color: var(--accent); }
+  .schem-back:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateX(-2px);
+  }
+  .schem-back-arrow {
+    font-size: 16px;
+    line-height: 1;
+  }
 
   .schem-stage {
     display: grid;
@@ -4506,10 +4523,12 @@
     `;
     app.appendChild(sec);
     sec.querySelector('#toolCardSchematic').addEventListener('click', () => {
-      initSchematicTool();
+      history.pushState({}, '', '/tools/schematic');
+      applyRoute('/tools/schematic');
     });
     sec.querySelector('#toolCardVibe').addEventListener('click', () => {
-      initVibeCodingTool();
+      history.pushState({}, '', '/tools/vibe');
+      applyRoute('/tools/vibe');
     });
   }
 
@@ -5086,7 +5105,7 @@
     const wrap = document.createElement('section');
     wrap.className = 'project';
     wrap.innerHTML = `
-      <button class="schem-back" id="schemBack">← Back</button>
+      <button class="schem-back" id="schemBack" aria-label="Back to Tools"><span class="schem-back-arrow">←</span> Back to Tools</button>
       <h2 class="project-title">Wiring Schematic</h2>
       <div data-schem-identity></div>
 
@@ -5131,8 +5150,7 @@
 
     document.getElementById('schemBack').addEventListener('click', () => {
       history.pushState({}, '', '/tools');
-      document.body.classList.remove('view-tools-detail');
-      renderTools();
+      applyRoute('/tools');
     });
 
     renderComponentPalette();
@@ -6810,16 +6828,11 @@
           e.preventDefault();
           const tool = a.getAttribute('data-tool-link');
           closeModal();
-          // Switch route to /tools, then open the requested tool overlay.
+          const path = tool === 'vibe' ? '/tools/vibe' : '/tools/schematic';
           if (typeof applyRoute === 'function') {
-            history.pushState({}, '', '/tools');
-            applyRoute('/tools');
+            history.pushState({}, '', path);
+            applyRoute(path);
           }
-          // Tool overlays sit on top of the route page; open after route render.
-          setTimeout(() => {
-            if (tool === 'vibe' && typeof initVibeCodingTool === 'function') initVibeCodingTool();
-            else if (tool === 'schematic' && typeof initSchematicTool === 'function') initSchematicTool();
-          }, 30);
         });
       });
     }
@@ -9357,7 +9370,7 @@
     const wrap = document.createElement('section');
     wrap.className = 'project';
     wrap.innerHTML = `
-      <button class="schem-back" id="vibeBack">← Back</button>
+      <button class="schem-back" id="vibeBack" aria-label="Back to Tools"><span class="schem-back-arrow">←</span> Back to Tools</button>
       <h2 class="project-title">Vibe Coding</h2>
       <div data-vibe-identity></div>
 
@@ -9473,8 +9486,7 @@
     document.getElementById('vibeBack').addEventListener('click', () => {
       vibeStopReading();
       history.pushState({}, '', '/tools');
-      document.body.classList.remove('view-tools-detail');
-      renderTools();
+      applyRoute('/tools');
     });
 
     // Drawer open / close + ESC handler
@@ -10706,13 +10718,19 @@
   // Tools / Homework / Progress / Home, so nav doesn't flicker.
   function applyRoute(path) {
     const r = (path || '').replace(/\/+$/, '');
-    document.body.classList.remove('view-home', 'view-hw', 'view-progress', 'view-tools');
+    document.body.classList.remove('view-home', 'view-hw', 'view-progress', 'view-tools', 'view-tools-detail');
     if (r === '/hw') {
       document.body.classList.add('view-hw');
       renderHomework();
     } else if (r === '/progress') {
       document.body.classList.add('view-progress');
       renderProgress();
+    } else if (r === '/tools/vibe') {
+      document.body.classList.add('view-tools');
+      initVibeCodingTool();
+    } else if (r === '/tools/schematic') {
+      document.body.classList.add('view-tools');
+      initSchematicTool();
     } else if (r === '/tools') {
       document.body.classList.add('view-tools');
       renderTools();

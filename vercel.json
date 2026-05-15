@@ -5,6 +5,10 @@
     { "source": "/progress", "destination": "/index.html" },
     { "source": "/progress/", "destination": "/index.html" },
     { "source": "/tools", "destination": "/index.html" },
-    { "source": "/tools/", "destination": "/index.html" }
+    { "source": "/tools/", "destination": "/index.html" },
+    { "source": "/tools/vibe", "destination": "/index.html" },
+    { "source": "/tools/vibe/", "destination": "/index.html" },
+    { "source": "/tools/schematic", "destination": "/index.html" },
+    { "source": "/tools/schematic/", "destination": "/index.html" }
   ]
 }
