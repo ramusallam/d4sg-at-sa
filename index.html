@@ -3268,10 +3268,20 @@
      patterns ("Act like...", "Walk me through...", "Debug this..."). Click a
      chip to drop its scaffold into the input; the cursor lands at the
      customizable portion ready to type. */
-  .vibe-stems {
+  .vibe-stems-wrap {
     border-top: 1px solid var(--border);
     background: var(--bg-2);
-    padding: 12px 18px 0;
+    padding: 10px 18px 4px;
+  }
+  .vibe-stems-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+    margin: 0 0 8px;
+  }
+  .vibe-stems {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
@@ -3426,7 +3436,7 @@
   .vibe-monitor-header {
     background: #0f172a;
     color: #cbd5e1;
-    padding: 11px 16px;
+    padding: 7px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -3465,10 +3475,10 @@
     background: #0b1220;
     color: #4ade80;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-    font-size: 13px;
-    line-height: 1.55;
-    padding: 12px 16px;
-    height: 110px;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 8px 14px;
+    height: 68px;
     overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-word;
@@ -9436,12 +9446,11 @@
             <button class="vibe-drawer-close" id="vibeDrawerClose" aria-label="Close">×</button>
           </div>
         </div>
-        <div class="vibe-role-card">
-          <p class="vibe-role-card-eyebrow">You're talking to</p>
-          <p class="vibe-role-card-body"><strong>An assistive-tech engineer</strong> who codes Arduino Leonardo and Micro for adaptive controllers.</p>
-        </div>
         <div class="vibe-chat-scroll" id="vibeChatScroll"></div>
-        <div class="vibe-stems" id="vibeStems"></div>
+        <div class="vibe-stems-wrap">
+          <p class="vibe-stems-label">Prompt Templates</p>
+          <div class="vibe-stems" id="vibeStems"></div>
+        </div>
         <div class="vibe-input-row">
           <div class="vibe-input" id="vibeInput" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Try: 'Use the joystick to move the mouse and left-click on press.'"></div>
           <button class="vibe-send-btn" id="vibeSend" aria-label="Send">
@@ -9678,8 +9687,7 @@
     if (!_vibeChat.length && !_vibeBusy) {
       scroll.innerHTML = `
         <div class="vibe-chat-empty">
-          <strong>Tap a starter below or type your own prompt.</strong>
-          The cleaner your ask, the cleaner the code you get back.
+          <strong>Pick a template below, then type your request.</strong>
         </div>
       `;
       return;
