@@ -1669,6 +1669,24 @@
     position: relative;
   }
   .pf-slot.is-filled .pf-slot-tile { color: var(--paper-ink); }
+  .pf-slot-number {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    z-index: 1;
+  }
+  .pf-slot.is-filled .pf-slot-number { background: var(--success); }
   .pf-slot-icon {
     font-size: 26px;
     line-height: 1;
@@ -7525,12 +7543,13 @@
     const pendingFiles = {}; // { slotKey: File }
     let openSlotKey = null;
 
-    SLOT_DEFS.forEach(def => {
+    SLOT_DEFS.forEach((def, defIdx) => {
       const slot = document.createElement('div');
       slot.className = 'pf-slot';
       slot.dataset.slot = def.key;
       slot.innerHTML = `
         <div class="pf-slot-tile" data-pf-tile>
+          <div class="pf-slot-number">${defIdx + 1}</div>
           <div class="pf-slot-icon">${def.icon}</div>
           <div class="pf-slot-label">${def.label}</div>
           <div class="pf-slot-status">+ Add</div>
