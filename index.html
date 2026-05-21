@@ -4,34 +4,43 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>D4SG @ SA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
 <style>
   :root {
-    /* Spark Learning aesthetic — warm cream page, white cards */
-    --bg-0: #F7F3EE;        /* page */
+    /* Spark Learning aesthetic — warm cream page, white cards, indigo accent.
+       Mirrors Studio/Companion tokens so D4SG feels like the same world. */
+    --bg-0: #F7F3EE;        /* page — warm cream */
     --bg-1: #FFFFFF;        /* cards / panels */
-    --bg-2: #FAFAF7;        /* nested surfaces */
-    --ink-hi: #111111;      /* primary text */
-    --ink-mid: #555555;     /* secondary text */
-    --ink-low: #9CA3AF;     /* muted */
-    --accent: #3b82f6;      /* indigo blue */
-    --accent-hover: #2563eb;
-    --accent-soft: #eff6ff;
-    --success: #22c55e;
-    --border: #E5E7EB;
-    --border-strong: #D1D5DB;
+    --bg-2: #FAF7F1;        /* nested surfaces (slightly warm) */
+    --ink-hi: #1C1917;      /* primary text — warm stone */
+    --ink-mid: #57534E;     /* secondary text — warm gray */
+    --ink-low: #A0937B;     /* muted — warm tan */
+    --accent: #6366f1;      /* indigo (Spark canonical) */
+    --accent-hover: #4f46e5;
+    --accent-soft: #EEF2FF;
+    --success: #10b981;     /* Spark semantic green */
+    --border: #E8E0D2;      /* warm border to match cream */
+    --border-strong: #D6CDB8;
 
     /* Modal: white card on dimmed backdrop */
     --paper: #FFFFFF;
-    --paper-soft: #FAFAF7;
-    --paper-ink: #111111;
-    --paper-ink-mid: #555555;
-    --paper-accent: #3b82f6;
+    --paper-soft: #FAF7F1;
+    --paper-ink: #1C1917;
+    --paper-ink-mid: #57534E;
+    --paper-accent: #6366f1;
+
+    /* Elevation tokens — match Spark scale */
+    --shadow-sm: 0 1px 2px rgba(17, 17, 17, 0.04), 0 1px 3px rgba(17, 17, 17, 0.06);
+    --shadow-md: 0 4px 12px rgba(17, 17, 17, 0.06), 0 2px 4px rgba(17, 17, 17, 0.04);
+    --shadow-lg: 0 16px 40px rgba(17, 17, 17, 0.10), 0 4px 12px rgba(17, 17, 17, 0.06);
   }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
     background: var(--bg-0);
     color: var(--ink-hi);
     min-height: 100vh;
