@@ -11072,7 +11072,7 @@
       x: 0, y: 0,
       width: _ideaStage.width(),
       height: _ideaStage.height(),
-      fill: '#FAF6EE',
+      fill: '#ffffff',
       name: 'idea-bg'
     });
     _ideaBgLayer.add(bg);
@@ -11204,11 +11204,14 @@
         return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if ((e.key === 'Delete' || e.key === 'Backspace') && _ideaTransformer.nodes().length) {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && _ideaTransformer && _ideaTransformer.nodes().length) {
         e.preventDefault();
         ideaPushHistory();
-        _ideaTransformer.nodes().forEach(n => n.destroy());
+        // Detach the Transformer BEFORE destroying its anchored nodes — otherwise
+        // Konva tries to redraw handles for nodes that no longer exist.
+        const sel = _ideaTransformer.nodes().slice();
         _ideaTransformer.nodes([]);
+        sel.forEach(n => { try { n.destroy(); } catch (err) {} });
         _ideaSelected = null;
         _ideaLayer.batchDraw();
         ideaScheduleSave();
@@ -11672,16 +11675,17 @@
 
   function ideaRestoreLayerFromJSON(json) {
     // Tear down the current layer and rebuild from JSON. Preserve images by
-    // matching saved data URLs back to HTMLImageElements.
+    // matching saved data URLs back to HTMLImageElements. The Transformer
+    // is destroyed by destroyChildren(), so recreate it fresh — reusing a
+    // destroyed Konva node leaves it visually attached but functionally dead
+    // (Delete-key + drag handles silently no-op).
     if (!_ideaLayer) return;
     let parsed;
     try { parsed = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
-    _ideaTransformer.nodes([]);
     _ideaLayer.destroyChildren();
-    // Konva.Node.create rebuilds children for a layer from its JSON.
-    // We rebuild manually to keep our existing transformer.
     if (parsed && parsed.children) {
       parsed.children.forEach(childJson => {
+        if (childJson.className === 'Transformer') return; // never restore stale handles
         try {
           const node = Konva.Node.create(childJson);
           _ideaLayer.add(node);
@@ -11696,6 +11700,14 @@
         } catch (e) { /* skip broken node */ }
       });
     }
+    _ideaTransformer = new Konva.Transformer({
+      rotateEnabled: true,
+      anchorSize: 9,
+      borderStroke: '#4f46e5',
+      anchorStroke: '#4f46e5',
+      anchorFill: 'white',
+      borderDash: [4, 3]
+    });
     _ideaLayer.add(_ideaTransformer);
     _ideaSelected = null;
     _ideaLayer.batchDraw();
