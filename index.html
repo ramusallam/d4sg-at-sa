@@ -4534,6 +4534,7 @@
   const ICON_SUMMARY = `<svg ${_SVG_ATTRS}><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/></svg>`;
   const ICON_LINK    = `<svg ${_SVG_ATTRS}><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.5-1.5"/></svg>`;
   const ICON_WIRING  = `<svg ${_SVG_ATTRS}><path d="M13 2 L5 13 L11 13 L10 22 L19 10 L13 10 Z" fill="currentColor" stroke="currentColor" stroke-width="0.6"/></svg>`;
+  const ICON_SKETCH  = `<svg ${_SVG_ATTRS}><path d="M12 19l7-7 3 3-7 7H12z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18"/><path d="M2 2l7.586 7.586"/></svg>`;
   const ICON_DOC     = `<svg ${_SVG_ATTRS}><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/></svg>`;
 
   function renderProjects() {
@@ -6585,10 +6586,9 @@
         const item = document.createElement('button');
         item.type = 'button';
         item.className = 'save-to-item is-portfolio';
-        // For schematic + idea-board we both drop into the Portfolio "wiring"
-        // slot (the slotKey hasn't been split out — see handleSaveToPick — so
-        // the label stays consistent with where the image actually lands).
-        const slotLabel = kind === 'vibe' ? 'Code slot' : 'Wiring slot';
+        const slotLabel = kind === 'vibe' ? 'Code slot'
+                        : kind === 'idea-board' ? 'Sketch slot'
+                        : 'Wiring slot';
         item.innerHTML = `<span class="save-to-arrow">↳</span>Portfolio (${slotLabel})`;
         item.addEventListener('click', async () => {
           closeSaveToPop();
@@ -6655,10 +6655,9 @@
         kind
       };
     } else if (kind === 'idea-board') {
-      // Reuse the schematic slot keys ('image' for checkpoint, 'wiring' for
-      // portfolio) so we don't have to plumb a new slot kind through every
-      // benchmark panel. Idea sketches live alongside wiring artifacts.
-      const slotKey = panelType === 'portfolio' ? 'wiring' : 'image';
+      // Portfolio gets its own 'sketch' slot; checkpoint benchmarks reuse the
+      // generic 'image' slot since they don't expose typed slots per artifact.
+      const slotKey = panelType === 'portfolio' ? 'sketch' : 'image';
       window._pendingArtifact = {
         blob,
         fileName: `idea-board-${stamp}.png`,
@@ -7622,6 +7621,7 @@
     { key: 'video',   label: 'Video',   icon: ICON_VIDEO,   accept: 'video/mp4',                                                     exts: 'MP4',       fileTypes: 'video', allowFile: true,  allowLink: true  },
     { key: 'cad',     label: 'CAD',     icon: ICON_CAD,     accept: '.stl,model/stl,application/sla,application/vnd.ms-pki.stl',    exts: 'STL',       fileTypes: 'cad',   allowFile: true,  allowLink: true  },
     { key: 'wiring',  label: 'Wiring',  icon: ICON_WIRING,  accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
+    { key: 'sketch',  label: 'Sketch',  icon: ICON_SKETCH,  accept: 'image/png,image/jpeg',                                          exts: 'PNG, JPG',  fileTypes: 'image', allowFile: true,  allowLink: false },
     { key: 'code',    label: 'Code',    icon: ICON_CODE,    accept: 'application/pdf',                                               exts: 'PDF',       fileTypes: 'pdf',  allowFile: true,  allowLink: false },
     { key: 'summary', label: 'Summary', icon: ICON_SUMMARY, accept: '',                                                              exts: 'Text only', fileTypes: 'text', allowFile: false, allowLink: false }
   ];
@@ -7639,7 +7639,7 @@
     if (!file) return false;
     if (file.size > PORTFOLIO_MAX_FILE) return false;
     const ct = (file.type || '').toLowerCase();
-    if (slotKey === 'image' || slotKey === 'wiring') {
+    if (slotKey === 'image' || slotKey === 'wiring' || slotKey === 'sketch') {
       return ct === 'image/jpeg' || ct === 'image/png';
     }
     if (slotKey === 'video') {
