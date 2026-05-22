@@ -3902,7 +3902,142 @@
     justify-content: flex-end;
     gap: 8px;
   }
+
+  /* ============== IDEA BOARD TOOL ==============
+     Free-form prototype sketch surface (Konva). Mirrors .schem-* chrome 1:1
+     so it reads as a sibling to Wiring Schematic — same toolbar, same pill
+     buttons, same icon style, same stage frame. All state in
+     d4sg-idea-board-v1 (localStorage), no autosave to cloud. */
+  .idea-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .idea-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  }
+  .idea-toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .idea-toolbar-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+  }
+  .idea-color-row {
+    display: flex;
+    gap: 6px;
+  }
+  .idea-color {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong);
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    padding: 0;
+  }
+  .idea-color:hover { transform: scale(1.08); }
+  .idea-color.is-active {
+    border-color: var(--ink-hi);
+    box-shadow: 0 0 0 2px var(--bg-1), 0 0 0 4px var(--ink-hi);
+  }
+  /* Stroke-width chip row — three pills with a visible bar inside. */
+  .idea-width-row {
+    display: flex;
+    gap: 6px;
+  }
+  .idea-width {
+    width: 30px;
+    height: 26px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.15s ease;
+  }
+  .idea-width:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .idea-width.is-active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .idea-width span {
+    display: block;
+    width: 18px;
+    background: var(--ink-hi);
+    border-radius: 999px;
+  }
+  .idea-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .idea-canvas-wrap {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    position: relative;
+  }
+  .idea-canvas-frame {
+    background: #FAF6EE;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100%;
+    height: 620px;
+    position: relative;
+  }
+  .idea-canvas-frame.is-dropping {
+    outline: 2px dashed var(--accent);
+    outline-offset: -4px;
+  }
+  /* Textarea overlay shown when a callout text node is double-clicked. */
+  .idea-text-edit {
+    position: absolute;
+    background: white;
+    border: 1.5px solid var(--accent);
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink-hi);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+    outline: none;
+    resize: none;
+    z-index: 30;
+    line-height: 1.35;
+  }
+  .idea-hint {
+    font-size: 12.5px;
+    color: var(--ink-mid);
+    line-height: 1.55;
+    padding: 10px 14px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+  }
 </style>
+<script src="https://unpkg.com/konva@9.3.16/konva.min.js"></script>
 </head>
 <body>
 
@@ -4546,6 +4681,12 @@
           <p class="tool-card-blurb">Map your perfboard wiring before you solder. Drop in your Arduino, switches, joystick, LEDs, then click pin to pin to draw color-coded wires. Save a clean diagram for your portfolio.</p>
           <div class="tool-card-footer">Open tool</div>
         </div>
+        <div class="tool-card" id="toolCardIdea">
+          <p class="tool-card-eyebrow">Tool 03</p>
+          <h3 class="tool-card-title">Idea Board</h3>
+          <p class="tool-card-blurb">Sketch your prototype before you build it. Doodle with a pen, drop in photos, label parts with callouts, then save the diagram straight to a benchmark or portfolio drop.</p>
+          <div class="tool-card-footer">Open tool</div>
+        </div>
       </div>
     `;
     app.appendChild(sec);
@@ -4556,6 +4697,10 @@
     sec.querySelector('#toolCardVibe').addEventListener('click', () => {
       history.pushState({}, '', '/tools/vibe');
       applyRoute('/tools/vibe');
+    });
+    sec.querySelector('#toolCardIdea').addEventListener('click', () => {
+      history.pushState({}, '', '/tools/idea-board');
+      applyRoute('/tools/idea-board');
     });
   }
 
@@ -6440,6 +6585,9 @@
         const item = document.createElement('button');
         item.type = 'button';
         item.className = 'save-to-item is-portfolio';
+        // For schematic + idea-board we both drop into the Portfolio "wiring"
+        // slot (the slotKey hasn't been split out — see handleSaveToPick — so
+        // the label stays consistent with where the image actually lands).
         const slotLabel = kind === 'vibe' ? 'Code slot' : 'Wiring slot';
         item.innerHTML = `<span class="save-to-arrow">↳</span>Portfolio (${slotLabel})`;
         item.addEventListener('click', async () => {
@@ -6500,6 +6648,20 @@
       window._pendingArtifact = {
         blob,
         fileName: `wiring-schematic-${stamp}.png`,
+        contentType: 'image/png',
+        slotKey,
+        benchmarkId: benchmark.id,
+        panelType,
+        kind
+      };
+    } else if (kind === 'idea-board') {
+      // Reuse the schematic slot keys ('image' for checkpoint, 'wiring' for
+      // portfolio) so we don't have to plumb a new slot kind through every
+      // benchmark panel. Idea sketches live alongside wiring artifacts.
+      const slotKey = panelType === 'portfolio' ? 'wiring' : 'image';
+      window._pendingArtifact = {
+        blob,
+        fileName: `idea-board-${stamp}.png`,
         contentType: 'image/png',
         slotKey,
         benchmarkId: benchmark.id,
@@ -6855,7 +7017,9 @@
           e.preventDefault();
           const tool = a.getAttribute('data-tool-link');
           closeModal();
-          const path = tool === 'vibe' ? '/tools/vibe' : '/tools/schematic';
+          const path = tool === 'vibe' ? '/tools/vibe'
+            : tool === 'idea-board' ? '/tools/idea-board'
+            : '/tools/schematic';
           if (typeof applyRoute === 'function') {
             history.pushState({}, '', path);
             applyRoute(path);
@@ -10729,7 +10893,7 @@
     let s = escapeHtml(text);
     // [label](href) — internal tool links resolve to data-tool-link, others to <a target=_blank>.
     s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, label, href) => {
-      const internal = href.match(/^tools#(vibe|schematic)$/);
+      const internal = href.match(/^tools#(vibe|schematic|idea-board)$/);
       if (internal) {
         return `<a href="#" class="cp-step-tool" data-tool-link="${internal[1]}">${label}</a>`;
       }
@@ -10739,6 +10903,868 @@
     s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
     return s;
+  }
+
+  // ============== IDEA BOARD TOOL ==============
+  // Free-form sketch surface for prototype diagrams. Built on Konva so we
+  // get cheap shapes/lines/transformer-handles without rolling our own SVG
+  // selection logic. State lives in localStorage as 'd4sg-idea-board-v1' —
+  // we round-trip the Konva stage as JSON plus any uploaded image data URLs
+  // (Konva.Image references the HTMLImageElement, so the data URLs must be
+  // re-injected on restore). No cloud autosave, same as the Schematic tool.
+  const IDEA_STORAGE_KEY = 'd4sg-idea-board-v1';
+  const IDEA_COLORS = {
+    red:    '#dc2626',
+    black:  '#111111',
+    yellow: '#eab308',
+    green:  '#16a34a',
+    blue:   '#2563eb',
+    white:  '#f8fafc'
+  };
+  const IDEA_WIDTHS = { thin: 2, medium: 4, thick: 8 };
+
+  // Module-scoped state. Reset on every initIdeaBoardTool() call.
+  let _ideaStage = null;
+  let _ideaBgLayer = null;     // white background rect (kept first; not selectable)
+  let _ideaLayer = null;       // user drawings/shapes
+  let _ideaTransformer = null;
+  let _ideaTool = 'select';
+  let _ideaColor = 'black';
+  let _ideaWidth = 'medium';
+  let _ideaDrawing = false;
+  let _ideaCurrentShape = null;     // shape under construction (drag-to-create)
+  let _ideaCurrentLine = null;      // current pen/highlighter line
+  let _ideaSelected = null;         // currently selected node id (Konva.Node._id)
+  let _ideaHistory = [];            // serialized stage JSON snapshots
+  let _ideaCleanup = [];            // teardown callbacks (event listeners, observers)
+  let _ideaSaveTimer = null;
+  let _ideaTextEditor = null;       // floating textarea while editing a callout
+  let _ideaResizeObs = null;
+
+  function ideaPalette() { return IDEA_COLORS[_ideaColor] || IDEA_COLORS.black; }
+  function ideaStroke() { return IDEA_WIDTHS[_ideaWidth] || IDEA_WIDTHS.medium; }
+
+  function initIdeaBoardTool() {
+    if (typeof Konva === 'undefined') {
+      app.innerHTML = '<section class="project"><h2 class="project-title">Idea Board</h2><p>Drawing library failed to load. Check your internet connection and refresh.</p></section>';
+      return;
+    }
+
+    // Hard reset state so a previous session doesn't bleed into this one.
+    _ideaTool = 'select';
+    _ideaColor = 'black';
+    _ideaWidth = 'medium';
+    _ideaDrawing = false;
+    _ideaCurrentShape = null;
+    _ideaCurrentLine = null;
+    _ideaSelected = null;
+    _ideaHistory = [];
+    _ideaCleanup.forEach(fn => { try { fn(); } catch (e) {} });
+    _ideaCleanup = [];
+
+    app.innerHTML = '';
+    const wrap = document.createElement('section');
+    wrap.className = 'project';
+    wrap.innerHTML = `
+      <button class="schem-back" id="ideaBack" aria-label="Back to Tools"><span class="schem-back-arrow">←</span> Back to Tools</button>
+      <h2 class="project-title">Idea Board</h2>
+      <div data-idea-identity></div>
+
+      <div class="idea-wrap">
+        <div class="idea-toolbar">
+          <div class="vibe-toolbar-group">
+            <button class="vibe-tool-btn" data-idea-tool="select" title="Select / move / resize" aria-label="Select tool">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 7-6 2-2 6z"/></svg>
+            </button>
+            <button class="vibe-tool-btn" data-idea-tool="pen" title="Pen" aria-label="Pen tool">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7H12z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18"/><path d="M2 2l7.586 7.586"/></svg>
+            </button>
+            <button class="vibe-tool-btn" data-idea-tool="highlight" title="Highlighter" aria-label="Highlighter tool">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l5 5-9 9H6v-5z"/><path d="M3 21h7"/></svg>
+            </button>
+            <button class="vibe-tool-btn" data-idea-tool="eraser" title="Eraser — click a shape to delete it" aria-label="Eraser tool">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6 6 12-12-6-6z"/><path d="M9 23h13"/><path d="M9 11l6 6"/></svg>
+            </button>
+            <button class="vibe-tool-btn" data-idea-tool="callout" title="Text / callout — double-click to edit" aria-label="Text and callout tool">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4z"/></svg>
+            </button>
+            <button class="vibe-tool-btn" data-idea-tool="rect" title="Rectangle" aria-label="Rectangle tool">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="1.5"/></svg>
+            </button>
+            <button class="vibe-tool-btn" data-idea-tool="ellipse" title="Ellipse" aria-label="Ellipse tool">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="6.5"/></svg>
+            </button>
+            <button class="vibe-tool-btn" data-idea-tool="line" title="Straight line" aria-label="Line tool">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="4"/></svg>
+            </button>
+            <button class="vibe-tool-btn" data-idea-tool="arrow" title="Arrow" aria-label="Arrow tool">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="18" y2="6"/><polyline points="11 6 18 6 18 13"/></svg>
+            </button>
+            <button class="vibe-tool-btn" id="ideaImageBtn" title="Add image — or drag a file onto the canvas" aria-label="Upload image">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 9"/></svg>
+            </button>
+            <input type="file" id="ideaImageInput" accept="image/*" style="display:none">
+          </div>
+
+          <div class="idea-toolbar-group">
+            <span class="idea-toolbar-label">Color</span>
+            <div class="idea-color-row" id="ideaColors"></div>
+          </div>
+
+          <div class="idea-toolbar-group">
+            <span class="idea-toolbar-label">Stroke</span>
+            <div class="idea-width-row" id="ideaWidths"></div>
+          </div>
+
+          <div class="vibe-toolbar-group" style="margin-left: auto;">
+            <button class="vibe-tool-btn" id="ideaUndo" title="Undo (Cmd+Z / Ctrl+Z)" aria-label="Undo">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
+            </button>
+            <button class="vibe-tool-btn" id="ideaClear" title="Clear canvas" aria-label="Clear canvas">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg>
+            </button>
+          </div>
+          <div class="vibe-toolbar-group">
+            <button class="vibe-tool-btn" id="ideaSaveTo" title="Save to benchmark or Portfolio Drop" aria-label="Save to benchmark or Portfolio Drop">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
+            </button>
+            <button class="vibe-tool-btn" id="ideaDownload" title="Download image" aria-label="Download image">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><circle cx="12" cy="12" r="1.6"/><path d="M9 17l3 3 3-3"/><path d="M12 14v6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="idea-stage">
+          <div class="idea-hint" id="ideaHint">Select a tool above. <strong>Pen</strong> and <strong>highlighter</strong> drag to draw. Shapes drag to create. <strong>Eraser</strong> clicks a shape to delete it. Double-click a callout to edit its text.</div>
+          <div class="idea-canvas-wrap">
+            <div class="idea-canvas-frame" id="ideaFrame"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    app.appendChild(wrap);
+
+    // Identity strip — match Schematic so the kid claims their work first.
+    const identityMount = wrap.querySelector('[data-idea-identity]');
+    if (identityMount) identityMount.appendChild(renderIdentityStrip());
+
+    // --- Back button ---
+    const backBtn = document.getElementById('ideaBack');
+    backBtn.addEventListener('click', () => {
+      history.pushState({}, '', '/tools');
+      applyRoute('/tools');
+    });
+
+    // --- Color row ---
+    renderIdeaColors();
+    renderIdeaWidths();
+
+    // --- Build the Konva stage in the frame ---
+    const frame = document.getElementById('ideaFrame');
+    const rect0 = frame.getBoundingClientRect();
+    _ideaStage = new Konva.Stage({
+      container: frame,
+      width: Math.max(300, Math.round(rect0.width)),
+      height: Math.max(300, Math.round(rect0.height))
+    });
+    _ideaBgLayer = new Konva.Layer({ listening: false });
+    const bg = new Konva.Rect({
+      x: 0, y: 0,
+      width: _ideaStage.width(),
+      height: _ideaStage.height(),
+      fill: '#FAF6EE',
+      name: 'idea-bg'
+    });
+    _ideaBgLayer.add(bg);
+    _ideaStage.add(_ideaBgLayer);
+
+    _ideaLayer = new Konva.Layer();
+    _ideaStage.add(_ideaLayer);
+
+    _ideaTransformer = new Konva.Transformer({
+      rotateEnabled: true,
+      anchorSize: 9,
+      borderStroke: '#4f46e5',
+      anchorStroke: '#4f46e5',
+      anchorFill: 'white',
+      borderDash: [4, 3]
+    });
+    _ideaLayer.add(_ideaTransformer);
+
+    // --- Restore saved state (if any) ---
+    ideaRestoreFromStorage();
+
+    // --- Responsive resize: stretch stage + bg rect to frame ---
+    const doResize = () => {
+      if (!_ideaStage) return;
+      const r = frame.getBoundingClientRect();
+      const w = Math.max(300, Math.round(r.width));
+      const h = Math.max(300, Math.round(r.height));
+      if (w === _ideaStage.width() && h === _ideaStage.height()) return;
+      _ideaStage.width(w);
+      _ideaStage.height(h);
+      bg.width(w);
+      bg.height(h);
+      _ideaBgLayer.batchDraw();
+    };
+    _ideaResizeObs = new ResizeObserver(doResize);
+    _ideaResizeObs.observe(frame);
+    _ideaCleanup.push(() => { try { _ideaResizeObs.disconnect(); } catch (e) {} });
+
+    // --- Stage event wiring ---
+    _ideaStage.on('mousedown touchstart', ideaOnStageDown);
+    _ideaStage.on('mousemove touchmove', ideaOnStageMove);
+    _ideaStage.on('mouseup touchend', ideaOnStageUp);
+    _ideaStage.on('click tap', ideaOnStageClick);
+    _ideaStage.on('dblclick dbltap', ideaOnStageDblClick);
+
+    // --- Toolbar wiring ---
+    wrap.querySelectorAll('[data-idea-tool]').forEach(btn => {
+      btn.addEventListener('click', () => ideaSetTool(btn.dataset.ideaTool));
+    });
+    ideaUpdateToolHighlight();
+
+    document.getElementById('ideaImageBtn').addEventListener('click', () => {
+      document.getElementById('ideaImageInput').click();
+    });
+    document.getElementById('ideaImageInput').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) ideaAddImageFromFile(file);
+      e.target.value = '';
+    });
+
+    // Drag-and-drop image onto canvas
+    const onDragOver = (e) => { e.preventDefault(); frame.classList.add('is-dropping'); };
+    const onDragLeave = () => frame.classList.remove('is-dropping');
+    const onDrop = (e) => {
+      e.preventDefault();
+      frame.classList.remove('is-dropping');
+      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) ideaAddImageFromFile(file);
+    };
+    frame.addEventListener('dragover', onDragOver);
+    frame.addEventListener('dragleave', onDragLeave);
+    frame.addEventListener('drop', onDrop);
+    _ideaCleanup.push(() => {
+      frame.removeEventListener('dragover', onDragOver);
+      frame.removeEventListener('dragleave', onDragLeave);
+      frame.removeEventListener('drop', onDrop);
+    });
+
+    document.getElementById('ideaUndo').addEventListener('click', ideaUndo);
+    document.getElementById('ideaClear').addEventListener('click', () => {
+      if (_ideaLayer.getChildren(n => n !== _ideaTransformer).length === 0) {
+        schemToast('Already empty.');
+        return;
+      }
+      if (!confirm('Clear the whole idea board? This cannot be undone.')) return;
+      ideaPushHistory();
+      _ideaTransformer.nodes([]);
+      _ideaLayer.getChildren(n => n !== _ideaTransformer).forEach(n => n.destroy());
+      _ideaSelected = null;
+      _ideaLayer.batchDraw();
+      ideaScheduleSave();
+      schemToast('Canvas cleared.');
+    });
+
+    const saveBtn = document.getElementById('ideaSaveTo');
+    saveBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (_saveToPopOpen && _saveToPopOpen.anchorEl === saveBtn) {
+        closeSaveToPop();
+        return;
+      }
+      const buildBlob = () => ideaBuildPngBlob();
+      openSaveToPop(saveBtn, 'idea-board', buildBlob);
+    });
+
+    document.getElementById('ideaDownload').addEventListener('click', async () => {
+      try {
+        const blob = await ideaBuildPngBlob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+        a.href = url;
+        a.download = `idea-board-${stamp}.png`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 500);
+      } catch (err) {
+        console.warn('idea download failed', err);
+        schemToast('Could not export image.');
+      }
+    });
+
+    // --- Keyboard: undo + delete selection ---
+    const onKey = (e) => {
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        ideaUndo();
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if ((e.key === 'Delete' || e.key === 'Backspace') && _ideaTransformer.nodes().length) {
+        e.preventDefault();
+        ideaPushHistory();
+        _ideaTransformer.nodes().forEach(n => n.destroy());
+        _ideaTransformer.nodes([]);
+        _ideaSelected = null;
+        _ideaLayer.batchDraw();
+        ideaScheduleSave();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    _ideaCleanup.push(() => document.removeEventListener('keydown', onKey));
+
+    // Backlink: leaving the tool tears down listeners.
+    backBtn.addEventListener('click', () => {
+      _ideaCleanup.forEach(fn => { try { fn(); } catch (e) {} });
+      _ideaCleanup = [];
+      if (_ideaTextEditor && _ideaTextEditor.parentNode) {
+        _ideaTextEditor.parentNode.removeChild(_ideaTextEditor);
+        _ideaTextEditor = null;
+      }
+    });
+  }
+
+  function renderIdeaColors() {
+    const row = document.getElementById('ideaColors');
+    if (!row) return;
+    row.innerHTML = '';
+    Object.entries(IDEA_COLORS).forEach(([name, hex]) => {
+      const btn = document.createElement('button');
+      btn.className = 'idea-color' + (name === _ideaColor ? ' is-active' : '');
+      btn.style.background = hex;
+      btn.title = name;
+      btn.setAttribute('aria-label', `Color: ${name}`);
+      btn.addEventListener('click', () => {
+        _ideaColor = name;
+        renderIdeaColors();
+        // If something is selected, recolor its stroke (and fill if it had one).
+        const nodes = _ideaTransformer.nodes();
+        if (nodes.length) {
+          ideaPushHistory();
+          nodes.forEach(n => {
+            if (n.stroke) n.stroke(IDEA_COLORS[name]);
+            // Don't auto-fill a transparent shape; only update existing solid fills.
+            if (n.getClassName && n.getClassName() === 'Text') n.fill(IDEA_COLORS[name]);
+          });
+          _ideaLayer.batchDraw();
+          ideaScheduleSave();
+        }
+      });
+      row.appendChild(btn);
+    });
+  }
+
+  function renderIdeaWidths() {
+    const row = document.getElementById('ideaWidths');
+    if (!row) return;
+    row.innerHTML = '';
+    Object.entries(IDEA_WIDTHS).forEach(([name, px]) => {
+      const btn = document.createElement('button');
+      btn.className = 'idea-width' + (name === _ideaWidth ? ' is-active' : '');
+      btn.title = `${name} stroke`;
+      btn.setAttribute('aria-label', `Stroke width: ${name}`);
+      // Visible bar — height scales with width.
+      const bar = document.createElement('span');
+      bar.style.height = Math.max(2, Math.min(8, px)) + 'px';
+      btn.appendChild(bar);
+      btn.addEventListener('click', () => {
+        _ideaWidth = name;
+        renderIdeaWidths();
+        const nodes = _ideaTransformer.nodes();
+        if (nodes.length) {
+          ideaPushHistory();
+          nodes.forEach(n => { if (typeof n.strokeWidth === 'function') n.strokeWidth(IDEA_WIDTHS[name]); });
+          _ideaLayer.batchDraw();
+          ideaScheduleSave();
+        }
+      });
+      row.appendChild(btn);
+    });
+  }
+
+  function ideaSetTool(tool) {
+    _ideaTool = tool;
+    // Deselect when switching off Select.
+    if (tool !== 'select') {
+      _ideaTransformer.nodes([]);
+      _ideaSelected = null;
+      _ideaLayer.batchDraw();
+    }
+    ideaUpdateToolHighlight();
+    // Cursor hint on the stage container.
+    const frame = document.getElementById('ideaFrame');
+    if (frame) {
+      const cursor = ({
+        select: 'default',
+        pen: 'crosshair',
+        highlight: 'crosshair',
+        eraser: 'pointer',
+        callout: 'text',
+        rect: 'crosshair',
+        ellipse: 'crosshair',
+        line: 'crosshair',
+        arrow: 'crosshair'
+      })[tool] || 'default';
+      frame.style.cursor = cursor;
+    }
+  }
+
+  function ideaUpdateToolHighlight() {
+    document.querySelectorAll('[data-idea-tool]').forEach(btn => {
+      btn.classList.toggle('is-active', btn.dataset.ideaTool === _ideaTool);
+    });
+  }
+
+  // --- Drawing handlers ---
+  function ideaOnStageDown(e) {
+    // Ignore mousedown on the transformer itself or on a selected node when in Select.
+    if (_ideaTool === 'select') return;
+    if (_ideaTool === 'eraser') return;     // handled in click handler
+    if (_ideaTool === 'callout') return;    // handled in click handler
+
+    const pos = _ideaStage.getPointerPosition();
+    if (!pos) return;
+    _ideaDrawing = true;
+    ideaPushHistory();
+
+    if (_ideaTool === 'pen' || _ideaTool === 'highlight') {
+      const isHi = _ideaTool === 'highlight';
+      _ideaCurrentLine = new Konva.Line({
+        stroke: ideaPalette(),
+        strokeWidth: isHi ? Math.max(12, ideaStroke() * 4) : ideaStroke(),
+        opacity: isHi ? 0.35 : 1,
+        lineCap: 'round',
+        lineJoin: 'round',
+        tension: 0.5,
+        bezier: true,
+        points: [pos.x, pos.y, pos.x, pos.y],
+        globalCompositeOperation: 'source-over',
+        draggable: false
+      });
+      _ideaLayer.add(_ideaCurrentLine);
+      return;
+    }
+
+    if (_ideaTool === 'rect') {
+      _ideaCurrentShape = new Konva.Rect({
+        x: pos.x, y: pos.y, width: 1, height: 1,
+        stroke: ideaPalette(), strokeWidth: ideaStroke(),
+        fill: 'transparent', draggable: true
+      });
+      _ideaLayer.add(_ideaCurrentShape);
+      return;
+    }
+    if (_ideaTool === 'ellipse') {
+      _ideaCurrentShape = new Konva.Ellipse({
+        x: pos.x, y: pos.y, radiusX: 1, radiusY: 1,
+        stroke: ideaPalette(), strokeWidth: ideaStroke(),
+        fill: 'transparent', draggable: true
+      });
+      _ideaCurrentShape._startX = pos.x;
+      _ideaCurrentShape._startY = pos.y;
+      _ideaLayer.add(_ideaCurrentShape);
+      return;
+    }
+    if (_ideaTool === 'line') {
+      _ideaCurrentShape = new Konva.Line({
+        points: [pos.x, pos.y, pos.x, pos.y],
+        stroke: ideaPalette(), strokeWidth: ideaStroke(),
+        lineCap: 'round', draggable: true
+      });
+      _ideaLayer.add(_ideaCurrentShape);
+      return;
+    }
+    if (_ideaTool === 'arrow') {
+      _ideaCurrentShape = new Konva.Arrow({
+        points: [pos.x, pos.y, pos.x, pos.y],
+        stroke: ideaPalette(), strokeWidth: ideaStroke(),
+        fill: ideaPalette(),
+        pointerLength: 12, pointerWidth: 10, draggable: true
+      });
+      _ideaLayer.add(_ideaCurrentShape);
+      return;
+    }
+  }
+
+  function ideaOnStageMove() {
+    if (!_ideaDrawing) return;
+    const pos = _ideaStage.getPointerPosition();
+    if (!pos) return;
+
+    if (_ideaCurrentLine) {
+      const pts = _ideaCurrentLine.points().concat([pos.x, pos.y]);
+      _ideaCurrentLine.points(pts);
+      _ideaLayer.batchDraw();
+      return;
+    }
+    if (_ideaCurrentShape) {
+      const cls = _ideaCurrentShape.getClassName();
+      if (cls === 'Rect') {
+        const x0 = _ideaCurrentShape.x();
+        const y0 = _ideaCurrentShape.y();
+        _ideaCurrentShape.width(pos.x - x0);
+        _ideaCurrentShape.height(pos.y - y0);
+      } else if (cls === 'Ellipse') {
+        const cx = _ideaCurrentShape._startX;
+        const cy = _ideaCurrentShape._startY;
+        _ideaCurrentShape.x((cx + pos.x) / 2);
+        _ideaCurrentShape.y((cy + pos.y) / 2);
+        _ideaCurrentShape.radiusX(Math.abs(pos.x - cx) / 2);
+        _ideaCurrentShape.radiusY(Math.abs(pos.y - cy) / 2);
+      } else if (cls === 'Line' || cls === 'Arrow') {
+        const pts = _ideaCurrentShape.points();
+        _ideaCurrentShape.points([pts[0], pts[1], pos.x, pos.y]);
+      }
+      _ideaLayer.batchDraw();
+    }
+  }
+
+  function ideaOnStageUp() {
+    if (!_ideaDrawing) return;
+    _ideaDrawing = false;
+
+    // Reject tiny accidental shapes (single-click on a shape tool shouldn't
+    // litter the canvas with a 0-px Rect).
+    if (_ideaCurrentShape) {
+      const cls = _ideaCurrentShape.getClassName();
+      let isTiny = false;
+      if (cls === 'Rect') isTiny = Math.abs(_ideaCurrentShape.width()) < 4 || Math.abs(_ideaCurrentShape.height()) < 4;
+      else if (cls === 'Ellipse') isTiny = _ideaCurrentShape.radiusX() < 3 || _ideaCurrentShape.radiusY() < 3;
+      else if (cls === 'Line' || cls === 'Arrow') {
+        const p = _ideaCurrentShape.points();
+        const dx = p[2] - p[0]; const dy = p[3] - p[1];
+        isTiny = Math.hypot(dx, dy) < 4;
+      }
+      if (isTiny) _ideaCurrentShape.destroy();
+      else {
+        // Normalize negative-width rects so they're easier to select/resize.
+        if (cls === 'Rect') {
+          if (_ideaCurrentShape.width() < 0) {
+            _ideaCurrentShape.x(_ideaCurrentShape.x() + _ideaCurrentShape.width());
+            _ideaCurrentShape.width(-_ideaCurrentShape.width());
+          }
+          if (_ideaCurrentShape.height() < 0) {
+            _ideaCurrentShape.y(_ideaCurrentShape.y() + _ideaCurrentShape.height());
+            _ideaCurrentShape.height(-_ideaCurrentShape.height());
+          }
+        }
+      }
+      _ideaCurrentShape = null;
+    }
+    _ideaCurrentLine = null;
+    _ideaLayer.batchDraw();
+    ideaScheduleSave();
+  }
+
+  function ideaOnStageClick(e) {
+    const target = e.target;
+    // Eraser: any click on an actual shape deletes it (object-level delete,
+    // not pixel erase). Background hits do nothing.
+    if (_ideaTool === 'eraser') {
+      if (target && target !== _ideaStage && target.name && target.name() !== 'idea-bg') {
+        ideaPushHistory();
+        if (_ideaTransformer.nodes().includes(target)) _ideaTransformer.nodes([]);
+        // For a child of a group (e.g. callout text or rect), destroy the group.
+        const parent = target.getParent && target.getParent();
+        if (parent && parent.getClassName && parent.getClassName() === 'Group' && parent !== _ideaLayer) {
+          parent.destroy();
+        } else if (target !== _ideaTransformer) {
+          target.destroy();
+        }
+        _ideaLayer.batchDraw();
+        ideaScheduleSave();
+      } else if (target && target.getParent && target.getParent().getClassName && target.getParent().getClassName() === 'Group') {
+        // Group children (callout pieces) don't always have a name.
+        ideaPushHistory();
+        target.getParent().destroy();
+        _ideaLayer.batchDraw();
+        ideaScheduleSave();
+      }
+      return;
+    }
+
+    // Callout: click on empty canvas creates a new callout there.
+    if (_ideaTool === 'callout') {
+      // Only create if the click landed on the stage / background, not on an
+      // existing shape — let the kid keep selecting existing callouts.
+      const isBg = target === _ideaStage || (target.name && target.name() === 'idea-bg');
+      if (isBg) {
+        const pos = _ideaStage.getPointerPosition();
+        if (pos) ideaCreateCallout(pos.x, pos.y);
+        return;
+      }
+    }
+
+    // Select tool: click selects a shape; click on background clears.
+    if (_ideaTool === 'select') {
+      if (target === _ideaStage || (target.name && target.name() === 'idea-bg')) {
+        _ideaTransformer.nodes([]);
+        _ideaSelected = null;
+        _ideaLayer.batchDraw();
+        return;
+      }
+      // Walk up to the top-level layer child (so clicking inside a Group
+      // selects the Group, not its inner Rect).
+      let node = target;
+      while (node && node.getParent && node.getParent() !== _ideaLayer) {
+        node = node.getParent();
+        if (!node || node === _ideaStage) break;
+      }
+      if (!node || node === _ideaTransformer || node === _ideaStage) return;
+      node.draggable(true);
+      _ideaTransformer.nodes([node]);
+      _ideaSelected = node._id;
+      _ideaLayer.batchDraw();
+    }
+  }
+
+  function ideaOnStageDblClick(e) {
+    // Double-click a callout to edit its text in an overlaid textarea.
+    const target = e.target;
+    let group = target;
+    while (group && group.getParent && group.getParent() !== _ideaLayer) group = group.getParent();
+    if (!group || !group.getAttr || group.getAttr('ideaKind') !== 'callout') return;
+    const textNode = group.findOne('Text');
+    if (textNode) ideaOpenTextEditor(group, textNode);
+  }
+
+  // --- Callout creation + inline edit ---
+  function ideaCreateCallout(x, y) {
+    ideaPushHistory();
+    const group = new Konva.Group({
+      x, y,
+      draggable: true,
+      ideaKind: 'callout'
+    });
+    const text = new Konva.Text({
+      text: 'Label',
+      fontSize: 16,
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fill: ideaPalette(),
+      padding: 8,
+      lineHeight: 1.35
+    });
+    const w = Math.max(60, text.width());
+    const h = Math.max(28, text.height());
+    const bg = new Konva.Rect({
+      x: 0, y: 0,
+      width: w, height: h,
+      fill: 'white',
+      stroke: ideaPalette(),
+      strokeWidth: 1.5,
+      cornerRadius: 6
+    });
+    group.add(bg);
+    group.add(text);
+    _ideaLayer.add(group);
+    _ideaLayer.batchDraw();
+    ideaScheduleSave();
+    // Drop the user straight into the edit textarea.
+    ideaOpenTextEditor(group, text);
+  }
+
+  function ideaOpenTextEditor(group, textNode) {
+    if (_ideaTextEditor && _ideaTextEditor.parentNode) {
+      _ideaTextEditor.parentNode.removeChild(_ideaTextEditor);
+      _ideaTextEditor = null;
+    }
+    const frame = document.getElementById('ideaFrame');
+    const stageBox = frame.getBoundingClientRect();
+    const containerBox = frame.parentElement.getBoundingClientRect();
+    const absPos = group.getAbsolutePosition();
+
+    const ta = document.createElement('textarea');
+    ta.className = 'idea-text-edit';
+    ta.value = textNode.text();
+    // Position relative to the wrap (which is positioned).
+    ta.style.left = (stageBox.left - containerBox.left + absPos.x) + 'px';
+    ta.style.top = (stageBox.top - containerBox.top + absPos.y) + 'px';
+    ta.style.minWidth = Math.max(80, textNode.width()) + 'px';
+    ta.style.minHeight = Math.max(24, textNode.height()) + 'px';
+    ta.style.color = textNode.fill();
+    frame.parentElement.appendChild(ta);
+    ta.focus();
+    ta.select();
+    _ideaTextEditor = ta;
+
+    const commit = () => {
+      if (_ideaTextEditor !== ta) return;
+      ideaPushHistory();
+      const val = ta.value.trim() || 'Label';
+      textNode.text(val);
+      const newW = Math.max(60, textNode.width());
+      const newH = Math.max(28, textNode.height());
+      const bg = group.findOne('Rect');
+      if (bg) { bg.width(newW); bg.height(newH); }
+      _ideaLayer.batchDraw();
+      ideaScheduleSave();
+      if (ta.parentNode) ta.parentNode.removeChild(ta);
+      _ideaTextEditor = null;
+      document.removeEventListener('mousedown', onOutside, true);
+    };
+    const onOutside = (ev) => {
+      if (ev.target !== ta) commit();
+    };
+    ta.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape') { ev.preventDefault(); commit(); }
+      if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); commit(); }
+    });
+    // Defer so the dblclick doesn't trip it.
+    setTimeout(() => document.addEventListener('mousedown', onOutside, true), 0);
+  }
+
+  // --- Image upload (file picker or drag-drop) ---
+  function ideaAddImageFromFile(file) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target.result;
+      const img = new Image();
+      img.onload = () => {
+        ideaPushHistory();
+        const stageW = _ideaStage.width();
+        const targetW = stageW * 0.5;
+        const scale = targetW / img.width;
+        const w = img.width * scale;
+        const h = img.height * scale;
+        const kImg = new Konva.Image({
+          image: img,
+          x: (_ideaStage.width() - w) / 2,
+          y: (_ideaStage.height() - h) / 2,
+          width: w,
+          height: h,
+          draggable: true,
+          ideaImageSrc: dataUrl   // persisted so we can re-hydrate from JSON
+        });
+        // Drop images behind drawn marks (but above bg).
+        kImg.moveToBottom();
+        _ideaLayer.add(kImg);
+        _ideaLayer.batchDraw();
+        ideaScheduleSave();
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // --- History (undo) ---
+  // Strip the Transformer before snapshotting so each undo cycle doesn't
+  // accrue an orphan handle node in the rebuilt layer.
+  function ideaPushHistory() {
+    try {
+      const layerJson = JSON.parse(_ideaLayer.toJSON());
+      if (layerJson.children) {
+        layerJson.children = layerJson.children.filter(c => c.className !== 'Transformer');
+      }
+      _ideaHistory.push(layerJson);
+      if (_ideaHistory.length > 30) _ideaHistory.shift();
+    } catch (e) {}
+  }
+  function ideaUndo() {
+    if (!_ideaHistory.length) { schemToast('Nothing to undo.'); return; }
+    const snap = _ideaHistory.pop();
+    ideaRestoreLayerFromJSON(snap);
+    ideaScheduleSave();
+  }
+
+  function ideaRestoreLayerFromJSON(json) {
+    // Tear down the current layer and rebuild from JSON. Preserve images by
+    // matching saved data URLs back to HTMLImageElements.
+    if (!_ideaLayer) return;
+    let parsed;
+    try { parsed = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return; }
+    _ideaTransformer.nodes([]);
+    _ideaLayer.destroyChildren();
+    // Konva.Node.create rebuilds children for a layer from its JSON.
+    // We rebuild manually to keep our existing transformer.
+    if (parsed && parsed.children) {
+      parsed.children.forEach(childJson => {
+        try {
+          const node = Konva.Node.create(childJson);
+          _ideaLayer.add(node);
+          if (node.getClassName && node.getClassName() === 'Image') {
+            const src = node.getAttr('ideaImageSrc');
+            if (src) {
+              const img = new Image();
+              img.onload = () => { node.image(img); _ideaLayer.batchDraw(); };
+              img.src = src;
+            }
+          }
+        } catch (e) { /* skip broken node */ }
+      });
+    }
+    _ideaLayer.add(_ideaTransformer);
+    _ideaSelected = null;
+    _ideaLayer.batchDraw();
+  }
+
+  function ideaScheduleSave() {
+    if (_ideaSaveTimer) clearTimeout(_ideaSaveTimer);
+    _ideaSaveTimer = setTimeout(ideaSaveToStorage, 350);
+  }
+  function ideaSaveToStorage() {
+    try {
+      // Strip the transformer from the snapshot so we don't re-create handles on load.
+      const layerJson = JSON.parse(_ideaLayer.toJSON());
+      if (layerJson.children) {
+        layerJson.children = layerJson.children.filter(c => c.className !== 'Transformer');
+      }
+      localStorage.setItem(IDEA_STORAGE_KEY, JSON.stringify({
+        version: 1,
+        layer: layerJson
+      }));
+    } catch (e) { /* quota, etc — ignore */ }
+  }
+  function ideaRestoreFromStorage() {
+    try {
+      const raw = localStorage.getItem(IDEA_STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data || !data.layer) return;
+      ideaRestoreLayerFromJSON(data.layer);
+    } catch (e) {}
+  }
+
+  // --- PNG export (white background under everything) ---
+  function ideaBuildPngBlob() {
+    return new Promise((resolve, reject) => {
+      if (!_ideaStage) { reject(new Error('no stage')); return; }
+      // Temporarily detach transformer for a clean export, then restore.
+      const nodes = _ideaTransformer.nodes();
+      _ideaTransformer.nodes([]);
+      _ideaTransformer.visible(false);
+      _ideaLayer.batchDraw();
+      // Swap the cream background to white so the export reads as a clean
+      // sketch on paper, not on a colored card.
+      const bg = _ideaBgLayer.findOne('.idea-bg');
+      const prevFill = bg ? bg.fill() : null;
+      if (bg) { bg.fill('#ffffff'); _ideaBgLayer.batchDraw(); }
+      try {
+        const dataUrl = _ideaStage.toDataURL({ pixelRatio: 2, mimeType: 'image/png' });
+        fetch(dataUrl).then(r => r.blob()).then(b => {
+          if (bg) { bg.fill(prevFill || '#FAF6EE'); _ideaBgLayer.batchDraw(); }
+          _ideaTransformer.visible(true);
+          _ideaTransformer.nodes(nodes);
+          _ideaLayer.batchDraw();
+          resolve(b);
+        }).catch(err => {
+          if (bg) { bg.fill(prevFill || '#FAF6EE'); _ideaBgLayer.batchDraw(); }
+          _ideaTransformer.visible(true);
+          _ideaTransformer.nodes(nodes);
+          _ideaLayer.batchDraw();
+          reject(err);
+        });
+      } catch (err) {
+        if (bg) { bg.fill(prevFill || '#FAF6EE'); _ideaBgLayer.batchDraw(); }
+        _ideaTransformer.visible(true);
+        _ideaTransformer.nodes(nodes);
+        _ideaLayer.batchDraw();
+        reject(err);
+      }
+    });
   }
 
   // ============== INIT ==============
@@ -10759,6 +11785,9 @@
     } else if (r === '/tools/schematic') {
       document.body.classList.add('view-tools');
       initSchematicTool();
+    } else if (r === '/tools/idea-board') {
+      document.body.classList.add('view-tools');
+      initIdeaBoardTool();
     } else if (r === '/tools') {
       document.body.classList.add('view-tools');
       renderTools();
