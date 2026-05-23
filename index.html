@@ -70,7 +70,7 @@
     gap: 16px;
   }
   .header-title {
-    font-size: clamp(18px, 2.4vw, 26px);
+    font-size: clamp(22px, 3vw, 34px);
     font-weight: 800;
     letter-spacing: -0.03em;
     color: var(--ink-hi);
@@ -1614,7 +1614,7 @@
 
   .pf-slots {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     gap: 10px;
   }
   .pf-slot {
@@ -2589,7 +2589,7 @@
 
   /* ============== TABLET ============== */
   @media (max-width: 900px) and (min-width: 641px) {
-    .pf-slots { grid-template-columns: repeat(6, 1fr); gap: 8px; }
+    .pf-slots { grid-template-columns: repeat(7, 1fr); gap: 8px; }
     .pf-slot-tile { min-height: 110px; padding: 12px 6px; }
     .pf-slot-icon { font-size: 22px; }
     .pf-slot-label { font-size: 11px; letter-spacing: 1px; }
@@ -7730,12 +7730,12 @@
 
   // ============== PORTFOLIO SYSTEM ==============
   const SLOT_DEFS = [
+    { key: 'sketch',  label: 'Sketch',  icon: ICON_SKETCH,  accept: 'image/png,image/jpeg',                                          exts: 'PNG, JPG',  fileTypes: 'image', allowFile: true,  allowLink: false },
+    { key: 'cad',     label: 'CAD',     icon: ICON_CAD,     accept: '.stl,model/stl,application/sla,application/vnd.ms-pki.stl',    exts: 'STL',       fileTypes: 'cad',   allowFile: true,  allowLink: true  },
+    { key: 'code',    label: 'Code',    icon: ICON_CODE,    accept: 'application/pdf',                                               exts: 'PDF',       fileTypes: 'pdf',  allowFile: true,  allowLink: false },
+    { key: 'wiring',  label: 'Wiring',  icon: ICON_WIRING,  accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
     { key: 'image',   label: 'Image',   icon: ICON_IMAGE,   accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
     { key: 'video',   label: 'Video',   icon: ICON_VIDEO,   accept: 'video/mp4',                                                     exts: 'MP4',       fileTypes: 'video', allowFile: true,  allowLink: true  },
-    { key: 'cad',     label: 'CAD',     icon: ICON_CAD,     accept: '.stl,model/stl,application/sla,application/vnd.ms-pki.stl',    exts: 'STL',       fileTypes: 'cad',   allowFile: true,  allowLink: true  },
-    { key: 'wiring',  label: 'Wiring',  icon: ICON_WIRING,  accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
-    { key: 'sketch',  label: 'Sketch',  icon: ICON_SKETCH,  accept: 'image/png,image/jpeg',                                          exts: 'PNG, JPG',  fileTypes: 'image', allowFile: true,  allowLink: false },
-    { key: 'code',    label: 'Code',    icon: ICON_CODE,    accept: 'application/pdf',                                               exts: 'PDF',       fileTypes: 'pdf',  allowFile: true,  allowLink: false },
     { key: 'summary', label: 'Summary', icon: ICON_SUMMARY, accept: '',                                                              exts: 'Text only', fileTypes: 'text', allowFile: false, allowLink: false }
   ];
   const SUMMARY_MAX = 1500;
