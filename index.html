@@ -3917,35 +3917,31 @@
   .idea-toolbar {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
     flex-wrap: wrap;
-    padding: 14px 18px;
+    padding: 8px 12px;
     background: var(--bg-1);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 12px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
   .idea-toolbar-group {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    padding-left: 10px;
+    border-left: 1px solid var(--border);
   }
-  .idea-toolbar-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--ink-low);
-  }
+  .idea-toolbar-label { display: none; }
   .idea-color-row {
     display: flex;
-    gap: 6px;
+    gap: 4px;
   }
   .idea-color {
-    width: 26px;
-    height: 26px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    border: 2px solid var(--border-strong);
+    border: 1.5px solid var(--border-strong);
     cursor: pointer;
     transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     padding: 0;
@@ -3958,12 +3954,12 @@
   /* Stroke-width chip row — three pills with a visible bar inside. */
   .idea-width-row {
     display: flex;
-    gap: 6px;
+    gap: 4px;
   }
   .idea-width {
-    width: 30px;
-    height: 26px;
-    border-radius: 8px;
+    width: 26px;
+    height: 22px;
+    border-radius: 6px;
     border: 1.5px solid var(--border);
     background: var(--bg-1);
     cursor: pointer;
@@ -11008,12 +11004,10 @@
           </div>
 
           <div class="idea-toolbar-group">
-            <span class="idea-toolbar-label">Color</span>
             <div class="idea-color-row" id="ideaColors"></div>
           </div>
 
           <div class="idea-toolbar-group">
-            <span class="idea-toolbar-label">Stroke</span>
             <div class="idea-width-row" id="ideaWidths"></div>
           </div>
 
@@ -11036,7 +11030,6 @@
         </div>
 
         <div class="idea-stage">
-          <div class="idea-hint" id="ideaHint">Select a tool above. <strong>Pen</strong> and <strong>highlighter</strong> drag to draw. Shapes drag to create. <strong>Eraser</strong> clicks a shape to delete it. Double-click a callout to edit its text.</div>
           <div class="idea-canvas-wrap">
             <div class="idea-canvas-frame" id="ideaFrame"></div>
           </div>
