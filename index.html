@@ -51,7 +51,7 @@
   }
 
   /* ============== STICKY HEADER ============== */
-  header {
+  body > header {
     position: sticky;
     top: 0;
     z-index: 50;
@@ -2937,7 +2937,7 @@
   }
   .schem-canvas {
     display: block;
-    background: #FAF6EE;  /* clean workspace */
+    background: #FFFFFF;
     border-radius: 8px;
     user-select: none;
   }
@@ -3995,7 +3995,7 @@
     position: relative;
   }
   .idea-canvas-frame {
-    background: #FAF6EE;
+    background: #FFFFFF;
     border-radius: 8px;
     overflow: hidden;
     width: 100%;
@@ -4851,37 +4851,67 @@
       pinStyle: 'pad'
     },
 
-    // Mini-breadboard: 17 columns × 5 rows top + 17 columns × 5 rows bottom,
-    // with a horizontal channel between them. No power rails — matches the
-    // small white prototyping breadboards the class uses. Pins on the middle
-    // (channel) row are intentionally omitted.
+    // Standard full-size 830-point breadboard (Adafruit #64 layout): 63 tie
+    // columns × 5 rows top (A-E) + 63 × 5 rows bottom (F-J), center channel,
+    // and four power rails — red (+) and black (-) along the top and bottom.
+    // Rail rows: 0 = top +, 1 = top -, 15 = bottom +, 16 = bottom -.
+    // Tie rows: 3-7 (A-E) and 9-13 (F-J). Row 8 is the channel (no pins).
     breadboard: {
       group: 'boards',
       label: 'Breadboard',
-      w: 17, h: 11,
+      w: 65, h: 17,
       pins: (() => {
         const out = [];
-        for (let r = 0; r < 11; r++) {
-          if (r === 5) continue; // center channel — no tie-points here
-          for (let c = 0; c < 17; c++) {
-            out.push({ name: `r${r}c${c}`, gx: c + 0.5, gy: r + 0.5 });
+        const allRows = [0, 1, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 15, 16];
+        for (const r of allRows) {
+          for (let c = 0; c < 63; c++) {
+            out.push({ name: `r${r}c${c}`, gx: c + 1.5, gy: r + 0.5 });
           }
         }
         return out;
       })(),
       svg: function() {
-        const W = 17 * SCHEM_GRID_PITCH;
-        const H = 11 * SCHEM_GRID_PITCH;
-        const channelY = 5 * SCHEM_GRID_PITCH;
-        const channelH = SCHEM_GRID_PITCH;
+        const P = SCHEM_GRID_PITCH;
+        const W = 65 * P;
+        const H = 17 * P;
+        const tieX0 = 1.5 * P;
+        const tieXN = 63.5 * P;
+        const rail = (gy, color, label) => `
+          <line x1="${tieX0 - P * 0.45}" y1="${gy * P + 0.5 * P + (color === '#dc2626' ? P * 0.32 : -P * 0.32)}"
+                x2="${tieXN + P * 0.45}" y2="${gy * P + 0.5 * P + (color === '#dc2626' ? P * 0.32 : -P * 0.32)}"
+                stroke="${color}" stroke-width="2" stroke-linecap="round"/>
+          <text x="${P * 0.7}" y="${gy * P + 0.5 * P + 4}" text-anchor="middle" font-size="11" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
+          <text x="${65 * P - P * 0.7}" y="${gy * P + 0.5 * P + 4}" text-anchor="middle" font-size="11" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
+        `;
+        const colNums = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60].map(n => {
+          const x = (n - 1 + 1.5) * P;
+          return `<text x="${x}" y="${2.7 * P}" text-anchor="middle" font-size="9" fill="#8a8170" font-family="system-ui, sans-serif">${n}</text>
+                  <text x="${x}" y="${14.6 * P}" text-anchor="middle" font-size="9" fill="#8a8170" font-family="system-ui, sans-serif">${n}</text>`;
+        }).join('');
+        const rowLetters = ['A','B','C','D','E','','F','G','H','I','J'].map((L, i) => {
+          if (!L) return '';
+          const baseRow = i < 5 ? 3 : 9;
+          const idx = i < 5 ? i : i - 6;
+          const y = (baseRow + idx + 0.5) * P + 3;
+          return `<text x="${P * 0.7}" y="${y}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L}</text>
+                  <text x="${65 * P - P * 0.7}" y="${y}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L}</text>`;
+        }).join('');
         return `
-          <!-- Cream/ivory substrate, matches the real mini breadboard look -->
-          <rect x="0" y="0" width="${W}" height="${H}" rx="5" fill="#f5f1e6" stroke="#cbc4b3" stroke-width="1.6"/>
-          <!-- Subtle inner edge for depth -->
-          <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="3.5" fill="none" stroke="rgba(0,0,0,0.04)" stroke-width="0.8"/>
-          <!-- Center channel (the gap between the two banks of pins) -->
-          <rect x="${W * 0.025}" y="${channelY + channelH * 0.18}" width="${W * 0.95}" height="${channelH * 0.64}" rx="1.5" fill="#e3dccb" stroke="#b5ad97" stroke-width="0.5"/>
-          <rect x="${W * 0.025}" y="${channelY + channelH * 0.18 + 0.5}" width="${W * 0.95}" height="1.4" fill="rgba(0,0,0,0.08)"/>
+          <!-- Substrate -->
+          <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#f5f1e6" stroke="#cbc4b3" stroke-width="1.6"/>
+          <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="4" fill="none" stroke="rgba(0,0,0,0.04)" stroke-width="0.8"/>
+          <!-- Power rails: top + / top - / bottom + / bottom - -->
+          ${rail(0, '#dc2626', '+')}
+          ${rail(1, '#111827', '-')}
+          ${rail(15, '#dc2626', '+')}
+          ${rail(16, '#111827', '-')}
+          <!-- Center channel (gap between A-E and F-J banks) -->
+          <rect x="${P * 0.5}" y="${8 * P + P * 0.18}" width="${W - P}" height="${P * 0.64}" rx="2" fill="#e3dccb" stroke="#b5ad97" stroke-width="0.5"/>
+          <rect x="${P * 0.5}" y="${8 * P + P * 0.18 + 0.5}" width="${W - P}" height="1.4" fill="rgba(0,0,0,0.08)"/>
+          <!-- Column numbers (top + bottom) -->
+          ${colNums}
+          <!-- Row letters (left + right) -->
+          ${rowLetters}
         `;
       },
       pinLabels: false,
@@ -6865,7 +6895,7 @@
 
       html += `<article class="prog-card${isMe ? ' is-you' : ''}">
         <header class="prog-card-head">
-          <h3 class="prog-card-name">${escapeHtml(name)}${isMe ? '<span class="prog-card-you">you</span>' : ''}</h3>
+          <h3 class="prog-card-name">${escapeHtml(name)}</h3>
         </header>
         <ul class="prog-card-rows">`;
 
