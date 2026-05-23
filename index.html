@@ -542,6 +542,62 @@
     background: rgba(0, 0, 0, 0.04);
   }
 
+  /* ===== Product-benchmark brief: story hook + How Might We + persona roster ===== */
+  .cp-brief { display: flex; flex-direction: column; gap: 16px; }
+  .cp-brief-hook {
+    font-size: 15.5px;
+    color: var(--ink-mid);
+    margin: 0;
+    line-height: 1.6;
+    border-left: 3px solid var(--accent);
+    padding-left: 14px;
+  }
+  .cp-brief-challenge {
+    font-size: 15.5px;
+    font-weight: 600;
+    color: var(--ink-hi);
+    margin: 0;
+    line-height: 1.5;
+  }
+  .cp-brief-pick {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-low);
+    margin: 0;
+  }
+  .cp-persona-roster {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 900px) {
+    .cp-persona-roster { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .cp-persona-roster { grid-template-columns: 1fr; }
+  }
+  .cp-persona {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cp-persona-name { font-weight: 700; font-size: 14px; color: var(--ink-hi); }
+  .cp-persona-cond {
+    font-size: 10px;
+    color: var(--ink-low);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 4px;
+  }
+  .cp-persona-row { font-size: 12.5px; color: var(--ink-mid); line-height: 1.45; }
+  .cp-persona-row strong { color: var(--ink-hi); font-weight: 600; }
+
   /* ===== Benchmark step instructions — gorgeous, simple, scannable ===== */
   .cp-steps {
     display: flex;
@@ -4256,7 +4312,25 @@
           id: 'p1b4',
           title: 'Product',
           points: 2,
-          instructions: 'Move from breadboard to perfboard with clean solder joints. Design and 3D-print a CAD mount for one of your switches.',
+          brief: {
+            hook: "A switch worth $15 can unlock a one-button rhythm game for a kid who can only move her wrist. The most important assistive technology in the world is sometimes the simplest. Now it is your turn.",
+            challenge: "How might we use a button, a lever, two LEDs, and an Arduino Leonardo to give one specific person a way to do something they want to do but can't?",
+            personas: [
+              { name: 'Maya, 9',   condition: 'Cerebral palsy',                  motion: 'Reliable right-forearm sweep',           goal: 'Play Geometry Dash with her brother (1 key — jump).' },
+              { name: 'Diego, 16', condition: 'Duchenne muscular dystrophy',     motion: 'Light finger taps, very low force',      goal: 'DJ in GarageBand — trigger drum loops (2 keys — kick + snare).' },
+              { name: 'Sam, 14',   condition: 'Non-speaking, dyspraxia',         motion: 'Hits large targets reliably',            goal: 'Tell his teacher "I need a break" without speaking (1-2 keys — each types a preset phrase).' },
+              { name: 'Aisha, 19', condition: 'C5-C6 spinal cord injury',        motion: 'Shoulder shrug + head motion only',      goal: 'Control her audiobook from bed (2 keys — play/pause + skip back).' }
+            ]
+          },
+          instructions: [
+            'Open the [Idea Board](tools#idea-board) and sketch your design. Where does your user\'s reliable motion meet the switch? Where do the LEDs sit so they can see them? What shape does your 3D-printed mount need to be? **Pick the switch (button, lever, or both) that matches your user\'s motion — not what\'s convenient for you.**',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button, Lever, and LED code in the editor — you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: build an HID controller for [your user, by name] that does [their goal, as 1 or 2 specific keystrokes]. Keep the W-key and A-key behaviors I already have. Add an arm/disarm switch so the device cannot run away."*',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
+            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Design a CAD mount in **Tinkercad** that holds the switch where your user\'s motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL.',
+            '3D print your mount and assemble the final product — switch, mount, LEDs, Arduino. Then **test it like your user would** — use only the motion they actually have. If it does not work for their motion, redesign and reprint.',
+            'Complete the **Portfolio Drop** below — Sketch, CAD, Code, Wiring, Image, Video, Summary. *Summary = 4-5 sentences. What can your user do now that they couldn\'t before? What did testing reveal about their motion? What would version 2 change?*'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
@@ -7112,6 +7186,29 @@
     //   [label](tools#vibe)  → inline tool launcher (Vibe Coding)
     //   [label](tools#schematic) → inline tool launcher (Schematic)
     //   [label](https://…)   → external link, new tab
+    // Product-benchmark brief: rendered above Instructions so the user is the
+    // headline, not buried in step 1. Story hook + How Might We + persona roster.
+    if (b.brief) {
+      const sec = document.createElement('div');
+      sec.className = 'modal-section';
+      const personaCards = (b.brief.personas || []).map(p => `
+        <div class="cp-persona">
+          <div class="cp-persona-name">${escapeHtml(p.name)}</div>
+          <div class="cp-persona-cond">${escapeHtml(p.condition)}</div>
+          <div class="cp-persona-row"><strong>Motion:</strong> ${escapeHtml(p.motion)}</div>
+          <div class="cp-persona-row"><strong>Goal:</strong> ${escapeHtml(p.goal)}</div>
+        </div>
+      `).join('');
+      sec.innerHTML = `
+        <h3>${badge()}Brief</h3>
+        <div class="cp-brief">
+          ${b.brief.hook ? `<p class="cp-brief-hook">${escapeHtml(b.brief.hook)}</p>` : ''}
+          ${b.brief.challenge ? `<p class="cp-brief-challenge">${formatStepMarkup(b.brief.challenge)}</p>` : ''}
+          ${personaCards ? `<p class="cp-brief-pick">Pick your user</p><div class="cp-persona-roster">${personaCards}</div>` : ''}
+        </div>
+      `;
+      modalBody.appendChild(sec);
+    }
     if (b.instructions) {
       const sec = document.createElement('div');
       sec.className = 'modal-section';
