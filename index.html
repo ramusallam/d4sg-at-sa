@@ -4851,70 +4851,100 @@
       pinStyle: 'pad'
     },
 
-    // Standard full-size 830-point breadboard (Adafruit #64 layout): 63 tie
-    // columns × 5 rows top (A-E) + 63 × 5 rows bottom (F-J), center channel,
-    // and four power rails — red (+) and black (-) along the top and bottom.
-    // Rail rows: 0 = top +, 1 = top -, 15 = bottom +, 16 = bottom -.
-    // Tie rows: 3-7 (A-E) and 9-13 (F-J). Row 8 is the channel (no pins).
+    // Half-size 400-point breadboard, oriented vertically — matches the white
+    // boards the class uses. 30 numbered rows × A-E (left tie block) + F-J
+    // (right tie block), with a vertical channel down the middle. Two power
+    // rails on each outer edge: red (+) outer, black (-) inner.
+    //
+    // Grid: 17 cols × 32 rows. Tie rows live at gy=1.5..30.5.
+    //   col 0  → left + rail
+    //   col 1  → left - rail
+    //   col 2  → left row-number margin (no pins)
+    //   cols 3-7 → A,B,C,D,E
+    //   col 8  → channel (no pins)
+    //   cols 9-13 → F,G,H,I,J
+    //   col 14 → right row-number margin (no pins)
+    //   col 15 → right - rail
+    //   col 16 → right + rail
     breadboard: {
       group: 'boards',
       label: 'Breadboard',
-      w: 65, h: 17,
+      w: 17, h: 32,
       pins: (() => {
         const out = [];
-        const allRows = [0, 1, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 15, 16];
-        for (const r of allRows) {
-          for (let c = 0; c < 63; c++) {
-            out.push({ name: `r${r}c${c}`, gx: c + 1.5, gy: r + 0.5 });
-          }
+        const LETTERS_LEFT  = ['A','B','C','D','E'];
+        const LETTERS_RIGHT = ['F','G','H','I','J'];
+        for (let r = 1; r <= 30; r++) {
+          const y = r + 0.5;
+          out.push({ name: `Lp${r}`, gx: 0.5,  gy: y }); // left + rail
+          out.push({ name: `Ln${r}`, gx: 1.5,  gy: y }); // left - rail
+          LETTERS_LEFT.forEach((L, i)  => out.push({ name: `${L}${r}`, gx: 3.5 + i, gy: y }));
+          LETTERS_RIGHT.forEach((L, i) => out.push({ name: `${L}${r}`, gx: 9.5 + i, gy: y }));
+          out.push({ name: `Rn${r}`, gx: 15.5, gy: y }); // right - rail
+          out.push({ name: `Rp${r}`, gx: 16.5, gy: y }); // right + rail
         }
         return out;
       })(),
       svg: function() {
         const P = SCHEM_GRID_PITCH;
-        const W = 65 * P;
-        const H = 17 * P;
-        const tieX0 = 1.5 * P;
-        const tieXN = 63.5 * P;
-        const rail = (gy, color, label) => {
-          const y = gy * P + 0.5 * P;
-          const stripH = P * 0.62;
+        const W = 17 * P;
+        const H = 32 * P;
+        const rowY0 = 1 * P + 0.5 * P;       // y of row 1
+        const rowYN = 30 * P + 0.5 * P;      // y of row 30
+        // Vertical rail: colored strip running the full length of a column.
+        const rail = (gx, color, label) => {
+          const x = gx * P + 0.5 * P;
+          const stripW = P * 0.62;
           return `
-            <rect x="${tieX0 - P * 0.5}" y="${y - stripH / 2}" width="${tieXN - tieX0 + P}" height="${stripH}" fill="${color}" opacity="0.22"/>
-            <line x1="${tieX0 - P * 0.5}" y1="${y}" x2="${tieXN + P * 0.5}" y2="${y}" stroke="${color}" stroke-width="3" stroke-linecap="round"/>
-            <text x="${P * 0.7}" y="${y + 4}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
-            <text x="${65 * P - P * 0.7}" y="${y + 4}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
+            <rect x="${x - stripW / 2}" y="${rowY0 - P * 0.5}" width="${stripW}" height="${rowYN - rowY0 + P}" fill="${color}" opacity="0.22"/>
+            <line x1="${x}" y1="${rowY0 - P * 0.5}" x2="${x}" y2="${rowYN + P * 0.5}" stroke="${color}" stroke-width="3" stroke-linecap="round"/>
+            <text x="${x}" y="${rowY0 - P * 0.7}" text-anchor="middle" font-size="12" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
+            <text x="${x}" y="${rowYN + P * 0.9}" text-anchor="middle" font-size="12" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
           `;
         };
-        const colNums = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60].map(n => {
-          const x = (n - 1 + 1.5) * P;
-          return `<text x="${x}" y="${2.7 * P}" text-anchor="middle" font-size="9" fill="#8a8170" font-family="system-ui, sans-serif">${n}</text>
-                  <text x="${x}" y="${14.6 * P}" text-anchor="middle" font-size="9" fill="#8a8170" font-family="system-ui, sans-serif">${n}</text>`;
-        }).join('');
-        const rowLetters = ['A','B','C','D','E','','F','G','H','I','J'].map((L, i) => {
-          if (!L) return '';
-          const baseRow = i < 5 ? 3 : 9;
-          const idx = i < 5 ? i : i - 6;
-          const y = (baseRow + idx + 0.5) * P + 3;
-          return `<text x="${P * 0.7}" y="${y}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L}</text>
-                  <text x="${65 * P - P * 0.7}" y="${y}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L}</text>`;
-        }).join('');
+        // Row numbers every 5 rows down both margin columns (col 2 and col 14).
+        const rowNumbers = [];
+        for (let r = 1; r <= 30; r++) {
+          if (r === 1 || r % 5 === 0) {
+            const y = (r + 0.5) * P + 3;
+            rowNumbers.push(
+              `<text x="${2.5 * P}"  y="${y}" text-anchor="middle" font-size="9" fill="#8a8170" font-family="system-ui, sans-serif">${r}</text>`,
+              `<text x="${14.5 * P}" y="${y}" text-anchor="middle" font-size="9" fill="#8a8170" font-family="system-ui, sans-serif">${r}</text>`
+            );
+          }
+        }
+        // Column letters at top and bottom of each tie block.
+        const colLetters = [];
+        ['A','B','C','D','E'].forEach((L, i) => {
+          const x = (3.5 + i) * P;
+          colLetters.push(
+            `<text x="${x}" y="${0.85 * P}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L.toLowerCase()}</text>`,
+            `<text x="${x}" y="${31.55 * P}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L.toLowerCase()}</text>`
+          );
+        });
+        ['F','G','H','I','J'].forEach((L, i) => {
+          const x = (9.5 + i) * P;
+          colLetters.push(
+            `<text x="${x}" y="${0.85 * P}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L.toLowerCase()}</text>`,
+            `<text x="${x}" y="${31.55 * P}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L.toLowerCase()}</text>`
+          );
+        });
         return `
-          <!-- Substrate -->
-          <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#f5f1e6" stroke="#cbc4b3" stroke-width="1.6"/>
-          <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="4" fill="none" stroke="rgba(0,0,0,0.04)" stroke-width="0.8"/>
-          <!-- Power rails: top + / top - / bottom + / bottom - -->
-          ${rail(0, '#dc2626', '+')}
-          ${rail(1, '#111827', '-')}
-          ${rail(15, '#dc2626', '+')}
-          ${rail(16, '#111827', '-')}
-          <!-- Center channel (gap between A-E and F-J banks) -->
-          <rect x="${P * 0.5}" y="${8 * P + P * 0.18}" width="${W - P}" height="${P * 0.64}" rx="2" fill="#e3dccb" stroke="#b5ad97" stroke-width="0.5"/>
-          <rect x="${P * 0.5}" y="${8 * P + P * 0.18 + 0.5}" width="${W - P}" height="1.4" fill="rgba(0,0,0,0.08)"/>
-          <!-- Column numbers (top + bottom) -->
-          ${colNums}
-          <!-- Row letters (left + right) -->
-          ${rowLetters}
+          <!-- White substrate with a soft warm edge -->
+          <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#ffffff" stroke="#cbc4b3" stroke-width="1.4"/>
+          <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="4" fill="none" stroke="rgba(0,0,0,0.03)" stroke-width="0.8"/>
+          <!-- Four power rails -->
+          ${rail(0,  '#dc2626', '+')}
+          ${rail(1,  '#111827', '-')}
+          ${rail(15, '#111827', '-')}
+          ${rail(16, '#dc2626', '+')}
+          <!-- Vertical center channel between A-E and F-J -->
+          <rect x="${8 * P + P * 0.18}" y="${P * 0.5}" width="${P * 0.64}" height="${H - P}" rx="2" fill="#f1ece1" stroke="#cbc4b3" stroke-width="0.5"/>
+          <line x1="${8.5 * P}" y1="${P * 0.5}" x2="${8.5 * P}" y2="${H - P * 0.5}" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>
+          <!-- Row numbers (every 5 rows, both margins) -->
+          ${rowNumbers.join('')}
+          <!-- Column letters (top + bottom) -->
+          ${colLetters.join('')}
         `;
       },
       pinLabels: false,
@@ -5783,7 +5813,7 @@
         click.setAttribute('class', 'schem-pin schem-socket');
         click.setAttribute('cx', px);
         click.setAttribute('cy', py);
-        click.setAttribute('r', 6.5);
+        click.setAttribute('r', 11);
         click.setAttribute('fill', 'transparent');
         click.setAttribute('stroke', 'transparent');
         click.setAttribute('data-pin', pinId);
@@ -6460,7 +6490,14 @@
     // Hit-test: is the mouseup target a pin?
     const elem = document.elementFromPoint(e.clientX, e.clientY);
     const pinEl = elem && elem.closest && elem.closest('[data-pin]');
-    const targetPinId = pinEl && pinEl.getAttribute('data-pin');
+    let targetPinId = pinEl && pinEl.getAttribute('data-pin');
+    if (!targetPinId) {
+      // Fallback: snap to nearest pin within ~one grid cell so dropping in the
+      // tiny gaps between sockets still lands cleanly.
+      const pt = svgPoint(e);
+      const snap = _schemNearestPin(pt.x, pt.y, SCHEM_GRID_PITCH * 0.9);
+      if (snap) targetPinId = snap.pinId;
+    }
     _schemSuppressNextPinClick = true;
     if (targetPinId && targetPinId !== drag.fromPinId) {
       completeWire(drag.fromPinId, targetPinId);
@@ -6468,6 +6505,44 @@
     _schemPendingPin = null;
     highlightPendingPin(null);
     _removeWirePreview();
+  }
+
+  // Enumerate every pin id currently on the canvas (for snap-to-nearest).
+  function _schemAllPinIds() {
+    const ids = [];
+    _schemState.components.forEach(c => {
+      const def = SCHEM_COMPONENTS[c.type];
+      if (!def) return;
+      if (c.type === 'perfboard') {
+        const cols = _schemComponentW(c);
+        const rows = _schemComponentH(c);
+        for (let r = 0; r < rows; r++) {
+          for (let col = 0; col < cols; col++) {
+            ids.push(`${c.id}:r${r}c${col}`);
+          }
+        }
+      } else if (def.pins) {
+        def.pins.forEach(p => ids.push(`${c.id}:${p.name}`));
+      }
+    });
+    return ids;
+  }
+
+  function _schemNearestPin(svgX, svgY, maxDist) {
+    let best = null;
+    let bestD2 = (maxDist || Infinity) ** 2;
+    for (const pid of _schemAllPinIds()) {
+      const coords = pinIdToCoords(pid);
+      if (!coords) continue;
+      const dx = coords.x - svgX;
+      const dy = coords.y - svgY;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < bestD2) {
+        bestD2 = d2;
+        best = { pinId: pid, x: coords.x, y: coords.y };
+      }
+    }
+    return best;
   }
 
   // Faint dashed line from the pending pin to the cursor while the user picks the second pin.
@@ -6504,8 +6579,17 @@
     const line = _schemSvg.querySelector('#schemWirePreview');
     if (!line) return;
     const pt = svgPoint(e);
-    line.setAttribute('x2', pt.x);
-    line.setAttribute('y2', pt.y);
+    // Magnetic snap: if cursor is within ~half a grid cell of any pin, latch
+    // the preview endpoint to that pin so the student sees exactly where the
+    // wire will land before releasing.
+    const snap = _schemNearestPin(pt.x, pt.y, SCHEM_GRID_PITCH * 0.6);
+    if (snap && snap.pinId !== _schemPendingPin) {
+      line.setAttribute('x2', snap.x);
+      line.setAttribute('y2', snap.y);
+    } else {
+      line.setAttribute('x2', pt.x);
+      line.setAttribute('y2', pt.y);
+    }
   }
 
   function highlightPendingPin(pinId) {
