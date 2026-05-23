@@ -700,7 +700,7 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
-    padding: 18px 22px 20px;
+    padding: 22px 26px 22px;
     transition: box-shadow 0.2s ease, transform 0.12s ease;
   }
   .prog-card:hover {
@@ -708,12 +708,10 @@
   }
   .prog-card-head {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding-bottom: 16px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
   }
   .prog-card-name {
     font-size: 16px;
@@ -728,21 +726,21 @@
   .prog-card-you {
     display: inline-flex;
     align-items: center;
-    background: var(--accent-soft);
-    color: var(--accent);
+    background: transparent;
+    color: var(--ink-low);
     font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.2px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
     text-transform: uppercase;
-    padding: 4px 8px;
-    border-radius: 999px;
+    padding: 0;
+    border-radius: 0;
   }
   .prog-card.is-you {
-    border-color: rgba(59, 130, 246, 0.35);
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.12);
+    border-color: var(--border);
+    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
   }
   .prog-card.is-you:hover {
-    box-shadow: 0 8px 22px rgba(59, 130, 246, 0.18);
+    box-shadow: 0 8px 22px rgba(17, 17, 17, 0.06);
   }
   .prog-card-rows {
     list-style: none;
