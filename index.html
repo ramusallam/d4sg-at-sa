@@ -10752,17 +10752,8 @@
     wrap.innerHTML = `
       <label class="name-picker-label">${escapeHtml(opts.label || "Who's adding this?")}</label>
       <select class="name-picker-select" data-name-select aria-label="Pick your name"></select>
-      <div class="name-picker-add" data-name-add hidden>
-        <input type="text" class="name-picker-input" data-name-input
-               placeholder="First name + last initial (e.g. Maya R.)"
-               autocapitalize="words" autocomplete="off" maxlength="40" />
-        <button type="button" class="name-picker-add-btn" data-name-add-btn>Add</button>
-      </div>
     `;
     const select = wrap.querySelector('[data-name-select]');
-    const addRow = wrap.querySelector('[data-name-add]');
-    const addInput = wrap.querySelector('[data-name-input]');
-    const addBtn = wrap.querySelector('[data-name-add-btn]');
 
     let currentName = opts.initial || localStorage.getItem(LAST_PICK_KEY) || '';
 
@@ -10780,41 +10771,15 @@
         const sel = (n === currentName) ? ' selected' : '';
         opts.push(`<option value="${escapeHtml(n)}"${sel}>${escapeHtml(n)}</option>`);
       }
-      opts.push(`<option value="__add__">+ I'm new — add me</option>`);
       select.innerHTML = opts.join('');
     }
 
     const unsub = subscribeRoster(rebuildOptions);
 
     select.addEventListener('change', () => {
-      const v = select.value;
-      if (v === '__add__') {
-        addRow.hidden = false;
-        select.value = currentName || '';
-        setTimeout(() => addInput.focus(), 30);
-        return;
-      }
-      currentName = v;
+      currentName = select.value;
       if (currentName) localStorage.setItem(LAST_PICK_KEY, currentName);
       if (typeof opts.onChange === 'function') opts.onChange(currentName);
-    });
-
-    function commitAdd() {
-      const raw = addInput.value.trim();
-      if (!raw) { addInput.focus(); return; }
-      currentName = raw;
-      localStorage.setItem(LAST_PICK_KEY, currentName);
-      ensureRosterEntry(currentName); // async, fire-and-forget
-      // Force a local roster bump so the dropdown shows the new name now,
-      // even before the Firestore snapshot round-trips back.
-      _setLiveRoster(_liveRoster.includes(currentName) ? _liveRoster : [..._liveRoster, currentName]);
-      addInput.value = '';
-      addRow.hidden = true;
-      if (typeof opts.onChange === 'function') opts.onChange(currentName);
-    }
-    addBtn.addEventListener('click', commitAdd);
-    addInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); commitAdd(); }
     });
 
     return {
