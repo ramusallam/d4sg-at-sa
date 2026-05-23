@@ -4876,13 +4876,16 @@
         const H = 17 * P;
         const tieX0 = 1.5 * P;
         const tieXN = 63.5 * P;
-        const rail = (gy, color, label) => `
-          <line x1="${tieX0 - P * 0.45}" y1="${gy * P + 0.5 * P + (color === '#dc2626' ? P * 0.32 : -P * 0.32)}"
-                x2="${tieXN + P * 0.45}" y2="${gy * P + 0.5 * P + (color === '#dc2626' ? P * 0.32 : -P * 0.32)}"
-                stroke="${color}" stroke-width="2" stroke-linecap="round"/>
-          <text x="${P * 0.7}" y="${gy * P + 0.5 * P + 4}" text-anchor="middle" font-size="11" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
-          <text x="${65 * P - P * 0.7}" y="${gy * P + 0.5 * P + 4}" text-anchor="middle" font-size="11" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
-        `;
+        const rail = (gy, color, label) => {
+          const y = gy * P + 0.5 * P;
+          const stripH = P * 0.62;
+          return `
+            <rect x="${tieX0 - P * 0.5}" y="${y - stripH / 2}" width="${tieXN - tieX0 + P}" height="${stripH}" fill="${color}" opacity="0.22"/>
+            <line x1="${tieX0 - P * 0.5}" y1="${y}" x2="${tieXN + P * 0.5}" y2="${y}" stroke="${color}" stroke-width="3" stroke-linecap="round"/>
+            <text x="${P * 0.7}" y="${y + 4}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
+            <text x="${65 * P - P * 0.7}" y="${y + 4}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
+          `;
+        };
         const colNums = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60].map(n => {
           const x = (n - 1 + 1.5) * P;
           return `<text x="${x}" y="${2.7 * P}" text-anchor="middle" font-size="9" fill="#8a8170" font-family="system-ui, sans-serif">${n}</text>
