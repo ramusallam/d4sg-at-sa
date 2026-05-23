@@ -2983,7 +2983,7 @@
   }
 
   .schem-canvas-wrap {
-    background: var(--bg-1);
+    background: #FFFFFF;
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 14px;
@@ -2999,17 +2999,27 @@
   }
   .schem-pin {
     cursor: crosshair;
-    transition: r 0.1s ease, fill 0.1s ease, filter 0.1s ease;
+    transition: fill 0.1s ease, filter 0.1s ease;
   }
   .schem-pin:hover {
     fill: #fbbf24 !important;
-    r: 6.5;
     filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.6));
+  }
+  /* Breadboard sockets stay invisible until hovered, then gently tint without
+     resizing — resizing causes the click target to shrink under the cursor,
+     which produces a flickering enter/leave loop ("shake"). */
+  .schem-socket:hover {
+    fill: rgba(251, 191, 36, 0.22) !important;
+    filter: none;
   }
   .schem-pin.is-pending {
     fill: #f59e0b !important;
     stroke: #b45309;
     stroke-width: 2;
+  }
+  .schem-socket.is-pending {
+    fill: rgba(245, 158, 11, 0.35) !important;
+    stroke: none;
   }
   .schem-pin-tooltip {
     pointer-events: none;
@@ -4947,81 +4957,81 @@
     breadboard: {
       group: 'boards',
       label: 'Breadboard',
-      w: 17, h: 32,
+      // Compact half-size 400-point breadboard: 20 numbered rows × A-E + F-J,
+      // four power rails (red + outer, black - inner on both sides), center
+      // channel down the middle. All static SVG content has pointer-events
+      // disabled so click/drag targeting goes straight to the pin sockets.
+      // Tie rows live at gy=1.5..20.5.
+      //   col 0 → left + rail, col 1 → left - rail, col 2 → row labels
+      //   cols 3-7 → A-E, col 8 → channel, cols 9-13 → F-J
+      //   col 14 → row labels, col 15 → right - rail, col 16 → right + rail
+      w: 17, h: 22,
       pins: (() => {
         const out = [];
         const LETTERS_LEFT  = ['A','B','C','D','E'];
         const LETTERS_RIGHT = ['F','G','H','I','J'];
-        for (let r = 1; r <= 30; r++) {
+        for (let r = 1; r <= 20; r++) {
           const y = r + 0.5;
-          out.push({ name: `Lp${r}`, gx: 0.5,  gy: y }); // left + rail
-          out.push({ name: `Ln${r}`, gx: 1.5,  gy: y }); // left - rail
+          out.push({ name: `Lp${r}`, gx: 0.5,  gy: y });
+          out.push({ name: `Ln${r}`, gx: 1.5,  gy: y });
           LETTERS_LEFT.forEach((L, i)  => out.push({ name: `${L}${r}`, gx: 3.5 + i, gy: y }));
           LETTERS_RIGHT.forEach((L, i) => out.push({ name: `${L}${r}`, gx: 9.5 + i, gy: y }));
-          out.push({ name: `Rn${r}`, gx: 15.5, gy: y }); // right - rail
-          out.push({ name: `Rp${r}`, gx: 16.5, gy: y }); // right + rail
+          out.push({ name: `Rn${r}`, gx: 15.5, gy: y });
+          out.push({ name: `Rp${r}`, gx: 16.5, gy: y });
         }
         return out;
       })(),
       svg: function() {
         const P = SCHEM_GRID_PITCH;
         const W = 17 * P;
-        const H = 32 * P;
-        const rowY0 = 1 * P + 0.5 * P;       // y of row 1
-        const rowYN = 30 * P + 0.5 * P;      // y of row 30
-        // Vertical rail: colored strip running the full length of a column.
+        const H = 22 * P;
+        const rowY0 = 1.5 * P;
+        const rowYN = 20.5 * P;
         const rail = (gx, color, label) => {
           const x = gx * P + 0.5 * P;
-          const stripW = P * 0.62;
+          const stripW = P * 0.72;
           return `
-            <rect x="${x - stripW / 2}" y="${rowY0 - P * 0.5}" width="${stripW}" height="${rowYN - rowY0 + P}" fill="${color}" opacity="0.22"/>
-            <line x1="${x}" y1="${rowY0 - P * 0.5}" x2="${x}" y2="${rowYN + P * 0.5}" stroke="${color}" stroke-width="3" stroke-linecap="round"/>
-            <text x="${x}" y="${rowY0 - P * 0.7}" text-anchor="middle" font-size="12" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
-            <text x="${x}" y="${rowYN + P * 0.9}" text-anchor="middle" font-size="12" fill="${color}" font-family="system-ui, sans-serif" font-weight="800">${label}</text>
+            <rect x="${x - stripW / 2}" y="${rowY0 - P * 0.5}" width="${stripW}" height="${rowYN - rowY0 + P}" fill="${color}" opacity="0.32" pointer-events="none"/>
+            <line x1="${x}" y1="${rowY0 - P * 0.4}" x2="${x}" y2="${rowYN + P * 0.4}" stroke="${color}" stroke-width="3.5" stroke-linecap="round" pointer-events="none"/>
+            <text x="${x}" y="${rowY0 - P * 0.65}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
+            <text x="${x}" y="${rowYN + P * 0.95}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
           `;
         };
-        // Row numbers every 5 rows down both margin columns (col 2 and col 14).
         const rowNumbers = [];
-        for (let r = 1; r <= 30; r++) {
+        for (let r = 1; r <= 20; r++) {
           if (r === 1 || r % 5 === 0) {
             const y = (r + 0.5) * P + 3;
             rowNumbers.push(
-              `<text x="${2.5 * P}"  y="${y}" text-anchor="middle" font-size="9" fill="#8a8170" font-family="system-ui, sans-serif">${r}</text>`,
-              `<text x="${14.5 * P}" y="${y}" text-anchor="middle" font-size="9" fill="#8a8170" font-family="system-ui, sans-serif">${r}</text>`
+              `<text x="${2.5 * P}"  y="${y}" text-anchor="middle" font-size="9" fill="#9a9080" font-family="system-ui, sans-serif" pointer-events="none">${r}</text>`,
+              `<text x="${14.5 * P}" y="${y}" text-anchor="middle" font-size="9" fill="#9a9080" font-family="system-ui, sans-serif" pointer-events="none">${r}</text>`
             );
           }
         }
-        // Column letters at top and bottom of each tie block.
         const colLetters = [];
         ['A','B','C','D','E'].forEach((L, i) => {
           const x = (3.5 + i) * P;
           colLetters.push(
-            `<text x="${x}" y="${0.85 * P}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L.toLowerCase()}</text>`,
-            `<text x="${x}" y="${31.55 * P}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L.toLowerCase()}</text>`
+            `<text x="${x}" y="${0.85 * P}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`,
+            `<text x="${x}" y="${(H / P - 0.45) * P}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`
           );
         });
         ['F','G','H','I','J'].forEach((L, i) => {
           const x = (9.5 + i) * P;
           colLetters.push(
-            `<text x="${x}" y="${0.85 * P}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L.toLowerCase()}</text>`,
-            `<text x="${x}" y="${31.55 * P}" text-anchor="middle" font-size="10" fill="#8a8170" font-family="system-ui, sans-serif" font-weight="600">${L.toLowerCase()}</text>`
+            `<text x="${x}" y="${0.85 * P}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`,
+            `<text x="${x}" y="${(H / P - 0.45) * P}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`
           );
         });
         return `
-          <!-- White substrate with a soft warm edge -->
-          <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#ffffff" stroke="#cbc4b3" stroke-width="1.4"/>
-          <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="4" fill="none" stroke="rgba(0,0,0,0.03)" stroke-width="0.8"/>
-          <!-- Four power rails -->
+          <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#ffffff" stroke="#cbc4b3" stroke-width="1.4" pointer-events="none"/>
+          <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="4" fill="none" stroke="rgba(0,0,0,0.03)" stroke-width="0.8" pointer-events="none"/>
           ${rail(0,  '#dc2626', '+')}
           ${rail(1,  '#111827', '-')}
           ${rail(15, '#111827', '-')}
           ${rail(16, '#dc2626', '+')}
-          <!-- Vertical center channel between A-E and F-J -->
-          <rect x="${8 * P + P * 0.18}" y="${P * 0.5}" width="${P * 0.64}" height="${H - P}" rx="2" fill="#f1ece1" stroke="#cbc4b3" stroke-width="0.5"/>
-          <line x1="${8.5 * P}" y1="${P * 0.5}" x2="${8.5 * P}" y2="${H - P * 0.5}" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>
-          <!-- Row numbers (every 5 rows, both margins) -->
+          <rect x="${8 * P + P * 0.18}" y="${P * 0.5}" width="${P * 0.64}" height="${H - P}" rx="2" fill="#f1ece1" stroke="#cbc4b3" stroke-width="0.5" pointer-events="none"/>
+          <line x1="${8.5 * P}" y1="${P * 0.5}" x2="${8.5 * P}" y2="${H - P * 0.5}" stroke="rgba(0,0,0,0.06)" stroke-width="1" pointer-events="none"/>
           ${rowNumbers.join('')}
-          <!-- Column letters (top + bottom) -->
           ${colLetters.join('')}
         `;
       },
@@ -6570,10 +6580,13 @@
     const pinEl = elem && elem.closest && elem.closest('[data-pin]');
     let targetPinId = pinEl && pinEl.getAttribute('data-pin');
     if (!targetPinId) {
-      // Fallback: snap to nearest pin within ~one grid cell so dropping in the
-      // tiny gaps between sockets still lands cleanly.
+      // Fallback: snap to nearest pin within ~1.4 grid cells. The breadboard's
+      // static SVG content (rails, substrate, labels) has pointer-events:none,
+      // so elementFromPoint should always reach a pin or click target — but
+      // the snap fallback guarantees a clean landing even if the cursor is
+      // slightly off the pin center.
       const pt = svgPoint(e);
-      const snap = _schemNearestPin(pt.x, pt.y, SCHEM_GRID_PITCH * 0.9);
+      const snap = _schemNearestPin(pt.x, pt.y, SCHEM_GRID_PITCH * 1.4);
       if (snap) targetPinId = snap.pinId;
     }
     _schemSuppressNextPinClick = true;
@@ -6660,7 +6673,7 @@
     // Magnetic snap: if cursor is within ~half a grid cell of any pin, latch
     // the preview endpoint to that pin so the student sees exactly where the
     // wire will land before releasing.
-    const snap = _schemNearestPin(pt.x, pt.y, SCHEM_GRID_PITCH * 0.6);
+    const snap = _schemNearestPin(pt.x, pt.y, SCHEM_GRID_PITCH * 0.9);
     if (snap && snap.pinId !== _schemPendingPin) {
       line.setAttribute('x2', snap.x);
       line.setAttribute('y2', snap.y);
@@ -11309,22 +11322,67 @@
       e.target.value = '';
     });
 
-    // Drag-and-drop image onto canvas
-    const onDragOver = (e) => { e.preventDefault(); frame.classList.add('is-dropping'); };
-    const onDragLeave = () => frame.classList.remove('is-dropping');
+    // Drag-and-drop image onto canvas — covers OS files, webpage images, and
+    // pasted clipboard images. Drop targets attach to both the frame and the
+    // outer wrap so the user can land anywhere on the card.
+    const dropWrap = frame.closest('.idea-canvas-wrap') || frame;
+    const onDragOver = (e) => {
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+      frame.classList.add('is-dropping');
+    };
+    const onDragLeave = (e) => {
+      if (e.relatedTarget && dropWrap.contains(e.relatedTarget)) return;
+      frame.classList.remove('is-dropping');
+    };
     const onDrop = (e) => {
       e.preventDefault();
+      e.stopPropagation();
       frame.classList.remove('is-dropping');
-      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-      if (file && file.type.startsWith('image/')) ideaAddImageFromFile(file);
+      const dt = e.dataTransfer;
+      if (!dt) return;
+      if (dt.files && dt.files.length) {
+        const file = Array.from(dt.files).find(f => f.type && f.type.startsWith('image/'));
+        if (file) { ideaAddImageFromFile(file); return; }
+      }
+      if (dt.items) {
+        for (const item of dt.items) {
+          if (item.kind === 'file' && item.type && item.type.startsWith('image/')) {
+            const file = item.getAsFile();
+            if (file) { ideaAddImageFromFile(file); return; }
+          }
+        }
+      }
     };
-    frame.addEventListener('dragover', onDragOver);
-    frame.addEventListener('dragleave', onDragLeave);
-    frame.addEventListener('drop', onDrop);
+    [frame, dropWrap].forEach(el => {
+      el.addEventListener('dragover', onDragOver);
+      el.addEventListener('dragleave', onDragLeave);
+      el.addEventListener('drop', onDrop);
+    });
+    // Paste-from-clipboard: when the Idea Board is the active tool, ⌘V/Ctrl+V
+    // anywhere on the page imports a clipboard image.
+    const onPaste = (e) => {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.kind === 'file' && item.type && item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            ideaAddImageFromFile(file);
+            return;
+          }
+        }
+      }
+    };
+    document.addEventListener('paste', onPaste);
     _ideaCleanup.push(() => {
-      frame.removeEventListener('dragover', onDragOver);
-      frame.removeEventListener('dragleave', onDragLeave);
-      frame.removeEventListener('drop', onDrop);
+      [frame, dropWrap].forEach(el => {
+        el.removeEventListener('dragover', onDragOver);
+        el.removeEventListener('dragleave', onDragLeave);
+        el.removeEventListener('drop', onDrop);
+      });
+      document.removeEventListener('paste', onPaste);
     });
 
     document.getElementById('ideaUndo').addEventListener('click', ideaUndo);
