@@ -4349,17 +4349,17 @@
           id: 'p1b5',
           title: 'Portfolio',
           points: 50,
-          instructions: 'Submit your full portfolio for Project 1: photos of each prototype, a video of switches working, your CAD files or screenshots, your Arduino code, and a written summary.',
+          instructions: 'Submit your full portfolio for Project 1 by following the rubric below. **Name your chosen end user at the top of your Summary.**',
           videoUrl: '',
           links: [],
           rubric: [
             { label: 'Sketch',  text: 'Sketch your prototype on the Idea Board before you build it.', points: 6 },
             { label: 'CAD',     text: 'Upload STL file(s) integrated into final product.', points: 10 },
             { label: 'Code',    text: 'Upload PDF of code used for final product.', points: 8 },
-            { label: 'Wiring',  text: 'Upload images of wiring diagram of final product.', points: 7 },
+            { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: 'Start by naming your end user (who they are, what access need). Then 4–5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
@@ -4409,17 +4409,17 @@
           id: 'p2b5',
           title: 'Portfolio',
           points: 50,
-          instructions: 'Submit your full portfolio for Project 2: photos and video of each input type, your code, any CAD/wiring diagrams, and a written summary of what you learned about matching input types to user needs.',
+          instructions: 'Submit your full portfolio for Project 2 by following the rubric below. **Name your chosen end user at the top of your Summary.**',
           videoUrl: '',
           links: [],
           rubric: [
             { label: 'Sketch',  text: 'Sketch your prototype on the Idea Board before you build it.', points: 6 },
             { label: 'CAD',     text: 'Upload STL file(s) integrated into final product.', points: 10 },
             { label: 'Code',    text: 'Upload PDF of code used for final product.', points: 8 },
-            { label: 'Wiring',  text: 'Upload images of wiring diagram of final product.', points: 7 },
+            { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: 'Start by naming your end user (who they are, what access need). Then 4–5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
@@ -4469,17 +4469,17 @@
           id: 'p3b5',
           title: 'Portfolio',
           points: 50,
-          instructions: 'Submit your full Project 3 portfolio: hub photos and video, input map document, code, test results, and a written summary of what makes your hub modular.',
+          instructions: 'Submit your full portfolio for Project 3 by following the rubric below. **Name your chosen end user at the top of your Summary.**',
           videoUrl: '',
           links: [],
           rubric: [
             { label: 'Sketch',  text: 'Sketch your prototype on the Idea Board before you build it.', points: 6 },
             { label: 'CAD',     text: 'Upload STL file(s) integrated into final product.', points: 10 },
             { label: 'Code',    text: 'Upload PDF of code used for final product.', points: 8 },
-            { label: 'Wiring',  text: 'Upload images of wiring diagram of final product.', points: 7 },
+            { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: 'Start by naming your end user (who they are, what access need). Then 4–5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
@@ -4529,17 +4529,17 @@
           id: 'p4b5',
           title: 'Portfolio',
           points: 50,
-          instructions: 'Submit your complete final portfolio: photos and video of the finished controller, full code, CAD files, the system plan, user testing notes, and a written reflection. This is the artifact you will publish to Instructables next.',
+          instructions: 'Submit your full portfolio for Project 4 by following the rubric below. **Name your chosen end user at the top of your Summary.** This is the artifact you will publish to Instructables next.',
           videoUrl: '',
           links: [],
           rubric: [
             { label: 'Sketch',  text: 'Sketch your prototype on the Idea Board before you build it.', points: 6 },
             { label: 'CAD',     text: 'Upload STL file(s) integrated into final product.', points: 10 },
             { label: 'Code',    text: 'Upload PDF of code used for final product.', points: 8 },
-            { label: 'Wiring',  text: 'Upload images of wiring diagram of final product.', points: 7 },
+            { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: 'Start by naming your end user (who they are, what access need). Then 4–5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
@@ -4965,75 +4965,32 @@
       //   col 0 → left + rail, col 1 → left - rail, col 2 → row labels
       //   cols 3-7 → A-E, col 8 → channel, cols 9-13 → F-J
       //   col 14 → row labels, col 15 → right - rail, col 16 → right + rail
-      w: 17, h: 22,
+      w: 17, h: 13,
       pins: (() => {
+        // Compact default: 13 rows total — row 0 + row 12 are letter headers,
+        // row 6 is the center channel, rows 1-5 are top ties (numbered 1-5),
+        // rows 7-11 are bottom ties (numbered 6-10). Palette ghost uses these;
+        // the placed component re-derives pins dynamically from cw/ch.
         const out = [];
         const LETTERS_LEFT  = ['A','B','C','D','E'];
         const LETTERS_RIGHT = ['F','G','H','I','J'];
-        for (let r = 1; r <= 20; r++) {
+        const tieRows = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
+        tieRows.forEach((r, idx) => {
+          const tieIdx = idx + 1;
           const y = r + 0.5;
-          out.push({ name: `Lp${r}`, gx: 0.5,  gy: y });
-          out.push({ name: `Ln${r}`, gx: 1.5,  gy: y });
-          LETTERS_LEFT.forEach((L, i)  => out.push({ name: `${L}${r}`, gx: 3.5 + i, gy: y }));
-          LETTERS_RIGHT.forEach((L, i) => out.push({ name: `${L}${r}`, gx: 9.5 + i, gy: y }));
-          out.push({ name: `Rn${r}`, gx: 15.5, gy: y });
-          out.push({ name: `Rp${r}`, gx: 16.5, gy: y });
-        }
+          out.push({ name: `Lp${tieIdx}`, gx: 0.5,  gy: y });
+          out.push({ name: `Ln${tieIdx}`, gx: 1.5,  gy: y });
+          LETTERS_LEFT.forEach((L, i)  => out.push({ name: `${L}${tieIdx}`, gx: 3.5 + i, gy: y }));
+          LETTERS_RIGHT.forEach((L, i) => out.push({ name: `${L}${tieIdx}`, gx: 9.5 + i, gy: y }));
+          out.push({ name: `Rn${tieIdx}`, gx: 15.5, gy: y });
+          out.push({ name: `Rp${tieIdx}`, gx: 16.5, gy: y });
+        });
         return out;
       })(),
+      // Palette + ghost use the same dynamic body as the placed component, so
+      // what students see in the toolbar matches what lands on the canvas.
       svg: function() {
-        const P = SCHEM_GRID_PITCH;
-        const W = 17 * P;
-        const H = 22 * P;
-        const rowY0 = 1.5 * P;
-        const rowYN = 20.5 * P;
-        const rail = (gx, color, label) => {
-          const x = gx * P + 0.5 * P;
-          const stripW = P * 0.72;
-          return `
-            <rect x="${x - stripW / 2}" y="${rowY0 - P * 0.5}" width="${stripW}" height="${rowYN - rowY0 + P}" fill="${color}" opacity="0.32" pointer-events="none"/>
-            <line x1="${x}" y1="${rowY0 - P * 0.4}" x2="${x}" y2="${rowYN + P * 0.4}" stroke="${color}" stroke-width="3.5" stroke-linecap="round" pointer-events="none"/>
-            <text x="${x}" y="${rowY0 - P * 0.65}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
-            <text x="${x}" y="${rowYN + P * 0.95}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
-          `;
-        };
-        const rowNumbers = [];
-        for (let r = 1; r <= 20; r++) {
-          if (r === 1 || r % 5 === 0) {
-            const y = (r + 0.5) * P + 3;
-            rowNumbers.push(
-              `<text x="${2.5 * P}"  y="${y}" text-anchor="middle" font-size="9" fill="#9a9080" font-family="system-ui, sans-serif" pointer-events="none">${r}</text>`,
-              `<text x="${14.5 * P}" y="${y}" text-anchor="middle" font-size="9" fill="#9a9080" font-family="system-ui, sans-serif" pointer-events="none">${r}</text>`
-            );
-          }
-        }
-        const colLetters = [];
-        ['A','B','C','D','E'].forEach((L, i) => {
-          const x = (3.5 + i) * P;
-          colLetters.push(
-            `<text x="${x}" y="${0.85 * P}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`,
-            `<text x="${x}" y="${(H / P - 0.45) * P}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`
-          );
-        });
-        ['F','G','H','I','J'].forEach((L, i) => {
-          const x = (9.5 + i) * P;
-          colLetters.push(
-            `<text x="${x}" y="${0.85 * P}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`,
-            `<text x="${x}" y="${(H / P - 0.45) * P}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`
-          );
-        });
-        return `
-          <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#ffffff" stroke="#cbc4b3" stroke-width="1.4" pointer-events="none"/>
-          <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="4" fill="none" stroke="rgba(0,0,0,0.03)" stroke-width="0.8" pointer-events="none"/>
-          ${rail(0,  '#dc2626', '+')}
-          ${rail(1,  '#111827', '-')}
-          ${rail(15, '#111827', '-')}
-          ${rail(16, '#dc2626', '+')}
-          <rect x="${8 * P + P * 0.18}" y="${P * 0.5}" width="${P * 0.64}" height="${H - P}" rx="2" fill="#f1ece1" stroke="#cbc4b3" stroke-width="0.5" pointer-events="none"/>
-          <line x1="${8.5 * P}" y1="${P * 0.5}" x2="${8.5 * P}" y2="${H - P * 0.5}" stroke="rgba(0,0,0,0.06)" stroke-width="1" pointer-events="none"/>
-          ${rowNumbers.join('')}
-          ${colLetters.join('')}
-        `;
+        return _schemBreadboardBodySvg(17, 13);
       },
       pinLabels: false,
       pinStyle: 'socket'
@@ -5649,6 +5606,7 @@
   function _schemComponentW(c) {
     const def = SCHEM_COMPONENTS[c.type];
     if (!def) return 4;
+    if (c.type === 'breadboard') return 17; // breadboard width is fixed: 2 rails + label + A-E + channel + F-J + label + 2 rails
     if (_isResizableBoard(c)) return c.cols || def.w;
     return def.w;
   }
@@ -5669,30 +5627,95 @@
   }
   function _schemBreadboardChannelRow(rows) {
     // Channel sits in the middle, so the board mirrors top/bottom.
+    // Rows 0 and (rows-1) are column-letter headers; tie rows fill the rest.
     return Math.floor(rows / 2);
   }
   function _schemBreadboardPins(cols, rows) {
     const channelRow = _schemBreadboardChannelRow(rows);
     const out = [];
-    for (let r = 0; r < rows; r++) {
-      if (r === channelRow) continue; // no tie-points in the channel
-      for (let c = 0; c < cols; c++) {
-        out.push({ name: `r${r}c${c}`, gx: c + 0.5, gy: r + 0.5 });
-      }
+    const LETTERS_LEFT  = ['A','B','C','D','E'];
+    const LETTERS_RIGHT = ['F','G','H','I','J'];
+    let tieIdx = 0;
+    for (let r = 1; r <= rows - 2; r++) {
+      if (r === channelRow) continue;
+      tieIdx += 1;
+      const y = r + 0.5;
+      out.push({ name: `Lp${tieIdx}`, gx: 0.5,  gy: y });
+      out.push({ name: `Ln${tieIdx}`, gx: 1.5,  gy: y });
+      LETTERS_LEFT.forEach((L, i)  => out.push({ name: `${L}${tieIdx}`, gx: 3.5 + i, gy: y }));
+      LETTERS_RIGHT.forEach((L, i) => out.push({ name: `${L}${tieIdx}`, gx: 9.5 + i, gy: y }));
+      out.push({ name: `Rn${tieIdx}`, gx: cols - 1.5, gy: y });
+      out.push({ name: `Rp${tieIdx}`, gx: cols - 0.5, gy: y });
     }
     return out;
   }
   function _schemBreadboardBodySvg(cw, ch) {
-    const W = cw * SCHEM_GRID_PITCH;
-    const H = ch * SCHEM_GRID_PITCH;
+    const P = SCHEM_GRID_PITCH;
+    const W = cw * P;
+    const H = ch * P;
     const channelRow = _schemBreadboardChannelRow(ch);
-    const channelY = channelRow * SCHEM_GRID_PITCH;
-    const channelH = SCHEM_GRID_PITCH;
+    const topStart = 1;
+    const botEnd = ch - 2;
+    const railTop = (topStart + 0.5) * P;
+    const railBot = (botEnd + 0.5) * P;
+    const channelY = channelRow * P;
+
+    const rail = (col, color, label) => {
+      const x = (col + 0.5) * P;
+      const stripW = P * 0.72;
+      return `
+        <rect x="${x - stripW / 2}" y="${railTop - 0.5 * P}" width="${stripW}" height="${railBot - railTop + P}" fill="${color}" opacity="0.32" pointer-events="none"/>
+        <line x1="${x}" y1="${railTop - 0.4 * P}" x2="${x}" y2="${railBot + 0.4 * P}" stroke="${color}" stroke-width="3.5" stroke-linecap="round" pointer-events="none"/>
+        <text x="${x}" y="${railTop - 0.65 * P}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
+        <text x="${x}" y="${railBot + 0.95 * P}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
+      `;
+    };
+
+    // Row numbers in the left and right label margins (cols 2 and cw-3).
+    const rowNumbers = [];
+    let tieIdx = 0;
+    for (let r = topStart; r <= botEnd; r++) {
+      if (r === channelRow) continue;
+      tieIdx += 1;
+      if (tieIdx === 1 || tieIdx % 5 === 0) {
+        const y = (r + 0.5) * P + 3;
+        rowNumbers.push(
+          `<text x="${2.5 * P}"        y="${y}" text-anchor="middle" font-size="9" fill="#9a9080" font-family="system-ui, sans-serif" pointer-events="none">${tieIdx}</text>`,
+          `<text x="${(cw - 2.5) * P}" y="${y}" text-anchor="middle" font-size="9" fill="#9a9080" font-family="system-ui, sans-serif" pointer-events="none">${tieIdx}</text>`
+        );
+      }
+    }
+
+    // Column letter headers (top row + bottom row).
+    const colLetters = [];
+    const headerTopY = 0.85 * P;
+    const headerBotY = (ch - 0.45) * P;
+    ['A','B','C','D','E'].forEach((L, i) => {
+      const x = (3.5 + i) * P;
+      colLetters.push(
+        `<text x="${x}" y="${headerTopY}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`,
+        `<text x="${x}" y="${headerBotY}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`
+      );
+    });
+    ['F','G','H','I','J'].forEach((L, i) => {
+      const x = (9.5 + i) * P;
+      colLetters.push(
+        `<text x="${x}" y="${headerTopY}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`,
+        `<text x="${x}" y="${headerBotY}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`
+      );
+    });
+
     return `
-      <rect x="0" y="0" width="${W}" height="${H}" rx="5" fill="#f5f1e6" stroke="#cbc4b3" stroke-width="1.6"/>
-      <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="3.5" fill="none" stroke="rgba(0,0,0,0.04)" stroke-width="0.8"/>
-      <rect x="${W * 0.025}" y="${channelY + channelH * 0.18}" width="${W * 0.95}" height="${channelH * 0.64}" rx="1.5" fill="#e3dccb" stroke="#b5ad97" stroke-width="0.5"/>
-      <rect x="${W * 0.025}" y="${channelY + channelH * 0.18 + 0.5}" width="${W * 0.95}" height="1.4" fill="rgba(0,0,0,0.08)"/>
+      <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#ffffff" stroke="#cbc4b3" stroke-width="1.4" pointer-events="none"/>
+      <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="4" fill="none" stroke="rgba(0,0,0,0.03)" stroke-width="0.8" pointer-events="none"/>
+      ${rail(0,      '#dc2626', '+')}
+      ${rail(1,      '#111827', '-')}
+      ${rail(cw - 2, '#111827', '-')}
+      ${rail(cw - 1, '#dc2626', '+')}
+      <rect x="${8 * P + P * 0.18}" y="${channelY + P * 0.18}" width="${P * 0.64}" height="${P * 0.64}" rx="2" fill="#f1ece1" stroke="#cbc4b3" stroke-width="0.5" pointer-events="none"/>
+      <rect x="${P * 0.5}" y="${channelY + P * 0.42}" width="${W - P}" height="${P * 0.16}" rx="1" fill="#e3dccb" stroke="#b5ad97" stroke-width="0.4" pointer-events="none"/>
+      ${rowNumbers.join('')}
+      ${colLetters.join('')}
     `;
   }
 
@@ -6330,8 +6353,11 @@
       const dy = (pt.y - _schemResize.startY) / SCHEM_GRID_PITCH;
       const c = _schemState.components.find(x => x.id === _schemResize.id);
       if (!c) return;
-      const newCols = Math.max(4, Math.round(_schemResize.startCols + dx));
-      const newRows = Math.max(4, Math.round(_schemResize.startRows + dy));
+      const newCols = c.type === 'breadboard'
+        ? 17
+        : Math.max(4, Math.round(_schemResize.startCols + dx));
+      const minRows = c.type === 'breadboard' ? 7 : 4;
+      const newRows = Math.max(minRows, Math.round(_schemResize.startRows + dy));
       if (newCols !== (c.cols || 14) || newRows !== (c.rows || 10)) {
         c.cols = newCols;
         c.rows = newRows;
@@ -6425,7 +6451,7 @@
     }
     if (type === 'breadboard') {
       c.cols = 17;
-      c.rows = 11;
+      c.rows = 13;
     }
     _schemState.components.push(c);
     _schemSelected = id;
