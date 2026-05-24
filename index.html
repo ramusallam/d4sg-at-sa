@@ -4965,16 +4965,17 @@
       //   col 0 → left + rail, col 1 → left - rail, col 2 → row labels
       //   cols 3-7 → A-E, col 8 → channel, cols 9-13 → F-J
       //   col 14 → row labels, col 15 → right - rail, col 16 → right + rail
-      w: 17, h: 13,
+      w: 17, h: 33,
       pins: (() => {
-        // Compact default: 13 rows total — row 0 + row 12 are letter headers,
-        // row 6 is the center channel, rows 1-5 are top ties (numbered 1-5),
-        // rows 7-11 are bottom ties (numbered 6-10). Palette ghost uses these;
-        // the placed component re-derives pins dynamically from cw/ch.
+        // 33 rows total: row 0 + row 32 = letter headers; row 16 = center
+        // channel; rows 1-15 = top ties (numbered 1-15); rows 17-31 = bottom
+        // ties (numbered 16-30). Matches the real half-size 400-point board.
         const out = [];
         const LETTERS_LEFT  = ['A','B','C','D','E'];
         const LETTERS_RIGHT = ['F','G','H','I','J'];
-        const tieRows = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
+        const tieRows = [];
+        for (let r = 1; r <= 15; r++) tieRows.push(r);
+        for (let r = 17; r <= 31; r++) tieRows.push(r);
         tieRows.forEach((r, idx) => {
           const tieIdx = idx + 1;
           const y = r + 0.5;
@@ -4990,7 +4991,7 @@
       // Palette + ghost use the same dynamic body as the placed component, so
       // what students see in the toolbar matches what lands on the canvas.
       svg: function() {
-        return _schemBreadboardBodySvg(17, 13);
+        return _schemBreadboardBodySvg(17, 33);
       },
       pinLabels: false,
       pinStyle: 'socket'
@@ -5650,70 +5651,86 @@
     return out;
   }
   function _schemBreadboardBodySvg(cw, ch) {
+    // Faithful half-size 400-point breadboard. Matches the white boards the
+    // class actually uses: 30 numbered tie rows, A-E + F-J columns split by a
+    // vertical channel, and FOUR independent power-rail half-segments per
+    // side (top + bottom), broken at the channel — wiring across the middle
+    // requires a jumper, just like the real board.
     const P = SCHEM_GRID_PITCH;
     const W = cw * P;
     const H = ch * P;
     const channelRow = _schemBreadboardChannelRow(ch);
     const topStart = 1;
     const botEnd = ch - 2;
-    const railTop = (topStart + 0.5) * P;
-    const railBot = (botEnd + 0.5) * P;
-    const channelY = channelRow * P;
+    const railTopY = (topStart + 0.5) * P;
+    const railBotY = (botEnd + 0.5) * P;
 
     const rail = (col, color, label) => {
       const x = (col + 0.5) * P;
       const stripW = P * 0.72;
+      // Two physical segments per rail, split at the channel.
+      const topSegStart = railTopY - 0.5 * P;
+      const topSegEnd   = (channelRow - 0.5) * P;
+      const botSegStart = (channelRow + 1.5) * P;
+      const botSegEnd   = railBotY + 0.5 * P;
       return `
-        <rect x="${x - stripW / 2}" y="${railTop - 0.5 * P}" width="${stripW}" height="${railBot - railTop + P}" fill="${color}" opacity="0.32" pointer-events="none"/>
-        <line x1="${x}" y1="${railTop - 0.4 * P}" x2="${x}" y2="${railBot + 0.4 * P}" stroke="${color}" stroke-width="3.5" stroke-linecap="round" pointer-events="none"/>
-        <text x="${x}" y="${railTop - 0.65 * P}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
-        <text x="${x}" y="${railBot + 0.95 * P}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
+        <rect x="${x - stripW / 2}" y="${topSegStart}" width="${stripW}" height="${topSegEnd - topSegStart}" fill="${color}" opacity="0.32" pointer-events="none"/>
+        <line x1="${x}" y1="${topSegStart + 0.15 * P}" x2="${x}" y2="${topSegEnd - 0.05 * P}" stroke="${color}" stroke-width="3.5" stroke-linecap="round" pointer-events="none"/>
+        <rect x="${x - stripW / 2}" y="${botSegStart}" width="${stripW}" height="${botSegEnd - botSegStart}" fill="${color}" opacity="0.32" pointer-events="none"/>
+        <line x1="${x}" y1="${botSegStart + 0.05 * P}" x2="${x}" y2="${botSegEnd - 0.15 * P}" stroke="${color}" stroke-width="3.5" stroke-linecap="round" pointer-events="none"/>
+        <text x="${x}" y="${railTopY - 0.65 * P}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
+        <text x="${x}" y="${railBotY + 0.95 * P}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
       `;
     };
 
-    // Row numbers in the left and right label margins (cols 2 and cw-3).
+    // Row numbers in the left and right label margins (cols 2 and cw-3),
+    // every row labeled small — matches the printed breadboard silkscreen.
     const rowNumbers = [];
     let tieIdx = 0;
     for (let r = topStart; r <= botEnd; r++) {
       if (r === channelRow) continue;
       tieIdx += 1;
-      if (tieIdx === 1 || tieIdx % 5 === 0) {
-        const y = (r + 0.5) * P + 3;
-        rowNumbers.push(
-          `<text x="${2.5 * P}"        y="${y}" text-anchor="middle" font-size="9" fill="#9a9080" font-family="system-ui, sans-serif" pointer-events="none">${tieIdx}</text>`,
-          `<text x="${(cw - 2.5) * P}" y="${y}" text-anchor="middle" font-size="9" fill="#9a9080" font-family="system-ui, sans-serif" pointer-events="none">${tieIdx}</text>`
-        );
-      }
+      const y = (r + 0.5) * P + 2.5;
+      rowNumbers.push(
+        `<text x="${2.5 * P}"        y="${y}" text-anchor="middle" font-size="7" fill="#7a7368" font-family="system-ui, sans-serif" pointer-events="none">${tieIdx}</text>`,
+        `<text x="${(cw - 2.5) * P}" y="${y}" text-anchor="middle" font-size="7" fill="#7a7368" font-family="system-ui, sans-serif" pointer-events="none">${tieIdx}</text>`
+      );
     }
 
-    // Column letter headers (top row + bottom row).
+    // Column letter headers (top row + bottom row), lowercase like the silkscreen.
     const colLetters = [];
     const headerTopY = 0.85 * P;
     const headerBotY = (ch - 0.45) * P;
-    ['A','B','C','D','E'].forEach((L, i) => {
+    ['a','b','c','d','e'].forEach((L, i) => {
       const x = (3.5 + i) * P;
       colLetters.push(
-        `<text x="${x}" y="${headerTopY}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`,
-        `<text x="${x}" y="${headerBotY}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`
+        `<text x="${x}" y="${headerTopY}" text-anchor="middle" font-size="10" fill="#7a7368" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L}</text>`,
+        `<text x="${x}" y="${headerBotY}" text-anchor="middle" font-size="10" fill="#7a7368" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L}</text>`
       );
     });
-    ['F','G','H','I','J'].forEach((L, i) => {
+    ['f','g','h','i','j'].forEach((L, i) => {
       const x = (9.5 + i) * P;
       colLetters.push(
-        `<text x="${x}" y="${headerTopY}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`,
-        `<text x="${x}" y="${headerBotY}" text-anchor="middle" font-size="10" fill="#9a9080" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L.toLowerCase()}</text>`
+        `<text x="${x}" y="${headerTopY}" text-anchor="middle" font-size="10" fill="#7a7368" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L}</text>`,
+        `<text x="${x}" y="${headerBotY}" text-anchor="middle" font-size="10" fill="#7a7368" font-family="system-ui, sans-serif" font-weight="600" pointer-events="none">${L}</text>`
       );
     });
 
+    // Center channel — a vertical groove running the full tie-strip height
+    // between the E and F columns. The split between left and right tie
+    // blocks is real: A-E in a row are tied together, F-J are tied together,
+    // but the two blocks are NOT connected across the channel.
+    const channelTopY = railTopY - 0.5 * P;
+    const channelBotY = railBotY + 0.5 * P;
     return `
       <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#ffffff" stroke="#cbc4b3" stroke-width="1.4" pointer-events="none"/>
       <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="4" fill="none" stroke="rgba(0,0,0,0.03)" stroke-width="0.8" pointer-events="none"/>
       ${rail(0,      '#dc2626', '+')}
-      ${rail(1,      '#111827', '-')}
-      ${rail(cw - 2, '#111827', '-')}
+      ${rail(1,      '#1d4ed8', '-')}
+      ${rail(cw - 2, '#1d4ed8', '-')}
       ${rail(cw - 1, '#dc2626', '+')}
-      <rect x="${8 * P + P * 0.18}" y="${channelY + P * 0.18}" width="${P * 0.64}" height="${P * 0.64}" rx="2" fill="#f1ece1" stroke="#cbc4b3" stroke-width="0.5" pointer-events="none"/>
-      <rect x="${P * 0.5}" y="${channelY + P * 0.42}" width="${W - P}" height="${P * 0.16}" rx="1" fill="#e3dccb" stroke="#b5ad97" stroke-width="0.4" pointer-events="none"/>
+      <rect x="${8 * P + P * 0.14}" y="${channelTopY}" width="${P * 0.72}" height="${channelBotY - channelTopY}" rx="2" fill="#f1ece1" stroke="#cbc4b3" stroke-width="0.5" pointer-events="none"/>
+      <line x1="${8.5 * P}" y1="${channelTopY}" x2="${8.5 * P}" y2="${channelBotY}" stroke="rgba(0,0,0,0.08)" stroke-width="1" pointer-events="none"/>
       ${rowNumbers.join('')}
       ${colLetters.join('')}
     `;
@@ -6451,7 +6468,7 @@
     }
     if (type === 'breadboard') {
       c.cols = 17;
-      c.rows = 13;
+      c.rows = 33; // header + 30 numbered tie rows (15 top + 15 bottom) + channel + header
     }
     _schemState.components.push(c);
     _schemSelected = id;
