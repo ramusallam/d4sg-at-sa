@@ -4359,7 +4359,7 @@
             { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: 'Start by naming your end user (who they are, what access need). Then 4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
@@ -4419,7 +4419,7 @@
             { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: 'Start by naming your end user (who they are, what access need). Then 4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
@@ -4479,7 +4479,7 @@
             { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: 'Start by naming your end user (who they are, what access need). Then 4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
@@ -4539,7 +4539,7 @@
             { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: 'Start by naming your end user (who they are, what access need). Then 4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
@@ -8045,7 +8045,7 @@
         if (def.fileTypes === 'text') {
           const existingText = state.summary?.text || '';
           bodyInner.innerHTML = `
-            <textarea class="pf-summary-box" data-pf-text rows="6" maxlength="${SUMMARY_MAX}" placeholder="4–5 sentences reflecting on your prototyping process: what you created, problems you encountered, how you overcame them, and new things you learned.">${escapeHtml(existingText)}</textarea>
+            <textarea class="pf-summary-box" data-pf-text rows="6" maxlength="${SUMMARY_MAX}" placeholder="Start by naming your end user (who they are, what access need you are designing for). Then 4–5 sentences reflecting on your prototyping process: what you created, problems you encountered, how you overcame them, and new things you learned.">${escapeHtml(existingText)}</textarea>
             <div class="pf-char-count" data-pf-char>${existingText.length} / ${SUMMARY_MAX}</div>
           `;
           const txt = bodyInner.querySelector('[data-pf-text]');
