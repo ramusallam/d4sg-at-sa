@@ -3096,17 +3096,75 @@
   }
 
   /* ============== VIBE CODING TOOL ============== */
-  /* IDE-first layout: the editor + serial monitor fill the page width.
-     Chat lives in a floating drawer that slides in from the right when
-     the student clicks the "Ask AI" button — like Cursor / VSCode Copilot. */
+  /* Companion layout: AI chat lives in a persistent left pane, the Arduino
+     editor + serial monitor in the right pane — both visible at once, like
+     ChatGPT next to the Arduino IDE. Stacks vertically on narrow screens. */
   .vibe-wrap {
+    display: grid;
+    grid-template-columns: minmax(340px, 40%) 1fr;
+    gap: 16px;
+    margin-top: 8px;
+    height: calc(100vh - 190px);
+    min-height: 560px;
+  }
+  @media (max-width: 900px) {
+    .vibe-wrap {
+      grid-template-columns: 1fr;
+      height: auto;
+      min-height: 0;
+    }
+    .vibe-left { height: 70vh; min-height: 460px; }
+    .vibe-right { min-height: 520px; }
+  }
+
+  /* ----- Left pane: the AI chat companion ----- */
+  .vibe-left {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
     display: flex;
     flex-direction: column;
-    gap: 0;
-    margin-top: 8px;
-    height: calc(100vh - 200px);
-    min-height: 600px;
+    overflow: hidden;
+    min-height: 0;
   }
+  .vibe-left-head {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--bg-2);
+  }
+  .vibe-left-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    color: var(--ink-hi);
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .vibe-left-title-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #14b8a6, var(--accent));
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.16);
+  }
+  .vibe-left-clear {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-low);
+    border-radius: 8px;
+    padding: 5px 11px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .vibe-left-clear:hover { border-color: var(--ink-mid); color: var(--ink-mid); }
 
   /* Floating Ask AI button — gradient pill, fixed bottom-right. */
   .vibe-ai-fab {
@@ -3373,22 +3431,41 @@
   .vibe-msg-copybtn:hover { background: var(--accent-hover); }
   .vibe-msg-copybtn.is-copied { background: var(--success); }
 
-  /* Prompt starter chips — quick-fill templates modeled on modern code-prompt
-     patterns ("Act like...", "Walk me through...", "Debug this..."). Click a
-     chip to drop its scaffold into the input; the cursor lands at the
-     customizable portion ready to type. */
+  /* Suggested-prompt chips (shown in the empty state) + template chips above
+     the composer. Click to drop a scaffold into the input. */
+  .vibe-suggest {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+    width: 100%;
+    max-width: 340px;
+  }
+  .vibe-suggest-chip {
+    text-align: left;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  }
+  .vibe-suggest-chip:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--ink-hi);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.12);
+  }
+  .vibe-suggest-chip strong { color: var(--accent); font-weight: 700; }
+
   .vibe-stems-wrap {
     border-top: 1px solid var(--border);
     background: var(--bg-2);
-    padding: 10px 18px 4px;
-  }
-  .vibe-stems-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.4px;
-    text-transform: uppercase;
-    color: var(--ink-low);
-    margin: 0 0 8px;
+    padding: 9px 14px 0;
   }
   .vibe-stems {
     display: flex;
@@ -3399,15 +3476,15 @@
     background: white;
     border: 1px solid var(--border);
     border-radius: 999px;
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 5px 11px;
+    font-size: 11.5px;
     font-weight: 600;
     color: var(--ink-mid);
     cursor: pointer;
     transition: all 0.15s ease;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     white-space: nowrap;
   }
   .vibe-stem:hover {
@@ -3419,94 +3496,145 @@
     background: var(--accent);
     border-color: var(--accent);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.22);
   }
   .vibe-stem--primary:hover {
     background: var(--accent-hover);
     border-color: var(--accent-hover);
     color: #fff;
   }
-  .vibe-stem--primary .vibe-stem-icon {
-    opacity: 1;
-  }
-  .vibe-stem-icon {
-    font-size: 11px;
-    opacity: 0.7;
-  }
+  .vibe-stem--primary .vibe-stem-icon { opacity: 1; }
+  .vibe-stem-icon { font-size: 10.5px; opacity: 0.7; }
 
+  /* The composer card — textarea + send button share one rounded card that
+     lifts on focus (the signature premium moment). */
   .vibe-input-row {
     border-top: 1px solid var(--border);
-    padding: 12px 18px 16px;
+    padding: 12px 14px 14px;
     background: var(--bg-2);
+  }
+  .vibe-composer {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: flex-end;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 8px 8px 8px 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .vibe-composer:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 6px 18px rgba(59, 130, 246, 0.10);
   }
   .vibe-input {
     flex: 1 1 auto;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    background: var(--bg-1);
-    padding: 14px 16px;
+    border: none;
+    background: transparent;
+    padding: 7px 0;
     font: inherit;
-    font-size: 15px;
-    line-height: 1.55;
-    min-height: 64px;
-    max-height: 220px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    min-height: 24px;
+    max-height: 200px;
     overflow-y: auto;
     color: var(--ink-hi);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    white-space: pre-wrap;
-    word-break: break-word;
-    cursor: text;
-  }
-  .vibe-input:focus {
+    resize: none;
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   }
-  /* Contenteditable placeholder: shown only when the div is empty. */
-  .vibe-input:empty::before {
-    content: attr(data-placeholder);
-    color: var(--ink-low);
-    pointer-events: none;
-  }
-  /* Two-tone styling: template scaffold reads muted/italic; the user's
-     filled-in portion (the bit inside <PLACEHOLDER>) renders in the
-     accent color so students see the structure they're shaping. */
-  .vibe-input-template {
-    color: var(--ink-low);
-    font-style: italic;
-  }
-  .vibe-input-user {
-    color: var(--accent);
-    font-weight: 600;
-    font-style: normal;
-    background: var(--accent-soft);
-    padding: 1px 4px;
-    border-radius: 4px;
-  }
+  .vibe-input::placeholder { color: var(--ink-low); }
   .vibe-send-btn {
     background: var(--accent);
     color: white;
     border: none;
-    border-radius: 14px;
+    border-radius: 11px;
     padding: 0;
-    width: 56px;
-    height: 56px;
+    width: 40px;
+    height: 40px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: background 0.15s ease, transform 0.12s ease, opacity 0.15s ease;
-    align-self: flex-end;
     flex-shrink: 0;
   }
-  .vibe-send-btn:hover { transform: translateY(-1px); }
-  .vibe-send-btn:hover { background: var(--accent-hover); }
+  .vibe-send-btn:hover:not(:disabled) { transform: translateY(-1px); background: var(--accent-hover); }
   .vibe-send-btn:disabled {
-    opacity: 0.5;
+    background: var(--border);
+    color: var(--ink-low);
     cursor: not-allowed;
+  }
+  .vibe-composer-hint {
+    font-size: 10.5px;
+    color: var(--ink-low);
+    margin: 7px 2px 0;
+    text-align: right;
+  }
+
+  /* Markdown rendering inside assistant chat bubbles. */
+  .vibe-md p { margin: 0 0 8px; }
+  .vibe-md p:last-child { margin-bottom: 0; }
+  .vibe-md ul, .vibe-md ol { margin: 4px 0 8px; padding-left: 20px; }
+  .vibe-md li { margin: 2px 0; }
+  .vibe-md strong { font-weight: 700; color: var(--ink-hi); }
+  .vibe-md code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 12.5px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 5px;
+  }
+  /* A generated-code block in chat, with its own action bar. */
+  .vibe-codeblock {
+    margin: 10px 0 6px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #1e293b;
+  }
+  .vibe-codeblock-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: #0f172a;
+    padding: 6px 10px;
+  }
+  .vibe-codeblock-lang {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+  .vibe-codeblock-actions { display: flex; gap: 6px; }
+  .vibe-codeblock-btn {
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    border-radius: 7px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.14s ease, border-color 0.14s ease;
+  }
+  .vibe-codeblock-btn:hover { background: #334155; }
+  .vibe-codeblock-btn.is-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .vibe-codeblock-btn.is-primary:hover { background: var(--accent-hover); }
+  .vibe-codeblock-btn.is-done { background: var(--success); border-color: var(--success); color: #fff; }
+  .vibe-codeblock pre {
+    margin: 0;
+    background: #1e293b;
+    color: #e2e8f0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 11px 12px;
+    max-height: 260px;
+    overflow: auto;
+    white-space: pre;
   }
 
   /* Editor panel: takes full page width now. Editor expands, monitor docks
@@ -9717,10 +9845,8 @@
   // (Anthropic proxy with class-code gate). Right panel is a CodeMirror
   // editor + Web Serial monitor. Pass 2: copy-to-clipboard upload flow.
 
-  const VIBE_CHAT_KEY = 'd4sg-vibe-chat-v1';
-  const VIBE_EDITOR_KEY = 'd4sg-vibe-editor-v1';
   const VIBE_CLASSCODE_KEY = 'd4sg-vibe-classcode-v1';
-  const VIBE_DEFAULT_CODE = '// Your Arduino code will appear here.\n// Ask the assistant on the left for help, then click "Copy to Editor".\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n}\n';
+  const VIBE_DEFAULT_CODE = '// Your Arduino code will appear here.\n// Ask the AI assistant on the left to build something, then load it in.\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n}\n';
 
   let _vibeEditor = null;     // CodeMirror instance (or null if fallback textarea used)
   let _vibeChat = [];         // [{ role: 'user'|'assistant'|'error', content: string }]
@@ -9730,22 +9856,94 @@
   let _vibeSerialKeepReading = false;
   let _vibeMonitorAutoScroll = true;
 
+  // ----- Per-student persistence -----
+  // Chat + editor are keyed to the picked student so two kids on one machine
+  // never share state, and so a student's work follows their name. Source of
+  // truth is localStorage (instant, offline-safe); we also mirror to a
+  // Firestore draft (drafts/${slug}__vibe) so it survives a device switch.
+  function vibeStudentName() {
+    try { return localStorage.getItem(LAST_PICK_KEY) || ''; } catch (_) { return ''; }
+  }
+  function vibeSlug() {
+    const s = nameSlug(vibeStudentName());
+    return s || '_anon';
+  }
+  function vibeChatKey() { return `d4sg-vibe-chat::${vibeSlug()}`; }
+  function vibeEditorKey() { return `d4sg-vibe-editor::${vibeSlug()}`; }
+
   function vibeLoadChat() {
     try {
-      const raw = localStorage.getItem(VIBE_CHAT_KEY);
+      const raw = localStorage.getItem(vibeChatKey());
       if (!raw) return [];
       const arr = JSON.parse(raw);
       return Array.isArray(arr) ? arr : [];
     } catch (_) { return []; }
   }
+  const _vibeMirrorDraft = debounce(() => {
+    const name = vibeStudentName();
+    if (!name) return; // no name picked -> local only
+    try {
+      saveDraft(name, 'vibe', {
+        vibeChat: JSON.stringify(_vibeChat || []),
+        vibeEditor: vibeGetEditorText()
+      });
+    } catch (_) {}
+  }, 1200);
   function vibeSaveChat() {
-    try { localStorage.setItem(VIBE_CHAT_KEY, JSON.stringify(_vibeChat)); } catch (_) {}
+    try { localStorage.setItem(vibeChatKey(), JSON.stringify(_vibeChat)); } catch (_) {}
+    _vibeMirrorDraft();
   }
   function vibeLoadEditorText() {
-    try { return localStorage.getItem(VIBE_EDITOR_KEY) || VIBE_DEFAULT_CODE; } catch (_) { return VIBE_DEFAULT_CODE; }
+    try { return localStorage.getItem(vibeEditorKey()) || VIBE_DEFAULT_CODE; } catch (_) { return VIBE_DEFAULT_CODE; }
   }
   function vibeSaveEditorText(txt) {
-    try { localStorage.setItem(VIBE_EDITOR_KEY, txt); } catch (_) {}
+    try { localStorage.setItem(vibeEditorKey(), txt); } catch (_) {}
+    _vibeMirrorDraft();
+  }
+
+  // Pull this student's saved chat + editor from Firestore when nothing is
+  // stored locally on this device (e.g. they moved to a new computer).
+  async function vibeHydrateFromCloud() {
+    const name = vibeStudentName();
+    if (!name) return;
+    const hasLocalChat = !!localStorage.getItem(vibeChatKey());
+    const hasLocalEditor = !!localStorage.getItem(vibeEditorKey());
+    if (hasLocalChat && hasLocalEditor) return; // local wins, no fetch
+    try {
+      const draft = await loadDraft(name, 'vibe');
+      if (!draft) return;
+      let changed = false;
+      if (!hasLocalChat && typeof draft.vibeChat === 'string') {
+        try {
+          const arr = JSON.parse(draft.vibeChat);
+          if (Array.isArray(arr) && arr.length) {
+            _vibeChat = arr;
+            localStorage.setItem(vibeChatKey(), draft.vibeChat);
+            changed = true;
+          }
+        } catch (_) {}
+      }
+      if (!hasLocalEditor && typeof draft.vibeEditor === 'string' && draft.vibeEditor.trim()) {
+        vibeSetEditorText(draft.vibeEditor);
+        localStorage.setItem(vibeEditorKey(), draft.vibeEditor);
+        vibeUpdateLibraries();
+      }
+      if (changed) vibeRenderChat();
+    } catch (_) {}
+  }
+
+  // Switch the loaded chat + editor to the currently-picked student. Called
+  // when the roster dropdown changes.
+  function vibeSwitchStudent() {
+    _vibeChat = vibeLoadChat();
+    const txt = vibeLoadEditorText();
+    vibeSetEditorText(txt);
+    vibeSaveEditorText(txt);
+    vibeUpdateLibraries();
+    const inp = document.getElementById('vibeInput');
+    if (inp) { inp.value = ''; vibeAutoGrow(inp); vibeUpdateSendEnabled(); }
+    vibeRenderChat();
+    vibeHydrateFromCloud();
   }
   function vibeGetClassCode() {
     try { return localStorage.getItem(VIBE_CLASSCODE_KEY) || ''; } catch (_) { return ''; }
@@ -9849,6 +10047,29 @@
       <div data-vibe-identity></div>
 
       <div class="vibe-wrap">
+        <div class="vibe-left">
+          <div class="vibe-left-head">
+            <h3 class="vibe-left-title"><span class="vibe-left-title-dot"></span>AI Assistant</h3>
+            <button class="vibe-left-clear" id="vibeChatClear" style="display: none;">Clear chat</button>
+          </div>
+          <div class="vibe-chat-scroll" id="vibeChatScroll" role="log" aria-live="polite" aria-relevant="additions" aria-label="AI assistant conversation"></div>
+          <div class="vibe-stems-wrap">
+            <div class="vibe-stems" id="vibeStems"></div>
+          </div>
+          <div class="vibe-input-row">
+            <div class="vibe-composer">
+              <textarea class="vibe-input" id="vibeInput" rows="1" spellcheck="true" aria-label="Describe what your controller should do" placeholder="Describe what your controller should do — e.g. 'press W when the big button is held'"></textarea>
+              <button class="vibe-send-btn" id="vibeSend" aria-label="Send" disabled>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 2 L11 13"/>
+                  <path d="M22 2 L15 22 L11 13 L2 9 Z"/>
+                </svg>
+              </button>
+            </div>
+            <p class="vibe-composer-hint">Enter to send &middot; Shift+Enter for a new line</p>
+          </div>
+        </div>
+
         <div class="vibe-panel vibe-right">
           <div class="vibe-panel-header">
             <p class="vibe-panel-title">Arduino Code Editor</p>
@@ -9913,48 +10134,16 @@
           </div>
         </div>
       </div>
-
-      <!-- Floating "Ask AI" button + slide-in drawer -->
-      <button class="vibe-ai-fab" id="vibeAiFab" title="Open the AI assistant (chat)">
-        <span class="vibe-ai-fab-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2 L13.5 8.5 L20 10 L13.5 11.5 L12 18 L10.5 11.5 L4 10 L10.5 8.5 Z" fill="currentColor"/>
-          </svg>
-        </span>
-        <span>Ask AI</span>
-      </button>
-
-      <div class="vibe-drawer-backdrop" id="vibeDrawerBackdrop"></div>
-      <aside class="vibe-drawer" id="vibeDrawer" role="dialog" aria-label="AI assistant">
-        <div class="vibe-drawer-head">
-          <h3 class="vibe-drawer-title"><span class="vibe-drawer-title-dot"></span>AI Assistant</h3>
-          <div class="vibe-drawer-head-actions" style="display: flex; gap: 8px; align-items: center;">
-            <button class="vibe-btn" id="vibeChatClear" style="display: none;">Clear chat</button>
-            <button class="vibe-drawer-close" id="vibeDrawerClose" aria-label="Close">×</button>
-          </div>
-        </div>
-        <div class="vibe-chat-scroll" id="vibeChatScroll"></div>
-        <div class="vibe-stems-wrap">
-          <p class="vibe-stems-label">Prompt Templates</p>
-          <div class="vibe-stems" id="vibeStems"></div>
-        </div>
-        <div class="vibe-input-row">
-          <div class="vibe-input" id="vibeInput" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Try: 'Use the joystick to move the mouse and left-click on press.'"></div>
-          <button class="vibe-send-btn" id="vibeSend" aria-label="Send">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 2 L11 13"/>
-              <path d="M22 2 L15 22 L11 13 L2 9 Z"/>
-            </svg>
-          </button>
-        </div>
-      </aside>
     `;
     app.appendChild(wrap);
 
-    // Identity strip so the student picks their name before they generate code.
+    // Identity strip — when the student switches names, save the current
+    // work, then load that student's own chat + editor (per-student state).
     const vibeIdentityMount = wrap.querySelector('[data-vibe-identity]');
     if (vibeIdentityMount) {
-      vibeIdentityMount.appendChild(renderIdentityStrip());
+      vibeIdentityMount.appendChild(renderIdentityStrip({
+        onChange: () => { vibeSwitchStudent(); }
+      }));
     }
 
     document.getElementById('vibeBack').addEventListener('click', () => {
@@ -9962,29 +10151,6 @@
       history.pushState({}, '', '/tools');
       applyRoute('/tools');
     });
-
-    // Drawer open / close + ESC handler
-    const drawer = document.getElementById('vibeDrawer');
-    const backdrop = document.getElementById('vibeDrawerBackdrop');
-    function openVibeDrawer() {
-      drawer.classList.add('is-open');
-      backdrop.classList.add('is-open');
-      setTimeout(() => {
-        const inp = document.getElementById('vibeInput');
-        if (inp) inp.focus();
-      }, 180);
-    }
-    function closeVibeDrawer() {
-      drawer.classList.remove('is-open');
-      backdrop.classList.remove('is-open');
-    }
-    document.getElementById('vibeAiFab').addEventListener('click', openVibeDrawer);
-    document.getElementById('vibeDrawerClose').addEventListener('click', closeVibeDrawer);
-    backdrop.addEventListener('click', closeVibeDrawer);
-    const escHandler = (e) => { if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeVibeDrawer(); };
-    document.addEventListener('keydown', escHandler);
-    // Open the drawer once on first visit so students see the chat exists.
-    if (!_vibeChat.length) openVibeDrawer();
 
     document.getElementById('vibeChatClear').addEventListener('click', () => {
       if (!_vibeChat.length) { schemToast('Chat is already empty.'); return; }
@@ -10002,7 +10168,12 @@
         vibeSend();
       }
     });
-    // Contenteditable grows with content automatically (max-height capped in CSS).
+    // Auto-grow the textarea + toggle the send button's enabled state.
+    inputEl.addEventListener('input', () => {
+      vibeAutoGrow(inputEl);
+      vibeUpdateSendEnabled();
+    });
+    vibeUpdateSendEnabled();
 
     document.getElementById('vibeClearEditor').addEventListener('click', () => {
       if (!confirm('Clear the editor?')) return;
@@ -10151,6 +10322,8 @@
 
     vibeUpdateLibraries();
     vibeRenderChat();
+    // Pull this student's saved work from the cloud if this device has none.
+    vibeHydrateFromCloud();
   }
 
   function vibeGetEditorText() {
@@ -10167,15 +10340,177 @@
     }
   }
 
+  // ----- Composer helpers -----
+  function vibeAutoGrow(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+  }
+  function vibeUpdateSendEnabled() {
+    const inp = document.getElementById('vibeInput');
+    const btn = document.getElementById('vibeSend');
+    if (!inp || !btn) return;
+    btn.disabled = _vibeBusy || !inp.value.trim();
+  }
+
+  // ----- Suggested prompts (empty-state chips) -----
+  const VIBE_SUGGESTIONS = [
+    'Press the <strong>W key</strong> when a button on pin 2 is held down.',
+    'Use a <strong>joystick</strong> to move the mouse, and left-click when I press it.',
+    'Toggle the <strong>spacebar</strong> each time a lever switch is triggered.',
+    'Turn on an <strong>LED</strong> while a button is pressed, with a 220 ohm resistor.'
+  ];
+
+  // ----- Tiny Markdown renderer for assistant replies -----
+  // Handles paragraphs, **bold**, `inline code`, simple bullet lists, and
+  // ```fenced code blocks``` (rendered with a Load/Copy action bar). Returns a
+  // DocumentFragment so we never inject raw HTML strings from the model.
+  function vibeRenderMarkdown(text) {
+    const frag = document.createDocumentFragment();
+    const src = String(text || '');
+    // Split on fenced code blocks first.
+    const parts = src.split(/(```[\s\S]*?```)/g);
+    parts.forEach(part => {
+      if (!part) return;
+      const fence = part.match(/^```(?:arduino|cpp|c\+\+|c|ino)?\s*\n?([\s\S]*?)```$/i);
+      if (fence) {
+        const code = (fence[1] || '').replace(/\n$/, '');
+        frag.appendChild(vibeBuildCodeBlock(code));
+      } else {
+        vibeRenderProse(part, frag);
+      }
+    });
+    return frag;
+  }
+
+  function vibeRenderProse(text, frag) {
+    const lines = String(text).replace(/^\n+|\n+$/g, '').split('\n');
+    let listEl = null;
+    const flushList = () => { if (listEl) { frag.appendChild(listEl); listEl = null; } };
+    let paraBuf = [];
+    const flushPara = () => {
+      if (!paraBuf.length) return;
+      const p = document.createElement('p');
+      vibeInlineMd(paraBuf.join(' '), p);
+      frag.appendChild(p);
+      paraBuf = [];
+    };
+    lines.forEach(line => {
+      const bullet = line.match(/^\s*[-*]\s+(.*)$/);
+      if (bullet) {
+        flushPara();
+        if (!listEl) listEl = document.createElement('ul');
+        const li = document.createElement('li');
+        vibeInlineMd(bullet[1], li);
+        listEl.appendChild(li);
+      } else if (!line.trim()) {
+        flushPara(); flushList();
+      } else {
+        flushList();
+        paraBuf.push(line.trim());
+      }
+    });
+    flushPara(); flushList();
+  }
+
+  // Inline markdown: **bold** and `code`. Escapes everything else as text.
+  function vibeInlineMd(text, parent) {
+    const tokens = String(text).split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+    tokens.forEach(tok => {
+      if (!tok) return;
+      if (/^\*\*[^*]+\*\*$/.test(tok)) {
+        const s = document.createElement('strong');
+        s.textContent = tok.slice(2, -2);
+        parent.appendChild(s);
+      } else if (/^`[^`]+`$/.test(tok)) {
+        const c = document.createElement('code');
+        c.textContent = tok.slice(1, -1);
+        parent.appendChild(c);
+      } else {
+        parent.appendChild(document.createTextNode(tok));
+      }
+    });
+  }
+
+  function vibeBuildCodeBlock(code) {
+    const block = document.createElement('div');
+    block.className = 'vibe-codeblock';
+    const bar = document.createElement('div');
+    bar.className = 'vibe-codeblock-bar';
+    const lang = document.createElement('span');
+    lang.className = 'vibe-codeblock-lang';
+    lang.textContent = 'Arduino';
+    const actions = document.createElement('div');
+    actions.className = 'vibe-codeblock-actions';
+
+    const loadBtn = document.createElement('button');
+    loadBtn.className = 'vibe-codeblock-btn is-primary';
+    loadBtn.textContent = 'Load into editor';
+    loadBtn.addEventListener('click', () => {
+      vibeSetEditorText(code);
+      vibeSaveEditorText(code);
+      vibeUpdateLibraries();
+      loadBtn.textContent = 'Loaded';
+      loadBtn.classList.add('is-done');
+      schemToast('Code loaded into the editor.');
+      setTimeout(() => { loadBtn.textContent = 'Load into editor'; loadBtn.classList.remove('is-done'); }, 1600);
+    });
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'vibe-codeblock-btn';
+    copyBtn.textContent = 'Copy';
+    copyBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(code); copyBtn.textContent = 'Copied'; copyBtn.classList.add('is-done'); }
+      catch (_) { copyBtn.textContent = 'Copy failed'; }
+      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('is-done'); }, 1500);
+    });
+
+    actions.appendChild(loadBtn);
+    actions.appendChild(copyBtn);
+    bar.appendChild(lang);
+    bar.appendChild(actions);
+    const pre = document.createElement('pre');
+    pre.textContent = code;
+    block.appendChild(bar);
+    block.appendChild(pre);
+    return block;
+  }
+
   function vibeRenderChat() {
     const scroll = document.getElementById('vibeChatScroll');
     if (!scroll) return;
+    const clearBtn = document.getElementById('vibeChatClear');
+    if (clearBtn) clearBtn.style.display = _vibeChat.length ? '' : 'none';
     if (!_vibeChat.length && !_vibeBusy) {
-      scroll.innerHTML = `
-        <div class="vibe-chat-empty">
-          <strong>Pick a template below, then type your request.</strong>
-        </div>
-      `;
+      scroll.innerHTML = '';
+      const empty = document.createElement('div');
+      empty.className = 'vibe-chat-empty';
+      const strong = document.createElement('strong');
+      strong.textContent = 'Tell me what your controller should do.';
+      empty.appendChild(strong);
+      const sub = document.createElement('div');
+      sub.style.marginBottom = '4px';
+      sub.textContent = 'Type below in plain English, or start with one of these:';
+      empty.appendChild(sub);
+      const sugg = document.createElement('div');
+      sugg.className = 'vibe-suggest';
+      VIBE_SUGGESTIONS.forEach(html => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'vibe-suggest-chip';
+        chip.innerHTML = html;
+        chip.addEventListener('click', () => {
+          const inp = document.getElementById('vibeInput');
+          if (!inp) return;
+          inp.value = chip.textContent;
+          vibeAutoGrow(inp);
+          vibeUpdateSendEnabled();
+          inp.focus();
+        });
+        sugg.appendChild(chip);
+      });
+      empty.appendChild(sugg);
+      scroll.appendChild(empty);
       return;
     }
     scroll.innerHTML = '';
@@ -10199,15 +10534,10 @@
         scroll.appendChild(row);
       } else if (msg.role === 'assistant') {
         const { row, msg: el } = _row('ai', 'vibe-msg-ai');
-        const intro = document.createElement('div');
-        intro.style.fontSize = '13px';
-        intro.style.color = 'var(--ink-mid)';
-        intro.textContent = 'Loaded into your editor.';
-        const pre = document.createElement('pre');
-        pre.className = 'vibe-msg-codepreview';
-        pre.textContent = msg.content;
-        el.appendChild(intro);
-        el.appendChild(pre);
+        const md = document.createElement('div');
+        md.className = 'vibe-md';
+        md.appendChild(vibeRenderMarkdown(msg.content));
+        el.appendChild(md);
         scroll.appendChild(row);
       } else if (msg.role === 'error') {
         const { row, msg: el } = _row('ai', 'vibe-msg-error');
@@ -10217,44 +10547,42 @@
     });
     if (_vibeBusy) {
       const { row, msg: el } = _row('ai', 'vibe-msg-loading');
-      el.textContent = 'Generating...';
+      el.textContent = 'Writing your code…';
       row.classList.add('is-loading');
       scroll.appendChild(row);
     }
     scroll.scrollTop = scroll.scrollHeight;
   }
 
-  // ----- Prompt starters -----
-  // Modern "Act like..." style scaffolds. Each entry has:
-  //   label: short button text
-  //   text:  the prompt body that fills the input
-  //   placeholder: substring inside `text` to highlight (cursor lands here)
+  // ----- Prompt templates -----
+  // Plain-text scaffolds that drop into the textarea with the placeholder
+  // pre-selected so the student types right over it. No HTML span tricks.
   const VIBE_STEMS = [
     {
       label: 'Build for me',
       primary: true,
-      text: "I'm building an adaptive controller with an Arduino Leonardo. Write stable, durable, professional Arduino code that <DESCRIBE THE BEHAVIOR>. Use the appropriate HID library if it should send keyboard or mouse input. Include thorough inline comments so I understand what each variable, function, and section does. At the end of your response, outline the wiring clearly: list which Arduino pin every component connects to, specify the resistor values (220 ohm for any LED), and explain how the connections are made between components. I will figure out how to physically lay it out on a breadboard or perfboard myself.",
+      text: "Build Arduino code for my adaptive controller that does this: <DESCRIBE THE BEHAVIOR>. Explain how to wire it and which pins to use.",
       placeholder: '<DESCRIBE THE BEHAVIOR>'
     },
     {
       label: 'Walk me through',
-      text: "Walk me through how to <DESCRIBE THE TASK> on an Arduino Leonardo, step by step. Explain the why, not just the how.",
+      text: "Walk me through how to <DESCRIBE THE TASK> on an Arduino, step by step. Explain the why, not just the how.",
       placeholder: '<DESCRIBE THE TASK>'
     },
     {
       label: 'Debug this',
-      text: "Act like a debugging partner. Here's my Arduino code, and what's happening when I run it:\n\nCODE:\n```\n<PASTE YOUR CODE>\n```\n\nWHAT I'M SEEING:\n<DESCRIBE WHAT'S WRONG>\n\nFind the bug and explain the fix.",
-      placeholder: '<PASTE YOUR CODE>'
+      text: "My code isn't working right. Here's what's happening: <DESCRIBE WHAT'S WRONG>. The code is in my editor. Find the bug and fix it.",
+      placeholder: "<DESCRIBE WHAT'S WRONG>"
     },
     {
-      label: 'Explain this code',
-      text: "Explain this Arduino code to me line by line as if I'm new to programming. What does each section do, and why?\n\n```\n<PASTE YOUR CODE>\n```",
-      placeholder: '<PASTE YOUR CODE>'
+      label: 'Explain my code',
+      text: "Explain the code in my editor to me line by line, like I'm new to programming. What does each part do, and why?",
+      placeholder: ''
     },
     {
-      label: 'Optimize this',
-      text: "Act like a code reviewer. Here's my Arduino sketch:\n\n```\n<PASTE YOUR CODE>\n```\n\nClean it up: better variable names, smaller loops, clearer structure. Explain each change.",
-      placeholder: '<PASTE YOUR CODE>'
+      label: 'Make it cleaner',
+      text: "Clean up the code in my editor: clearer variable names, simpler structure, better comments. Tell me what you changed.",
+      placeholder: ''
     }
   ];
 
@@ -10276,37 +10604,20 @@
   function vibeApplyStem(stem) {
     const inp = document.getElementById('vibeInput');
     if (!inp) return;
-    // Build innerHTML with two spans: template scaffold (muted/italic) and
-    // user-input portion (accent color, bold). The placeholder text starts
-    // selected so the student types over it; their characters land inside
-    // the .vibe-input-user span and inherit its styling.
+    // Drop the scaffold into the textarea as plain text. If it has a
+    // <PLACEHOLDER> token, select exactly that span so the student types
+    // right over it; otherwise put the cursor at the end.
     const placeholder = stem.placeholder || '';
     const text = stem.text || '';
-    const idx = placeholder ? text.indexOf(placeholder) : -1;
-    inp.innerHTML = '';
-    const escape = (s) => s
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-    if (idx >= 0) {
-      const before = text.slice(0, idx);
-      const after = text.slice(idx + placeholder.length);
-      inp.innerHTML =
-        `<span class="vibe-input-template">${escape(before)}</span>` +
-        `<span class="vibe-input-user">${escape(placeholder)}</span>` +
-        `<span class="vibe-input-template">${escape(after)}</span>`;
-    } else {
-      inp.innerHTML = `<span class="vibe-input-template">${escape(text)}</span>`;
-    }
+    inp.value = text;
+    vibeAutoGrow(inp);
+    vibeUpdateSendEnabled();
     inp.focus();
-    // Select the user-input span's text so the student types over it cleanly.
-    const userSpan = inp.querySelector('.vibe-input-user');
-    if (userSpan) {
-      const range = document.createRange();
-      range.selectNodeContents(userSpan);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
+    const idx = placeholder ? text.indexOf(placeholder) : -1;
+    if (idx >= 0) {
+      inp.setSelectionRange(idx, idx + placeholder.length);
+    } else {
+      inp.setSelectionRange(text.length, text.length);
     }
   }
 
@@ -10379,61 +10690,78 @@
   function vibeSend() {
     if (_vibeBusy) return;
     const inputEl = document.getElementById('vibeInput');
-    // Read plain text from the contenteditable (was a textarea before).
-    const txt = ((inputEl.textContent != null ? inputEl.textContent : inputEl.value) || '').trim();
+    const txt = (inputEl.value || '').trim();
     if (!txt) return;
 
     _vibeChat.push({ role: 'user', content: txt });
     vibeSaveChat();
-    inputEl.innerHTML = '';
-    inputEl.textContent = '';
+    inputEl.value = '';
+    vibeAutoGrow(inputEl);
     _vibeBusy = true;
-    document.getElementById('vibeSend').disabled = true;
+    vibeUpdateSendEnabled();
     vibeRenderChat();
 
-    // Build a short history (last 6 messages, excluding errors).
+    // Give the model the student's current sketch as context (like an IDE
+    // companion) so "debug / explain / clean up my code" works — but only
+    // when there's real code, and never show this context in the chat.
+    const editorCode = vibeGetEditorText();
+    const editorIsDefault = !editorCode || !editorCode.trim() || editorCode.trim() === VIBE_DEFAULT_CODE.trim();
+    const promptForApi = editorIsDefault
+      ? txt
+      : `${txt}\n\n---\nFor context, here is the current code in my editor:\n\`\`\`cpp\n${editorCode}\n\`\`\``;
+
+    // Short history (last few turns, excluding errors and the new message).
     const history = _vibeChat
       .filter(m => m.role === 'user' || m.role === 'assistant')
-      .slice(-7, -1) // exclude the just-added user message
+      .slice(-7, -1)
       .map(m => ({ role: m.role, content: m.content }));
+
+    const finish = () => {
+      _vibeBusy = false;
+      vibeUpdateSendEnabled();
+      vibeRenderChat();
+      const el = document.getElementById('vibeInput');
+      if (el) el.focus();
+    };
 
     fetch('/api/vibe-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        prompt: txt,
-        history
-      })
+      body: JSON.stringify({ prompt: promptForApi, history })
     }).then(async (r) => {
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
         const errMsg = data.error || ('Server error ' + r.status);
         _vibeChat.push({ role: 'error', content: 'Something went wrong, try again. (' + errMsg + ')' });
       } else {
+        const reply = (data.reply || '').trim();
         const code = (data.code || '').trim();
-        if (code) {
-          _vibeChat.push({ role: 'assistant', content: code });
-          // Auto-paste the latest response into the IDE every time, so the
-          // editor always reflects the freshest generation. Detect libraries
-          // for the strip too.
-          vibeSetEditorText(code);
-          vibeSaveEditorText(code);
-          vibeUpdateLibraries();
+        if (reply) {
+          _vibeChat.push({ role: 'assistant', content: reply });
+          // Non-destructive: only auto-load code when the editor is still the
+          // empty default. Otherwise the chat code block has a "Load into
+          // editor" button so we never clobber hand-edited work.
+          if (code) {
+            const cur = vibeGetEditorText();
+            const curIsDefault = !cur || !cur.trim() || cur.trim() === VIBE_DEFAULT_CODE.trim();
+            if (curIsDefault) {
+              vibeSetEditorText(code);
+              vibeSaveEditorText(code);
+              vibeUpdateLibraries();
+            }
+          }
+        } else if (code) {
+          _vibeChat.push({ role: 'assistant', content: '```cpp\n' + code + '\n```' });
         } else {
-          _vibeChat.push({ role: 'error', content: 'The assistant did not return any code.' });
+          _vibeChat.push({ role: 'error', content: 'The assistant did not return a response. Try rephrasing your request.' });
         }
       }
       vibeSaveChat();
-      _vibeBusy = false;
-      document.getElementById('vibeSend').disabled = false;
-      vibeRenderChat();
+      finish();
     }).catch((err) => {
       _vibeChat.push({ role: 'error', content: 'Something went wrong, try again. (' + (err.message || err) + ')' });
       vibeSaveChat();
-      _vibeBusy = false;
-      const sendBtn = document.getElementById('vibeSend');
-      if (sendBtn) sendBtn.disabled = false;
-      vibeRenderChat();
+      finish();
     });
   }
 
