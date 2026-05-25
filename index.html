@@ -5808,16 +5808,14 @@
     const rail = (col, color, label) => {
       const x = (col + 0.5) * P;
       const stripW = P * 0.72;
-      // Two physical segments per rail, split at the channel.
-      const topSegStart = railTopY - 0.5 * P;
-      const topSegEnd   = (channelRow - 0.5) * P;
-      const botSegStart = (channelRow + 1.5) * P;
-      const botSegEnd   = railBotY + 0.5 * P;
+      // One continuous rail running the full side of the board, top to bottom,
+      // just like a real breadboard power bus. The colored guide line spans the
+      // entire tie-point height with no mid-board gap.
+      const railStart = railTopY - 0.5 * P;
+      const railEnd   = railBotY + 0.5 * P;
       return `
-        <rect x="${x - stripW / 2}" y="${topSegStart}" width="${stripW}" height="${topSegEnd - topSegStart}" fill="${color}" opacity="0.32" pointer-events="none"/>
-        <line x1="${x}" y1="${topSegStart + 0.15 * P}" x2="${x}" y2="${topSegEnd - 0.05 * P}" stroke="${color}" stroke-width="3.5" stroke-linecap="round" pointer-events="none"/>
-        <rect x="${x - stripW / 2}" y="${botSegStart}" width="${stripW}" height="${botSegEnd - botSegStart}" fill="${color}" opacity="0.32" pointer-events="none"/>
-        <line x1="${x}" y1="${botSegStart + 0.05 * P}" x2="${x}" y2="${botSegEnd - 0.15 * P}" stroke="${color}" stroke-width="3.5" stroke-linecap="round" pointer-events="none"/>
+        <rect x="${x - stripW / 2}" y="${railStart}" width="${stripW}" height="${railEnd - railStart}" rx="${stripW / 2}" fill="${color}" opacity="0.32" pointer-events="none"/>
+        <line x1="${x}" y1="${railStart + 0.15 * P}" x2="${x}" y2="${railEnd - 0.15 * P}" stroke="${color}" stroke-width="3.5" stroke-linecap="round" pointer-events="none"/>
         <text x="${x}" y="${railTopY - 0.65 * P}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
         <text x="${x}" y="${railBotY + 0.95 * P}" text-anchor="middle" font-size="13" fill="${color}" font-family="system-ui, sans-serif" font-weight="800" pointer-events="none">${label}</text>
       `;
@@ -6176,13 +6174,15 @@
       g.appendChild(rotHandle);
     }
 
-    // Perfboard move handle (top-left, dotted square icon). Always-visible
-    // grab target so students don't have to find the gap between pads.
-    if (isPerfboard) {
+    // Board move handle (top-left, dotted square icon). Always-visible grab
+    // target so students don't have to find the gap between pads/tie-points.
+    // Both perfboard and breadboard get it; tan icon for the breadboard.
+    if (isPerfboard || isBreadboard) {
+      const moveFill = isPerfboard ? '#0c3a1f' : '#8a8270';
       const moveHandle = document.createElementNS(svgNS, 'g');
       moveHandle.setAttribute('class', 'schem-move-handle');
       moveHandle.innerHTML = `
-        <rect x="-2" y="-2" width="20" height="20" rx="3" fill="#0c3a1f" stroke="#fff" stroke-width="0.8"/>
+        <rect x="-2" y="-2" width="20" height="20" rx="3" fill="${moveFill}" stroke="#fff" stroke-width="0.8"/>
         <circle cx="3" cy="3" r="1" fill="#fff"/>
         <circle cx="8" cy="3" r="1" fill="#fff"/>
         <circle cx="13" cy="3" r="1" fill="#fff"/>
