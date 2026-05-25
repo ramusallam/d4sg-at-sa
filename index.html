@@ -103,7 +103,7 @@
   }
 
   .project {
-    margin-bottom: 28px;
+    margin-bottom: 48px;
   }
   .project:last-child { margin-bottom: 0; }
 
@@ -112,7 +112,7 @@
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--ink-hi);
-    margin: 0 0 12px;
+    margin: 0 0 14px;
   }
   .project-blurb {
     font-size: 13px;
@@ -121,37 +121,38 @@
     max-width: 640px;
   }
 
-  /* Standalone (single-benchmark) project rows — used for "Final: Publish to
-     Instructables". Bold green moment that anchors the bottom of the page. */
+  /* Standalone (single-benchmark) project rows — used for "Final Project:
+     Instructable". A bright, inviting emerald moment that anchors the bottom
+     of the page, set well apart from Project 4 so it reads as the finale. */
   .project.is-standalone {
-    margin-top: -32px;
+    margin-top: 28px;
   }
   .project.is-standalone .benchmark {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.14), rgba(16, 185, 129, 0.09));
-    border: 1.5px solid rgba(34, 197, 94, 0.45);
-    box-shadow: 0 4px 18px rgba(34, 197, 94, 0.16);
-    padding: 20px 24px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(45, 212, 191, 0.07));
+    border: 1.5px solid rgba(16, 185, 129, 0.34);
+    box-shadow: 0 8px 26px rgba(16, 185, 129, 0.14);
+    padding: 22px 26px;
   }
   .project.is-standalone .benchmark:hover {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.20), rgba(16, 185, 129, 0.13));
-    border-color: rgba(34, 197, 94, 0.62);
-    box-shadow: 0 10px 26px rgba(34, 197, 94, 0.24);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(45, 212, 191, 0.11));
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 14px 34px rgba(16, 185, 129, 0.22);
     transform: translateY(-2px);
   }
   .project.is-standalone .benchmark-label {
     font-weight: 700;
     font-size: clamp(16px, 1.7vw, 18px);
-    color: #047857;
+    color: #0f766e;
     letter-spacing: -0.01em;
   }
   .project.is-standalone .points {
-    background: rgba(34, 197, 94, 0.18);
-    border-color: rgba(34, 197, 94, 0.4);
-    color: #047857;
+    background: rgba(16, 185, 129, 0.14);
+    border-color: rgba(16, 185, 129, 0.32);
+    color: #0f766e;
     font-weight: 700;
   }
   .project.is-standalone .checkbox {
-    border-color: rgba(34, 197, 94, 0.5);
+    border-color: rgba(16, 185, 129, 0.45);
   }
   .project.is-standalone .checkbox:hover {
     border-color: var(--success);
@@ -4494,41 +4495,80 @@
     },
     {
       id: 'p2',
-      title: 'Project 2: Adaptive Input Expansion Prototypes',
-      goal: 'Expand who can use a controller. Design switch types for different mobility, breath, and touch needs.',
+      title: 'Project 2: No-Force Sensors',
+      goal: 'Build adaptive inputs for people with the smallest, lowest-force movements - sensors that answer a light touch or a nearby motion instead of a press.',
       benchmarks: [
         {
           id: 'p2b1',
-          title: 'Passive External Switch Prototype',
+          title: 'Capacitive Touch',
           points: 2,
-          instructions: 'Build a passive (no power needed) external switch that plugs into your existing setup via a 3.5mm jack. Confirm it works with at least one accessibility-friendly device.',
+          instructions: [
+            'Open the [Vibe Coding Tool](tools#vibe), click **Build for me**, and describe this behavior in the input: *"Activate the W key each time I lightly touch a capacitive touch sensor. No force or pressing should be needed."*',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to lay out a digital schematic of your circuit using a **breadboard**.',
+            'Wire your physical Arduino to match your schematic, then load the code from the Vibe Coding editor.',
+            'Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
         },
         {
           id: 'p2b2',
-          title: 'Sip-and-Puff Adaptive Switch Prototype',
+          title: 'Distance Sensor',
           points: 2,
-          instructions: 'Build a sip-and-puff switch using a pressure sensor or air-flow sensor. Calibrate it for both sip (suction) and puff (blow) inputs as separate signals.',
+          instructions: [
+            '**Keep your Capacitive Touch wiring intact.** You will keep building on the same breadboard - add the IR distance sensor alongside your existing touch sensor. Do not unplug or remove anything from the previous benchmark.',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Capacitive Touch code in the editor - you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: activate the A key each time a hand or object comes within a set distance of a VL53L0X infrared distance sensor. Keep the W-key touch behavior I already have. Explain how to wire the sensor over I2C, including soldering its header pins onto the breakout board."*',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the IR distance sensor to your existing schematic on the **breadboard**.',
+            'The VL53L0X breakout ships with its header pins loose in the bag. **Solder the header pins onto the breakout board** so it seats firmly in the breadboard - a loose sensor gives unreliable distance readings. Check in with an instructor before using the soldering iron.',
+            'Wire the IR distance sensor into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
+            'Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
         },
         {
           id: 'p2b3',
-          title: 'IR Touch-Free Switch Prototype',
+          title: 'LEDs',
           points: 2,
-          instructions: 'Build a touch-free switch using an IR proximity sensor. Tune detection range and confirm reliable triggering without contact.',
+          instructions: [
+            '**Keep your Capacitive Touch and Distance Sensor wiring intact.** You will keep building on the same breadboard - add two different-color LEDs alongside your existing touch and distance sensors. **Each LED needs a 220 ohm resistor in series.** Do not unplug or remove anything from the previous benchmark.',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Capacitive Touch and Distance Sensor code in the editor - you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the touch sensor is active, and a different-color LED while the distance sensor is triggered. Keep the W-key and A-key behaviors I already have."*',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
+            'Wire the two LEDs into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
+            'Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
         },
         {
           id: 'p2b4',
-          title: 'Joystick Mouse Control Prototype',
+          title: 'Product',
           points: 2,
-          instructions: 'Use a joystick (analog or digital) to drive mouse cursor or controller-stick input. Map sensitivity curves so small movements feel natural.',
+          brief: {
+            hook: "A kid who can only graze a pad with one fingertip can still turn the page, send a message, or call for help, as long as the sensor needs no force at all. The right sensor does not wait for a push - it answers the smallest movement a body can make. Now it is your turn.",
+            challenge: "How might we use a capacitive touch sensor, an IR distance sensor, two LEDs, and an Arduino Leonardo to give one specific person a way to do something they want to do but can't - using only the smallest movement they have, and no force at all?",
+            personas: [
+              { name: 'Noa, 12',  condition: 'Spinal muscular atrophy',             motion: 'Rests and lifts a single fingertip, no force',  goal: 'Turn pages in a digital comic with a fingertip touch (1 key — next page).' },
+              { name: 'Kai, 17',  condition: 'High cervical spinal cord injury (C1-C4)', motion: 'Slow, reliable head and cheek movement',     goal: 'Call a caregiver hands-free by moving toward a sensor (1 key — alert).' },
+              { name: 'Remy, 10', condition: 'Rett syndrome',                         motion: 'Sweeps a hand slowly through the air',          goal: 'Skip songs in a playlist by waving near a sensor (1 key — skip).' },
+              { name: 'Ari, 20',  condition: 'Advanced muscular dystrophy',           motion: 'Grazes a surface with one fingertip, zero force', goal: 'Answer yes or no in a chat by touching two pads (2 keys — each types a preset word).' }
+            ]
+          },
+          instructions: [
+            'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one sensor and one LED. Maximum: both sensors and both LEDs.** Pick what your user\'s motion and goal actually need - **design before aesthetics, always.** Where does their smallest reliable movement meet the sensor? Where do the LEDs sit so they can see them? What shape does your 3D-printed mount need to be?',
+            'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Capacitive Touch, Distance Sensor, and LED benchmarks. Be precise about **what you want** (which sensors and LEDs you are using, what keystrokes the device must send for your user, how the LEDs give them feedback, the arm/disarm safety) and **what the outcome should do** (what happens on touch or approach, on release, on hold; when each LED is on or off; what happens when no input arrives). Click **Build for me** with your prompt.',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.** If your design uses the IR distance sensor, make sure its header pins are soldered.',
+            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Design a CAD mount in **Tinkercad** that holds the sensor where your user\'s smallest motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL.',
+            '3D print your mount and assemble the final product - sensor, mount, LEDs, Arduino. Then **test it like your user would** - use only the motion they actually have, with no force. If it does not work for their motion, redesign and reprint.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
@@ -4674,7 +4714,7 @@
     },
     {
       id: 'final',
-      title: 'Final: Publish to Instructables',
+      title: 'Final Project: Instructable',
       goal: 'Publish your finished controller to Instructables so the world can build from your work.',
       benchmarks: [
         {
@@ -5236,6 +5276,52 @@
         `;
       },
       pinLabels: true
+    },
+
+    captouch: {
+      group: 'components',
+      label: 'Capacitive touch (TTP223B)',
+      w: 3, h: 2.5,
+      pins: [
+        { name: 'GND', gx: 0.5, gy: 2.5 },
+        { name: 'VCC', gx: 1.5, gy: 2.5 },
+        { name: 'SIG', gx: 2.5, gy: 2.5 }
+      ],
+      svg: function() {
+        const W = 3 * SCHEM_GRID_PITCH;
+        const H = 2.5 * SCHEM_GRID_PITCH;
+        return `
+          <rect x="0" y="0" width="${W}" height="${H}" rx="3" fill="#1d4ed8" stroke="#0b2a6b" stroke-width="1.2"/>
+          <rect x="${W*0.28}" y="${H*0.18}" width="${W*0.44}" height="${H*0.44}" rx="2" fill="#bfdbfe" stroke="#0b2a6b" stroke-width="0.8"/>
+          <text x="${W*0.5}" y="${H*0.92}" text-anchor="middle" font-size="6" fill="#dbeafe" font-family="system-ui, sans-serif" font-weight="700">TOUCH</text>
+        `;
+      },
+      pinLabels: true,
+      hint: 'Light touch on the pad sets SIG high. No force needed.'
+    },
+
+    tofsensor: {
+      group: 'components',
+      label: 'IR distance (VL53L0X)',
+      w: 3.5, h: 2.5,
+      pins: [
+        { name: 'VIN', gx: 0.5, gy: 2.5 },
+        { name: 'GND', gx: 1.5, gy: 2.5 },
+        { name: 'SDA', gx: 2.5, gy: 2.5 },
+        { name: 'SCL', gx: 3.0, gy: 2.5 }
+      ],
+      svg: function() {
+        const W = 3.5 * SCHEM_GRID_PITCH;
+        const H = 2.5 * SCHEM_GRID_PITCH;
+        return `
+          <rect x="0" y="0" width="${W}" height="${H}" rx="3" fill="#7c3aed" stroke="#4c1d95" stroke-width="1.2"/>
+          <rect x="${W*0.34}" y="${H*0.18}" width="${W*0.32}" height="${H*0.4}" rx="1.5" fill="#0f172a" stroke="#000"/>
+          <circle cx="${W*0.5}" cy="${H*0.38}" r="${W*0.05}" fill="#22d3ee"/>
+          <text x="${W*0.5}" y="${H*0.92}" text-anchor="middle" font-size="6" fill="#ede9fe" font-family="system-ui, sans-serif" font-weight="700">ToF</text>
+        `;
+      },
+      pinLabels: true,
+      hint: 'I2C distance sensor: SDA + SCL. Solder the header pins before use.'
     },
 
     led: {
