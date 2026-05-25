@@ -4965,17 +4965,17 @@
       //   col 0 → left + rail, col 1 → left - rail, col 2 → row labels
       //   cols 3-7 → A-E, col 8 → channel, cols 9-13 → F-J
       //   col 14 → row labels, col 15 → right - rail, col 16 → right + rail
-      w: 17, h: 33,
+      w: 17, h: 13,
       pins: (() => {
-        // 33 rows total: row 0 + row 32 = letter headers; row 16 = center
-        // channel; rows 1-15 = top ties (numbered 1-15); rows 17-31 = bottom
-        // ties (numbered 16-30). Matches the real half-size 400-point board.
+        // Compact 13-row board sized to sit alongside the Arduino + perfboard:
+        // row 0 + row 12 = letter headers; row 6 = center channel; rows 1-5 =
+        // top ties (numbered 1-5); rows 7-11 = bottom ties (numbered 6-10).
+        // Keeps the real breadboard layout (split rails, channel, a-e/f-j) but
+        // at a footprint that doesn't swallow the canvas.
         const out = [];
         const LETTERS_LEFT  = ['A','B','C','D','E'];
         const LETTERS_RIGHT = ['F','G','H','I','J'];
-        const tieRows = [];
-        for (let r = 1; r <= 15; r++) tieRows.push(r);
-        for (let r = 17; r <= 31; r++) tieRows.push(r);
+        const tieRows = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
         tieRows.forEach((r, idx) => {
           const tieIdx = idx + 1;
           const y = r + 0.5;
@@ -4991,7 +4991,7 @@
       // Palette + ghost use the same dynamic body as the placed component, so
       // what students see in the toolbar matches what lands on the canvas.
       svg: function() {
-        return _schemBreadboardBodySvg(17, 33);
+        return _schemBreadboardBodySvg(17, 13);
       },
       pinLabels: false,
       pinStyle: 'socket'
@@ -5254,7 +5254,19 @@
       if (!raw) return _schemDefaultState();
       const parsed = JSON.parse(raw);
       // Merge defaults so older saves don't crash.
-      return Object.assign(_schemDefaultState(), parsed);
+      const state = Object.assign(_schemDefaultState(), parsed);
+      // Migrate oversized breadboards from the old 30-row layout down to the
+      // compact 13-row footprint so previously-placed boards stop swallowing
+      // the canvas. Width is already forced to 17 elsewhere.
+      if (Array.isArray(state.components)) {
+        state.components.forEach(c => {
+          if (c && c.type === 'breadboard' && (c.rows || 0) > 17) {
+            c.rows = 13;
+            c.cols = 17;
+          }
+        });
+      }
+      return state;
     } catch (err) {
       console.warn('schematic load failed', err);
       return _schemDefaultState();
@@ -5762,7 +5774,7 @@
     bg.setAttribute('y', 0);
     bg.setAttribute('width', W);
     bg.setAttribute('height', H);
-    bg.setAttribute('fill', '#FAF6EE');
+    bg.setAttribute('fill', '#FFFFFF');
     bg.setAttribute('rx', 8);
     svg.appendChild(bg);
 
@@ -6468,7 +6480,7 @@
     }
     if (type === 'breadboard') {
       c.cols = 17;
-      c.rows = 33; // header + 30 numbered tie rows (15 top + 15 bottom) + channel + header
+      c.rows = 13; // header + 10 numbered tie rows (5 top + 5 bottom) + channel + header
     }
     _schemState.components.push(c);
     _schemSelected = id;
