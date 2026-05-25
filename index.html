@@ -10354,13 +10354,6 @@
   }
 
   // ----- Suggested prompts (empty-state chips) -----
-  const VIBE_SUGGESTIONS = [
-    'Press the <strong>W key</strong> when a button on pin 2 is held down.',
-    'Use a <strong>joystick</strong> to move the mouse, and left-click when I press it.',
-    'Toggle the <strong>spacebar</strong> each time a lever switch is triggered.',
-    'Turn on an <strong>LED</strong> while a button is pressed, with a 220 ohm resistor.'
-  ];
-
   // ----- Tiny Markdown renderer for assistant replies -----
   // Handles paragraphs, **bold**, `inline code`, simple bullet lists, and
   // ```fenced code blocks``` (rendered with a Load/Copy action bar). Returns a
@@ -10490,26 +10483,8 @@
       empty.appendChild(strong);
       const sub = document.createElement('div');
       sub.style.marginBottom = '4px';
-      sub.textContent = 'Type below in plain English, or start with one of these:';
+      sub.textContent = 'Type your prompt below in plain English.';
       empty.appendChild(sub);
-      const sugg = document.createElement('div');
-      sugg.className = 'vibe-suggest';
-      VIBE_SUGGESTIONS.forEach(html => {
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'vibe-suggest-chip';
-        chip.innerHTML = html;
-        chip.addEventListener('click', () => {
-          const inp = document.getElementById('vibeInput');
-          if (!inp) return;
-          inp.value = chip.textContent;
-          vibeAutoGrow(inp);
-          vibeUpdateSendEnabled();
-          inp.focus();
-        });
-        sugg.appendChild(chip);
-      });
-      empty.appendChild(sugg);
       scroll.appendChild(empty);
       return;
     }
@@ -10565,24 +10540,9 @@
       placeholder: '<DESCRIBE THE BEHAVIOR>'
     },
     {
-      label: 'Walk me through',
-      text: "Walk me through how to <DESCRIBE THE TASK> on an Arduino, step by step. Explain the why, not just the how.",
-      placeholder: '<DESCRIBE THE TASK>'
-    },
-    {
       label: 'Debug this',
       text: "My code isn't working right. Here's what's happening: <DESCRIBE WHAT'S WRONG>. The code is in my editor. Find the bug and fix it.",
       placeholder: "<DESCRIBE WHAT'S WRONG>"
-    },
-    {
-      label: 'Explain my code',
-      text: "Explain the code in my editor to me line by line, like I'm new to programming. What does each part do, and why?",
-      placeholder: ''
-    },
-    {
-      label: 'Make it cleaner',
-      text: "Clean up the code in my editor: clearer variable names, simpler structure, better comments. Tell me what you changed.",
-      placeholder: ''
     }
   ];
 
