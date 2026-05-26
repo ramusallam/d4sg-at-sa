@@ -3657,6 +3657,30 @@
     outline: none;
   }
   .vibe-input::placeholder { color: var(--ink-low); }
+
+  /* Empty state: no conversation yet. Collapse the blank chat scroll and let
+     the composer grow to fill the panel as one big writing box. */
+  .vibe-left.is-empty .vibe-chat-scroll {
+    flex: 0 0 0;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  .vibe-left.is-empty .vibe-input-row {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .vibe-left.is-empty .vibe-composer {
+    flex: 1 1 auto;
+    align-items: stretch;
+  }
+  .vibe-left.is-empty .vibe-input {
+    max-height: none;
+    height: 100%;
+  }
+  .vibe-left.is-empty .vibe-send-btn { align-self: flex-end; }
+
   .vibe-send-btn {
     background: var(--accent);
     color: white;
@@ -10643,6 +10667,9 @@
   // ----- Composer helpers -----
   function vibeAutoGrow(el) {
     if (!el) return;
+    // In the empty state the composer fills the panel via flex, so don't pin
+    // an inline height (that would shrink the big writing box as you type).
+    if (el.closest('.vibe-left.is-empty')) { el.style.height = ''; return; }
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 220) + 'px';
   }
@@ -10774,7 +10801,12 @@
     if (!scroll) return;
     const clearBtn = document.getElementById('vibeChatClear');
     if (clearBtn) clearBtn.style.display = _vibeChat.length ? '' : 'none';
-    if (!_vibeChat.length && !_vibeBusy) {
+    const isEmpty = !_vibeChat.length && !_vibeBusy;
+    // When there's no conversation yet, collapse the empty chat area and let
+    // the composer grow to fill the panel (a big writing box, no dead space).
+    const leftPane = scroll.closest('.vibe-left');
+    if (leftPane) leftPane.classList.toggle('is-empty', isEmpty);
+    if (isEmpty) {
       scroll.innerHTML = '';
       return;
     }
