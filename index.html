@@ -251,6 +251,147 @@
     .capstone-cta { margin-left: 0; }
   }
 
+  /* Project 0 grounding-video cards. Watch inline, write a summary, save. */
+  .vid-identity { margin: 2px 0 18px; }
+  .vid-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 760px) { .vid-cards { grid-template-columns: 1fr; } }
+  .vid-card {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .vid-card:hover { box-shadow: 0 8px 22px rgba(17, 17, 17, 0.07); }
+  .vid-card.done { border-color: rgba(16, 185, 129, 0.5); }
+  .vid-card-media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #0f172a;
+  }
+  .vid-card-media iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .vid-card-media--empty {
+    display: grid;
+    place-items: center;
+    background: var(--bg-2);
+    color: var(--ink-low);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .vid-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 18px 18px;
+  }
+  .vid-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .vid-card-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong);
+    background: var(--bg-2);
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.15s ease;
+  }
+  .vid-card-check.checked { background: var(--success); border-color: var(--success); }
+  .vid-card-check.checked::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 3px;
+    width: 5px;
+    height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .vid-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink-hi);
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+  }
+  .vid-card-points {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 999px;
+    padding: 3px 10px;
+    flex-shrink: 0;
+  }
+  .vid-card-prompt {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-mid);
+    margin: 0;
+  }
+  .vid-summary {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-1);
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-hi);
+    resize: vertical;
+    min-height: 84px;
+    outline: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .vid-summary:focus { border-color: var(--accent); background: white; }
+  .vid-summary::placeholder { color: var(--ink-low); }
+  .vid-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+  .vid-saved {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--success);
+    margin-right: auto;
+  }
+  .vid-save {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.12s ease;
+  }
+  .vid-save:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); }
+  .vid-save:disabled { background: var(--border); color: var(--ink-low); cursor: not-allowed; }
+
   .benchmarks {
     display: flex;
     flex-direction: column;
@@ -4525,6 +4666,50 @@
   // Placeholder benchmarks — swap text/video/links/rubric in as the curriculum is built.
   const PROJECTS = [
     {
+      id: 'p0',
+      title: 'Project 0: Meet the Mission',
+      goal: 'Before you build anything, meet the people and ideas behind assistive technology - watch each video, then write what stood out to you.',
+      kind: 'videos',
+      benchmarks: [
+        {
+          id: 'p0b1',
+          title: 'Video 1',
+          points: 2,
+          videoUrl: 'https://www.youtube.com/embed/9fcK19CAjWM',
+          summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
+          links: [],
+          rubric: []
+        },
+        {
+          id: 'p0b2',
+          title: 'Video 2',
+          points: 2,
+          videoUrl: 'https://www.youtube.com/embed/MHOYQQTvQu4',
+          summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
+          links: [],
+          rubric: []
+        },
+        {
+          id: 'p0b3',
+          title: 'Video 3',
+          points: 2,
+          videoUrl: 'https://www.youtube.com/embed/sMD2NIOmwQw',
+          summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
+          links: [],
+          rubric: []
+        },
+        {
+          id: 'p0b4',
+          title: 'Video 4',
+          points: 2,
+          videoUrl: 'https://www.youtube.com/embed/Dhjwg-LS8bY',
+          summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
+          links: [],
+          rubric: []
+        }
+      ]
+    },
+    {
       id: 'p1',
       title: 'Project 1: Basic Adaptive Switches',
       goal: 'Build the safe, working foundation for adaptive technology - switches anyone can press, lift, or trigger.',
@@ -4965,6 +5150,123 @@
       const isStandalone = project.benchmarks.length === 1;
       const projEl = document.createElement('section');
       projEl.className = 'project' + (isStandalone ? ' is-standalone' : '');
+
+      // Project 0: grounding videos. Each video is its own card - watch inline,
+      // write a summary, save. Saving the summary marks the card complete and
+      // lights its Progress pip. No artifact upload, summary text only.
+      if (project.kind === 'videos') {
+        projEl.classList.add('is-videos');
+        projEl.innerHTML = `
+          <h2 class="project-title">${escapeHtml(project.title)}</h2>
+          ${project.goal ? `<p class="project-blurb">${escapeHtml(project.goal)}</p>` : ''}
+          <div class="vid-identity" data-vid-identity></div>
+          <div class="vid-cards" data-vid-cards></div>
+        `;
+        const idMount = projEl.querySelector('[data-vid-identity]');
+        const picker = renderNamePicker({
+          initial: localStorage.getItem(LAST_PICK_KEY) || '',
+          onChange: (n) => { if (n) ensureRosterEntry(n); hydrateAll(); }
+        });
+        const innerLabel = picker.element.querySelector('.name-picker-label');
+        if (innerLabel) innerLabel.style.display = 'none';
+        const strip = document.createElement('div');
+        strip.className = 'identity-strip';
+        strip.innerHTML = '<span class="identity-strip-label">Saving as</span>';
+        const pickWrap = document.createElement('div');
+        pickWrap.className = 'identity-strip-picker';
+        pickWrap.appendChild(picker.element);
+        strip.appendChild(pickWrap);
+        idMount.appendChild(strip);
+        const getName = () => picker.getName();
+
+        const cardsMount = projEl.querySelector('[data-vid-cards]');
+        project.benchmarks.forEach((b, idx) => {
+          const done = checked.has(b.id);
+          const card = document.createElement('div');
+          card.className = 'vid-card' + (done ? ' done' : '');
+          card.dataset.id = b.id;
+          const media = b.videoUrl
+            ? `<div class="vid-card-media"><iframe src="${b.videoUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
+            : `<div class="vid-card-media vid-card-media--empty"><span>Video coming soon</span></div>`;
+          card.innerHTML = `
+            ${media}
+            <div class="vid-card-body">
+              <div class="vid-card-head">
+                <span class="vid-card-check ${done ? 'checked' : ''}" data-checkbox="${b.id}" aria-hidden="true"></span>
+                <h3 class="vid-card-title">${escapeHtml(b.title)}</h3>
+                <span class="vid-card-points">${b.points} pts</span>
+              </div>
+              ${b.summaryPrompt ? `<p class="vid-card-prompt">${escapeHtml(b.summaryPrompt)}</p>` : ''}
+              <textarea class="vid-summary" data-vid-text rows="4" maxlength="1500" placeholder="Write your summary here..."></textarea>
+              <div class="vid-card-actions">
+                <span class="vid-saved" data-vid-saved></span>
+                <button class="vid-save" type="button" data-vid-save>Save summary</button>
+              </div>
+            </div>
+          `;
+          cardsMount.appendChild(card);
+
+          const textarea = card.querySelector('[data-vid-text]');
+          const saveBtn = card.querySelector('[data-vid-save]');
+          const savedPill = card.querySelector('[data-vid-saved]');
+
+          const auto = debounce(() => {
+            const n = getName();
+            if (!n || !textarea.value.trim()) return;
+            saveDraft(n, b.id, { reflection: textarea.value });
+            savedPill.textContent = 'Draft saved';
+            clearTimeout(savedPill._t);
+            savedPill._t = setTimeout(() => { savedPill.textContent = ''; }, 1600);
+          }, 700);
+          textarea.addEventListener('input', auto);
+
+          saveBtn.addEventListener('click', async () => {
+            const n = getName();
+            const text = textarea.value.trim();
+            if (!n) { schemToast('Pick your name first.'); return; }
+            if (!text) { schemToast('Write a short summary first.'); return; }
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+            try {
+              await setDoc(doc(db, 'portfolios', `${b.id}__${nameSlug(n)}`), {
+                benchmarkId: b.id,
+                studentName: n,
+                nameSlug: nameSlug(n),
+                createdAt: serverTimestamp(),
+                slots: { image: null, images: [], video: null, code: null, cad: null, summary: { mode: 'text', text: text.slice(0, 1500) } }
+              }, { merge: true });
+              await clearDraft(n, b.id);
+              markChecked(b.id);
+              card.classList.add('done');
+              const cb = card.querySelector('[data-checkbox]');
+              if (cb) cb.classList.add('checked');
+              refreshCountBadge(b.id);
+              schemToast('Summary saved.');
+            } catch (e) {
+              schemToast('Save failed. Check your connection.');
+            }
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save summary';
+          });
+        });
+
+        function hydrateAll() {
+          const n = getName();
+          if (!n) return;
+          project.benchmarks.forEach(b => {
+            loadDraft(n, b.id).then(d => {
+              if (d && typeof d.reflection === 'string') {
+                const ta = cardsMount.querySelector(`.vid-card[data-id="${b.id}"] [data-vid-text]`);
+                if (ta && !ta.value) ta.value = d.reflection;
+              }
+            });
+          });
+        }
+        hydrateAll();
+
+        app.appendChild(projEl);
+        return;
+      }
 
       // The culminating project renders as a capstone hero banner - an
       // arrival moment, not another checklist row.
@@ -7706,7 +8008,7 @@
     if (checked.has(id)) return;
     checked.add(id);
     const cb = document.querySelector(`[data-checkbox="${id}"]`);
-    const row = cb ? cb.closest('.benchmark, .capstone-card') : null;
+    const row = cb ? cb.closest('.benchmark, .capstone-card, .vid-card') : null;
     if (cb) {
       cb.classList.add('checked');
       cb.setAttribute('aria-checked', 'true');
