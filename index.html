@@ -215,7 +215,7 @@
     border-radius: 15px;
     display: grid;
     place-items: center;
-    font-size: 28px;
+    color: #0f766e;
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(45, 212, 191, 0.14));
     box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.28);
   }
@@ -232,7 +232,7 @@
     font-size: 14px;
     line-height: 1.55;
     color: var(--ink-mid);
-    max-width: 560px;
+    white-space: nowrap;
   }
   .capstone-footer {
     display: flex;
@@ -262,10 +262,11 @@
   }
   .capstone-arrow { transition: transform 0.18s ease; }
   .capstone-card:hover .capstone-arrow { transform: translateX(4px); }
-  @media (max-width: 560px) {
+  @media (max-width: 640px) {
     .capstone-card { padding: 22px 20px; }
     .capstone-footer { flex-wrap: wrap; }
     .capstone-cta { margin-left: 0; }
+    .capstone-goal { white-space: normal; }
   }
 
   .benchmarks {
@@ -4921,7 +4922,15 @@
           <div class="capstone-eyebrow"><span class="capstone-spark">✦</span> Culminating Project</div>
           <button class="capstone-check ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" aria-label="Mark complete" tabindex="0"></button>
           <div class="capstone-main">
-            <div class="capstone-icon" aria-hidden="true">🏆</div>
+            <div class="capstone-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="4.3" r="2" fill="currentColor" stroke="none"/>
+                <path d="M4.5 9 H19.5"/>
+                <path d="M12 7.5 V13.5"/>
+                <path d="M12 13.5 L8 20.5"/>
+                <path d="M12 13.5 L16 20.5"/>
+              </svg>
+            </div>
             <div class="capstone-text">
               <h2 class="capstone-title">${escapeHtml(project.title)}</h2>
               ${project.goal ? `<p class="capstone-goal">${escapeHtml(project.goal)}</p>` : ''}
