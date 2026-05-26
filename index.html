@@ -4527,7 +4527,7 @@
     {
       id: 'p1',
       title: 'Project 1: Basic Adaptive Switches',
-      goal: 'Build the safe, working foundation for adaptive switches that anyone can press, lift, or trigger.',
+      goal: 'Build the safe, working foundation for adaptive technology - switches anyone can press, lift, or trigger.',
       benchmarks: [
         {
           id: 'p1b1',
@@ -4549,8 +4549,8 @@
           title: 'Lever',
           points: 2,
           instructions: [
-            '**Keep your Button wiring intact.** You will keep building on the same breadboard — add the lever switch alongside your existing button. Do not unplug or remove anything from the previous benchmark.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button code in the editor — you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: activate the A key each time a simple lever switch is triggered. Keep the W-key button behavior I already have."*',
+            '**Keep your Button wiring intact.** You will keep building on the same breadboard - add the lever switch alongside your existing button. Do not unplug or remove anything from the previous benchmark.',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button code in the editor - you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: activate the A key each time a simple lever switch is triggered. Keep the W-key button behavior I already have."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the lever switch to your existing schematic on the **breadboard**.',
             'Wire the lever switch into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
             'Test it. Modify the code until the behavior works exactly the way you described it.',
@@ -4584,10 +4584,10 @@
             hook: "A switch worth $15 can unlock a one-button rhythm game for an individual who can only move one wrist. The most important assistive technology in the world is sometimes the simplest. Now it is your turn.",
             challenge: "How might we use a button, a lever, two LEDs, and an Arduino Leonardo to give one specific person a way to do something they want to do but can't?",
             personas: [
-              { name: 'Mia, 9',  condition: 'Cerebral palsy',           motion: 'Firm right-forearm sweep, full press',   goal: 'Play Geometry Dash with her brother (1 key — jump).' },
-              { name: 'Leo, 16', condition: 'Cerebral palsy',           motion: 'Strong fist/palm press',                 goal: 'DJ in GarageBand — trigger drum loops (2 keys — kick + snare).' },
-              { name: 'Ava, 14', condition: 'Non-speaking, dyspraxia',  motion: 'Hits large targets reliably',            goal: 'Tell her teacher "I need a break" without speaking (1-2 keys — each types a preset phrase).' },
-              { name: 'Eli, 19', condition: 'C5-C6 spinal cord injury', motion: 'Head/chin press against a mounted pad',  goal: 'Control his audiobook from bed (2 keys — play/pause + skip back).' }
+              { name: 'Mia, 9',  condition: 'Cerebral palsy',           motion: 'Firm right-forearm sweep, full press',   goal: 'Play Geometry Dash with her brother (1 key, jump).' },
+              { name: 'Leo, 16', condition: 'Cerebral palsy',           motion: 'Strong fist/palm press',                 goal: 'DJ in GarageBand, trigger drum loops (2 keys, kick + snare).' },
+              { name: 'Ava, 14', condition: 'Non-speaking, dyspraxia',  motion: 'Hits large targets reliably',            goal: 'Tell her teacher "I need a break" without speaking (1-2 keys, each types a preset phrase).' },
+              { name: 'Eli, 19', condition: 'C5-C6 spinal cord injury', motion: 'Head/chin press against a mounted pad',  goal: 'Control his audiobook from bed (2 keys, play/pause + skip back).' }
             ]
           },
           instructions: [
@@ -4596,7 +4596,7 @@
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
             'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. Test it. Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in **Tinkercad** that holds the switch where your user\'s motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL.',
-            '3D print your mount and assemble the final product — switch, mount, LEDs, Arduino. Then **test it like your user would** — use only the motion they actually have. If it does not work for their motion, redesign and reprint.',
+            '3D print your mount and assemble the final product - switch, mount, LEDs, Arduino. Then **test it like your user would** - use only the motion they actually have. If it does not work for their motion, redesign and reprint.',
             'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
           ],
           videoUrl: '',
@@ -4617,7 +4617,7 @@
             { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: '4-5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
@@ -4683,10 +4683,10 @@
             hook: "An individual who can only graze a pad with one fingertip can still turn the page, send a message, or call for help, as long as the sensor needs no force at all. The right sensor does not wait for a push - it answers the smallest movement a body can make. Now it is your turn.",
             challenge: "How might we use a capacitive touch sensor, an IR distance sensor, two LEDs, and an Arduino Leonardo to give one specific person a way to do something they want to do but can't - using only the smallest movement they have, and no force at all?",
             personas: [
-              { name: 'Noa, 12',  condition: 'Spinal muscular atrophy',             motion: 'Rests and lifts a single fingertip, no force',  goal: 'Turn pages in a digital comic with a fingertip touch (1 key — next page).' },
-              { name: 'Kai, 17',  condition: 'High cervical spinal cord injury (C1-C4)', motion: 'Slow, reliable head and cheek movement',     goal: 'Call a caregiver hands-free by moving toward a sensor (1 key — alert).' },
-              { name: 'Remy, 10', condition: 'Rett syndrome',                         motion: 'Sweeps a hand slowly through the air',          goal: 'Skip songs in a playlist by waving near a sensor (1 key — skip).' },
-              { name: 'Ari, 20',  condition: 'Advanced muscular dystrophy',           motion: 'Grazes a surface with one fingertip, zero force', goal: 'Answer yes or no in a chat by touching two pads (2 keys — each types a preset word).' }
+              { name: 'Noa, 12',  condition: 'Spinal muscular atrophy',             motion: 'Rests and lifts a single fingertip, no force',  goal: 'Turn pages in a digital comic with a fingertip touch (1 key, next page).' },
+              { name: 'Kai, 17',  condition: 'High cervical spinal cord injury (C1-C4)', motion: 'Slow, reliable head and cheek movement',     goal: 'Call a caregiver hands-free by moving toward a sensor (1 key, alert).' },
+              { name: 'Remy, 10', condition: 'Rett syndrome',                         motion: 'Sweeps a hand slowly through the air',          goal: 'Skip songs in a playlist by waving near a sensor (1 key, skip).' },
+              { name: 'Ari, 20',  condition: 'Advanced muscular dystrophy',           motion: 'Grazes a surface with one fingertip, zero force', goal: 'Answer yes or no in a chat by touching two pads (2 keys, each types a preset word).' }
             ]
           },
           instructions: [
@@ -4716,7 +4716,7 @@
             { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: '4-5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
@@ -4814,7 +4814,7 @@
             { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: '4-5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
@@ -4874,7 +4874,7 @@
             { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
             { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
             { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: '4–5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Summary', text: '4-5 sentence reflection on prototyping final product.', points: 5 }
           ]
         }
       ]
