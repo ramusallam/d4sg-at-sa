@@ -280,6 +280,35 @@
     padding: 16px 18px 18px;
     margin-top: -2px;
   }
+  .vid-acc-panel[hidden] { display: none; }
+  /* Classmates' summaries, shown like other benchmark submissions. */
+  .vid-peers { display: flex; flex-direction: column; gap: 8px; }
+  .vid-peers-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+  }
+  .vid-peer {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-1);
+    padding: 9px 12px;
+  }
+  .vid-peer-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+  .vid-peer-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-mid);
+    white-space: pre-wrap;
+  }
+  .vid-peers-empty { font-size: 12.5px; color: var(--ink-low); }
   .vid-card-media {
     position: relative;
     width: 100%;
@@ -5173,12 +5202,36 @@
                 <span class="vid-saved" data-vid-saved></span>
                 <button class="vid-save" type="button" data-vid-save>Save summary</button>
               </div>
+              <div class="vid-peers" data-vid-peers>
+                <div class="vid-peers-label">What classmates wrote</div>
+                <div data-vid-peers-list><div class="vid-peers-empty">Loading...</div></div>
+              </div>
             </div>
           `;
           cardsMount.appendChild(card);
 
           const accRow = card.querySelector('.vid-acc-row');
           const accPanel = card.querySelector('.vid-acc-panel');
+          const peersList = card.querySelector('[data-vid-peers-list]');
+
+          async function loadPeers() {
+            try {
+              const snap = await getDocs(query(collection(db, 'portfolios'), where('benchmarkId', '==', b.id)));
+              const rows = [];
+              snap.forEach(d => {
+                const data = d.data();
+                const txt = data && data.slots && data.slots.summary ? (data.slots.summary.text || '') : '';
+                if (txt.trim()) rows.push({ name: data.studentName || 'Someone', text: txt });
+              });
+              rows.sort((a, z) => a.name.localeCompare(z.name, undefined, { sensitivity: 'base' }));
+              peersList.innerHTML = rows.length
+                ? rows.map(r => `<div class="vid-peer"><div class="vid-peer-name">${escapeHtml(r.name)}</div><div class="vid-peer-text">${escapeHtml(r.text)}</div></div>`).join('')
+                : `<div class="vid-peers-empty">No summaries yet - be the first.</div>`;
+            } catch (e) {
+              peersList.innerHTML = `<div class="vid-peers-empty">Could not load summaries.</div>`;
+            }
+          }
+
           const toggle = () => {
             const open = card.classList.toggle('is-open');
             accRow.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -5190,6 +5243,7 @@
                 mediaEl.dataset.loaded = '1';
                 mediaEl.innerHTML = `<iframe src="${mediaEl.dataset.embed}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
               }
+              loadPeers();
             }
           };
           accRow.addEventListener('click', toggle);
@@ -5232,6 +5286,7 @@
               const cb = card.querySelector('[data-checkbox]');
               if (cb) cb.classList.add('checked');
               refreshCountBadge(b.id);
+              loadPeers();
               schemToast('Summary saved.');
             } catch (e) {
               schemToast('Save failed. Check your connection.');
