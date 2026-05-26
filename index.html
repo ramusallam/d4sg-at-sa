@@ -892,50 +892,6 @@
   .prog-card.is-you:hover {
     box-shadow: 0 8px 24px rgba(99, 102, 241, 0.16);
   }
-
-  /* Overall-completion ring in each card header. */
-  .prog-ring {
-    position: relative;
-    width: 44px;
-    height: 44px;
-    flex-shrink: 0;
-  }
-  .prog-ring svg {
-    width: 44px;
-    height: 44px;
-    transform: rotate(-90deg);
-  }
-  .prog-ring-track {
-    fill: none;
-    stroke: var(--border);
-    stroke-width: 3;
-  }
-  .prog-ring-fill {
-    fill: none;
-    stroke: var(--accent);
-    stroke-width: 3;
-    stroke-linecap: round;
-    stroke-dashoffset: var(--dash-target);
-    animation: progRingDraw 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  }
-  @keyframes progRingDraw {
-    from { stroke-dashoffset: 97.39; }
-    to   { stroke-dashoffset: var(--dash-target); }
-  }
-  .prog-ring.is-complete .prog-ring-fill { stroke: var(--success); }
-  .prog-ring-pct {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--accent);
-  }
-  .prog-ring-pct::after { content: '%'; font-size: 8px; margin-left: 0.5px; align-self: center; }
-  .prog-ring.is-complete .prog-ring-pct { color: var(--success); }
-  .prog-ring.is-complete .prog-ring-pct::after { content: ''; }
-  .prog-ring.is-complete .prog-ring-pct svg { width: 14px; height: 14px; }
   .prog-card-rows {
     list-style: none;
     margin: 0;
@@ -7485,8 +7441,9 @@
   let _progressHomework = {}; // { studentName: Set(weekId) }
 
   const PROG_CHECK_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path class="prog-check-path" d="M5 12l5 5 9-11"/></svg>`;
-  // Finish flag for the incomplete capstone (Instructable) pip.
-  const PROG_FLAG_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>`;
+  // Incomplete capstone (Instructable) pip uses the same adaptive-switch glyph
+  // as the splash-page capstone card.
+  const PROG_FLAG_SVG = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.8" fill="currentColor" stroke="none"/></svg>`;
 
   function findBenchmarkById(id) {
     for (const p of PROJECTS) {
@@ -7596,21 +7553,10 @@
       let ownDone = 0;
       PROJECTS.forEach(p => p.benchmarks.forEach(b => { if (done.has(b.id)) ownDone++; }));
       const isMe = myName && name.toLowerCase() === myName.toLowerCase();
-      const pct = totalBench ? ownDone / totalBench : 0;
-      const RING_C = 97.39; // 2*pi*15.5
-      const ringOffset = (RING_C * (1 - pct)).toFixed(2);
-      const isComplete = ownDone >= totalBench;
 
       html += `<article class="prog-card${isMe ? ' is-you' : ''}">
         <header class="prog-card-head">
           <h3 class="prog-card-name">${escapeHtml(name)}${isMe ? '<span class="prog-card-you">You</span>' : ''}</h3>
-          <div class="prog-ring${isComplete ? ' is-complete' : ''}" title="${ownDone} of ${totalBench} complete">
-            <svg viewBox="0 0 36 36">
-              <circle class="prog-ring-track" cx="18" cy="18" r="15.5"/>
-              <circle class="prog-ring-fill" cx="18" cy="18" r="15.5" style="stroke-dasharray:${RING_C}; --dash-target:${ringOffset};"/>
-            </svg>
-            <span class="prog-ring-pct">${isComplete ? PROG_CHECK_SVG : Math.round(pct * 100)}</span>
-          </div>
         </header>
         <ul class="prog-card-rows">`;
 
