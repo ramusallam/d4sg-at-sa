@@ -6083,7 +6083,7 @@
     const channelTopY = railTopY - 0.5 * P;
     const channelBotY = railBotY + 0.5 * P;
     return `
-      <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#ffffff" stroke="#cbc4b3" stroke-width="1.4" pointer-events="none"/>
+      <rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="#ffffff" stroke="#cbc4b3" stroke-width="1.4"/>
       <rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="4" fill="none" stroke="rgba(0,0,0,0.03)" stroke-width="0.8" pointer-events="none"/>
       ${rail(0,      '#dc2626', '+')}
       ${rail(1,      '#1d4ed8', '-')}
@@ -6422,6 +6422,10 @@
         e.preventDefault();
         pushSchemHistory();
         const pt = svgPoint(e);
+        // Select the board too, so keyboard delete + the selection halo work.
+        const wasSelected = _schemSelected === c.id;
+        _schemSelected = c.id;
+        if (!wasSelected) renderPerfboard();
         _schemDrag = {
           id: c.id,
           startX: pt.x,
@@ -6430,7 +6434,8 @@
           originGy: c.y,
           moved: false
         };
-        g.classList.add('is-dragging');
+        const freshNode = _schemSvg.querySelector(`[data-component-id="${c.id}"]`);
+        if (freshNode) freshNode.classList.add('is-dragging');
       });
       g.appendChild(moveHandle);
     }
