@@ -2939,6 +2939,23 @@
     display: flex;
     gap: 6px;
   }
+  /* Zoom readout sits as a segment inside the toolbar pill, with dividers
+     matching the buttons on either side. */
+  .schem-zoom-readout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+    height: 32px;
+    padding: 0 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-mid);
+    border-left: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+  }
+  .schem-zoom-readout + .vibe-tool-btn { border-left: 1px solid var(--border); }
   .schem-color {
     width: 26px;
     height: 26px;
@@ -5757,18 +5774,20 @@
             <span class="schem-toolbar-label">Wire color</span>
             <div class="schem-color-row" id="schemColors"></div>
           </div>
-          <div class="vibe-toolbar-group">
+          <div class="schem-toolbar-group">
             <span class="schem-toolbar-label">Zoom</span>
-            <button class="vibe-tool-btn" id="schemZoomOut" title="Zoom out" aria-label="Zoom out">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
-            </button>
-            <span id="schemZoomLabel" style="font-size:12px;font-weight:700;color:var(--ink-mid);min-width:40px;text-align:center;">100%</span>
-            <button class="vibe-tool-btn" id="schemZoomIn" title="Zoom in" aria-label="Zoom in">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-            </button>
-            <button class="vibe-tool-btn" id="schemZoomFit" title="Fit whole diagram to width" aria-label="Fit to width">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/></svg>
-            </button>
+            <div class="vibe-toolbar-group">
+              <button class="vibe-tool-btn" id="schemZoomOut" title="Zoom out" aria-label="Zoom out">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+              </button>
+              <span class="schem-zoom-readout" id="schemZoomLabel">100%</span>
+              <button class="vibe-tool-btn" id="schemZoomIn" title="Zoom in" aria-label="Zoom in">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              </button>
+              <button class="vibe-tool-btn" id="schemZoomFit" title="Fit whole diagram to width" aria-label="Fit to width">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/></svg>
+              </button>
+            </div>
           </div>
           <div class="vibe-toolbar-group" style="margin-left: auto;">
             <button class="vibe-tool-btn" id="schemUndo" title="Undo (Cmd+Z / Ctrl+Z)" aria-label="Undo">
