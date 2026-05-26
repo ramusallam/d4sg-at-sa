@@ -5567,6 +5567,8 @@
   let _schemDrag = null;         // { id, startX, startY, originGx, originGy }
   let _schemResize = null;       // { id, startX, startY, startCols, startRows } - perfboard resize
   let _schemSvg = null;          // root <svg>
+  let _schemZoom = 1;            // canvas zoom factor (display scale; viewBox stays 1:1)
+  let _schemBaseW = 0, _schemBaseH = 0; // unscaled canvas pixel size, for zoom math
   let _schemWireDrag = null;     // { fromPinId, startClientX, startClientY, moved }
   let _schemSuppressNextPinClick = false; // skip the click that follows a wire-drag
   let _schemSelectedWire = null; // currently selected wire id, or null
@@ -5755,6 +5757,19 @@
             <span class="schem-toolbar-label">Wire color</span>
             <div class="schem-color-row" id="schemColors"></div>
           </div>
+          <div class="vibe-toolbar-group">
+            <span class="schem-toolbar-label">Zoom</span>
+            <button class="vibe-tool-btn" id="schemZoomOut" title="Zoom out" aria-label="Zoom out">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+            </button>
+            <span id="schemZoomLabel" style="font-size:12px;font-weight:700;color:var(--ink-mid);min-width:40px;text-align:center;">100%</span>
+            <button class="vibe-tool-btn" id="schemZoomIn" title="Zoom in" aria-label="Zoom in">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+            <button class="vibe-tool-btn" id="schemZoomFit" title="Fit whole diagram to width" aria-label="Fit to width">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/></svg>
+            </button>
+          </div>
           <div class="vibe-toolbar-group" style="margin-left: auto;">
             <button class="vibe-tool-btn" id="schemUndo" title="Undo (Cmd+Z / Ctrl+Z)" aria-label="Undo">
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
@@ -5798,6 +5813,18 @@
     renderPerfboard();
 
     document.getElementById('schemUndo').addEventListener('click', schemUndo);
+    document.getElementById('schemZoomOut').addEventListener('click', () => schemSetZoom(_schemZoom - 0.15));
+    document.getElementById('schemZoomIn').addEventListener('click', () => schemSetZoom(_schemZoom + 0.15));
+    document.getElementById('schemZoomFit').addEventListener('click', schemZoomFit);
+    // Ctrl/Cmd + scroll zooms the canvas.
+    const _zoomWrap = document.getElementById('schemCanvasWrap');
+    if (_zoomWrap) {
+      _zoomWrap.addEventListener('wheel', (e) => {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        e.preventDefault();
+        schemSetZoom(_schemZoom + (e.deltaY < 0 ? 0.1 : -0.1));
+      }, { passive: false });
+    }
     // Keyboard shortcut: Cmd/Ctrl+Z to undo, R to rotate selection, Delete/Backspace to remove selection.
     const schemKeyHandler = (e) => {
       // Skip if typing in a real input.
@@ -5963,6 +5990,24 @@
     _schemState.gridRows = maxRow;
   }
 
+  // Canvas zoom: scales only the displayed SVG size so you can pull back to
+  // see the whole diagram, then zoom in to focus. Coordinates stay 1:1.
+  function schemSetZoom(z) {
+    _schemZoom = Math.min(2, Math.max(0.3, z));
+    if (_schemSvg && _schemBaseW) {
+      _schemSvg.setAttribute('width', _schemBaseW * _schemZoom);
+      _schemSvg.setAttribute('height', _schemBaseH * _schemZoom);
+    }
+    const lbl = document.getElementById('schemZoomLabel');
+    if (lbl) lbl.textContent = Math.round(_schemZoom * 100) + '%';
+  }
+  function schemZoomFit() {
+    const wrap = document.getElementById('schemCanvasWrap');
+    if (!wrap || !_schemBaseW) return;
+    const avail = wrap.clientWidth - 30; // account for padding
+    schemSetZoom(avail / _schemBaseW);
+  }
+
   function _isResizableBoard(c) {
     return c && (c.type === 'perfboard' || c.type === 'breadboard');
   }
@@ -6110,8 +6155,12 @@
     const svgNS = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(svgNS, 'svg');
     svg.setAttribute('class', 'schem-canvas');
-    svg.setAttribute('width', W);
-    svg.setAttribute('height', H);
+    // viewBox stays at native 1:1 so all coordinates, clicks, and wiring are
+    // unaffected; zoom only scales the displayed width/height.
+    _schemBaseW = W;
+    _schemBaseH = H;
+    svg.setAttribute('width', W * _schemZoom);
+    svg.setAttribute('height', H * _schemZoom);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
     svg.setAttribute('xmlns', svgNS);
     _schemSvg = svg;
@@ -7311,6 +7360,11 @@
       const serializer = new XMLSerializer();
       const clone = _schemSvg.cloneNode(true);
       clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      // Export at native resolution regardless of the on-screen zoom.
+      if (_schemBaseW) {
+        clone.setAttribute('width', _schemBaseW);
+        clone.setAttribute('height', _schemBaseH);
+      }
       const svgStr = serializer.serializeToString(clone);
       const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
