@@ -151,7 +151,7 @@
     font-weight: 800;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #0f766e;
+    color: #047857;
     margin-bottom: 5px;
   }
   .capstone-check {
@@ -196,7 +196,7 @@
     border-radius: 13px;
     display: grid;
     place-items: center;
-    color: #0f766e;
+    color: #047857;
     background: rgba(16, 185, 129, 0.1);
   }
   .capstone-title {
@@ -225,7 +225,7 @@
   .capstone-points {
     font-size: 13px;
     font-weight: 800;
-    color: #0f766e;
+    color: #047857;
     background: rgba(16, 185, 129, 0.14);
     border: 1px solid rgba(16, 185, 129, 0.3);
     border-radius: 999px;
@@ -238,15 +238,17 @@
     gap: 8px;
     font-size: 14px;
     font-weight: 700;
-    color: #0f766e;
+    color: #047857;
   }
   .capstone-arrow { transition: transform 0.18s ease; }
   .capstone-card:hover .capstone-arrow { transform: translateX(4px); }
+  @media (max-width: 900px) {
+    .capstone-goal { white-space: normal; }
+  }
   @media (max-width: 640px) {
     .capstone-card { padding: 22px 20px; }
     .capstone-footer { flex-wrap: wrap; }
     .capstone-cta { margin-left: 0; }
-    .capstone-goal { white-space: normal; }
   }
 
   .benchmarks {
@@ -874,22 +876,66 @@
   .prog-card-you {
     display: inline-flex;
     align-items: center;
-    background: transparent;
-    color: var(--ink-low);
+    background: var(--accent-soft);
+    color: var(--accent);
     font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1.4px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
     text-transform: uppercase;
-    padding: 0;
-    border-radius: 0;
+    padding: 2px 8px;
+    border-radius: 999px;
   }
   .prog-card.is-you {
-    border-color: var(--border);
-    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
+    border-color: var(--accent);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12);
   }
   .prog-card.is-you:hover {
-    box-shadow: 0 8px 22px rgba(17, 17, 17, 0.06);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.16);
   }
+
+  /* Overall-completion ring in each card header. */
+  .prog-ring {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+  .prog-ring svg {
+    width: 44px;
+    height: 44px;
+    transform: rotate(-90deg);
+  }
+  .prog-ring-track {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 3;
+  }
+  .prog-ring-fill {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dashoffset: var(--dash-target);
+    animation: progRingDraw 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @keyframes progRingDraw {
+    from { stroke-dashoffset: 97.39; }
+    to   { stroke-dashoffset: var(--dash-target); }
+  }
+  .prog-ring.is-complete .prog-ring-fill { stroke: var(--success); }
+  .prog-ring-pct {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .prog-ring-pct::after { content: '%'; font-size: 8px; margin-left: 0.5px; align-self: center; }
+  .prog-ring.is-complete .prog-ring-pct { color: var(--success); }
+  .prog-ring.is-complete .prog-ring-pct::after { content: ''; }
+  .prog-ring.is-complete .prog-ring-pct svg { width: 14px; height: 14px; }
   .prog-card-rows {
     list-style: none;
     margin: 0;
@@ -908,6 +954,16 @@
   .prog-card-row + .prog-card-row {
     border-top: 1px solid rgba(17, 17, 17, 0.04);
   }
+  /* The culminating Instructable row, elevated as the capstone. */
+  .prog-card-row.is-final {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-top: 6px;
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .prog-card-row + .prog-card-row.is-final { border-top: none; }
+  .prog-card-row.is-final .prog-card-row-prefix { color: var(--accent); }
   .prog-card-row-label {
     display: flex;
     align-items: baseline;
@@ -961,15 +1017,38 @@
     border-color: var(--success);
     color: white;
     cursor: pointer;
+    animation: progPipPop 0.32s ease both;
   }
   .prog-pip.is-done:hover {
     transform: scale(1.18);
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.32);
   }
+  @keyframes progPipPop {
+    0%   { transform: scale(0.5); opacity: 0; }
+    60%  { transform: scale(1.12); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .prog-check-path {
+    stroke-dasharray: 26;
+    stroke-dashoffset: 26;
+    animation: progCheckDraw 0.4s 0.12s ease forwards;
+  }
+  @keyframes progCheckDraw { to { stroke-dashoffset: 0; } }
   .prog-pip svg {
     width: 13px;
     height: 13px;
   }
+  /* Capstone (Instructable) pip: larger, accent-tinted when pending. */
+  .prog-pip.is-final-pip {
+    width: 30px;
+    height: 30px;
+  }
+  .prog-pip.is-final-pip:not(.is-done) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .prog-pip.is-final-pip svg { width: 15px; height: 15px; }
 
   /* Homework row at the bottom of each progress card. Light blue / sky to
      differentiate from the green project pips above. */
@@ -3540,37 +3619,6 @@
   .vibe-msg-copybtn:hover { background: var(--accent-hover); }
   .vibe-msg-copybtn.is-copied { background: var(--success); }
 
-  /* Suggested-prompt chips (shown in the empty state) + template chips above
-     the composer. Click to drop a scaffold into the input. */
-  .vibe-suggest {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 14px;
-    width: 100%;
-    max-width: 340px;
-  }
-  .vibe-suggest-chip {
-    text-align: left;
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 11px 14px;
-    font-size: 13px;
-    line-height: 1.4;
-    color: var(--ink-mid);
-    cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
-  }
-  .vibe-suggest-chip:hover {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-    color: var(--ink-hi);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.12);
-  }
-  .vibe-suggest-chip strong { color: var(--accent); font-weight: 700; }
-
   .vibe-stems-wrap {
     border-top: 1px solid var(--border);
     background: var(--bg-2);
@@ -3674,13 +3722,6 @@
     color: var(--ink-low);
     cursor: not-allowed;
   }
-  .vibe-composer-hint {
-    font-size: 10.5px;
-    color: var(--ink-low);
-    margin: 7px 2px 0;
-    text-align: right;
-  }
-
   /* Markdown rendering inside assistant chat bubbles. */
   .vibe-md p { margin: 0 0 8px; }
   .vibe-md p:last-child { margin-bottom: 0; }
@@ -7443,7 +7484,9 @@
   let _progressData = {}; // { studentName: Set(benchmarkId) }
   let _progressHomework = {}; // { studentName: Set(weekId) }
 
-  const PROG_CHECK_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>`;
+  const PROG_CHECK_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path class="prog-check-path" d="M5 12l5 5 9-11"/></svg>`;
+  // Finish flag for the incomplete capstone (Instructable) pip.
+  const PROG_FLAG_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>`;
 
   function findBenchmarkById(id) {
     for (const p of PROJECTS) {
@@ -7553,10 +7596,21 @@
       let ownDone = 0;
       PROJECTS.forEach(p => p.benchmarks.forEach(b => { if (done.has(b.id)) ownDone++; }));
       const isMe = myName && name.toLowerCase() === myName.toLowerCase();
+      const pct = totalBench ? ownDone / totalBench : 0;
+      const RING_C = 97.39; // 2*pi*15.5
+      const ringOffset = (RING_C * (1 - pct)).toFixed(2);
+      const isComplete = ownDone >= totalBench;
 
       html += `<article class="prog-card${isMe ? ' is-you' : ''}">
         <header class="prog-card-head">
-          <h3 class="prog-card-name">${escapeHtml(name)}</h3>
+          <h3 class="prog-card-name">${escapeHtml(name)}${isMe ? '<span class="prog-card-you">You</span>' : ''}</h3>
+          <div class="prog-ring${isComplete ? ' is-complete' : ''}" title="${ownDone} of ${totalBench} complete">
+            <svg viewBox="0 0 36 36">
+              <circle class="prog-ring-track" cx="18" cy="18" r="15.5"/>
+              <circle class="prog-ring-fill" cx="18" cy="18" r="15.5" style="stroke-dasharray:${RING_C}; --dash-target:${ringOffset};"/>
+            </svg>
+            <span class="prog-ring-pct">${isComplete ? PROG_CHECK_SVG : Math.round(pct * 100)}</span>
+          </div>
         </header>
         <ul class="prog-card-rows">`;
 
@@ -7571,11 +7625,12 @@
           </div>
           <div class="prog-card-row-dots">`;
         p.benchmarks.forEach((b, idx) => {
-          const num = b.id === 'instructable' ? '' : (idx + 1);
+          const isFinalPip = b.id === 'instructable';
+          const finalCls = isFinalPip ? ' is-final-pip' : '';
           if (done.has(b.id)) {
-            html += `<a class="prog-pip is-done" data-bench="${escapeHtml(b.id)}" data-student="${escapeHtml(name)}" title="View ${escapeHtml(name)}'s ${escapeHtml(b.title)}">${PROG_CHECK_SVG}</a>`;
+            html += `<a class="prog-pip is-done${finalCls}" data-bench="${escapeHtml(b.id)}" data-student="${escapeHtml(name)}" title="View ${escapeHtml(name)}'s ${escapeHtml(b.title)}">${PROG_CHECK_SVG}</a>`;
           } else {
-            html += `<span class="prog-pip" title="${escapeHtml(b.title)}">${num}</span>`;
+            html += `<span class="prog-pip${finalCls}" title="${escapeHtml(b.title)}">${isFinalPip ? PROG_FLAG_SVG : (idx + 1)}</span>`;
           }
         });
         html += `</div></li>`;
