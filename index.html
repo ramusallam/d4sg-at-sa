@@ -11820,6 +11820,7 @@
 
   // Module-scoped state. Reset on every initIdeaBoardTool() call.
   let _ideaStage = null;
+  let _ideaZoom = 1;           // canvas zoom factor (Konva stage scale)
   let _ideaBgLayer = null;     // white background rect (kept first; not selectable)
   let _ideaLayer = null;       // user drawings/shapes
   let _ideaTransformer = null;
@@ -11910,6 +11911,18 @@
           </div>
 
           <div class="vibe-toolbar-group" style="margin-left: auto;">
+            <button class="vibe-tool-btn" id="ideaZoomOut" title="Zoom out" aria-label="Zoom out">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+            </button>
+            <span class="schem-zoom-readout" id="ideaZoomLabel">100%</span>
+            <button class="vibe-tool-btn" id="ideaZoomIn" title="Zoom in" aria-label="Zoom in">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+            <button class="vibe-tool-btn" id="ideaZoomFit" title="Reset zoom to 100%" aria-label="Reset zoom">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/></svg>
+            </button>
+          </div>
+          <div class="vibe-toolbar-group">
             <button class="vibe-tool-btn" id="ideaUndo" title="Undo (Cmd+Z / Ctrl+Z)" aria-label="Undo">
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
             </button>
@@ -12004,11 +12017,20 @@
     _ideaCleanup.push(() => { try { _ideaResizeObs.disconnect(); } catch (e) {} });
 
     // --- Stage event wiring ---
+    _ideaZoom = 1;
     _ideaStage.on('mousedown touchstart', ideaOnStageDown);
     _ideaStage.on('mousemove touchmove', ideaOnStageMove);
     _ideaStage.on('mouseup touchend', ideaOnStageUp);
     _ideaStage.on('click tap', ideaOnStageClick);
     _ideaStage.on('dblclick dbltap', ideaOnStageDblClick);
+    // Ctrl/Cmd + scroll zooms toward the cursor (matches the Wiring Schematic).
+    _ideaStage.on('wheel', (e) => {
+      if (!(e.evt.ctrlKey || e.evt.metaKey)) return;
+      e.evt.preventDefault();
+      const pointer = _ideaStage.getPointerPosition();
+      const factor = e.evt.deltaY < 0 ? 1.1 : 1 / 1.1;
+      ideaApplyZoom(_ideaZoom * factor, pointer);
+    });
 
     // --- Toolbar wiring ---
     wrap.querySelectorAll('[data-idea-tool]').forEach(btn => {
@@ -12089,6 +12111,9 @@
     });
 
     document.getElementById('ideaUndo').addEventListener('click', ideaUndo);
+    document.getElementById('ideaZoomOut').addEventListener('click', () => ideaApplyZoom(_ideaZoom - 0.15));
+    document.getElementById('ideaZoomIn').addEventListener('click', () => ideaApplyZoom(_ideaZoom + 0.15));
+    document.getElementById('ideaZoomFit').addEventListener('click', ideaZoomReset);
     document.getElementById('ideaClear').addEventListener('click', () => {
       if (_ideaLayer.getChildren(n => n !== _ideaTransformer).length === 0) {
         schemToast('Already empty.');
@@ -12260,13 +12285,39 @@
   }
 
   // --- Drawing handlers ---
+  // Canvas zoom (Konva stage scale). Zoom out to see the whole sketch, in to
+  // focus. Drawing uses relative pointer positions, so strokes stay accurate
+  // at any zoom. Mirrors the Wiring Schematic's zoom control + aesthetic.
+  function ideaApplyZoom(newScale, center) {
+    if (!_ideaStage) return;
+    newScale = Math.min(2, Math.max(0.3, newScale));
+    const old = _ideaStage.scaleX() || 1;
+    const c = center || { x: _ideaStage.width() / 2, y: _ideaStage.height() / 2 };
+    const pointTo = { x: (c.x - _ideaStage.x()) / old, y: (c.y - _ideaStage.y()) / old };
+    _ideaStage.scale({ x: newScale, y: newScale });
+    _ideaStage.position({ x: c.x - pointTo.x * newScale, y: c.y - pointTo.y * newScale });
+    _ideaStage.batchDraw();
+    _ideaZoom = newScale;
+    const lbl = document.getElementById('ideaZoomLabel');
+    if (lbl) lbl.textContent = Math.round(newScale * 100) + '%';
+  }
+  function ideaZoomReset() {
+    if (!_ideaStage) return;
+    _ideaStage.scale({ x: 1, y: 1 });
+    _ideaStage.position({ x: 0, y: 0 });
+    _ideaStage.batchDraw();
+    _ideaZoom = 1;
+    const lbl = document.getElementById('ideaZoomLabel');
+    if (lbl) lbl.textContent = '100%';
+  }
+
   function ideaOnStageDown(e) {
     // Ignore mousedown on the transformer itself or on a selected node when in Select.
     if (_ideaTool === 'select') return;
     if (_ideaTool === 'eraser') return;     // handled in click handler
     if (_ideaTool === 'callout') return;    // handled in click handler
 
-    const pos = _ideaStage.getPointerPosition();
+    const pos = _ideaStage.getRelativePointerPosition();
     if (!pos) return;
     _ideaDrawing = true;
     ideaPushHistory();
@@ -12332,7 +12383,7 @@
 
   function ideaOnStageMove() {
     if (!_ideaDrawing) return;
-    const pos = _ideaStage.getPointerPosition();
+    const pos = _ideaStage.getRelativePointerPosition();
     if (!pos) return;
 
     if (_ideaCurrentLine) {
@@ -12433,7 +12484,7 @@
       // existing shape — let the kid keep selecting existing callouts.
       const isBg = target === _ideaStage || (target.name && target.name() === 'idea-bg');
       if (isBg) {
-        const pos = _ideaStage.getPointerPosition();
+        const pos = _ideaStage.getRelativePointerPosition();
         if (pos) ideaCreateCallout(pos.x, pos.y);
         return;
       }
@@ -12691,16 +12742,24 @@
       const bg = _ideaBgLayer.findOne('.idea-bg');
       const prevFill = bg ? bg.fill() : null;
       if (bg) { bg.fill('#ffffff'); _ideaBgLayer.batchDraw(); }
+      // Export at native 1:1 regardless of on-screen zoom/pan, then restore.
+      const prevScale = _ideaStage.scaleX();
+      const prevPos = _ideaStage.position();
+      _ideaStage.scale({ x: 1, y: 1 });
+      _ideaStage.position({ x: 0, y: 0 });
+      const restoreZoom = () => { _ideaStage.scale({ x: prevScale, y: prevScale }); _ideaStage.position(prevPos); _ideaStage.batchDraw(); };
       try {
         const dataUrl = _ideaStage.toDataURL({ pixelRatio: 2, mimeType: 'image/png' });
         fetch(dataUrl).then(r => r.blob()).then(b => {
           if (bg) { bg.fill(prevFill || '#FAF6EE'); _ideaBgLayer.batchDraw(); }
+          restoreZoom();
           _ideaTransformer.visible(true);
           _ideaTransformer.nodes(nodes);
           _ideaLayer.batchDraw();
           resolve(b);
         }).catch(err => {
           if (bg) { bg.fill(prevFill || '#FAF6EE'); _ideaBgLayer.batchDraw(); }
+          restoreZoom();
           _ideaTransformer.visible(true);
           _ideaTransformer.nodes(nodes);
           _ideaLayer.batchDraw();
@@ -12708,6 +12767,7 @@
         });
       } catch (err) {
         if (bg) { bg.fill(prevFill || '#FAF6EE'); _ideaBgLayer.batchDraw(); }
+        restoreZoom();
         _ideaTransformer.visible(true);
         _ideaTransformer.nodes(nodes);
         _ideaLayer.batchDraw();
