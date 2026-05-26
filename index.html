@@ -4723,41 +4723,79 @@
     },
     {
       id: 'p3',
-      title: 'Project 3: Modular Adaptive Controller Hub',
-      goal: 'Combine your switches into one controller hub so users can plug in the inputs that work for their body.',
+      title: 'Project 3: Hands-Free Controls',
+      goal: 'Build controllers for people with no use of their hands - inputs they steer with their mouth, chin, and breath, mounted where they can reach.',
       benchmarks: [
         {
           id: 'p3b1',
-          title: 'Controller Hub Input Map',
+          title: 'Joystick',
           points: 2,
-          instructions: 'Design the input map for your hub: which physical ports map to which controller actions. Document the map clearly so a user can swap inputs without re-coding.',
+          instructions: [
+            'Open the [Vibe Coding Tool](tools#vibe), click **Build for me**, and describe this behavior in the input: *"Move the mouse cursor with a 5-pin joystick, and left-click each time I press the joystick button."*',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to lay out a digital schematic of your circuit using a **breadboard**.',
+            'Wire your physical Arduino to match your schematic, then load the code from the Vibe Coding editor.',
+            'Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
         },
         {
           id: 'p3b2',
-          title: 'Plug-In Switch Port Prototype',
+          title: 'Sip-and-Puff',
           points: 2,
-          instructions: 'Build at least 3 plug-in ports on your hub that accept any of the switch types from Project 2. Test hot-swapping during operation.',
+          instructions: [
+            '**Keep your Joystick wiring intact.** You will keep building on the same breadboard - add the sip-and-puff switch alongside your existing joystick. Do not unplug or remove anything from the previous benchmark.',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Joystick code in the editor - you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: press the spacebar each time I puff into a sip-and-puff switch, which acts like a digital button with a ground pin and a signal pin. Keep the joystick mouse and click behaviors I already have."*',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the sip-and-puff switch to your existing schematic on the **breadboard**.',
+            'Wire the sip-and-puff switch into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
+            'Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
         },
         {
           id: 'p3b3',
-          title: 'Multi-Input Hub Code',
+          title: 'LEDs',
           points: 2,
-          instructions: 'Write Arduino code that handles multiple simultaneous switch inputs cleanly. Implement debouncing, multi-press detection, and a way to remap actions without re-flashing.',
+          instructions: [
+            '**Keep your Joystick and Sip-and-Puff wiring intact.** You will keep building on the same breadboard - add two different-color LEDs alongside your existing joystick and sip-and-puff switch. **Each LED needs a 220 ohm resistor in series.** Do not unplug or remove anything from the previous benchmark.',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Joystick and Sip-and-Puff code in the editor - you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the joystick button is pressed, and a different-color LED while the sip-and-puff switch is triggered. Keep the mouse, click, and spacebar behaviors I already have."*',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
+            'Wire the two LEDs into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
+            'Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
         },
         {
           id: 'p3b4',
-          title: 'Hub Functionality Test',
+          title: 'Product',
           points: 2,
-          instructions: 'Run a structured functionality test: every port, every supported input, every controller action. Document results and fix any failures.',
+          brief: {
+            hook: "An individual who cannot move their hands can still aim, click, and play, if the controls meet their mouth instead of their fingers. A joystick they steer with their lips and a switch they trigger with a breath can open a whole screen back up. Now it is your turn.",
+            challenge: "How might we use a joystick, a sip-and-puff switch, two LEDs, and an Arduino Leonardo to give one specific person a way to do something they want to do but can't - using only their mouth, chin, and breath, with the whole rig mounted where they can reach it?",
+            personas: [
+              { name: 'Rowan, 16', condition: 'High cervical spinal cord injury (C1-C2)', motion: 'Precise mouth and lip control, steady breath',     goal: 'Play online chess hands-free (joystick moves the cursor, puff selects a piece).' },
+              { name: 'Sage, 19',  condition: 'ALS (amyotrophic lateral sclerosis)',       motion: 'Reliable chin and mouth movement, controlled breath', goal: 'Paint in a digital art app (joystick moves the brush, puff lifts the pen).' },
+              { name: 'Nico, 13',  condition: 'Spinal muscular atrophy',                   motion: 'Fine mouth control on a mouthpiece, can sip and puff', goal: 'Explore and move in a video game (joystick aims and moves, puff to jump).' },
+              { name: 'Wren, 22',  condition: 'Cerebral palsy with dystonia',              motion: 'Steady head and mouth control',                  goal: 'Browse the web and message friends hands-free (joystick moves the cursor, puff to click).' }
+            ]
+          },
+          instructions: [
+            'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one input and one LED. Maximum: both inputs and both LEDs.** Pick what your user\'s motion and goal actually need - **design before aesthetics, always.** Where does their mouth, chin, or breath meet the joystick and the sip-and-puff tube? Where do the LEDs sit so they can see them? What shape does your 3D-printed mount need to be so the rig stays put?',
+            'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Joystick, Sip-and-Puff, and LED benchmarks. Be precise about **what you want** (which inputs and LEDs you are using, what mouse moves or keystrokes the device must send for your user, how the LEDs give them feedback, the arm/disarm safety) and **what the outcome should do** (what happens on joystick move, on click, on puff; when each LED is on or off; what happens when no input arrives). Click **Build for me** with your prompt.',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
+            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Design a CAD mount in **Tinkercad** that holds the joystick and the sip-and-puff tube where your user\'s mouth and chin actually reach them. **It must clamp or bolt to a table, wheelchair tray, or mount arm so it stays rock-steady - your user drives it with their face, so it cannot shift.** Export the STL.',
+            '3D print your mount and assemble the final product - joystick, sip-and-puff, mount, LEDs, Arduino. Then **test it like your user would** - use only your mouth, chin, and breath, with the rig secured in place. If it does not work that way, redesign and reprint.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
