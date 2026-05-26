@@ -251,31 +251,42 @@
     .capstone-cta { margin-left: 0; }
   }
 
-  /* Project 0 grounding-video cards. Watch inline, write a summary, save. */
+  /* Project 0: grounding-video accordion. Rows match the Projects 1-3
+     benchmark look; clicking a row drops down the video + summary. */
   .vid-identity { margin: 2px 0 18px; }
-  .vid-cards {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
+  .vid-acc { display: flex; flex-direction: column; }
+  .vid-acc-row { cursor: pointer; }
+  .vid-acc-row .checkbox { pointer-events: none; }
+  .vid-acc.done .checkbox.checked { background: var(--success); border-color: var(--success); }
+  .vid-acc-chevron {
+    color: var(--ink-low);
+    margin-left: 4px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
   }
-  @media (max-width: 760px) { .vid-cards { grid-template-columns: 1fr; } }
-  .vid-card {
+  .vid-acc.is-open .vid-acc-chevron { transform: rotate(180deg); }
+  .vid-acc.is-open .vid-acc-row {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .vid-acc-panel {
     display: flex;
     flex-direction: column;
+    gap: 12px;
     background: white;
     border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+    padding: 16px 18px 18px;
+    margin-top: -2px;
   }
-  .vid-card:hover { box-shadow: 0 8px 22px rgba(17, 17, 17, 0.07); }
-  .vid-card.done { border-color: rgba(16, 185, 129, 0.5); }
   .vid-card-media {
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
     background: #0f172a;
+    border-radius: 10px;
+    overflow: hidden;
   }
   .vid-card-media iframe {
     position: absolute;
@@ -291,57 +302,6 @@
     color: var(--ink-low);
     font-size: 13px;
     font-weight: 600;
-  }
-  .vid-card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 16px 18px 18px;
-  }
-  .vid-card-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .vid-card-check {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 2px solid var(--border-strong);
-    background: var(--bg-2);
-    flex-shrink: 0;
-    position: relative;
-    transition: all 0.15s ease;
-  }
-  .vid-card-check.checked { background: var(--success); border-color: var(--success); }
-  .vid-card-check.checked::after {
-    content: "";
-    position: absolute;
-    left: 6px;
-    top: 3px;
-    width: 5px;
-    height: 9px;
-    border: solid #fff;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-  }
-  .vid-card-title {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    color: var(--ink-hi);
-    margin: 0;
-    flex: 1;
-    min-width: 0;
-  }
-  .vid-card-points {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-radius: 999px;
-    padding: 3px 10px;
-    flex-shrink: 0;
   }
   .vid-card-prompt {
     font-size: 13px;
@@ -4668,7 +4628,7 @@
     {
       id: 'p0',
       title: 'Project 0: Meet the Mission',
-      goal: 'Before you build anything, meet the people and ideas behind assistive technology - watch each video, then write what stood out to you.',
+      goal: '',
       kind: 'videos',
       benchmarks: [
         {
@@ -4712,24 +4672,6 @@
           title: 'Video 5',
           points: 2,
           videoUrl: 'https://www.youtube.com/embed/2UxHX20C0s0',
-          summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
-          links: [],
-          rubric: []
-        },
-        {
-          id: 'p0b6',
-          title: 'Video 6',
-          points: 2,
-          videoUrl: 'https://www.youtube.com/embed/13f7pu3P6Wg',
-          summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
-          links: [],
-          rubric: []
-        },
-        {
-          id: 'p0b7',
-          title: 'Video 7',
-          points: 2,
-          videoUrl: 'https://www.youtube.com/embed/w_mlD0TEX2Y',
           summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
           links: [],
           rubric: []
@@ -5187,7 +5129,7 @@
           <h2 class="project-title">${escapeHtml(project.title)}</h2>
           ${project.goal ? `<p class="project-blurb">${escapeHtml(project.goal)}</p>` : ''}
           <div class="vid-identity" data-vid-identity></div>
-          <div class="vid-cards" data-vid-cards></div>
+          <div class="benchmarks" data-vid-cards></div>
         `;
         const idMount = projEl.querySelector('[data-vid-identity]');
         const picker = renderNamePicker({
@@ -5210,19 +5152,21 @@
         project.benchmarks.forEach((b, idx) => {
           const done = checked.has(b.id);
           const card = document.createElement('div');
-          card.className = 'vid-card' + (done ? ' done' : '');
+          card.className = 'vid-acc' + (done ? ' done' : '');
           card.dataset.id = b.id;
           const media = b.videoUrl
-            ? `<div class="vid-card-media"><iframe src="${b.videoUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
+            ? `<div class="vid-card-media" data-embed="${b.videoUrl}"></div>`
             : `<div class="vid-card-media vid-card-media--empty"><span>Video coming soon</span></div>`;
           card.innerHTML = `
-            ${media}
-            <div class="vid-card-body">
-              <div class="vid-card-head">
-                <span class="vid-card-check ${done ? 'checked' : ''}" data-checkbox="${b.id}" aria-hidden="true"></span>
-                <h3 class="vid-card-title">${escapeHtml(b.title)}</h3>
-                <span class="vid-card-points">${b.points} pts</span>
-              </div>
+            <div class="benchmark vid-acc-row" role="button" tabindex="0" aria-expanded="false">
+              <div class="checkbox ${done ? 'checked' : ''}" data-checkbox="${b.id}" aria-hidden="true"></div>
+              <div class="benchmark-num">${idx + 1}</div>
+              <div class="benchmark-label">${escapeHtml(b.title)}</div>
+              <div class="points">${b.points} pts</div>
+              <svg class="vid-acc-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <div class="vid-acc-panel" hidden>
+              ${media}
               ${b.summaryPrompt ? `<p class="vid-card-prompt">${escapeHtml(b.summaryPrompt)}</p>` : ''}
               <textarea class="vid-summary" data-vid-text rows="4" maxlength="1500" placeholder="Write your summary here..."></textarea>
               <div class="vid-card-actions">
@@ -5232,6 +5176,26 @@
             </div>
           `;
           cardsMount.appendChild(card);
+
+          const accRow = card.querySelector('.vid-acc-row');
+          const accPanel = card.querySelector('.vid-acc-panel');
+          const toggle = () => {
+            const open = card.classList.toggle('is-open');
+            accRow.setAttribute('aria-expanded', open ? 'true' : 'false');
+            accPanel.hidden = !open;
+            if (open) {
+              // Lazy-load the iframe only on first expand (keeps 5 embeds light).
+              const mediaEl = accPanel.querySelector('.vid-card-media[data-embed]');
+              if (mediaEl && !mediaEl.dataset.loaded && mediaEl.dataset.embed) {
+                mediaEl.dataset.loaded = '1';
+                mediaEl.innerHTML = `<iframe src="${mediaEl.dataset.embed}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+              }
+            }
+          };
+          accRow.addEventListener('click', toggle);
+          accRow.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+          });
 
           const textarea = card.querySelector('[data-vid-text]');
           const saveBtn = card.querySelector('[data-vid-save]');
@@ -5283,7 +5247,7 @@
           project.benchmarks.forEach(b => {
             loadDraft(n, b.id).then(d => {
               if (d && typeof d.reflection === 'string') {
-                const ta = cardsMount.querySelector(`.vid-card[data-id="${b.id}"] [data-vid-text]`);
+                const ta = cardsMount.querySelector(`.vid-acc[data-id="${b.id}"] [data-vid-text]`);
                 if (ta && !ta.value) ta.value = d.reflection;
               }
             });
