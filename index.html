@@ -253,7 +253,6 @@
 
   /* Project 0: grounding-video accordion. Rows match the Projects 1-3
      benchmark look; clicking a row drops down the video + summary. */
-  .vid-identity { margin: 2px 0 18px; }
   .vid-acc { display: flex; flex-direction: column; }
   .vid-acc-row { cursor: pointer; }
   .vid-acc-row .checkbox { pointer-events: none; }
@@ -5197,7 +5196,6 @@
           // ("Who's adding this?"). No persistent identity strip on the page —
           // the student chooses who is responding right here, per submission.
           const namePicker = renderNamePicker({
-            label: "Who's adding this?",
             initial: localStorage.getItem(LAST_PICK_KEY) || '',
             onChange: (n) => { if (n) ensureRosterEntry(n); hydrateCard(n); }
           });
