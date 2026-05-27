@@ -292,6 +292,17 @@
     color: var(--ink-low);
     margin: 0;
   }
+  /* Two-column panel: smaller video on the left, summary on the right, so a
+     student can watch and write the summary at the same time without scrolling. */
+  .vid-acc-body { display: flex; gap: 16px; align-items: flex-start; }
+  .vid-acc-media-col { flex: 0 0 44%; max-width: 44%; }
+  .vid-acc-write-col { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+  @media (max-width: 720px) {
+    .vid-acc-body { flex-direction: column; }
+    .vid-acc-media-col { flex: 1 1 auto; max-width: 100%; width: 100%; }
+  }
+  .vid-name { margin-right: auto; }
+  .vid-name .name-picker-label { margin-bottom: 4px; }
   .vid-card-media {
     position: relative;
     width: 100%;
@@ -340,15 +351,16 @@
   .vid-summary::placeholder { color: var(--ink-low); }
   .vid-card-actions {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: flex-end;
     gap: 12px;
+    flex-wrap: wrap;
   }
   .vid-saved {
     font-size: 12px;
     font-weight: 600;
     color: var(--success);
-    margin-right: auto;
+    margin-right: 0;
   }
   .vid-save {
     background: var(--accent);
@@ -5140,26 +5152,8 @@
         projEl.innerHTML = `
           <h2 class="project-title">${escapeHtml(project.title)}</h2>
           ${project.goal ? `<p class="project-blurb">${escapeHtml(project.goal)}</p>` : ''}
-          <div class="vid-identity" data-vid-identity></div>
           <div class="benchmarks" data-vid-cards></div>
         `;
-        const idMount = projEl.querySelector('[data-vid-identity]');
-        const picker = renderNamePicker({
-          initial: localStorage.getItem(LAST_PICK_KEY) || '',
-          onChange: (n) => { if (n) ensureRosterEntry(n); hydrateAll(); }
-        });
-        const innerLabel = picker.element.querySelector('.name-picker-label');
-        if (innerLabel) innerLabel.style.display = 'none';
-        const strip = document.createElement('div');
-        strip.className = 'identity-strip';
-        strip.innerHTML = '<span class="identity-strip-label">Saving as</span>';
-        const pickWrap = document.createElement('div');
-        pickWrap.className = 'identity-strip-picker';
-        pickWrap.appendChild(picker.element);
-        strip.appendChild(pickWrap);
-        idMount.appendChild(strip);
-        const getName = () => picker.getName();
-
         const cardsMount = projEl.querySelector('[data-vid-cards]');
         project.benchmarks.forEach((b, idx) => {
           const done = checked.has(b.id);
@@ -5178,12 +5172,17 @@
               <svg class="vid-acc-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
             </div>
             <div class="vid-acc-panel" hidden>
-              ${media}
-              ${b.summaryPrompt ? `<p class="vid-card-prompt">${escapeHtml(b.summaryPrompt)}</p>` : ''}
-              <textarea class="vid-summary" data-vid-text rows="4" maxlength="1500" placeholder="Write your summary here..."></textarea>
-              <div class="vid-card-actions">
-                <span class="vid-saved" data-vid-saved></span>
-                <button class="vid-save" type="button" data-vid-save>Save summary</button>
+              <div class="vid-acc-body">
+                <div class="vid-acc-media-col">${media}</div>
+                <div class="vid-acc-write-col">
+                  ${b.summaryPrompt ? `<p class="vid-card-prompt">${escapeHtml(b.summaryPrompt)}</p>` : ''}
+                  <textarea class="vid-summary" data-vid-text rows="4" maxlength="1500" placeholder="Write your summary here..."></textarea>
+                  <div class="vid-card-actions">
+                    <div class="vid-name" data-vid-name></div>
+                    <span class="vid-saved" data-vid-saved></span>
+                    <button class="vid-save" type="button" data-vid-save>Save summary</button>
+                  </div>
+                </div>
               </div>
               <div class="vid-peers">
                 <h3 class="vid-peers-label">Class submissions</h3>
@@ -5192,6 +5191,17 @@
             </div>
           `;
           cardsMount.appendChild(card);
+
+          // Per-video name picker, identical to the benchmark submit flow
+          // ("Who's adding this?"). No persistent identity strip on the page —
+          // the student chooses who is responding right here, per submission.
+          const namePicker = renderNamePicker({
+            label: "Who's adding this?",
+            initial: localStorage.getItem(LAST_PICK_KEY) || '',
+            onChange: (n) => { if (n) ensureRosterEntry(n); hydrateCard(n); }
+          });
+          card.querySelector('[data-vid-name]').appendChild(namePicker.element);
+          const getName = () => namePicker.getName();
 
           const accRow = card.querySelector('.vid-acc-row');
           const accPanel = card.querySelector('.vid-acc-panel');
@@ -5235,6 +5245,17 @@
           const saveBtn = card.querySelector('[data-vid-save]');
           const savedPill = card.querySelector('[data-vid-saved]');
 
+          // Restore this student's saved draft for this video when a name is set.
+          function hydrateCard(n) {
+            if (!n) return;
+            loadDraft(n, b.id).then(d => {
+              if (d && typeof d.reflection === 'string' && !textarea.value) {
+                textarea.value = d.reflection;
+              }
+            });
+          }
+          hydrateCard(getName());
+
           const auto = debounce(() => {
             const n = getName();
             if (!n || !textarea.value.trim()) return;
@@ -5275,20 +5296,6 @@
             saveBtn.textContent = 'Save summary';
           });
         });
-
-        function hydrateAll() {
-          const n = getName();
-          if (!n) return;
-          project.benchmarks.forEach(b => {
-            loadDraft(n, b.id).then(d => {
-              if (d && typeof d.reflection === 'string') {
-                const ta = cardsMount.querySelector(`.vid-acc[data-id="${b.id}"] [data-vid-text]`);
-                if (ta && !ta.value) ta.value = d.reflection;
-              }
-            });
-          });
-        }
-        hydrateAll();
 
         app.appendChild(projEl);
         return;
