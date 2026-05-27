@@ -301,8 +301,9 @@
     .vid-acc-body { flex-direction: column; }
     .vid-acc-media-col { flex: 1 1 auto; max-width: 100%; width: 100%; }
   }
-  .vid-name { margin-right: auto; }
-  .vid-name .name-picker-label { margin-bottom: 4px; }
+  /* Name picker is the first thing in the write column, styled exactly like
+     the benchmark/portfolio submit picker. Let the column gap handle spacing. */
+  .vid-name .name-picker { margin-bottom: 0; }
   .vid-card-media {
     position: relative;
     width: 100%;
@@ -360,7 +361,7 @@
     font-size: 12px;
     font-weight: 600;
     color: var(--success);
-    margin-right: 0;
+    margin-right: auto;
   }
   .vid-save {
     background: var(--accent);
@@ -5175,10 +5176,10 @@
               <div class="vid-acc-body">
                 <div class="vid-acc-media-col">${media}</div>
                 <div class="vid-acc-write-col">
+                  <div class="vid-name" data-vid-name></div>
                   ${b.summaryPrompt ? `<p class="vid-card-prompt">${escapeHtml(b.summaryPrompt)}</p>` : ''}
                   <textarea class="vid-summary" data-vid-text rows="4" maxlength="1500" placeholder="Write your summary here..."></textarea>
                   <div class="vid-card-actions">
-                    <div class="vid-name" data-vid-name></div>
                     <span class="vid-saved" data-vid-saved></span>
                     <button class="vid-save" type="button" data-vid-save>Save summary</button>
                   </div>
@@ -5231,7 +5232,15 @@
               const mediaEl = accPanel.querySelector('.vid-card-media[data-embed]');
               if (mediaEl && !mediaEl.dataset.loaded && mediaEl.dataset.embed) {
                 mediaEl.dataset.loaded = '1';
-                mediaEl.innerHTML = `<iframe src="${mediaEl.dataset.embed}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                // Add player params + origin. The origin param is what prevents
+                // YouTube "Error 153 / player configuration" when embedded.
+                const base = mediaEl.dataset.embed;
+                const sep = base.includes('?') ? '&' : '?';
+                let src = `${base}${sep}rel=0&modestbranding=1&playsinline=1`;
+                if (location.protocol === 'http:' || location.protocol === 'https:') {
+                  src += `&origin=${encodeURIComponent(location.origin)}`;
+                }
+                mediaEl.innerHTML = `<iframe src="${src}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
               }
               loadPeers();
             }
