@@ -4770,13 +4770,52 @@
     max-height: 40%;
     overflow: auto;
   }
-  .cad-viewer-toolbar {
+  /* Top-of-viewer command strip: every action button + status, no bottom bar. */
+  .cad-viewer-head {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .cad-viewer-head .cad-btn { padding: 6px 12px; font-size: 12.5px; }
+  .cad-viewer-head .cad-status { margin-left: auto; }
+  .cad-btn--icon {
+    padding: 6px 8px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Bottom-corner reminder of the mouse controls. Pointer-none so it never
+     intercepts a drag aimed at the canvas. */
+  .cad-viewer-hint {
+    position: absolute;
+    left: 12px;
+    bottom: 10px;
+    font-size: 11px;
+    color: var(--ink-low);
+    background: rgba(255, 255, 255, 0.75);
+    padding: 4px 8px;
+    border-radius: 6px;
+    pointer-events: none;
+    z-index: 4;
+    letter-spacing: 0.2px;
+  }
+  /* When the right panel is fullscreened, force it to fill the viewport and
+     keep the viewer + overlays inside it scaled correctly. */
+  .cad-panel:fullscreen,
+  .cad-panel:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
     background: var(--bg-1);
-    border-top: 1px solid var(--border);
+  }
+  .cad-panel:fullscreen .cad-viewer-wrap,
+  .cad-panel:-webkit-full-screen .cad-viewer-wrap {
+    min-height: 0;
+    height: calc(100vh - 52px);
   }
   .cad-btn {
     display: inline-flex;
@@ -13785,32 +13824,47 @@
     };
     setStatus('Loading 3D engine…');
     try {
-      // @jscad/io is the umbrella package exporting stlSerializer; the direct
-      // package is @jscad/stl-serializer. Pull from the direct package to keep
-      // the bundle tight and avoid the umbrella's transitive serializers.
-      const [modeling, stlMod, three, orbitMod, stlLoaderMod] = await Promise.all([
+      // Direct subpackages keep the bundle small. 3MF is loaded best-effort —
+      // some bundle paths don't expose it cleanly; if it fails, we still ship
+      // STL and silently disable the 3MF button.
+      const [modeling, stlMod, three, orbitMod, stlLoaderMod, threeMfMod] = await Promise.all([
         import('https://esm.sh/@jscad/modeling@2.12.0'),
         import('https://esm.sh/@jscad/stl-serializer@2.1.11'),
         import('https://esm.sh/three@0.158.0'),
         import('https://esm.sh/three@0.158.0/examples/jsm/controls/OrbitControls.js'),
-        import('https://esm.sh/three@0.158.0/examples/jsm/loaders/STLLoader.js')
+        import('https://esm.sh/three@0.158.0/examples/jsm/loaders/STLLoader.js'),
+        import('https://esm.sh/@jscad/3mf-serializer@2.0.18').catch(() => null)
       ]);
       const modelingNs = modeling.default || modeling;
       const stlNs = stlMod.default || stlMod;
       const threeNs = three.default || three;
-      const serialize = (typeof stlNs.serialize === 'function')
+      const stlSerialize = (typeof stlNs.serialize === 'function')
         ? stlNs.serialize
         : (stlNs.stlSerializer && stlNs.stlSerializer.serialize);
-      if (typeof serialize !== 'function') {
+      if (typeof stlSerialize !== 'function') {
         throw new Error('STL serializer not found in module bundle.');
+      }
+      let threeMfSerialize = null;
+      if (threeMfMod) {
+        const tns = threeMfMod.default || threeMfMod;
+        threeMfSerialize = (typeof tns.serialize === 'function')
+          ? tns.serialize
+          : (tns.threeMfSerializer && tns.threeMfSerializer.serialize);
       }
       _cad.engine = {
         modeling: modelingNs,
-        stlSerialize: serialize,
+        stlSerialize,
+        threeMfSerialize,
         THREE: threeNs,
         OrbitControls: orbitMod.OrbitControls,
         STLLoader: stlLoaderMod.STLLoader
       };
+      // Disable the 3MF button up-front if its serializer didn't load.
+      const tmfBtn = document.getElementById('cadBtnExport3mf');
+      if (tmfBtn && !threeMfSerialize) {
+        tmfBtn.disabled = true;
+        tmfBtn.title = '3MF serializer unavailable — use Export STL.';
+      }
       setStatus('');
       return _cad.engine;
     } catch (err) {
@@ -13897,7 +13951,10 @@
     box.getSize(size);
     box.getCenter(center);
     const maxDim = Math.max(size.x, size.y, size.z, 20);
-    const dist = maxDim * 2.6;
+    // Generous framing — kids consistently said the part felt "too zoomed in"
+    // when this was 2.6x. Pull the camera back so the whole part sits centered
+    // with breathing room on every edge.
+    const dist = maxDim * 3.6;
     cadAnimateCamera(
       new THREE.Vector3(center.x + dist * 0.65, center.y - dist * 0.85, center.z + dist * 0.55),
       center
@@ -14066,19 +14123,74 @@
     _cad.busy = false;
   }
 
-  function cadExportStl() {
-    if (!_cad.stl) { cadSetStatus('Run the part first.', 'error'); return; }
-    const blob = new Blob([_cad.stl], { type: 'application/sla' });
+  // Shared download helper for both STL and 3MF.
+  function cadDownloadBlob(data, ext, mime) {
+    const blob = (data instanceof Blob) ? data : new Blob([data], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     a.href = url;
-    a.download = `d4sg-cad-${stamp}.stl`;
+    a.download = `d4sg-cad-${stamp}.${ext}`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function cadExportStl() {
+    if (!_cad.stl) { cadSetStatus('Run the part first.', 'error'); return; }
+    cadDownloadBlob(_cad.stl, 'stl', 'application/sla');
     cadSetStatus('STL downloaded.', 'good');
+  }
+
+  // 3MF re-serializes the last-rendered geometry. We rebuild the geom from the
+  // current code rather than caching it, because the JSCAD geom object is
+  // discarded after STL serialization; this keeps memory low.
+  function cadExport3mf() {
+    const { threeMfSerialize } = _cad.engine || {};
+    if (!threeMfSerialize) { cadSetStatus('3MF unavailable — use STL.', 'error'); return; }
+    if (!_cad.code) { cadSetStatus('Run the part first.', 'error'); return; }
+    try {
+      // Re-evaluate the user code to recover the JSCAD geom (cheap; same path
+      // cadRunCode uses, minus the rendering).
+      const { modeling } = _cad.engine;
+      const sandboxRequire = (name) => {
+        if (name === '@jscad/modeling') return modeling;
+        if (name.startsWith('@jscad/modeling/')) {
+          const parts = name.split('/').slice(2);
+          return parts.reduce((acc, k) => (acc && acc[k] != null) ? acc[k] : undefined, modeling);
+        }
+        throw new Error('Cannot import "' + name + '" inside the CAD tool.');
+      };
+      const moduleObj = { exports: {} };
+      // eslint-disable-next-line no-new-func
+      const fn = new Function('require', 'module', 'exports', 'Math', _cad.code);
+      fn(sandboxRequire, moduleObj, moduleObj.exports, Math);
+      const m = moduleObj.exports || {};
+      const mainFn = (typeof m.main === 'function') ? m.main : null;
+      if (!mainFn) throw new Error('main() not found.');
+      const geomOut = mainFn();
+      const geoms = Array.isArray(geomOut) ? geomOut : [geomOut];
+      // 3MF serializer returns either a string/array or a Uint8Array (ZIP).
+      const out = threeMfSerialize({}, ...geoms);
+      const payload = Array.isArray(out) ? out[0] : out;
+      cadDownloadBlob(payload, '3mf', 'model/3mf');
+      cadSetStatus('3MF downloaded.', 'good');
+    } catch (err) {
+      cadSetStatus('3MF export failed.', 'error');
+      cadShowError(String(err && err.message || err));
+    }
+  }
+
+  function cadToggleFullscreen() {
+    const el = document.getElementById('cadPanel');
+    if (!el) return;
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fsEl) {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    } else {
+      (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+    }
   }
 
   // ---------- Wizard templates ----------
@@ -14902,8 +15014,20 @@ module.exports = { main }`
             <div class="cad-panel-head" id="cadLeftHead">Templates — pick a part, tune the numbers</div>
             <div class="cad-panel-body" id="cadLeftBody"></div>
           </div>
-          <div class="cad-panel">
-            <div class="cad-panel-head">Preview <span class="cad-status" id="cadStatus"></span></div>
+          <div class="cad-panel" id="cadPanel">
+            <div class="cad-viewer-head">
+              <button type="button" class="cad-btn" id="cadBtnRun" title="Re-render the current part">Run</button>
+              <button type="button" class="cad-btn" id="cadBtnCenter" title="Center and frame the whole part">Center</button>
+              <button type="button" class="cad-btn" id="cadBtnClear" title="Clear the scene and start over">Clear</button>
+              <button type="button" class="cad-btn cad-btn--primary" id="cadBtnExportStl" title="Download STL (universal slicer format)">Export STL</button>
+              <button type="button" class="cad-btn" id="cadBtnExport3mf" title="Download 3MF (modern slicer format with units, color, metadata)">Export 3MF</button>
+              <button type="button" class="cad-btn cad-btn--icon" id="cadBtnFullscreen" title="Toggle fullscreen" aria-label="Toggle fullscreen">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>
+                </svg>
+              </button>
+              <span class="cad-status" id="cadStatus"></span>
+            </div>
             <div class="cad-viewer-wrap" id="cadViewerWrap">
               <div class="cad-viewer" id="cadViewer"></div>
               <div class="cad-view-pad" id="cadViewPad" aria-label="Snap to view">
@@ -14917,16 +15041,11 @@ module.exports = { main }`
                 <button type="button" data-cad-view="bottom" title="Bottom">Bot</button>
                 <button type="button" data-cad-view="back" title="Back">B</button>
               </div>
+              <div class="cad-viewer-hint">Drag to rotate · Scroll to zoom · Right-drag to pan</div>
               <div class="cad-viewer-loading" id="cadViewerLoading">
                 <div class="spin"></div>
                 <span>Booting 3D engine…</span>
               </div>
-            </div>
-            <div class="cad-viewer-toolbar">
-              <button type="button" class="cad-btn" id="cadBtnRun" title="Re-render the current part">Run</button>
-              <button type="button" class="cad-btn" id="cadBtnCenter" title="Re-center camera on the part">Center</button>
-              <button type="button" class="cad-btn" id="cadBtnClear" title="Clear the scene and start over">Clear</button>
-              <button type="button" class="cad-btn cad-btn--primary" id="cadBtnExport">Export STL</button>
             </div>
           </div>
         </div>
@@ -14937,7 +15056,9 @@ module.exports = { main }`
     document.querySelectorAll('.cad-tab').forEach(b => {
       b.addEventListener('click', () => cadSetMode(b.dataset.cadMode));
     });
-    document.getElementById('cadBtnExport').addEventListener('click', cadExportStl);
+    document.getElementById('cadBtnExportStl').addEventListener('click', cadExportStl);
+    document.getElementById('cadBtnExport3mf').addEventListener('click', cadExport3mf);
+    document.getElementById('cadBtnFullscreen').addEventListener('click', cadToggleFullscreen);
     document.getElementById('cadBtnRun').addEventListener('click', () => {
       if (_cad.mode === 'wizard') return cadRunFromCurrent(cadCurrentWizardCode());
       // AI mode Run just re-renders the last code.
