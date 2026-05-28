@@ -4803,20 +4803,27 @@
     z-index: 4;
     letter-spacing: 0.2px;
   }
-  /* When the right panel is fullscreened, force it to fill the viewport and
-     keep the viewer + overlays inside it scaled correctly. */
-  .cad-panel:fullscreen,
-  .cad-panel:-webkit-full-screen {
+  /* In-app maximize: the panel pins itself to the viewport so the viewer fills
+     the working area, but the browser stays put (no native fullscreen handoff,
+     no OS chrome flicker, no crash on rapid toggles). Toggling the class
+     alone does the work; cadToggleFullscreen forces a renderer resize next
+     frame. */
+  .cad-panel.is-maximized {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
     width: 100vw;
     height: 100vh;
     border-radius: 0;
     background: var(--bg-1);
+    box-shadow: 0 0 0 9999px rgba(17, 17, 17, 0.35);
   }
-  .cad-panel:fullscreen .cad-viewer-wrap,
-  .cad-panel:-webkit-full-screen .cad-viewer-wrap {
+  .cad-panel.is-maximized .cad-viewer-wrap {
     min-height: 0;
     height: calc(100vh - 52px);
   }
+  /* When maximized, the fullscreen button flips meaning: it's now an exit. */
+  .cad-panel.is-maximized #cadBtnFullscreen { color: var(--accent); border-color: var(--accent); }
   .cad-btn {
     display: inline-flex;
     align-items: center;
@@ -14182,15 +14189,28 @@
     }
   }
 
+  // In-app maximize: just toggle a class and force the WebGL renderer to
+  // re-size to the new container dimensions next frame. No native fullscreen
+  // API — safer on Chromebooks, no OS chrome flicker, no crash on rapid
+  // toggles.
   function cadToggleFullscreen() {
     const el = document.getElementById('cadPanel');
     if (!el) return;
-    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-    if (fsEl) {
-      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-    } else {
-      (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
-    }
+    el.classList.toggle('is-maximized');
+    cadResyncViewerSize();
+    // A second resync after the layout has fully settled catches the case
+    // where the canvas measures 0 mid-transition.
+    requestAnimationFrame(() => cadResyncViewerSize());
+    setTimeout(() => cadResyncViewerSize(), 200);
+  }
+  function cadResyncViewerSize() {
+    const viewer = document.getElementById('cadViewer');
+    if (!viewer || !_cad.renderer || !_cad.camera) return;
+    const w = viewer.clientWidth, h = viewer.clientHeight;
+    if (!w || !h) return;
+    _cad.renderer.setSize(w, h, false);
+    _cad.camera.aspect = w / h;
+    _cad.camera.updateProjectionMatrix();
   }
 
   // ---------- Wizard templates ----------
@@ -15059,6 +15079,16 @@ module.exports = { main }`
     document.getElementById('cadBtnExportStl').addEventListener('click', cadExportStl);
     document.getElementById('cadBtnExport3mf').addEventListener('click', cadExport3mf);
     document.getElementById('cadBtnFullscreen').addEventListener('click', cadToggleFullscreen);
+    // Escape exits the maximized viewer. Listener is scoped to document but is
+    // a no-op when the panel isn't maximized, so it doesn't fight other modals.
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const panel = document.getElementById('cadPanel');
+      if (panel && panel.classList.contains('is-maximized')) {
+        e.preventDefault();
+        cadToggleFullscreen();
+      }
+    });
     document.getElementById('cadBtnRun').addEventListener('click', () => {
       if (_cad.mode === 'wizard') return cadRunFromCurrent(cadCurrentWizardCode());
       // AI mode Run just re-renders the last code.
