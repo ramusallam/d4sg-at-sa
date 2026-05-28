@@ -9,6 +9,10 @@
     { "source": "/tools/vibe", "destination": "/index.html" },
     { "source": "/tools/vibe/", "destination": "/index.html" },
     { "source": "/tools/schematic", "destination": "/index.html" },
-    { "source": "/tools/schematic/", "destination": "/index.html" }
+    { "source": "/tools/schematic/", "destination": "/index.html" },
+    { "source": "/tools/idea-board", "destination": "/index.html" },
+    { "source": "/tools/idea-board/", "destination": "/index.html" },
+    { "source": "/tools/cad", "destination": "/index.html" },
+    { "source": "/tools/cad/", "destination": "/index.html" }
   ]
 }

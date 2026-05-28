@@ -2533,23 +2533,6 @@
     text-transform: uppercase;
     color: var(--ink-low);
   }
-  .sb-download {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 7px 13px;
-    font: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-  .sb-download:hover { background: var(--accent-hover); }
-  .sb-download svg { width: 15px; height: 15px; }
   .sb-list {
     list-style: none;
     margin: 0;
@@ -4663,6 +4646,333 @@
     border-left: 3px solid var(--accent);
     border-radius: 8px;
   }
+
+  /* =================================================================
+     CAD TOOL — Wizard / AI Build / Code, sharing one JSCAD + Three.js
+     engine. Lazy-loaded on first open so the rest of the hub stays
+     light. Lives inside the standard /tools/* shell. */
+  .cad-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .cad-tabs {
+    display: inline-flex;
+    align-self: flex-start;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 2px;
+  }
+  .cad-tab {
+    background: transparent;
+    border: none;
+    padding: 8px 18px;
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-mid);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .cad-tab:hover { color: var(--ink-hi); }
+  .cad-tab.is-active {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.22);
+  }
+  .cad-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 14px;
+    align-items: stretch;
+    min-height: 560px;
+  }
+  .cad-panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .cad-panel-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-2);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .cad-panel-body {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  /* ---- Viewer (right panel) ---- */
+  .cad-viewer-wrap {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 420px;
+    background: linear-gradient(180deg, #f4f3ee 0%, #e8e7e2 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .cad-viewer {
+    position: absolute;
+    inset: 0;
+  }
+  .cad-viewer canvas { display: block; width: 100% !important; height: 100% !important; }
+  .cad-viewer-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    color: var(--ink-mid);
+    font-size: 13.5px;
+    pointer-events: none;
+  }
+  .cad-viewer-loading .spin {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border-strong);
+    border-top-color: var(--accent);
+    animation: cadSpin 0.9s linear infinite;
+  }
+  @keyframes cadSpin { to { transform: rotate(360deg); } }
+  .cad-viewer-error {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    max-height: 40%;
+    overflow: auto;
+  }
+  .cad-viewer-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg-1);
+    border-top: 1px solid var(--border);
+  }
+  .cad-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    color: var(--ink-hi);
+    border-radius: 9px;
+    padding: 8px 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  .cad-btn:hover { background: white; border-color: var(--border-strong); }
+  .cad-btn:active { transform: translateY(1px); }
+  .cad-btn--primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .cad-btn--primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: white; }
+  .cad-btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+  .cad-status {
+    font-size: 12px;
+    color: var(--ink-low);
+    margin-left: auto;
+  }
+  .cad-status.is-error { color: #b91c1c; font-weight: 600; }
+  .cad-status.is-good { color: #047857; font-weight: 600; }
+
+  /* ---- Wizard mode ---- */
+  .cad-wiz-templates {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+  .cad-wiz-template {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cad-wiz-template:hover { background: white; border-color: var(--accent); }
+  .cad-wiz-template.is-active {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .cad-wiz-template-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink-hi);
+  }
+  .cad-wiz-template-blurb {
+    font-size: 11.5px;
+    color: var(--ink-low);
+    line-height: 1.4;
+  }
+  .cad-wiz-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-top: 1px dashed var(--border);
+    padding-top: 14px;
+  }
+  .cad-wiz-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 14px;
+  }
+  .cad-wiz-row label {
+    font-size: 12.5px;
+    color: var(--ink-mid);
+    font-weight: 500;
+  }
+  .cad-wiz-row input[type="number"],
+  .cad-wiz-row select {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 8px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--ink-hi);
+    width: 90px;
+    text-align: right;
+  }
+  .cad-wiz-row select { width: auto; text-align: left; }
+  .cad-wiz-row input[type="number"]:focus,
+  .cad-wiz-row select:focus { outline: none; border-color: var(--accent); }
+
+  /* ---- AI Build mode ---- */
+  .cad-ai-stems {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .cad-ai-stem {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .cad-ai-stem:hover { background: white; color: var(--ink-hi); border-color: var(--border-strong); }
+  .cad-ai-stem.is-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .cad-ai-stem.is-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: white; }
+  .cad-ai-composer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+  .cad-ai-composer:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+  .cad-ai-input {
+    border: none;
+    background: transparent;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-hi);
+    resize: none;
+    outline: none;
+    min-height: 80px;
+  }
+  .cad-ai-composer-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .cad-ai-log {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cad-ai-msg {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--paper-ink);
+    white-space: pre-wrap;
+  }
+  .cad-ai-msg.is-user {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--ink-hi);
+  }
+
+  /* ---- Code mode ---- */
+  .cad-code-editor {
+    flex: 1 1 auto;
+    min-height: 320px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    background: var(--bg-1);
+    color: var(--ink-hi);
+    resize: vertical;
+    outline: none;
+    white-space: pre;
+    overflow: auto;
+    tab-size: 2;
+  }
+  .cad-code-editor:focus { border-color: var(--accent); }
+
+  @media (max-width: 980px) {
+    .cad-grid { grid-template-columns: 1fr; }
+    .cad-viewer-wrap { min-height: 360px; }
+  }
 </style>
 <script src="https://unpkg.com/konva@9.3.16/konva.min.js"></script>
 </head>
@@ -5682,6 +5992,12 @@
           <p class="tool-card-blurb">Sketch your prototype before you build it. Doodle with a pen, drop in photos, label parts with callouts, then save the diagram straight to a benchmark or portfolio drop.</p>
           <div class="tool-card-footer">Open tool</div>
         </div>
+        <div class="tool-card" id="toolCardCad">
+          <p class="tool-card-eyebrow">Tool 04</p>
+          <h3 class="tool-card-title">CAD Tool</h3>
+          <p class="tool-card-blurb">Design 3D-printable enclosures, button mounts, and brackets without leaving the hub. Pick a template, describe your part to AI, or write parametric code. Live 3D preview and one-click STL export.</p>
+          <div class="tool-card-footer">Open tool</div>
+        </div>
       </div>
     `;
     app.appendChild(sec);
@@ -5696,6 +6012,10 @@
     sec.querySelector('#toolCardIdea').addEventListener('click', () => {
       history.pushState({}, '', '/tools/idea-board');
       applyRoute('/tools/idea-board');
+    });
+    sec.querySelector('#toolCardCad').addEventListener('click', () => {
+      history.pushState({}, '', '/tools/cad');
+      applyRoute('/tools/cad');
     });
   }
 
@@ -10099,12 +10419,10 @@
       return;
     }
 
-    const dlIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>';
     mount.innerHTML = `
       <div class="sb-board">
         <div class="sb-head">
           <span class="sb-count">${rows.length} ${rows.length === 1 ? 'summary' : 'summaries'}</span>
-          <button type="button" class="sb-download" data-sb-download>${dlIcon}<span>Download PDF</span></button>
         </div>
         <ul class="sb-list">
           ${rows.map((r, i) => `
@@ -10124,50 +10442,6 @@
         row.querySelector('.sb-row-text').classList.toggle('is-clamped');
       });
     });
-    const dl = mount.querySelector('[data-sb-download]');
-    if (dl) dl.addEventListener('click', () => downloadSummariesPdf(bench, rows));
-  }
-
-  async function downloadSummariesPdf(bench, rows) {
-    try {
-      await vibeLoadJsPdf();
-      const { jsPDF } = window.jspdf;
-      const docp = new jsPDF({ unit: 'pt', format: 'letter' });
-      const pageW = docp.internal.pageSize.getWidth();
-      const pageH = docp.internal.pageSize.getHeight();
-      const mx = 54, my = 60, maxW = pageW - mx * 2;
-      let y = my;
-      docp.setFont('helvetica', 'bold');
-      docp.setFontSize(16);
-      docp.text(`${bench && bench.title ? bench.title : 'Video'} — Class Summaries`, mx, y);
-      y += 20;
-      docp.setFont('helvetica', 'normal');
-      docp.setFontSize(9);
-      docp.setTextColor(120);
-      docp.text(`${new Date().toLocaleString()}  ·  ${rows.length} student${rows.length === 1 ? '' : 's'}`, mx, y);
-      y += 24;
-      docp.setTextColor(0);
-      rows.forEach(r => {
-        if (y + 18 > pageH - my) { docp.addPage(); y = my; }
-        docp.setFont('helvetica', 'bold');
-        docp.setFontSize(12);
-        docp.text(r.name, mx, y);
-        y += 16;
-        docp.setFont('helvetica', 'normal');
-        docp.setFontSize(10.5);
-        docp.splitTextToSize(r.text, maxW).forEach(line => {
-          if (y + 14 > pageH - my) { docp.addPage(); y = my; }
-          docp.text(line, mx, y);
-          y += 14;
-        });
-        y += 16;
-      });
-      const safe = (bench && bench.title ? bench.title : 'video')
-        .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      docp.save(`summaries-${safe || 'video'}.pdf`);
-    } catch (e) {
-      schemToast('Could not build the PDF.');
-    }
   }
 
   function renderPortfolioGallery(grid, items, opts = {}) {
@@ -13429,6 +13703,656 @@
   // ============== INIT ==============
   // Smooth in-page route switching via pushState; no full reload between
   // Tools / Homework / Progress / Home, so nav doesn't flicker.
+  // ============================================================
+  // ============== CAD TOOL ====================================
+  // Three modes (Wizard / AI Build / Code) sharing one engine:
+  // JSCAD modeling -> ASCII STL -> Three.js viewer. Engine is
+  // lazy-loaded from esm.sh on first /tools/cad visit so the rest
+  // of the hub stays fast. AI Build hits /api/cad-code, which is a
+  // sibling of /api/vibe-code tuned for assistive-tech parts.
+  // ============================================================
+
+  const _cad = {
+    engine: null,
+    scene: null, camera: null, renderer: null, controls: null,
+    mesh: null, grid: null, container: null, animHandle: null,
+    code: '',           // current JSCAD source running in the viewer
+    stl: '',            // most recent serialized STL
+    mode: 'wizard',     // 'wizard' | 'ai' | 'code'
+    chat: [],           // [{role:'user'|'assistant', content}]
+    wizActive: 'buttonEnclosure',
+    wizParams: {},
+    busy: false
+  };
+
+  async function cadLoadEngine() {
+    if (_cad.engine) return _cad.engine;
+    const setStatus = (msg) => {
+      const el = document.getElementById('cadStatus');
+      if (el) { el.textContent = msg; el.classList.remove('is-error','is-good'); }
+    };
+    setStatus('Loading 3D engine…');
+    try {
+      const [modeling, ioStl, three, orbitMod, stlLoaderMod] = await Promise.all([
+        import('https://esm.sh/@jscad/modeling@2.12.0'),
+        import('https://esm.sh/@jscad/io@2.5.0/stl-serializer'),
+        import('https://esm.sh/three@0.158.0'),
+        import('https://esm.sh/three@0.158.0/examples/jsm/controls/OrbitControls.js'),
+        import('https://esm.sh/three@0.158.0/examples/jsm/loaders/STLLoader.js')
+      ]);
+      // Some bundlers expose default vs namespace; normalize.
+      const modelingNs = modeling.default || modeling;
+      const stlNs = ioStl.default || ioStl;
+      const threeNs = three.default || three;
+      _cad.engine = {
+        modeling: modelingNs,
+        stlSerialize: stlNs.serialize,
+        THREE: threeNs,
+        OrbitControls: orbitMod.OrbitControls,
+        STLLoader: stlLoaderMod.STLLoader
+      };
+      setStatus('');
+      return _cad.engine;
+    } catch (err) {
+      const el = document.getElementById('cadStatus');
+      if (el) { el.textContent = 'Engine failed to load.'; el.classList.add('is-error'); }
+      throw err;
+    }
+  }
+
+  function cadBuildScene(container) {
+    const { THREE, OrbitControls } = _cad.engine;
+    while (container.firstChild) container.removeChild(container.firstChild);
+    const w = container.clientWidth || 800;
+    const h = container.clientHeight || 480;
+
+    const scene = new THREE.Scene();
+    scene.background = null;
+
+    const camera = new THREE.PerspectiveCamera(40, w / h, 0.5, 5000);
+    camera.position.set(120, -160, 110);
+    camera.up.set(0, 0, 1);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
+    renderer.setSize(w, h, false);
+    container.appendChild(renderer.domElement);
+
+    // Soft three-light setup: key, fill, rim.
+    const key = new THREE.DirectionalLight(0xffffff, 0.95);
+    key.position.set(80, -120, 180);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xffffff, 0.45);
+    fill.position.set(-100, 80, 40);
+    scene.add(fill);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+
+    // Build-plate grid (200x200mm). Helps kids judge scale.
+    const grid = new THREE.GridHelper(200, 20, 0xbcb8a8, 0xddd9c8);
+    grid.rotation.x = Math.PI / 2; // lie flat on XY (Z up)
+    scene.add(grid);
+    const axes = new THREE.AxesHelper(20);
+    scene.add(axes);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.target.set(0, 0, 20);
+    controls.update();
+
+    _cad.scene = scene;
+    _cad.camera = camera;
+    _cad.renderer = renderer;
+    _cad.controls = controls;
+    _cad.grid = grid;
+    _cad.container = container;
+
+    if (_cad.animHandle) cancelAnimationFrame(_cad.animHandle);
+    const tick = () => {
+      controls.update();
+      renderer.render(scene, camera);
+      _cad.animHandle = requestAnimationFrame(tick);
+    };
+    tick();
+
+    // Resize on container changes.
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => {
+        const w2 = container.clientWidth, h2 = container.clientHeight;
+        if (!w2 || !h2) return;
+        renderer.setSize(w2, h2, false);
+        camera.aspect = w2 / h2;
+        camera.updateProjectionMatrix();
+      });
+      ro.observe(container);
+    }
+  }
+
+  function cadFitCameraToObject(obj) {
+    const { THREE } = _cad.engine;
+    const box = new THREE.Box3().setFromObject(obj);
+    if (!isFinite(box.min.x)) return;
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+    const maxDim = Math.max(size.x, size.y, size.z, 20);
+    const dist = maxDim * 2.6;
+    _cad.controls.target.copy(center);
+    _cad.camera.position.set(center.x + dist * 0.65, center.y - dist * 0.85, center.z + dist * 0.55);
+    _cad.camera.near = Math.max(0.5, dist * 0.01);
+    _cad.camera.far = dist * 20;
+    _cad.camera.updateProjectionMatrix();
+    _cad.controls.update();
+  }
+
+  // Run JSCAD source against the loaded @jscad/modeling, swap the result mesh
+  // into the scene, and stash the serialized STL for download. Throws on user
+  // code errors so the caller can surface the message in the viewer overlay.
+  function cadRunCode(code) {
+    const { modeling, stlSerialize, THREE, STLLoader } = _cad.engine;
+    // A minimal CommonJS-style sandbox: module.exports / require('@jscad/modeling').
+    const sandboxRequire = (name) => {
+      if (name === '@jscad/modeling') return modeling;
+      if (name.startsWith('@jscad/modeling/')) {
+        const parts = name.split('/').slice(2);
+        return parts.reduce((acc, k) => (acc && acc[k] != null) ? acc[k] : undefined, modeling);
+      }
+      throw new Error('Cannot import "' + name + '" inside the CAD tool.');
+    };
+    const moduleObj = { exports: {} };
+    const exportsObj = moduleObj.exports;
+    // eslint-disable-next-line no-new-func
+    const fn = new Function('require', 'module', 'exports', 'Math', code);
+    fn(sandboxRequire, moduleObj, exportsObj, Math);
+    const m = moduleObj.exports || {};
+    const mainFn = (typeof m.main === 'function') ? m.main : (typeof m === 'function' ? m : null);
+    if (!mainFn) throw new Error('Your code must export a `main` function via module.exports.');
+    const geomOut = mainFn();
+    if (!geomOut) throw new Error('`main()` returned nothing. Build something and return it.');
+    const geoms = Array.isArray(geomOut) ? geomOut : [geomOut];
+    const stlChunks = stlSerialize({ binary: false }, ...geoms);
+    const stlText = Array.isArray(stlChunks) ? stlChunks.join('') : String(stlChunks);
+    _cad.code = code;
+    _cad.stl = stlText;
+
+    const loader = new STLLoader();
+    const geometry = loader.parse(stlText);
+    geometry.computeVertexNormals();
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x6366f1, metalness: 0.05, roughness: 0.55,
+      flatShading: false
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    if (_cad.mesh) {
+      _cad.scene.remove(_cad.mesh);
+      _cad.mesh.geometry.dispose();
+      _cad.mesh.material.dispose();
+    }
+    _cad.scene.add(mesh);
+    _cad.mesh = mesh;
+    cadFitCameraToObject(mesh);
+  }
+
+  function cadShowError(msg) {
+    const wrap = document.getElementById('cadViewerWrap');
+    if (!wrap) return;
+    let box = wrap.querySelector('.cad-viewer-error');
+    if (!box) {
+      box = document.createElement('div');
+      box.className = 'cad-viewer-error';
+      wrap.appendChild(box);
+    }
+    box.textContent = msg;
+  }
+  function cadClearError() {
+    const box = document.querySelector('.cad-viewer-error');
+    if (box) box.remove();
+  }
+  function cadSetStatus(msg, kind) {
+    const el = document.getElementById('cadStatus');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.classList.toggle('is-error', kind === 'error');
+    el.classList.toggle('is-good', kind === 'good');
+  }
+
+  async function cadRunFromCurrent(code) {
+    if (_cad.busy) return;
+    _cad.busy = true;
+    cadSetStatus('Rendering…');
+    cadClearError();
+    try {
+      await cadLoadEngine();
+      cadRunCode(code);
+      cadSetStatus('Rendered.', 'good');
+    } catch (err) {
+      const msg = (err && err.message) ? err.message : String(err);
+      cadSetStatus('Error', 'error');
+      cadShowError(msg);
+    }
+    _cad.busy = false;
+  }
+
+  function cadExportStl() {
+    if (!_cad.stl) { cadSetStatus('Run the part first.', 'error'); return; }
+    const blob = new Blob([_cad.stl], { type: 'application/sla' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    a.href = url;
+    a.download = `d4sg-cad-${stamp}.stl`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    cadSetStatus('STL downloaded.', 'good');
+  }
+
+  // ---------- Wizard templates ----------
+  // Each template returns the JSCAD source string for the configured params.
+  // Code is written so the student can switch to Code mode and tweak it.
+  const CAD_WIZ = {
+    buttonEnclosure: {
+      title: 'Button Enclosure',
+      blurb: 'Box with a panel-mount button on top and a cable hole in the back.',
+      params: [
+        { key: 'w', label: 'Width X (mm)',  type: 'number', value: 60, min: 25, max: 200, step: 1 },
+        { key: 'd', label: 'Depth Y (mm)',  type: 'number', value: 45, min: 25, max: 200, step: 1 },
+        { key: 'h', label: 'Height Z (mm)', type: 'number', value: 28, min: 15, max: 100, step: 1 },
+        { key: 'holeD', label: 'Button hole Ø (mm)', type: 'number', value: 16.2, min: 6, max: 30, step: 0.1 },
+        { key: 'cableD', label: 'Cable hole Ø (mm)', type: 'number', value: 8.5, min: 3, max: 14, step: 0.1 },
+        { key: 'wallT', label: 'Wall thickness (mm)', type: 'number', value: 2.0, min: 1.5, max: 5.0, step: 0.1 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, cylinder, roundedCuboid } = primitives
+const { translate, rotate } = transforms
+const { subtract } = booleans
+
+function main () {
+  // ===== Edit any number, then click Run =====
+  const w = ${p.w}        // X width, mm
+  const d = ${p.d}        // Y depth, mm
+  const h = ${p.h}        // Z height, mm
+  const wallT = ${p.wallT}   // wall thickness
+  const holeD = ${p.holeD}   // button hole diameter on top face
+  const cableD = ${p.cableD} // cable strain-relief hole on back face
+  // ============================================
+
+  // Outer shell, slightly rounded corners, bottom resting on Z=0.
+  const outer = roundedCuboid({ size: [w, d, h], roundRadius: 1.5, segments: 16, center: [0, 0, h/2] })
+  // Hollow it out (closed top, open bottom for assembly access).
+  const inner = cuboid({ size: [w - 2*wallT, d - 2*wallT, h - wallT], center: [0, 0, (h - wallT)/2] })
+  // Button hole through the closed top face.
+  const btnHole = cylinder({ radius: holeD/2, height: wallT + 2, segments: 48, center: [0, 0, h - wallT/2] })
+  // Cable strain relief on the back wall (positive Y).
+  const cableZ = cylinder({ radius: cableD/2, height: wallT + 4, segments: 32 })
+  const cableHole = translate([0, d/2, h/2], rotate([Math.PI/2, 0, 0], cableZ))
+
+  return subtract(outer, inner, btnHole, cableHole)
+}
+module.exports = { main }`
+    },
+
+    projectBox: {
+      title: 'Project Box',
+      blurb: 'Plain hollow box for the Arduino + perfboard. No cutouts.',
+      params: [
+        { key: 'w', label: 'Width X (mm)',  type: 'number', value: 80, min: 30, max: 200, step: 1 },
+        { key: 'd', label: 'Depth Y (mm)',  type: 'number', value: 55, min: 30, max: 200, step: 1 },
+        { key: 'h', label: 'Height Z (mm)', type: 'number', value: 30, min: 12, max: 80, step: 1 },
+        { key: 'wallT', label: 'Wall thickness (mm)', type: 'number', value: 2.0, min: 1.5, max: 5.0, step: 0.1 },
+        { key: 'round', label: 'Corner round (mm)', type: 'number', value: 2.0, min: 0, max: 6, step: 0.2 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, roundedCuboid } = primitives
+const { subtract } = booleans
+
+function main () {
+  const w = ${p.w}, d = ${p.d}, h = ${p.h}
+  const wallT = ${p.wallT}
+  const round = ${p.round}
+
+  const outer = roundedCuboid({ size: [w, d, h], roundRadius: Math.max(0.5, round), segments: 20, center: [0, 0, h/2] })
+  const inner = cuboid({ size: [w - 2*wallT, d - 2*wallT, h - wallT], center: [0, 0, (h - wallT)/2] })
+  return subtract(outer, inner)
+}
+module.exports = { main }`
+    },
+
+    sensorPlate: {
+      title: 'Sensor Mount Plate',
+      blurb: 'Flat plate with 4 bolt holes sized for a small breakout (VL53L0X, KY-023, etc.).',
+      params: [
+        { key: 'w', label: 'Plate width X (mm)', type: 'number', value: 40, min: 20, max: 120, step: 1 },
+        { key: 'd', label: 'Plate depth Y (mm)', type: 'number', value: 40, min: 20, max: 120, step: 1 },
+        { key: 't', label: 'Plate thickness (mm)', type: 'number', value: 3.0, min: 1.5, max: 8, step: 0.1 },
+        { key: 'spanX', label: 'Bolt spacing X (mm)', type: 'number', value: 24, min: 8, max: 100, step: 0.5 },
+        { key: 'spanY', label: 'Bolt spacing Y (mm)', type: 'number', value: 24, min: 8, max: 100, step: 0.5 },
+        { key: 'boltD', label: 'Bolt hole Ø (mm)', type: 'number', value: 2.7, min: 1.8, max: 6, step: 0.1 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { roundedCuboid, cylinder } = primitives
+const { translate } = transforms
+const { subtract } = booleans
+
+function main () {
+  const w = ${p.w}, d = ${p.d}, t = ${p.t}
+  const sx = ${p.spanX}, sy = ${p.spanY}
+  const boltD = ${p.boltD}
+
+  // Plate centered on origin, bottom on Z=0.
+  const plate = roundedCuboid({ size: [w, d, t], roundRadius: 1.2, segments: 16, center: [0, 0, t/2] })
+
+  // Four corner bolt holes through the plate.
+  const holeAt = (x, y) =>
+    translate([x, y, t/2], cylinder({ radius: boltD/2, height: t + 1, segments: 36 }))
+  const holes = [
+    holeAt( sx/2,  sy/2),
+    holeAt(-sx/2,  sy/2),
+    holeAt( sx/2, -sy/2),
+    holeAt(-sx/2, -sy/2)
+  ]
+  return subtract(plate, ...holes)
+}
+module.exports = { main }`
+    },
+
+    cableBracket: {
+      title: 'Cable Strain Bracket',
+      blurb: 'Snap-on bracket that anchors a cable to a flat surface via two screw holes.',
+      params: [
+        { key: 'L', label: 'Length (mm)', type: 'number', value: 30, min: 15, max: 80, step: 1 },
+        { key: 'W', label: 'Width (mm)',  type: 'number', value: 16, min: 8, max: 40, step: 1 },
+        { key: 'T', label: 'Thickness (mm)', type: 'number', value: 4, min: 2, max: 8, step: 0.2 },
+        { key: 'cableD', label: 'Cable Ø (mm)', type: 'number', value: 4.5, min: 2, max: 10, step: 0.1 },
+        { key: 'boltD', label: 'Screw hole Ø (mm)', type: 'number', value: 3.2, min: 2, max: 6, step: 0.1 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { roundedCuboid, cylinder } = primitives
+const { translate, rotate } = transforms
+const { subtract } = booleans
+
+function main () {
+  const L = ${p.L}, W = ${p.W}, T = ${p.T}
+  const cableD = ${p.cableD}
+  const boltD = ${p.boltD}
+
+  // Base bar, bottom on Z=0.
+  const base = roundedCuboid({ size: [L, W, T], roundRadius: 1.0, segments: 14, center: [0, 0, T/2] })
+
+  // Cable groove down the length (semi-circular channel along X).
+  const grooveZ = cylinder({ radius: cableD/2, height: L + 2, segments: 32 })
+  const grooveX = rotate([0, Math.PI/2, 0], grooveZ)
+  const groove = translate([0, 0, T - cableD/2 + 0.4], grooveX)
+
+  // Two screw holes near each end, sized for self-tap into a 3D-printed lid.
+  const screw = (x) => translate([x, 0, T/2], cylinder({ radius: boltD/2, height: T + 1, segments: 28 }))
+  const s1 = screw( L/2 - W*0.45)
+  const s2 = screw(-L/2 + W*0.45)
+
+  return subtract(base, groove, s1, s2)
+}
+module.exports = { main }`
+    }
+  };
+
+  function cadDefaultWizParams(key) {
+    const t = CAD_WIZ[key];
+    if (!t) return {};
+    const out = {};
+    t.params.forEach(p => { out[p.key] = p.value; });
+    return out;
+  }
+
+  function cadCurrentWizardCode() {
+    const t = CAD_WIZ[_cad.wizActive];
+    if (!t) return '';
+    return t.build(_cad.wizParams);
+  }
+
+  // ---------- Mode renderers (left panel) ----------
+  function renderCadWizardPanel(panel) {
+    const t = CAD_WIZ[_cad.wizActive];
+    const params = _cad.wizParams;
+    panel.innerHTML = `
+      <div class="cad-wiz-templates">
+        ${Object.entries(CAD_WIZ).map(([key, tpl]) => `
+          <button type="button" class="cad-wiz-template ${key === _cad.wizActive ? 'is-active' : ''}" data-wiz="${key}">
+            <span class="cad-wiz-template-title">${escapeHtml(tpl.title)}</span>
+            <span class="cad-wiz-template-blurb">${escapeHtml(tpl.blurb)}</span>
+          </button>`).join('')}
+      </div>
+      <div class="cad-wiz-form" id="cadWizForm">
+        ${t.params.map(p => `
+          <div class="cad-wiz-row">
+            <label for="cadWiz_${p.key}">${escapeHtml(p.label)}</label>
+            <input type="number" id="cadWiz_${p.key}" data-wiz-param="${p.key}"
+              value="${params[p.key]}" min="${p.min}" max="${p.max}" step="${p.step}" />
+          </div>`).join('')}
+      </div>
+    `;
+    panel.querySelectorAll('[data-wiz]').forEach(b => {
+      b.addEventListener('click', () => {
+        _cad.wizActive = b.dataset.wiz;
+        _cad.wizParams = cadDefaultWizParams(_cad.wizActive);
+        renderCadWizardPanel(panel);
+        cadRunFromCurrent(cadCurrentWizardCode());
+      });
+    });
+    panel.querySelectorAll('[data-wiz-param]').forEach(input => {
+      const key = input.dataset.wizParam;
+      const apply = () => {
+        const v = parseFloat(input.value);
+        if (Number.isFinite(v)) {
+          _cad.wizParams[key] = v;
+          cadRunFromCurrent(cadCurrentWizardCode());
+        }
+      };
+      input.addEventListener('change', apply);
+    });
+  }
+
+  function renderCadAiPanel(panel) {
+    panel.innerHTML = `
+      <div class="cad-ai-stems">
+        <button type="button" class="cad-ai-stem is-primary" data-cad-stem="build">✦ Build</button>
+        <button type="button" class="cad-ai-stem" data-cad-stem="adjust">✦ Adjust</button>
+      </div>
+      <div class="cad-ai-composer">
+        <textarea class="cad-ai-input" id="cadAiInput" rows="4" placeholder="Describe the part you need. e.g. 'A 70x50x25mm box with a 16mm round button hole on top and a 6mm cable slot on the back.'"></textarea>
+        <div class="cad-ai-composer-actions">
+          <button type="button" class="cad-btn cad-btn--primary" id="cadAiSend">Send to AI</button>
+        </div>
+      </div>
+      <div class="cad-ai-log" id="cadAiLog"></div>
+    `;
+    const input = panel.querySelector('#cadAiInput');
+    panel.querySelectorAll('[data-cad-stem]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const stem = btn.dataset.cadStem;
+        if (stem === 'build') {
+          input.value = "Build a JSCAD part for me: <DESCRIBE THE PART, dimensions, holes, mounting>. Include comments and use safe defaults for FDM printing.";
+        } else if (stem === 'adjust') {
+          input.value = "Adjust the part I'm currently looking at: <DESCRIBE WHAT TO CHANGE>. Keep everything else the same. Return the FULL updated JSCAD program.";
+        }
+        const ph = input.value.match(/<[^>]+>/);
+        input.focus();
+        if (ph) {
+          const i = input.value.indexOf(ph[0]);
+          input.setSelectionRange(i, i + ph[0].length);
+        }
+      });
+    });
+    panel.querySelector('#cadAiSend').addEventListener('click', () => cadAiSubmit(input.value));
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); cadAiSubmit(input.value); }
+    });
+    cadAiRenderLog();
+  }
+
+  function cadAiRenderLog() {
+    const log = document.getElementById('cadAiLog');
+    if (!log) return;
+    log.innerHTML = _cad.chat.map(m => `
+      <div class="cad-ai-msg ${m.role === 'user' ? 'is-user' : ''}">${escapeHtml(m.content)}</div>
+    `).join('');
+    log.scrollTop = log.scrollHeight;
+  }
+
+  async function cadAiSubmit(prompt) {
+    prompt = (prompt || '').trim();
+    if (!prompt) return;
+    // Replace any unfilled <FILL-IN> tokens with empty to avoid sending the scaffold verbatim.
+    if (/<[^>]+>/.test(prompt)) {
+      cadSetStatus('Replace the <…> placeholder first.', 'error');
+      return;
+    }
+    const inp = document.getElementById('cadAiInput');
+    if (inp) inp.value = '';
+    _cad.chat.push({ role: 'user', content: prompt });
+    _cad.chat.push({ role: 'assistant', content: 'Thinking…' });
+    cadAiRenderLog();
+    cadSetStatus('AI is drafting…');
+    try {
+      // We send the recent chat + the currently-loaded code so the model can
+      // edit-in-place when the student says "adjust".
+      const history = _cad.chat.slice(0, -1).filter(m => m.role === 'user' || m.role === 'assistant');
+      if (_cad.code) {
+        history.unshift({ role: 'user', content: 'For context, here is the JSCAD code currently rendered:\n```js\n' + _cad.code + '\n```' });
+      }
+      const resp = await fetch('/api/cad-code', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ prompt, history })
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error((data && data.error) || ('HTTP ' + resp.status));
+      const reply = (data.reply || '').trim();
+      const code = (data.code || '').trim();
+      _cad.chat[_cad.chat.length - 1] = { role: 'assistant', content: reply || 'No reply.' };
+      cadAiRenderLog();
+      if (code) {
+        cadRunFromCurrent(code);
+      } else {
+        cadSetStatus('No code in the reply.', 'error');
+      }
+    } catch (err) {
+      _cad.chat[_cad.chat.length - 1] = { role: 'assistant', content: 'Error: ' + (err.message || err) };
+      cadAiRenderLog();
+      cadSetStatus('AI request failed.', 'error');
+    }
+  }
+
+  function renderCadCodePanel(panel) {
+    panel.innerHTML = `
+      <textarea class="cad-code-editor" id="cadCodeEditor" spellcheck="false"></textarea>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="cad-btn cad-btn--primary" id="cadCodeRun">Run</button>
+        <button type="button" class="cad-btn" id="cadCodeReset">Reset to default</button>
+      </div>
+    `;
+    const editor = panel.querySelector('#cadCodeEditor');
+    // Seed with the last-run code (any mode), or a starter if none yet.
+    const starter = _cad.code || cadCurrentWizardCode();
+    editor.value = starter;
+    panel.querySelector('#cadCodeRun').addEventListener('click', () => cadRunFromCurrent(editor.value));
+    panel.querySelector('#cadCodeReset').addEventListener('click', () => {
+      editor.value = cadCurrentWizardCode();
+      cadRunFromCurrent(editor.value);
+    });
+  }
+
+  function cadSetMode(mode) {
+    _cad.mode = mode;
+    document.querySelectorAll('.cad-tab').forEach(t => t.classList.toggle('is-active', t.dataset.cadMode === mode));
+    const panel = document.getElementById('cadLeftBody');
+    const head = document.getElementById('cadLeftHead');
+    if (!panel || !head) return;
+    if (mode === 'wizard') {
+      head.textContent = 'Wizard — pick a template, tune the numbers';
+      renderCadWizardPanel(panel);
+      cadRunFromCurrent(cadCurrentWizardCode());
+    } else if (mode === 'ai') {
+      head.textContent = 'AI Build — describe what you need';
+      renderCadAiPanel(panel);
+    } else if (mode === 'code') {
+      head.textContent = 'Code — edit JSCAD directly';
+      renderCadCodePanel(panel);
+    }
+  }
+
+  function initCadTool() {
+    app.innerHTML = '';
+    const wrap = document.createElement('section');
+    wrap.className = 'project';
+    wrap.innerHTML = `
+      <h2 class="project-title">CAD Tool</h2>
+      <p class="project-blurb">Design 3D-printable parts for your adaptive controller — enclosures, brackets, mounts. Pick a template, talk to AI, or write parametric code. Live preview on the right, one-click STL export.</p>
+      <div class="cad-wrap">
+        <div class="cad-tabs" role="tablist">
+          <button type="button" class="cad-tab is-active" data-cad-mode="wizard" role="tab">Wizard</button>
+          <button type="button" class="cad-tab" data-cad-mode="ai" role="tab">AI Build</button>
+          <button type="button" class="cad-tab" data-cad-mode="code" role="tab">Code</button>
+        </div>
+        <div class="cad-grid">
+          <div class="cad-panel">
+            <div class="cad-panel-head" id="cadLeftHead">Wizard — pick a template, tune the numbers</div>
+            <div class="cad-panel-body" id="cadLeftBody"></div>
+          </div>
+          <div class="cad-panel">
+            <div class="cad-panel-head">Preview <span class="cad-status" id="cadStatus"></span></div>
+            <div class="cad-viewer-wrap" id="cadViewerWrap">
+              <div class="cad-viewer" id="cadViewer"></div>
+              <div class="cad-viewer-loading" id="cadViewerLoading">
+                <div class="spin"></div>
+                <span>Booting 3D engine…</span>
+              </div>
+            </div>
+            <div class="cad-viewer-toolbar">
+              <button type="button" class="cad-btn" id="cadBtnRun">Run</button>
+              <button type="button" class="cad-btn cad-btn--primary" id="cadBtnExport">Export STL</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    app.appendChild(wrap);
+
+    document.querySelectorAll('.cad-tab').forEach(b => {
+      b.addEventListener('click', () => cadSetMode(b.dataset.cadMode));
+    });
+    document.getElementById('cadBtnExport').addEventListener('click', cadExportStl);
+    document.getElementById('cadBtnRun').addEventListener('click', () => {
+      // Re-run whatever code is current. In Code mode, pull from the editor.
+      if (_cad.mode === 'code') {
+        const ed = document.getElementById('cadCodeEditor');
+        if (ed) return cadRunFromCurrent(ed.value);
+      } else if (_cad.mode === 'wizard') {
+        return cadRunFromCurrent(cadCurrentWizardCode());
+      } else {
+        // AI mode Run just re-renders the last code.
+        if (_cad.code) return cadRunFromCurrent(_cad.code);
+      }
+    });
+
+    // Boot: ensure default wizard params, build the scene, render the default
+    // template, then drop the loading overlay.
+    _cad.wizParams = cadDefaultWizParams(_cad.wizActive);
+    cadLoadEngine().then(() => {
+      cadBuildScene(document.getElementById('cadViewer'));
+      const loading = document.getElementById('cadViewerLoading');
+      if (loading) loading.remove();
+      cadSetMode(_cad.mode || 'wizard');
+    }).catch((err) => {
+      cadSetStatus('Engine failed: ' + (err.message || err), 'error');
+    });
+  }
+
   function applyRoute(path) {
     const r = (path || '').replace(/\/+$/, '');
     document.body.classList.remove('view-home', 'view-hw', 'view-progress', 'view-tools', 'view-tools-detail');
@@ -13447,6 +14371,9 @@
     } else if (r === '/tools/idea-board') {
       document.body.classList.add('view-tools');
       initIdeaBoardTool();
+    } else if (r === '/tools/cad') {
+      document.body.classList.add('view-tools');
+      initCadTool();
     } else if (r === '/tools') {
       document.body.classList.add('view-tools');
       renderTools();
