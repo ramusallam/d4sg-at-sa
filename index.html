@@ -5225,7 +5225,7 @@
     {
       id: 'p1',
       title: 'Project 1: Basic Adaptive Switches',
-      goal: 'Build the safe, working foundation for adaptive technology - switches anyone can press, lift, or trigger.',
+      goal: 'Lay the foundation of your adaptive controller - the first switches anyone can press, lift, or trigger, wired into the same Arduino and breadboard you will keep growing across Projects 2, 3, and 4.',
       benchmarks: [
         {
           id: 'p1b1',
@@ -5323,7 +5323,7 @@
     {
       id: 'p2',
       title: 'Project 2: No-Force Sensors',
-      goal: 'Build adaptive inputs for people with the smallest, lowest-force movements - sensors that answer a light touch or a nearby motion instead of a press.',
+      goal: 'Extend the controller you started in Project 1 to people with the smallest, lowest-force movements - sensors that answer a light touch or a nearby motion instead of a press. Same Arduino, same growing breadboard, new no-force inputs added alongside what you already built.',
       benchmarks: [
         {
           id: 'p2b1',
@@ -5422,7 +5422,7 @@
     {
       id: 'p3',
       title: 'Project 3: Hands-Free Controls',
-      goal: 'Build controllers for people with no use of their hands - inputs they steer with their mouth, chin, and breath, mounted where they can reach.',
+      goal: 'Extend your controller again, this time for people with no use of their hands - inputs they steer with their mouth, chin, and breath. Still the same Arduino, still the same growing breadboard, now ready to be integrated as one adaptive hub in Project 4.',
       benchmarks: [
         {
           id: 'p3b1',
@@ -5519,41 +5519,66 @@
     },
     {
       id: 'p4',
-      title: 'Project 4: Final Adaptive Controller Build',
-      goal: 'Ship the real thing. An adaptive controller built, soldered, enclosed, tested with a real user, and published.',
+      title: 'Project 4: Adaptive Controller Hub',
+      goal: 'Bring everything together. Take the switches, sensors, and code you grew across Projects 1, 2, and 3 and integrate them into one polished assistive technology hub - a soldered perfboard inside a 3D-printed enclosure, with 3.5mm jack ports for plug-in switches, built-in sensor access, and a companion web app the end-user can scan a QR code to test and remap every input.',
       benchmarks: [
         {
           id: 'p4b1',
-          title: 'Final Device System Plan',
+          title: 'Hub System Plan',
           points: 2,
-          instructions: 'Write the final system plan: target user, input combination, controller actions, enclosure dimensions, BOM. Get instructor sign-off before building.',
+          instructions: [
+            'Pick your end-user and your hub\'s purpose. Choose **one specific person** (a persona you worked with in Projects 1-3, or someone you actually know) and write 2-3 sentences describing what they should be able to do with this hub.',
+            'List every input the hub will carry. Pick from the switches and sensors you built across Projects 1, 2, and 3. Plug-in switches (button, lever, palm switch, sip-and-puff) will enter the hub through **3.5mm mono jacks** on a labeled panel - the same jacks adaptive switches plug into on commercial gear. Sensor modules (joystick, IR distance, capacitive touch) will live inside the hub and present their working surface through cutouts in the enclosure.',
+            'Sketch the **port layout** on the [Idea Board](tools#idea-board): which face of the hub holds the 3.5mm jacks, where the joystick stem sticks out, where sensors face the user, where the USB cable enters, and where the QR code label sits on the back or bottom.',
+            'Write a one-paragraph Bill of Materials: Arduino, perfboard, every 3.5mm jack, every connector, every sensor module, the screws, the 3D-print filament. **Get instructor sign-off** on the plan before you cut a single wire.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
         },
         {
           id: 'p4b2',
-          title: 'Final Perfboard/PCB Soldered Build',
+          title: 'Perfboard Transition',
           points: 2,
-          instructions: 'Build the final electronics on perfboard or custom PCB. All connections soldered, no breadboard, ready for daily use.',
+          instructions: [
+            'You are about to take the same circuit you grew across Projects 1, 2, and 3 and make it permanent. **Do not rewrite the code yet** - the perfboard runs the same sketch your breadboard ran. The only difference is that the connections are now soldered for daily use.',
+            'Open the [Wiring Schematic Tool](tools#schematic) and redraw your final wiring as a **perfboard layout** instead of a breadboard layout. Plan where each component sits on the board, where the wires bridge underneath, and where the 3.5mm jack pigtails and sensor cables exit toward the enclosure walls.',
+            'Solder it. Components first (Arduino headers, jack pins, LEDs, sensor pins), then bridge the wires on the back of the perfboard. Check every joint with the Arduino USB-powered and your code running.',
+            'Test the whole controller on USB - every input still does what it did on the breadboard. If something misbehaves, the bug is almost always a cold joint or a missed bridge. Reflow until it works.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your perfboard layout (front and back), PDF of your code, photo of the soldered board powered up.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
         },
         {
           id: 'p4b3',
-          title: 'CAD Enclosure and Physical Integration',
+          title: 'Hub Enclosure with Ports',
           points: 2,
-          instructions: 'Design and 3D-print (or laser-cut) an enclosure that holds the electronics, mounts the inputs, and looks finished. Cables route cleanly.',
+          instructions: [
+            'Open the [CAD Tool](tools#cad) and design the 3D-printed hub that holds your finished perfboard. The hub is the body of your assistive controller - it must protect the electronics, present the user-facing inputs cleanly, and route cables through labeled ports.',
+            'Required features: (a) internal posts or pockets that hold the Arduino and the perfboard rigidly, (b) a panel of **3.5mm jack ports** on one face for the plug-in switches, (c) cutouts on the top or front for built-in inputs (joystick stem, IR window, capacitive touch pad), (d) a **USB cutout** on the back for plugging the hub into a computer, and (e) a flat area on the back or bottom where the QR code label will live in the next benchmark.',
+            'Iterate. Print a first version with thin walls to dry-fit your perfboard and jacks - the first print is always slightly off. Adjust the CAD, reprint, and check again until the perfboard drops in cleanly and every cable routes without kinking.',
+            'Final print. Use 2mm walls minimum, label each 3.5mm jack on the printed panel (you can emboss text in CAD or apply a labeled vinyl strip), and dry-fit one last time before closing it up.',
+            'Complete **Evidence + Reflection** below. *Evidence* = STL file of the final hub, photo of the print mid-iteration, photo of the perfboard installed inside.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
         },
         {
           id: 'p4b4',
-          title: 'User Testing and Revision',
+          title: 'Remap & Test Web App',
           points: 2,
-          instructions: 'Test your controller with a real target user (or a teacher/peer simulating one). Document feedback. Make at least one revision based on what you learned.',
+          instructions: [
+            'A real adaptive controller has to be tunable by the user. Build a small companion web app that runs in a browser and lets your end-user **see what each input is doing and reassign it to any key or mouse action they want.**',
+            'The web app must let the user (1) see every input on the hub in real time - which switch or sensor is currently firing, (2) see what keyboard or mouse action that input is currently mapped to, (3) **remap any input** to a different keyboard key or mouse action, and (4) read clear, friendly instructions for how to use the hub.',
+            'Open the [Vibe Coding Tool](tools#vibe) and evolve your Arduino sketch so it reads remap commands from Serial (via Web Serial in the browser). The sketch starts with a default map and updates the map when the web app sends a new one. Test the round-trip on USB before you go further.',
+            'Build the web app itself. A single HTML file is enough - HTML, CSS, JavaScript, and the Web Serial API to talk to the hub. Style it clean and accessible: large hit targets, high contrast, plainspoken labels. Deploy it to **Vercel** or **Netlify** so it has a clean public URL.',
+            'Generate a **QR code** that points to your live URL (any free QR generator works). Print it onto a small label and stick it on the flat area you left on the back or bottom of the hub. The user scans the QR with their phone or laptop camera and lands on the remap site.',
+            'Test the full loop end-to-end: plug the hub in, open the web app from the QR code, fire each input, watch it light up on the page, remap one input, fire it again, and watch the new action happen on the computer.',
+            'Complete **Evidence + Reflection** below. *Evidence* = live URL of your web app, screenshot of the remap interface in action, photo of the QR code mounted on your hub.'
+          ],
           videoUrl: '',
           links: [],
           rubric: []
@@ -5562,17 +5587,17 @@
           id: 'p4b5',
           title: 'Portfolio',
           points: 50,
-          instructions: 'Submit your full portfolio for Project 4 by following the rubric below. This is the artifact you will publish to Instructables next.',
+          instructions: 'Submit your full portfolio for Project 4 by following the rubric below. This is the integrated hub you grew across all four projects - sketch, perfboard, enclosure, remap site, and a real testing session with your end-user.',
           videoUrl: '',
           links: [],
           rubric: [
-            { label: 'Sketch',  text: 'Sketch your prototype on the Idea Board before you build it.', points: 6 },
-            { label: 'CAD',     text: 'Upload STL file(s) integrated into final product.', points: 10 },
-            { label: 'Code',    text: 'Upload PDF of code used for final product.', points: 8 },
-            { label: 'Wiring',  text: 'Upload image of wiring diagram of final product.', points: 7 },
-            { label: 'Image',   text: 'Upload clear picture of your final product.', points: 4 },
-            { label: 'Video',   text: 'Upload short video of your final product in action.', points: 10 },
-            { label: 'Summary', text: '4-5 sentence reflection on prototyping final product.', points: 5 }
+            { label: 'Sketch',  text: 'Sketch your hub layout on the Idea Board: port placement, internal organization, where the QR label goes.', points: 6 },
+            { label: 'CAD',     text: 'Upload the STL file(s) of your finished hub enclosure.', points: 10 },
+            { label: 'Code',    text: 'Upload PDF of the final perfboard sketch (with the Serial remap logic).', points: 8 },
+            { label: 'Wiring',  text: 'Upload image of your perfboard wiring layout (front and back).', points: 7 },
+            { label: 'Image',   text: 'Upload a clear photo of your finished hub with everything plugged in.', points: 4 },
+            { label: 'Video',   text: 'Upload a short video of your end-user (or a peer simulating them) plugging in a switch, opening the remap site from the QR code, and remapping an input.', points: 10 },
+            { label: 'Summary', text: '4-5 sentence reflection on the full system - what you grew from Projects 1-3 into this hub, what user testing taught you, and a link to your live remap web app.', points: 5 }
           ]
         }
       ]
