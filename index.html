@@ -5751,7 +5751,7 @@
           title: 'Hub Enclosure with Ports',
           points: 2,
           instructions: [
-            'Open the [CAD Tool](tools#cad) and design the 3D-printed hub that holds your finished perfboard. The hub is the body of your assistive controller - it must protect the electronics, present the user-facing inputs cleanly, and route cables through labeled ports.',
+            'Open [Tinkercad](https://www.tinkercad.com) and design the 3D-printed hub that holds your finished perfboard. The hub is the body of your assistive controller - it must protect the electronics, present the user-facing inputs cleanly, and route cables through labeled ports.',
             'Required features: (a) internal posts or pockets that hold the Arduino and the perfboard rigidly, (b) a panel of **3.5mm jack ports** on one face for the plug-in switches, (c) cutouts on the top or front for built-in inputs (joystick stem, IR window, capacitive touch pad), (d) a **USB cutout** on the back for plugging the hub into a computer, and (e) a flat area on the back or bottom where the QR code label will live in the next benchmark.',
             'Iterate. Print a first version with thin walls to dry-fit your perfboard and jacks - the first print is always slightly off. Adjust the CAD, reprint, and check again until the perfboard drops in cleanly and every cable routes without kinking.',
             'Final print. Use 2mm walls minimum, label each 3.5mm jack on the printed panel (you can emboss text in CAD or apply a labeled vinyl strip), and dry-fit one last time before closing it up.',
@@ -6239,12 +6239,6 @@
           <p class="tool-card-blurb">Sketch your prototype before you build it. Doodle with a pen, drop in photos, label parts with callouts, then save the diagram straight to a benchmark or portfolio drop.</p>
           <div class="tool-card-footer">Open tool</div>
         </div>
-        <div class="tool-card" id="toolCardCad">
-          <p class="tool-card-eyebrow">Tool 04</p>
-          <h3 class="tool-card-title">CAD Tool</h3>
-          <p class="tool-card-blurb">Design 3D-printable enclosures, button mounts, and brackets without leaving the hub. Pick a template, describe your part to AI, or write parametric code. Live 3D preview and one-click STL export.</p>
-          <div class="tool-card-footer">Open tool</div>
-        </div>
       </div>
     `;
     app.appendChild(sec);
@@ -6259,10 +6253,6 @@
     sec.querySelector('#toolCardIdea').addEventListener('click', () => {
       history.pushState({}, '', '/tools/idea-board');
       applyRoute('/tools/idea-board');
-    });
-    sec.querySelector('#toolCardCad').addEventListener('click', () => {
-      history.pushState({}, '', '/tools/cad');
-      applyRoute('/tools/cad');
     });
   }
 
@@ -15821,9 +15811,6 @@ module.exports = { main }`
     } else if (r === '/tools/idea-board') {
       document.body.classList.add('view-tools');
       initIdeaBoardTool();
-    } else if (r === '/tools/cad') {
-      document.body.classList.add('view-tools');
-      initCadTool();
     } else if (r === '/tools') {
       document.body.classList.add('view-tools');
       renderTools();
