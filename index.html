@@ -16265,9 +16265,9 @@ module.exports = { main }`
     if (pdfBtn) pdfBtn.addEventListener('click', downloadSyllabusPdf);
   }
 
-  // Generate a clean letter-size PDF from the syllabus content. Loads jsPDF
-  // on demand (same lazy-loader the Vibe Coding tool uses for its sketch
-  // export) so the syllabus page stays fast for students who never download.
+  // Letter-format syllabus PDF. Lazy-loads jsPDF. Vertical rhythm is enforced
+  // by a tiny set of helpers (paragraph, section, kv) so spacing is even and
+  // predictable instead of accumulating per-element spaceBefore values.
   async function downloadSyllabusPdf() {
     try {
       await vibeLoadJsPdf();
@@ -16275,71 +16275,118 @@ module.exports = { main }`
       const docp = new jsPDF({ unit: 'pt', format: 'letter' });
       const pageW = docp.internal.pageSize.getWidth();
       const pageH = docp.internal.pageSize.getHeight();
-      const mx = 64, my = 64;
-      const maxW = pageW - mx * 2;
-      let y = my;
 
-      const addLine = (text, opts = {}) => {
-        const fontSize = opts.size || 11;
-        const lineH = opts.lineH || fontSize * 1.35;
-        const space = opts.spaceBefore || 0;
+      // Layout constants — one place to tune the whole document's rhythm.
+      const mx = 72, myTop = 72, myBot = 72;
+      const maxW = pageW - mx * 2;
+      const BODY_SIZE = 10.5;
+      const BODY_LH = 14.5;       // body line-height in pt
+      const PARA_GAP = 7;         // gap between paragraphs in the same section
+      const SECTION_GAP = 22;     // gap above each section title
+      const SECTION_TITLE_GAP = 8;// gap below each section title
+      const ACCENT = [99, 102, 241];
+      const INK_HI = [22, 22, 22];
+      const INK_MID = [80, 80, 80];
+
+      let y = myTop;
+
+      const ensureRoom = (h) => {
+        if (y + h > pageH - myBot) { docp.addPage(); y = myTop; }
+      };
+      const setBody = () => { docp.setFont('helvetica', 'normal'); docp.setFontSize(BODY_SIZE); docp.setTextColor(...INK_HI); };
+      const paragraph = (text, opts = {}) => {
+        const size = opts.size || BODY_SIZE;
+        const lh = opts.lh || BODY_LH;
+        const color = opts.color || INK_HI;
         docp.setFont('helvetica', opts.bold ? 'bold' : (opts.italic ? 'italic' : 'normal'));
-        docp.setFontSize(fontSize);
-        if (opts.color) docp.setTextColor(opts.color[0], opts.color[1], opts.color[2]);
-        else docp.setTextColor(34, 34, 34);
-        y += space;
-        const lines = docp.splitTextToSize(text, maxW - (opts.indent || 0));
+        docp.setFontSize(size);
+        docp.setTextColor(...color);
+        const lines = docp.splitTextToSize(text, maxW);
         lines.forEach(line => {
-          if (y + lineH > pageH - my) { docp.addPage(); y = my; }
-          docp.text(line, mx + (opts.indent || 0), y);
-          y += lineH;
+          ensureRoom(lh);
+          docp.text(line, mx, y);
+          y += lh;
         });
       };
-      const sectionTitle = (label) => addLine(label.toUpperCase(), { size: 9, bold: true, color: [99, 102, 241], spaceBefore: 18, lineH: 12 });
-      const sectionGap = (n) => { y += (n != null ? n : 4); };
+      const section = (label) => {
+        y += SECTION_GAP;
+        ensureRoom(12 + SECTION_TITLE_GAP);
+        docp.setFont('helvetica', 'bold');
+        docp.setFontSize(9);
+        docp.setTextColor(...ACCENT);
+        docp.text(label.toUpperCase(), mx, y, { charSpace: 1.4 });
+        y += SECTION_TITLE_GAP + 4;
+        setBody();
+      };
+      // Two-column label/value row for compact lists (Grading, Late work).
+      const kv = (label, value) => {
+        ensureRoom(BODY_LH);
+        docp.setFont('helvetica', 'normal');
+        docp.setFontSize(BODY_SIZE);
+        docp.setTextColor(...INK_HI);
+        docp.text(label, mx, y);
+        docp.setFont('helvetica', 'bold');
+        docp.setTextColor(...ACCENT);
+        const w = docp.getTextWidth(value);
+        docp.text(value, mx + maxW - w, y);
+        y += BODY_LH;
+      };
+      const ruler = () => {
+        y += 4;
+        ensureRoom(2);
+        docp.setDrawColor(220, 217, 207);
+        docp.setLineWidth(0.5);
+        docp.line(mx, y, mx + maxW, y);
+        y += 2;
+      };
 
-      // Title block — kept on the PDF so a printed page identifies the course.
-      addLine('Syllabus', { size: 9, bold: true, color: [120, 120, 120], lineH: 11 });
-      addLine('Design for Social Good @ Sonoma Academy', { size: 20, bold: true, lineH: 24, spaceBefore: 4 });
+      // === Page header ===
+      docp.setFont('helvetica', 'bold');
+      docp.setFontSize(28);
+      docp.setTextColor(...ACCENT);
+      docp.text('Syllabus', mx, y + 22);
+      y += 30;
+      docp.setFont('helvetica', 'normal');
+      docp.setFontSize(10.5);
+      docp.setTextColor(...INK_MID);
+      docp.text('Design for Social Good @ Sonoma Academy', mx, y);
+      y += 6;
+      ruler();
+      y += 12;
 
-      // Summary.
-      sectionGap(10);
-      addLine('Design for Social Good is a project-based class where students practice human-centered design thinking on a real need in the world. This semester the theme is assistive technology for computer access. Students build low-cost, open-source adaptive controllers, switches, and sensors that let an end-user operate a computer using whatever motion they can reliably make, at a fraction of the cost of commercial gear. The social good at the center is straightforward: assistive technology lets individuals with disabilities participate in society on the same terms as everyone else.', { size: 11 });
+      // === Summary ===
+      paragraph('Design for Social Good is a project-based class where students practice human-centered design thinking on a real need in the world. This semester the theme is assistive technology for computer access. Students build low-cost, open-source adaptive controllers, switches, and sensors that let an end-user operate a computer using whatever motion they can reliably make, at a fraction of the cost of commercial gear. The social good at the center is straightforward: assistive technology lets individuals with disabilities participate in society on the same terms as everyone else.');
 
-      sectionTitle('Projects');
-      [
-        'Meet the Mission',
-        'Basic Adaptive Switches',
-        'No-Force Sensors',
-        'Hands-Free Controls',
-        'Adaptive Controller Hub'
-      ].forEach((t, i) => addLine(`${i + 1}.  ${t}`, { size: 11, indent: 0, spaceBefore: i === 0 ? 0 : 3 }));
+      section('Projects');
+      ['Meet the Mission', 'Basic Adaptive Switches', 'No-Force Sensors', 'Hands-Free Controls', 'Adaptive Controller Hub']
+        .forEach((t, i) => paragraph(`${i + 1}.  ${t}`));
 
-      sectionTitle('Grading');
-      addLine('Projects:  approximately 50%', { size: 11, spaceBefore: 0 });
-      addLine('Homework:  approximately 25%', { size: 11, spaceBefore: 2 });
-      addLine('Final Project (Instructable):  approximately 25%', { size: 11, spaceBefore: 2 });
+      section('Grading');
+      kv('Projects', 'approximately 50%');
+      kv('Homework', 'approximately 25%');
+      kv('Final Project (Instructable)', 'approximately 25%');
 
-      sectionTitle('Late work');
-      addLine('Projects:  deadlines case by case', { size: 11 });
-      addLine('Revisions:  up to 50% credit back', { size: 11, spaceBefore: 4 });
-      addLine('Homework:  10% off, Friday 4:00 PM cutoff', { size: 11, spaceBefore: 4 });
+      section('Late work');
+      kv('Projects', 'deadlines case by case');
+      kv('Revisions', 'up to 50% credit back');
+      kv('Homework', '10% off, Friday 4:00 PM cutoff');
 
-      sectionTitle('AI use');
-      addLine('You may use AI engines (ChatGPT, Google Gemini, etc.) for tips, further explanations, and feedback, but not to produce or complete work you present as your own. Always check AI output for accuracy. For assessments and graded work, AI is only permitted when explicitly stated.', { size: 11 });
-      addLine('Given the nature of this course, AI is intentionally leveraged in a Vibe Coding capacity to supplement and bring to life student design prototypes and concepts. That use is built into the projects and is encouraged.', { size: 11, spaceBefore: 8 });
+      section('AI use');
+      paragraph('You may use AI engines (ChatGPT, Google Gemini, etc.) for tips, further explanations, and feedback, but not to produce or complete work you present as your own. Always check AI output for accuracy. For assessments and graded work, AI is only permitted when explicitly stated.');
+      y += PARA_GAP;
+      paragraph('Given the nature of this course, AI is intentionally leveraged in a Vibe Coding capacity to supplement and bring to life student design prototypes and concepts. That use is built into the projects and is encouraged.');
 
-      sectionTitle('Materials');
-      addLine('A laptop with reliable internet and enough capacity to run the Arduino IDE. All prototyping materials (Arduino, switches, sensors, perfboard, solder, 3D-print filament, consumables) are provided in class.', { size: 11 });
+      section('Materials');
+      paragraph('A laptop with reliable internet and enough capacity to run the Arduino IDE. All prototyping materials (Arduino, switches, sensors, perfboard, solder, 3D-print filament, consumables) are provided in class.');
 
-      sectionTitle('Instructor');
-      addLine('Ramsey Musallam, EdD', { size: 11, bold: true });
-      addLine('ramsey.musallam@sonomaacademy.org', { size: 11, spaceBefore: 2 });
-      addLine('Office hours: every Coyote Block, Room B220.', { size: 11, spaceBefore: 2 });
+      section('Instructor');
+      paragraph('Ramsey Musallam, EdD', { bold: true });
+      paragraph('ramsey.musallam@sonomaacademy.org', { color: ACCENT });
+      paragraph('Office hours: every Coyote Block, Room B220.');
 
-      sectionTitle('Handbook');
-      addLine('Attendance, phone use, and full academic integrity guidelines follow the Sonoma Academy Student Handbook.', { size: 11 });
-      addLine('drive.google.com/file/d/1-_pbED22jMGVKLCVQPnmL5oVD8YXQGCP/view', { size: 10, color: [99, 102, 241], spaceBefore: 4 });
+      section('Handbook');
+      paragraph('Attendance, phone use, and full academic integrity guidelines follow the Sonoma Academy Student Handbook.');
+      paragraph('drive.google.com/file/d/1-_pbED22jMGVKLCVQPnmL5oVD8YXQGCP/view', { color: ACCENT, size: 9.5 });
 
       docp.save('d4sg-at-sa-syllabus.pdf');
     } catch (err) {
