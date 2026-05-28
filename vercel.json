@@ -4,6 +4,8 @@
     { "source": "/hw/", "destination": "/index.html" },
     { "source": "/progress", "destination": "/index.html" },
     { "source": "/progress/", "destination": "/index.html" },
+    { "source": "/syllabus", "destination": "/index.html" },
+    { "source": "/syllabus/", "destination": "/index.html" },
     { "source": "/tools", "destination": "/index.html" },
     { "source": "/tools/", "destination": "/index.html" },
     { "source": "/tools/vibe", "destination": "/index.html" },
