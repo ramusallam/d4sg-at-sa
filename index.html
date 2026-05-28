@@ -1071,17 +1071,27 @@
   body.view-syllabus .nav-syllabus:hover { background: transparent !important; border-color: transparent var(--border) transparent transparent !important; }
 
   /* ============== SYLLABUS page ============== */
+  /* One column, no card boxes, generous whitespace. Reads like a printed
+     handout: title, a lede paragraph, then quietly-titled sections separated
+     by hairline rules. Body type is 15.5px with a tall line-height so the
+     page breathes. */
   .syllabus {
-    max-width: 880px;
-    margin: 8px auto 56px;
+    max-width: 680px;
+    margin: 12px auto 64px;
+    padding: 0 4px;
   }
   .syllabus-head {
-    margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .syllabus-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
   }
   .syllabus-eyebrow {
-    margin: 0 0 6px;
+    margin: 0 0 4px;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.6px;
@@ -1089,72 +1099,108 @@
     color: var(--ink-low);
   }
   .syllabus-title {
-    margin: 0 0 12px;
-    font-size: clamp(26px, 3vw, 36px);
+    margin: 0 0 16px;
+    font-size: clamp(26px, 3vw, 34px);
     font-weight: 800;
     letter-spacing: -0.02em;
     color: var(--ink-hi);
     line-height: 1.1;
   }
   .syllabus-title-at { color: var(--accent); font-style: italic; padding: 0 1px; }
-  .syllabus-lede {
-    margin: 0;
-    font-size: 16px;
-    line-height: 1.55;
-    color: var(--ink-mid);
-    max-width: 64ch;
-  }
-  .syllabus-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-  }
-  .syllabus-card {
+  .syllabus-pdf-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: white;
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px 22px;
-    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
-  }
-  .syllabus-card-title {
-    margin: 0 0 10px;
-    font-size: 14px;
-    font-weight: 700;
+    color: var(--ink-mid);
+    padding: 7px 13px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
     letter-spacing: 0.4px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    align-self: flex-start;
+  }
+  .syllabus-pdf-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .syllabus-pdf-btn svg { width: 13px; height: 13px; }
+
+  .syllabus-section {
+    padding: 26px 0 4px;
+    border-top: 1px solid var(--border);
+  }
+  .syllabus-section:first-of-type {
+    border-top: none;
+    padding-top: 8px;
+  }
+  .syllabus-section-title {
+    margin: 0 0 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
     text-transform: uppercase;
     color: var(--accent);
   }
-  .syllabus-card p {
+  .syllabus-section p {
     margin: 0;
-    font-size: 14px;
-    line-height: 1.6;
+    font-size: 15.5px;
+    line-height: 1.65;
     color: var(--paper-ink);
   }
-  .syllabus-card p + p { margin-top: 10px; }
-  .syllabus-card p + ul,
-  .syllabus-card ul + p { margin-top: 8px; }
-  .syllabus-card a {
+  .syllabus-section p + p { margin-top: 12px; }
+  .syllabus-section strong { color: var(--ink-hi); }
+  .syllabus-section em { color: var(--ink-low); font-style: italic; }
+  .syllabus-section a {
     color: var(--accent);
     text-decoration: none;
     border-bottom: 1px solid rgba(99, 102, 241, 0.30);
     transition: border-color 0.15s ease;
   }
-  .syllabus-card a:hover { border-bottom-color: var(--accent); }
-  .syllabus-card em {
-    color: var(--ink-low);
-    font-style: italic;
-  }
+  .syllabus-section a:hover { border-bottom-color: var(--accent); }
+
   .syllabus-list {
     margin: 0;
     padding-left: 18px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    font-size: 14px;
-    line-height: 1.55;
+    gap: 8px;
+    font-size: 15.5px;
+    line-height: 1.6;
     color: var(--paper-ink);
   }
   .syllabus-list strong { color: var(--ink-hi); }
+  .syllabus-list--numbered li::marker { color: var(--accent); font-weight: 700; }
+
+  /* Grading: lightweight definition list, two columns. */
+  .syllabus-dl {
+    margin: 0;
+    display: grid;
+    gap: 8px 0;
+  }
+  .syllabus-dl > div {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: baseline;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .syllabus-dl > div:last-child { border-bottom: none; }
+  .syllabus-dl dt {
+    margin: 0;
+    font-size: 15.5px;
+    color: var(--ink-hi);
+    font-weight: 600;
+  }
+  .syllabus-dl dd {
+    margin: 0;
+    font-size: 15.5px;
+    color: var(--accent);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
 
   /* ============== PROGRESS page ============== */
   /* Per-student cards stacked vertically. Each card mirrors the project
@@ -16144,78 +16190,161 @@ module.exports = { main }`
     sec.className = 'syllabus';
     sec.innerHTML = `
       <header class="syllabus-head">
-        <p class="syllabus-eyebrow">Course</p>
+        <div class="syllabus-head-row">
+          <p class="syllabus-eyebrow">Syllabus</p>
+          <button type="button" class="syllabus-pdf-btn" id="syllabusPdfBtn" title="Download a PDF of the syllabus">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v12"/>
+              <path d="M7 10l5 5 5-5"/>
+              <path d="M5 21h14"/>
+            </svg>
+            <span>Download PDF</span>
+          </button>
+        </div>
         <h2 class="syllabus-title">Design for Social Good <span class="syllabus-title-at">@</span> Sonoma Academy</h2>
-        <p class="syllabus-lede">A four-project arc where students design and build assistive technology for one specific person, moving from switches to sensors to code, and ending with a polished adaptive controller hub.</p>
       </header>
 
-      <div class="syllabus-grid">
-        <article class="syllabus-card">
-          <h3 class="syllabus-card-title">Course summary</h3>
-          <p>Computer access opens up the world for individuals with various physical disabilities. Design for Social Good is a project-based class where students research best practices in assistive technology from across the field and use that research to build low-cost, open-source DIY devices that put computer access within reach for individuals with limited mobility.</p>
-          <p>This semester the class focuses on assistive technology for computer access. Students design and build adaptive controllers, switches, and sensors that let an end-user operate a computer using whatever motion they can reliably make, at a fraction of the cost of commercial gear.</p>
-        </article>
+      <section class="syllabus-section">
+        <p>Computer access opens up the world for individuals with various physical disabilities. Design for Social Good is a project-based class where students research best practices in assistive technology and use that research to build low-cost, open-source DIY devices that put computer access within reach for individuals with limited mobility.</p>
+        <p>This semester the class focuses on assistive technology for computer access. Students design and build adaptive controllers, switches, and sensors that let an end-user operate a computer using whatever motion they can reliably make, at a fraction of the cost of commercial gear.</p>
+      </section>
 
-        <article class="syllabus-card">
-          <h3 class="syllabus-card-title">Schedule</h3>
-          <p><em>Placeholder.</em> Replace this with the term calendar: meeting times, project milestones, due dates, and breaks.</p>
-        </article>
+      <section class="syllabus-section">
+        <h3 class="syllabus-section-title">Projects</h3>
+        <ol class="syllabus-list syllabus-list--numbered">
+          <li><strong>Meet the Mission.</strong> Grounding videos and reflections that anchor the work in real users.</li>
+          <li><strong>Basic Adaptive Switches.</strong> Button, lever, LED feedback, and a synthesis product for one persona.</li>
+          <li><strong>No-Force Sensors.</strong> Touch and distance sensing added to the same controller.</li>
+          <li><strong>Hands-Free Controls.</strong> Joystick and air-driven inputs for users with no use of their hands.</li>
+          <li><strong>Adaptive Controller Hub.</strong> Perfboard, 3D-printed hub with 3.5mm jacks and JST-XH ports, and a remap web app.</li>
+        </ol>
+      </section>
 
-        <article class="syllabus-card">
-          <h3 class="syllabus-card-title">Project sequence</h3>
-          <ol class="syllabus-list">
-            <li><strong>Project 0 — Meet the Mission.</strong> Grounding videos and reflections that anchor the work in real users.</li>
-            <li><strong>Project 1 — Basic Adaptive Switches.</strong> Button, lever, LED feedback, and a synthesis product for a single persona.</li>
-            <li><strong>Project 2 — No-Force Sensors.</strong> Capacitive touch + IR distance sensing extended onto the same controller.</li>
-            <li><strong>Project 3 — Hands-Free Controls.</strong> Joystick and sip-and-puff inputs for users with no use of their hands.</li>
-            <li><strong>Project 4 — Adaptive Controller Hub.</strong> Perfboard transition, 3D-printed hub with 3.5mm jacks and JST-XH connectors, and a companion remap web app.</li>
-          </ol>
-        </article>
+      <section class="syllabus-section">
+        <h3 class="syllabus-section-title">Grading</h3>
+        <dl class="syllabus-dl">
+          <div><dt>Projects</dt><dd>~ 50%</dd></div>
+          <div><dt>Homework</dt><dd>~ 25%</dd></div>
+          <div><dt>Final Project</dt><dd>~ 25%</dd></div>
+        </dl>
+      </section>
 
-        <article class="syllabus-card">
-          <h3 class="syllabus-card-title">Grading</h3>
-          <p>Grades are weighted roughly as follows:</p>
-          <ul class="syllabus-list">
-            <li><strong>Projects (1, 2, 3, 4)</strong> · approximately 50%</li>
-            <li><strong>Homework</strong> · approximately 25%</li>
-            <li><strong>Final Project (Instructable)</strong> · approximately 25%</li>
-          </ul>
-          <p>Per-benchmark and portfolio points for every project live inside the app on the Progress page.</p>
-        </article>
+      <section class="syllabus-section">
+        <h3 class="syllabus-section-title">Late work</h3>
+        <p><strong>Projects.</strong> Due to the iterative, prototyping nature of the course, deadlines are determined case by case.</p>
+        <p><strong>Revisions.</strong> Points deducted according to the rubric may be revised for up to 50% credit back.</p>
+        <p><strong>Homework.</strong> 10% deduction for late homework. Cutoff is Friday at 4:00 PM.</p>
+      </section>
 
-        <article class="syllabus-card">
-          <h3 class="syllabus-card-title">Late Policy</h3>
-          <ul class="syllabus-list">
-            <li><strong>Projects:</strong> due to the iterative, prototyping nature of the course, deadlines are determined case by case.</li>
-            <li><strong>Project revisions:</strong> points deducted according to the rubric may be revised for up to 50% credit back.</li>
-            <li><strong>Homework:</strong> a 10% point deduction for late homework (Friday 4:00 PM).</li>
-          </ul>
-        </article>
+      <section class="syllabus-section">
+        <h3 class="syllabus-section-title">AI use</h3>
+        <p>You may use AI engines (ChatGPT, Google Gemini, etc.) for tips, further explanations, and feedback, but not to produce or complete work you present as your own. Always check AI output for accuracy. For assessments and graded work, AI is only permitted when explicitly stated.</p>
+        <p>Given the nature of this course, AI is intentionally leveraged in a <strong>Vibe Coding</strong> capacity to supplement and bring to life student design prototypes and concepts. That use is built into the projects and is encouraged.</p>
+      </section>
 
-        <article class="syllabus-card">
-          <h3 class="syllabus-card-title">Required Materials</h3>
-          <ul class="syllabus-list">
-            <li>A laptop with reliable internet access.</li>
-            <li>Sufficient storage and processing capacity to run the Arduino IDE software.</li>
-            <li>All prototyping materials (Arduino, switches, sensors, perfboard, solder, 3D-print filament, and consumables) are provided in class.</li>
-          </ul>
-        </article>
+      <section class="syllabus-section">
+        <h3 class="syllabus-section-title">Materials</h3>
+        <p>A laptop with reliable internet and enough capacity to run the Arduino IDE. All prototyping materials (Arduino, switches, sensors, perfboard, solder, 3D-print filament, consumables) are provided in class.</p>
+      </section>
 
-        <article class="syllabus-card">
-          <h3 class="syllabus-card-title">Instructor</h3>
-          <p><strong>Ramsey Musallam, EdD</strong><br />
-          <a href="mailto:ramsey.musallam@sonomaacademy.org">ramsey.musallam@sonomaacademy.org</a></p>
-          <p><strong>Office hours:</strong> every Coyote Block, Room B220.</p>
-        </article>
+      <section class="syllabus-section">
+        <h3 class="syllabus-section-title">Instructor</h3>
+        <p><strong>Ramsey Musallam, EdD</strong><br />
+        <a href="mailto:ramsey.musallam@sonomaacademy.org">ramsey.musallam@sonomaacademy.org</a><br />
+        Office hours: every Coyote Block, Room B220.</p>
+      </section>
 
-        <article class="syllabus-card">
-          <h3 class="syllabus-card-title">Policies</h3>
-          <p>Student conduct, academic integrity, and attendance follow the Sonoma Academy <strong>Student Handbook</strong>.</p>
-          <p><a href="https://drive.google.com/file/d/1-_pbED22jMGVKLCVQPnmL5oVD8YXQGCP/view" target="_blank" rel="noopener">Student Handbook &amp; Attendance Policy ↗</a></p>
-        </article>
-      </div>
+      <section class="syllabus-section">
+        <h3 class="syllabus-section-title">Handbook</h3>
+        <p>Attendance, phone use, and full academic integrity guidelines follow the Sonoma Academy <a href="https://drive.google.com/file/d/1-_pbED22jMGVKLCVQPnmL5oVD8YXQGCP/view" target="_blank" rel="noopener">Student Handbook ↗</a>.</p>
+      </section>
     `;
     app.appendChild(sec);
+    const pdfBtn = document.getElementById('syllabusPdfBtn');
+    if (pdfBtn) pdfBtn.addEventListener('click', downloadSyllabusPdf);
+  }
+
+  // Generate a clean letter-size PDF from the syllabus content. Loads jsPDF
+  // on demand (same lazy-loader the Vibe Coding tool uses for its sketch
+  // export) so the syllabus page stays fast for students who never download.
+  async function downloadSyllabusPdf() {
+    try {
+      await vibeLoadJsPdf();
+      const { jsPDF } = window.jspdf;
+      const docp = new jsPDF({ unit: 'pt', format: 'letter' });
+      const pageW = docp.internal.pageSize.getWidth();
+      const pageH = docp.internal.pageSize.getHeight();
+      const mx = 64, my = 64;
+      const maxW = pageW - mx * 2;
+      let y = my;
+
+      const addLine = (text, opts = {}) => {
+        const fontSize = opts.size || 11;
+        const lineH = opts.lineH || fontSize * 1.35;
+        const space = opts.spaceBefore || 0;
+        docp.setFont('helvetica', opts.bold ? 'bold' : (opts.italic ? 'italic' : 'normal'));
+        docp.setFontSize(fontSize);
+        if (opts.color) docp.setTextColor(opts.color[0], opts.color[1], opts.color[2]);
+        else docp.setTextColor(34, 34, 34);
+        y += space;
+        const lines = docp.splitTextToSize(text, maxW - (opts.indent || 0));
+        lines.forEach(line => {
+          if (y + lineH > pageH - my) { docp.addPage(); y = my; }
+          docp.text(line, mx + (opts.indent || 0), y);
+          y += lineH;
+        });
+      };
+      const sectionTitle = (label) => addLine(label.toUpperCase(), { size: 9, bold: true, color: [99, 102, 241], spaceBefore: 18, lineH: 12 });
+      const sectionGap = (n) => { y += (n != null ? n : 4); };
+
+      // Title block.
+      addLine('Syllabus', { size: 9, bold: true, color: [120, 120, 120], lineH: 11 });
+      addLine('Design for Social Good @ Sonoma Academy', { size: 20, bold: true, lineH: 24, spaceBefore: 4 });
+
+      // Summary.
+      sectionGap(10);
+      addLine('Computer access opens up the world for individuals with various physical disabilities. Design for Social Good is a project-based class where students research best practices in assistive technology and use that research to build low-cost, open-source DIY devices that put computer access within reach for individuals with limited mobility.', { size: 11 });
+      addLine('This semester the class focuses on assistive technology for computer access. Students design and build adaptive controllers, switches, and sensors that let an end-user operate a computer using whatever motion they can reliably make, at a fraction of the cost of commercial gear.', { size: 11, spaceBefore: 8 });
+
+      sectionTitle('Projects');
+      [
+        'Meet the Mission. Grounding videos and reflections that anchor the work in real users.',
+        'Basic Adaptive Switches. Button, lever, LED feedback, and a synthesis product for one persona.',
+        'No-Force Sensors. Touch and distance sensing added to the same controller.',
+        'Hands-Free Controls. Joystick and air-driven inputs for users with no use of their hands.',
+        'Adaptive Controller Hub. Perfboard, 3D-printed hub with 3.5mm jacks and JST-XH ports, and a remap web app.'
+      ].forEach((t, i) => addLine(`${i + 1}.  ${t}`, { size: 11, indent: 0, spaceBefore: i === 0 ? 0 : 4 }));
+
+      sectionTitle('Grading');
+      addLine('Projects:  approximately 50%', { size: 11, spaceBefore: 0 });
+      addLine('Homework:  approximately 25%', { size: 11, spaceBefore: 2 });
+      addLine('Final Project (Instructable):  approximately 25%', { size: 11, spaceBefore: 2 });
+
+      sectionTitle('Late work');
+      addLine('Projects. Due to the iterative, prototyping nature of the course, deadlines are determined case by case.', { size: 11 });
+      addLine('Revisions. Points deducted according to the rubric may be revised for up to 50% credit back.', { size: 11, spaceBefore: 6 });
+      addLine('Homework. 10% deduction for late homework. Cutoff is Friday at 4:00 PM.', { size: 11, spaceBefore: 6 });
+
+      sectionTitle('AI use');
+      addLine('You may use AI engines (ChatGPT, Google Gemini, etc.) for tips, further explanations, and feedback, but not to produce or complete work you present as your own. Always check AI output for accuracy. For assessments and graded work, AI is only permitted when explicitly stated.', { size: 11 });
+      addLine('Given the nature of this course, AI is intentionally leveraged in a Vibe Coding capacity to supplement and bring to life student design prototypes and concepts. That use is built into the projects and is encouraged.', { size: 11, spaceBefore: 8 });
+
+      sectionTitle('Materials');
+      addLine('A laptop with reliable internet and enough capacity to run the Arduino IDE. All prototyping materials (Arduino, switches, sensors, perfboard, solder, 3D-print filament, consumables) are provided in class.', { size: 11 });
+
+      sectionTitle('Instructor');
+      addLine('Ramsey Musallam, EdD', { size: 11, bold: true });
+      addLine('ramsey.musallam@sonomaacademy.org', { size: 11, spaceBefore: 2 });
+      addLine('Office hours: every Coyote Block, Room B220.', { size: 11, spaceBefore: 2 });
+
+      sectionTitle('Handbook');
+      addLine('Attendance, phone use, and full academic integrity guidelines follow the Sonoma Academy Student Handbook.', { size: 11 });
+      addLine('drive.google.com/file/d/1-_pbED22jMGVKLCVQPnmL5oVD8YXQGCP/view', { size: 10, color: [99, 102, 241], spaceBefore: 4 });
+
+      docp.save('d4sg-at-sa-syllabus.pdf');
+    } catch (err) {
+      alert('Could not build the PDF: ' + (err && err.message || err));
+    }
   }
 
   function applyRoute(path) {
