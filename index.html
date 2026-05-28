@@ -5721,7 +5721,7 @@
       benchmarks: [
         {
           id: 'p2b1',
-          title: 'Capacitive Touch',
+          title: 'Touch',
           points: 2,
           instructions: [
             'Open the [Vibe Coding Tool](tools#vibe), click **Build for me**, and describe this behavior in the input: *"Activate the W key each time I lightly touch a capacitive touch sensor. No force or pressing should be needed."*',
@@ -5736,7 +5736,7 @@
         },
         {
           id: 'p2b2',
-          title: 'Distance Sensor',
+          title: 'Distance',
           points: 2,
           instructions: [
             '**Keep your Capacitive Touch wiring intact.** You will keep building on the same breadboard - add the IR distance sensor alongside your existing touch sensor. Do not unplug or remove anything from the previous benchmark.',
@@ -5835,7 +5835,7 @@
         },
         {
           id: 'p3b2',
-          title: 'Sip-and-Puff',
+          title: 'Air',
           points: 2,
           instructions: [
             '**Keep your Joystick wiring intact.** You will keep building on the same breadboard - add the sip-and-puff switch alongside your existing joystick. Do not unplug or remove anything from the previous benchmark.',
@@ -5914,18 +5914,19 @@
     {
       id: 'p4',
       title: 'Project 4: Adaptive Controller Hub',
-      goal: 'Build a universal adaptive controller hub. The hub itself is just an Arduino in a 3D-printed box with two banks of external connectors on its faces: a row of **3.5mm jacks** for simple plug-in switches (button, lever, palm switch, sip-and-puff) and a row of **JST-XH connectors** for sensor modules (joystick, IR distance, capacitive touch). Every input plugs in from outside — nothing is built in. A companion web app, opened from a QR code on the hub, lets the end-user test and remap every port.',
+      goal: 'Build a universal adaptive controller hub — the assistive-tech version of the **Xbox Adaptive Controller**. The hub is a 3D-printed junction box that holds an Arduino and a soldered perfboard, with two banks of external connectors on its faces: a row of **3.5mm jacks** for simple plug-in switches and a row of **JST-XH connectors** for sensor modules. Inside the box, short adaptor cables and pigtails *bridge* the Arduino\'s pins out to those panel connectors so anything can plug in cleanly from outside. A companion web app, opened from a QR code on the hub, lets the end-user test and remap every port. Built-in inputs on the lid are optional, XBAC-style.',
       benchmarks: [
         {
           id: 'p4b1',
-          title: 'Hub System Plan',
+          title: 'Plan',
           points: 2,
           instructions: [
             'Pick your end-user and your hub\'s purpose. Choose **one specific person** (a persona you worked with in Projects 1-3, or someone you actually know) and write 2-3 sentences describing what they should be able to do with this hub.',
-            'The hub is **universal**: nothing is built in. Everything plugs in from outside through two banks of connectors on the enclosure. (a) **3.5mm mono jacks** — one per simple on/off switch (button, lever, palm switch, sip-and-puff). These are the same jacks adaptive switches plug into on commercial gear. (b) **JST-XH connectors (2.54mm pitch)** — one per sensor module (joystick, IR distance, capacitive touch). The sensor sits on its own short cable; the JST plug at the end clicks into the hub.',
-            'Decide how many of each port the hub needs. List the switches you want to support (and therefore the count of 3.5mm jacks) and the sensors you want to support (and therefore the count of JST-XH headers). A reasonable starter hub: 4 jacks + 3 JST headers.',
+            'Think of the hub as the AT version of the **Xbox Adaptive Controller**. Inputs don\'t live on the Arduino any more — they live on cables that plug into standardized panel connectors on the outside of the hub. There are two banks: (a) **3.5mm mono jacks** for simple on/off switches (button, lever, palm switch, sip-and-puff), the same jacks adaptive switches use on commercial gear, and (b) **JST-XH connectors (2.54mm pitch)** for sensor modules (joystick, IR distance, capacitive touch). Sensor pigtails get crimped onto the modules\' existing pin headers so they click in with one plug.',
+            'Decide how many of each port the hub needs. List the switches you want to support (one 3.5mm jack each) and the sensors you want to support (one JST-XH header each). A reasonable starter hub: 4 jacks + 3 JST headers.',
+            'Plan the **adaptors and bridge cables** — this is where the hub stays beautiful. *Inside* the hub: short jumper wires or pre-crimped JST-XH pigtails run from the Arduino / perfboard out to each panel connector\'s solder lugs (this is the "bridge"). *Outside* the hub: each switch ends in a **3.5mm male plug**, each sensor module ends in a **JST-XH male plug** (3-pin for touch / IR, 4-pin for VL53L0X, 5-pin for KY-023). Anything that doesn\'t already terminate that way gets a tiny adaptor cable.',
             'Sketch the **port layout** on the [Idea Board](tools#idea-board): which face of the hub holds the row of 3.5mm jacks, which face holds the row of JST headers, where the USB cable enters, and where the QR code label sits on the back or bottom. Label each port with the action it will fire by default.',
-            'Write a one-paragraph Bill of Materials: Arduino, perfboard, the exact count of 3.5mm panel-mount jacks, the exact count of JST-XH right-angle headers, the JST-XH crimp pigtails you need for each sensor, screws, 3D-print filament. **Get instructor sign-off** on the plan before you cut a single wire.'
+            'Write a one-paragraph Bill of Materials. Include: Arduino, perfboard, the exact count of 3.5mm panel-mount female jacks, the exact count of JST-XH panel-mount headers (with the right pin count for each sensor), the **internal bridge wires** (24 AWG silicone hookup wire works well, plus pre-crimped JST-XH pigtails for the sensor side), the **external adaptor cables** students will need to terminate each switch in a 3.5mm plug and each sensor in a JST plug, screws, and 3D-print filament. **Get instructor sign-off** on the plan before you cut a single wire.'
           ],
           videoUrl: '',
           links: [],
@@ -5933,12 +5934,13 @@
         },
         {
           id: 'p4b2',
-          title: 'Perfboard Transition',
+          title: 'Perfboard',
           points: 2,
           instructions: [
-            'You are about to take the same circuit you grew across Projects 1, 2, and 3 and make it permanent. **Do not rewrite the code yet** - the perfboard runs the same sketch your breadboard ran. The only difference is that the connections are now soldered, and the inputs exit the board through panel-mount connectors instead of jumper wires.',
-            'Open the [Wiring Schematic Tool](tools#schematic) and redraw your final wiring as a **perfboard layout**. Each switch input goes through a **3.5mm jack** soldered to the board (signal + ground on the two contacts of the jack). Each sensor input goes through a **JST-XH header** soldered to the board (one pin per wire on the sensor — typically 3 pins for capacitive touch, 4 for VL53L0X, 5 for the KY-023 joystick).',
-            'Solder it. Components first: Arduino headers, then the row of 3.5mm jacks, then the row of JST-XH headers, then any LEDs. Bridge the signal traces on the back of the perfboard. Check every joint with the Arduino USB-powered and your code running.',
+            'You are about to take the same circuit you grew across Projects 1, 2, and 3 and make it permanent. **Do not rewrite the code yet** — the perfboard runs the same sketch your breadboard ran. The only difference is that the connections are now soldered, and the inputs exit the board through panel-mount connectors instead of jumper wires.',
+            'Open the [Wiring Schematic Tool](tools#schematic) and redraw your final wiring as a **perfboard layout**. Think of the perfboard as the *bridge*: Arduino pins land on one edge of the board, the 3.5mm jacks and JST-XH headers land on the opposite edges. Every input on the Arduino gets paired with the panel connector it bridges to. A switch input: Arduino pin → trace → solder lug of one 3.5mm jack. A sensor input: Arduino pins (signal + VCC + GND, plus extras for I2C or analog) → traces → solder lugs of one JST-XH header.',
+            'Pick your connector strategy. The cleanest is **panel-mount female 3.5mm jacks** and **panel-mount female JST-XH headers** soldered directly onto the perfboard with short pigtails to the panel cutouts. The simpler alternative is **board-edge** connectors soldered along the perfboard\'s perimeter so the perfboard itself becomes the back wall of the connector panel.',
+            'Solder it. Components first: Arduino headers, then the row of 3.5mm jacks, then the row of JST-XH headers, then any indicator LEDs. Bridge the signal traces on the back of the perfboard. Check every joint with the Arduino USB-powered and your code running.',
             'Test on USB with everything plugged in externally. Connect a switch into each 3.5mm jack and a sensor pigtail into each JST header — every input should still do what it did on the breadboard. If something misbehaves, the bug is almost always a cold joint or a missed bridge. Reflow until it works.',
             'Complete **Evidence + Reflection** below. *Evidence* = image of your perfboard layout (front and back), PDF of your code, photo of the soldered board powered up with a switch and a sensor plugged in.'
           ],
@@ -5948,13 +5950,14 @@
         },
         {
           id: 'p4b3',
-          title: 'Hub Enclosure with Ports',
+          title: 'Enclosure',
           points: 2,
           instructions: [
             'Open [Tinkercad](https://www.tinkercad.com) and design the 3D-printed hub. The hub is just a clean enclosure around the Arduino + perfboard with two banks of connectors exposed on its faces. Everything else plugs in from outside.',
             'Required features: (a) internal posts or pockets that hold the Arduino and the perfboard rigidly, (b) a labeled panel on one face for the **row of 3.5mm jacks**, (c) a labeled panel on an adjacent face for the **row of JST-XH headers** (the JST plug should click in flush and hold), (d) a **USB cutout** on the back for plugging the hub into a computer, and (e) a flat area on the back or bottom for the QR code label that goes on in the next benchmark.',
             'Iterate. Print a first version with thin walls to dry-fit your perfboard, jacks, and JST headers — the first print is always slightly off. Adjust the CAD, reprint, and check again until the perfboard drops in cleanly and every connector sits flush in its cutout.',
             'Final print. Use 2mm walls minimum. Label each 3.5mm jack and each JST header on the printed panel so a user knows which physical port maps to which channel in the remap web app (you can emboss text in CAD or apply a labeled vinyl strip).',
+            '**Stretch (optional, XBAC-style):** the hub doesn\'t have to be only an empty junction. If you want, add **built-in inputs on the lid or front face** the way the Xbox Adaptive Controller does — a couple of large tactile buttons, a built-in directional pad, a small joystick, or a fixed capacitive touch pad — wired straight to spare Arduino pins. The external 3.5mm jacks and JST headers stay as your universal expansion. Built-in inputs just give your end-user a few defaults they can use even with nothing plugged in.',
             'Complete **Evidence + Reflection** below. *Evidence* = STL file of the final hub, photo of the print mid-iteration, photo of the perfboard installed with a switch plugged into a 3.5mm jack and a sensor plugged into a JST header.'
           ],
           videoUrl: '',
@@ -5963,7 +5966,7 @@
         },
         {
           id: 'p4b4',
-          title: 'Remap & Test Web App',
+          title: 'Remap',
           points: 2,
           instructions: [
             'A real adaptive controller has to be tunable by the user. Build a small companion web app that runs in a browser and lets your end-user **see what each input is doing and reassign it to any key or mouse action they want.**',
