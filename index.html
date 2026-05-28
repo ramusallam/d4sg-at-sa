@@ -871,22 +871,23 @@
     border: 0;
   }
 
-  /* Project 0 grounding-video panel: video on the left, writer on the right
-     so a student can watch and write at the same time. Stacks below ~720px. */
+  /* Project 0 grounding-video panel: video on the left, writer on the right.
+     Right column is sized so it sits next to the video rather than towering
+     over it. Stacks below 720px. */
   .vs-panel { padding: 0; background: transparent; border: none; box-shadow: none; }
   .vs-pair {
     display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-    gap: 20px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
     align-items: start;
   }
   .vs-media {
     position: relative;
-    border-radius: 12px;
+    border-radius: 10px;
     overflow: hidden;
     background: #000;
     aspect-ratio: 16 / 9;
-    box-shadow: 0 6px 18px rgba(17, 17, 17, 0.08);
+    box-shadow: 0 4px 12px rgba(17, 17, 17, 0.08);
   }
   .vs-media iframe {
     position: absolute;
@@ -907,28 +908,28 @@
   .vs-write {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     min-width: 0;
   }
   .vs-prompt {
     margin: 0;
-    font-size: 13.5px;
-    line-height: 1.55;
+    font-size: 13px;
+    line-height: 1.45;
     color: var(--ink-mid);
     background: var(--accent-soft);
     border-left: 3px solid var(--accent);
-    border-radius: 0 8px 8px 0;
-    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    padding: 7px 11px;
   }
   .vs-textarea {
     width: 100%;
-    min-height: 200px;
+    min-height: 130px;
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
+    border-radius: 8px;
+    padding: 10px 12px;
     font: inherit;
-    font-size: 14.5px;
-    line-height: 1.55;
+    font-size: 14px;
+    line-height: 1.5;
     color: var(--ink-hi);
     background: white;
     resize: vertical;
@@ -944,11 +945,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
+    margin-top: 2px;
   }
   @media (max-width: 720px) {
-    .vs-pair { grid-template-columns: 1fr; gap: 14px; }
-    .vs-textarea { min-height: 160px; }
+    .vs-pair { grid-template-columns: 1fr; gap: 12px; }
+    .vs-textarea { min-height: 110px; }
   }
 
   .links a {
@@ -16201,22 +16203,20 @@ module.exports = { main }`
             <span>Download PDF</span>
           </button>
         </div>
-        <h2 class="syllabus-title">Design for Social Good <span class="syllabus-title-at">@</span> Sonoma Academy</h2>
       </header>
 
       <section class="syllabus-section">
-        <p>Computer access opens up the world for individuals with various physical disabilities. Design for Social Good is a project-based class where students research best practices in assistive technology and use that research to build low-cost, open-source DIY devices that put computer access within reach for individuals with limited mobility.</p>
-        <p>This semester the class focuses on assistive technology for computer access. Students design and build adaptive controllers, switches, and sensors that let an end-user operate a computer using whatever motion they can reliably make, at a fraction of the cost of commercial gear.</p>
+        <p>Design for Social Good is a project-based class where students practice human-centered design thinking on a real need in the world. This semester the theme is <strong>assistive technology for computer access</strong>. Students build low-cost, open-source adaptive controllers, switches, and sensors that let an end-user operate a computer using whatever motion they can reliably make, at a fraction of the cost of commercial gear. The social good at the center is straightforward: assistive technology lets individuals with disabilities participate in society on the same terms as everyone else.</p>
       </section>
 
       <section class="syllabus-section">
         <h3 class="syllabus-section-title">Projects</h3>
         <ol class="syllabus-list syllabus-list--numbered">
-          <li><strong>Meet the Mission.</strong> Grounding videos and reflections that anchor the work in real users.</li>
-          <li><strong>Basic Adaptive Switches.</strong> Button, lever, LED feedback, and a synthesis product for one persona.</li>
-          <li><strong>No-Force Sensors.</strong> Touch and distance sensing added to the same controller.</li>
-          <li><strong>Hands-Free Controls.</strong> Joystick and air-driven inputs for users with no use of their hands.</li>
-          <li><strong>Adaptive Controller Hub.</strong> Perfboard, 3D-printed hub with 3.5mm jacks and JST-XH ports, and a remap web app.</li>
+          <li>Meet the Mission</li>
+          <li>Basic Adaptive Switches</li>
+          <li>No-Force Sensors</li>
+          <li>Hands-Free Controls</li>
+          <li>Adaptive Controller Hub</li>
         </ol>
       </section>
 
@@ -16231,9 +16231,11 @@ module.exports = { main }`
 
       <section class="syllabus-section">
         <h3 class="syllabus-section-title">Late work</h3>
-        <p><strong>Projects.</strong> Due to the iterative, prototyping nature of the course, deadlines are determined case by case.</p>
-        <p><strong>Revisions.</strong> Points deducted according to the rubric may be revised for up to 50% credit back.</p>
-        <p><strong>Homework.</strong> 10% deduction for late homework. Cutoff is Friday at 4:00 PM.</p>
+        <dl class="syllabus-dl">
+          <div><dt>Projects</dt><dd>deadlines case by case</dd></div>
+          <div><dt>Revisions</dt><dd>up to 50% credit back</dd></div>
+          <div><dt>Homework</dt><dd>10% off, Friday 4:00 PM cutoff</dd></div>
+        </dl>
       </section>
 
       <section class="syllabus-section">
@@ -16297,23 +16299,22 @@ module.exports = { main }`
       const sectionTitle = (label) => addLine(label.toUpperCase(), { size: 9, bold: true, color: [99, 102, 241], spaceBefore: 18, lineH: 12 });
       const sectionGap = (n) => { y += (n != null ? n : 4); };
 
-      // Title block.
+      // Title block — kept on the PDF so a printed page identifies the course.
       addLine('Syllabus', { size: 9, bold: true, color: [120, 120, 120], lineH: 11 });
       addLine('Design for Social Good @ Sonoma Academy', { size: 20, bold: true, lineH: 24, spaceBefore: 4 });
 
       // Summary.
       sectionGap(10);
-      addLine('Computer access opens up the world for individuals with various physical disabilities. Design for Social Good is a project-based class where students research best practices in assistive technology and use that research to build low-cost, open-source DIY devices that put computer access within reach for individuals with limited mobility.', { size: 11 });
-      addLine('This semester the class focuses on assistive technology for computer access. Students design and build adaptive controllers, switches, and sensors that let an end-user operate a computer using whatever motion they can reliably make, at a fraction of the cost of commercial gear.', { size: 11, spaceBefore: 8 });
+      addLine('Design for Social Good is a project-based class where students practice human-centered design thinking on a real need in the world. This semester the theme is assistive technology for computer access. Students build low-cost, open-source adaptive controllers, switches, and sensors that let an end-user operate a computer using whatever motion they can reliably make, at a fraction of the cost of commercial gear. The social good at the center is straightforward: assistive technology lets individuals with disabilities participate in society on the same terms as everyone else.', { size: 11 });
 
       sectionTitle('Projects');
       [
-        'Meet the Mission. Grounding videos and reflections that anchor the work in real users.',
-        'Basic Adaptive Switches. Button, lever, LED feedback, and a synthesis product for one persona.',
-        'No-Force Sensors. Touch and distance sensing added to the same controller.',
-        'Hands-Free Controls. Joystick and air-driven inputs for users with no use of their hands.',
-        'Adaptive Controller Hub. Perfboard, 3D-printed hub with 3.5mm jacks and JST-XH ports, and a remap web app.'
-      ].forEach((t, i) => addLine(`${i + 1}.  ${t}`, { size: 11, indent: 0, spaceBefore: i === 0 ? 0 : 4 }));
+        'Meet the Mission',
+        'Basic Adaptive Switches',
+        'No-Force Sensors',
+        'Hands-Free Controls',
+        'Adaptive Controller Hub'
+      ].forEach((t, i) => addLine(`${i + 1}.  ${t}`, { size: 11, indent: 0, spaceBefore: i === 0 ? 0 : 3 }));
 
       sectionTitle('Grading');
       addLine('Projects:  approximately 50%', { size: 11, spaceBefore: 0 });
@@ -16321,9 +16322,9 @@ module.exports = { main }`
       addLine('Final Project (Instructable):  approximately 25%', { size: 11, spaceBefore: 2 });
 
       sectionTitle('Late work');
-      addLine('Projects. Due to the iterative, prototyping nature of the course, deadlines are determined case by case.', { size: 11 });
-      addLine('Revisions. Points deducted according to the rubric may be revised for up to 50% credit back.', { size: 11, spaceBefore: 6 });
-      addLine('Homework. 10% deduction for late homework. Cutoff is Friday at 4:00 PM.', { size: 11, spaceBefore: 6 });
+      addLine('Projects:  deadlines case by case', { size: 11 });
+      addLine('Revisions:  up to 50% credit back', { size: 11, spaceBefore: 4 });
+      addLine('Homework:  10% off, Friday 4:00 PM cutoff', { size: 11, spaceBefore: 4 });
 
       sectionTitle('AI use');
       addLine('You may use AI engines (ChatGPT, Google Gemini, etc.) for tips, further explanations, and feedback, but not to produce or complete work you present as your own. Always check AI output for accuracy. For assessments and graded work, AI is only permitted when explicitly stated.', { size: 11 });
