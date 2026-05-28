@@ -5037,6 +5037,113 @@
     color: var(--ink-hi);
   }
 
+  /* ---- Inspector (shown above the palette when a shape is selected) ---- */
+  .cad-insp {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 10px 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cad-insp--empty {
+    background: var(--bg-2);
+    border: 1px dashed var(--border-strong);
+  }
+  .cad-insp-hint {
+    margin: 0;
+    font-size: 12px;
+    color: var(--ink-mid);
+    line-height: 1.45;
+  }
+  .cad-insp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .cad-insp-head strong {
+    font-size: 13px;
+    color: var(--ink-hi);
+    letter-spacing: -0.01em;
+  }
+  .cad-insp-head-actions { display: inline-flex; gap: 4px; }
+  .cad-insp-toggle {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--ink-mid);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+  .cad-insp-toggle:hover { color: var(--ink-hi); border-color: var(--border-strong); }
+  .cad-insp-toggle.is-hole {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+  }
+  .cad-insp-delete {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1;
+    color: var(--ink-low);
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+  .cad-insp-delete:hover { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
+  .cad-insp-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cad-insp-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+  }
+  .cad-insp-section .cad-wiz-row { gap: 8px; }
+  .cad-insp-section .cad-wiz-row input { width: 72px; }
+  .cad-insp-triplet {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 5px;
+  }
+  .cad-insp-triplet input {
+    width: 100%;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 6px;
+    font: inherit;
+    font-size: 12px;
+    color: var(--ink-hi);
+    text-align: right;
+  }
+  .cad-insp-triplet input:focus { outline: none; border-color: var(--accent); }
+  .cad-insp-triplet-axes {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 5px;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--ink-low);
+    letter-spacing: 1px;
+  }
+
   /* ---- Template category heading inside the Templates panel ---- */
   .cad-wiz-cat {
     font-size: 11px;
@@ -13852,17 +13959,77 @@
   // sibling of /api/vibe-code tuned for assistive-tech parts.
   // ============================================================
 
+  // Scene-graph state. Each entry in `objects` is one independent shape the
+  // student can click, drag, edit, and toggle as hole/solid — the same model
+  // Tinkercad uses. AI mode and the legacy single-mesh path go through the
+  // same `objects` array as a single compound entry.
   const _cad = {
     engine: null,
     scene: null, camera: null, renderer: null, controls: null,
-    mesh: null, grid: null, container: null, animHandle: null,
-    code: '',           // current JSCAD source running in the viewer
-    stl: '',            // most recent serialized STL
-    mode: 'wizard',     // 'wizard' | 'ai' | 'code'
-    chat: [],           // [{role:'user'|'assistant', content}]
+    grid: null, container: null, animHandle: null,
+    raycaster: null, mouseNdc: null,
+    gizmo: null, gizmoMode: 'translate',
+    objects: [],        // [{id, kind, type, params, transform, color, isHole, mesh}]
+    selectedId: null,
+    nextObjId: 1,
+    dropOffset: 0,      // staircase new drops in X so they don't all stack at origin
+    code: '',           // last AI code (single compound entry)
+    mode: 'wizard',     // 'wizard' | 'ai'
+    chat: [],
     wizActive: 'buttonEnclosure',
     wizParams: {},
     busy: false
+  };
+
+  // The basic primitive palette (Tinkercad's first row). Each entry knows how
+  // to build itself in Three.js (for fast preview meshes) and in JSCAD (for
+  // CSG export). Params here are the editable shape numbers — position and
+  // rotation are stored per-object on `transform`.
+  const CAD_PRIMITIVES = {
+    cube: {
+      title: 'Box',
+      defaultParams: { w: 20, d: 20, h: 20 },
+      paramSpecs: [
+        { key: 'w', label: 'Width X (mm)',  min: 1, max: 300, step: 0.5 },
+        { key: 'd', label: 'Depth Y (mm)',  min: 1, max: 300, step: 0.5 },
+        { key: 'h', label: 'Height Z (mm)', min: 1, max: 300, step: 0.5 }
+      ]
+    },
+    cylinder: {
+      title: 'Cylinder',
+      defaultParams: { radius: 10, height: 20, segments: 48 },
+      paramSpecs: [
+        { key: 'radius',  label: 'Radius (mm)', min: 0.5, max: 150, step: 0.5 },
+        { key: 'height',  label: 'Height (mm)', min: 1,   max: 300, step: 0.5 },
+        { key: 'segments',label: 'Smoothness',  min: 8,   max: 96,  step: 4 }
+      ]
+    },
+    sphere: {
+      title: 'Sphere',
+      defaultParams: { radius: 12, segments: 32 },
+      paramSpecs: [
+        { key: 'radius',  label: 'Radius (mm)', min: 1, max: 150, step: 0.5 },
+        { key: 'segments',label: 'Smoothness',  min: 8, max: 96,  step: 4 }
+      ]
+    },
+    cone: {
+      title: 'Cone',
+      defaultParams: { radius: 12, height: 24, segments: 48 },
+      paramSpecs: [
+        { key: 'radius',  label: 'Base radius (mm)', min: 1, max: 150, step: 0.5 },
+        { key: 'height',  label: 'Height (mm)',      min: 1, max: 300, step: 0.5 },
+        { key: 'segments',label: 'Smoothness',       min: 8, max: 96,  step: 4 }
+      ]
+    },
+    torus: {
+      title: 'Torus',
+      defaultParams: { radius: 16, tube: 4, segments: 48 },
+      paramSpecs: [
+        { key: 'radius',  label: 'Ring radius (mm)', min: 4, max: 100, step: 0.5 },
+        { key: 'tube',    label: 'Tube radius (mm)', min: 0.5, max: 20, step: 0.2 },
+        { key: 'segments',label: 'Smoothness',       min: 12, max: 96, step: 4 }
+      ]
+    }
   };
 
   async function cadLoadEngine() {
@@ -13876,13 +14043,14 @@
       // Direct subpackages keep the bundle small. 3MF is loaded best-effort —
       // some bundle paths don't expose it cleanly; if it fails, we still ship
       // STL and silently disable the 3MF button.
-      const [modeling, stlMod, three, orbitMod, stlLoaderMod, threeMfMod] = await Promise.all([
+      const [modeling, stlMod, three, orbitMod, stlLoaderMod, threeMfMod, tcMod] = await Promise.all([
         import('https://esm.sh/@jscad/modeling@2.12.0'),
         import('https://esm.sh/@jscad/stl-serializer@2.1.11'),
         import('https://esm.sh/three@0.158.0'),
         import('https://esm.sh/three@0.158.0/examples/jsm/controls/OrbitControls.js'),
         import('https://esm.sh/three@0.158.0/examples/jsm/loaders/STLLoader.js'),
-        import('https://esm.sh/@jscad/3mf-serializer@2.0.18').catch(() => null)
+        import('https://esm.sh/@jscad/3mf-serializer@2.0.18').catch(() => null),
+        import('https://esm.sh/three@0.158.0/examples/jsm/controls/TransformControls.js')
       ]);
       const modelingNs = modeling.default || modeling;
       const stlNs = stlMod.default || stlMod;
@@ -13906,7 +14074,8 @@
         threeMfSerialize,
         THREE: threeNs,
         OrbitControls: orbitMod.OrbitControls,
-        STLLoader: stlLoaderMod.STLLoader
+        STLLoader: stlLoaderMod.STLLoader,
+        TransformControls: tcMod.TransformControls
       };
       // Disable the 3MF button up-front if its serializer didn't load.
       const tmfBtn = document.getElementById('cadBtnExport3mf');
@@ -13924,7 +14093,7 @@
   }
 
   function cadBuildScene(container) {
-    const { THREE, OrbitControls } = _cad.engine;
+    const { THREE, OrbitControls, TransformControls } = _cad.engine;
     while (container.firstChild) container.removeChild(container.firstChild);
     const w = container.clientWidth || 800;
     const h = container.clientHeight || 480;
@@ -13952,7 +14121,7 @@
 
     // Build-plate grid (200x200mm). Helps kids judge scale.
     const grid = new THREE.GridHelper(200, 20, 0xbcb8a8, 0xddd9c8);
-    grid.rotation.x = Math.PI / 2; // lie flat on XY (Z up)
+    grid.rotation.x = Math.PI / 2;
     scene.add(grid);
     const axes = new THREE.AxesHelper(20);
     scene.add(axes);
@@ -13963,12 +14132,65 @@
     controls.target.set(0, 0, 20);
     controls.update();
 
+    // 3D move/rotate gizmo. Attached when the student selects an object;
+    // detached on deselect. Disables orbit while dragging so the camera
+    // doesn't fight the gizmo.
+    const gizmo = new TransformControls(camera, renderer.domElement);
+    gizmo.setSize(0.85);
+    gizmo.addEventListener('dragging-changed', (e) => {
+      controls.enabled = !e.value;
+    });
+    gizmo.addEventListener('change', () => {
+      const obj = cadGetSelected();
+      if (!obj || !obj.mesh) return;
+      // Sync mesh transform back to the scene-graph state so the inspector
+      // sliders and the export pipeline see the new pos/rot live.
+      obj.transform.px = obj.mesh.position.x;
+      obj.transform.py = obj.mesh.position.y;
+      obj.transform.pz = obj.mesh.position.z;
+      obj.transform.rx = obj.mesh.rotation.x;
+      obj.transform.ry = obj.mesh.rotation.y;
+      obj.transform.rz = obj.mesh.rotation.z;
+      cadUpdateInspectorLive();
+    });
+    scene.add(gizmo);
+
+    // Raycast click handler: on a mouseup that didn't drag (small move
+    // distance), pick the topmost object under the pointer. Click empty
+    // space to deselect.
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+    let downX = 0, downY = 0;
+    renderer.domElement.addEventListener('mousedown', (e) => {
+      downX = e.clientX; downY = e.clientY;
+    });
+    renderer.domElement.addEventListener('mouseup', (e) => {
+      // Ignore drags (more than 4px movement = camera orbit, not a click).
+      if (Math.abs(e.clientX - downX) > 4 || Math.abs(e.clientY - downY) > 4) return;
+      // Ignore right/middle clicks (those pan/zoom).
+      if (e.button !== 0) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(ndc, camera);
+      const meshes = _cad.objects.map(o => o.mesh).filter(Boolean);
+      const hit = raycaster.intersectObjects(meshes, false)[0];
+      if (hit && hit.object && hit.object.userData && hit.object.userData.objId != null) {
+        cadSelectObject(hit.object.userData.objId);
+      } else {
+        cadDeselect();
+      }
+    });
+
     _cad.scene = scene;
     _cad.camera = camera;
     _cad.renderer = renderer;
     _cad.controls = controls;
     _cad.grid = grid;
     _cad.container = container;
+    _cad.gizmo = gizmo;
+    _cad.raycaster = raycaster;
+    _cad.mouseNdc = ndc;
 
     if (_cad.animHandle) cancelAnimationFrame(_cad.animHandle);
     const tick = () => {
@@ -13978,7 +14200,6 @@
     };
     tick();
 
-    // Resize on container changes.
     if (typeof ResizeObserver !== 'undefined') {
       const ro = new ResizeObserver(() => {
         const w2 = container.clientWidth, h2 = container.clientHeight;
@@ -14040,19 +14261,19 @@
   function cadSetView(name) {
     if (!_cad.camera || !_cad.controls) return;
     const { THREE } = _cad.engine;
-    if (name === 'center') {
-      if (_cad.mesh) cadFitCameraToObject(_cad.mesh);
-      return;
-    }
-    // Anchor: the mesh's center if we have one, else the world origin.
+    if (name === 'center') { cadFitAll(); return; }
+    // Anchor: the combined scene bounds if we have objects, else world origin.
     let anchor = new THREE.Vector3(0, 0, 0);
     let radius = 60;
-    if (_cad.mesh) {
-      const box = new THREE.Box3().setFromObject(_cad.mesh);
-      const size = new THREE.Vector3();
-      box.getSize(size);
-      box.getCenter(anchor);
-      radius = Math.max(size.x, size.y, size.z, 20) * 1.6;
+    if (_cad.objects.length) {
+      const box = new THREE.Box3();
+      _cad.objects.forEach(o => { if (o.mesh) box.expandByObject(o.mesh); });
+      if (isFinite(box.min.x)) {
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        box.getCenter(anchor);
+        radius = Math.max(size.x, size.y, size.z, 20) * 1.6;
+      }
     }
     const dirs = {
       iso:    new THREE.Vector3( 1, -1.2,  0.85),
@@ -14071,25 +14292,65 @@
   // Wipe the rendered mesh and the stored code/STL. The build-plate grid and
   // axes stay so the scene doesn't look broken. Disables Export until a new
   // part is rendered.
-  function cadClearScene() {
-    if (_cad.mesh && _cad.scene) {
-      _cad.scene.remove(_cad.mesh);
-      _cad.mesh.geometry.dispose();
-      _cad.mesh.material.dispose();
-      _cad.mesh = null;
-    }
-    _cad.code = '';
-    _cad.stl = '';
-    cadClearError();
-    cadSetStatus('Scene cleared.', 'good');
+  // ===== Scene-graph helpers =====
+
+  function cadGetSelected() {
+    if (_cad.selectedId == null) return null;
+    return _cad.objects.find(o => o.id === _cad.selectedId) || null;
+  }
+  function cadNextObjId() { return _cad.nextObjId++; }
+
+  // Where a freshly-dropped object should sit so it rests on the build plate.
+  function cadDefaultZ(kind, type, params) {
+    if (kind === 'template' || kind === 'compound') return 0;
+    if (type === 'cube')     return params.h / 2;
+    if (type === 'cylinder' || type === 'cone') return params.height / 2;
+    if (type === 'sphere')   return params.radius;
+    if (type === 'torus')    return params.tube;
+    return 0;
   }
 
-  // Run JSCAD source against the loaded @jscad/modeling, swap the result mesh
-  // into the scene, and stash the serialized STL for download. Throws on user
-  // code errors so the caller can surface the message in the viewer overlay.
-  function cadRunCode(code) {
-    const { modeling, stlSerialize, THREE, STLLoader } = _cad.engine;
-    // A minimal CommonJS-style sandbox: module.exports / require('@jscad/modeling').
+  // Native Three.js geometry for the basic primitives (fast preview path; no
+  // round-trip through JSCAD + STL for shapes Three.js already knows how to
+  // draw). CSG export still goes through JSCAD primitives, see cadObjToJscad.
+  function cadMakePrimitiveGeom(type, params) {
+    const { THREE } = _cad.engine;
+    let g;
+    if (type === 'cube') {
+      g = new THREE.BoxGeometry(params.w, params.d, params.h);
+    } else if (type === 'cylinder') {
+      g = new THREE.CylinderGeometry(params.radius, params.radius, params.height, params.segments);
+      g.rotateX(Math.PI / 2); // Three's cylinder axis is Y; our scene is Z-up.
+    } else if (type === 'sphere') {
+      const ws = Math.max(8, params.segments);
+      g = new THREE.SphereGeometry(params.radius, ws, Math.max(6, Math.floor(ws/2)));
+    } else if (type === 'cone') {
+      g = new THREE.ConeGeometry(params.radius, params.height, params.segments);
+      g.rotateX(Math.PI / 2);
+    } else if (type === 'torus') {
+      g = new THREE.TorusGeometry(params.radius, params.tube, Math.max(8, Math.floor(params.segments/2)), params.segments);
+    } else {
+      g = new THREE.BoxGeometry(10, 10, 10);
+    }
+    return g;
+  }
+
+  function cadMakeMaterial(color, isHole) {
+    const { THREE } = _cad.engine;
+    return new THREE.MeshStandardMaterial({
+      color: (color != null) ? color : 0x6366f1,
+      metalness: 0.05,
+      roughness: 0.55,
+      transparent: !!isHole,
+      opacity: isHole ? 0.42 : 1.0,
+      flatShading: false
+    });
+  }
+
+  // Evaluate a JSCAD program string and return a Three.js BufferGeometry built
+  // from the serialized STL. Used for templates and for AI-generated code.
+  function cadEvalTemplateGeom(code) {
+    const { modeling, stlSerialize, STLLoader } = _cad.engine;
     const sandboxRequire = (name) => {
       if (name === '@jscad/modeling') return modeling;
       if (name.startsWith('@jscad/modeling/')) {
@@ -14099,37 +14360,224 @@
       throw new Error('Cannot import "' + name + '" inside the CAD tool.');
     };
     const moduleObj = { exports: {} };
-    const exportsObj = moduleObj.exports;
     // eslint-disable-next-line no-new-func
     const fn = new Function('require', 'module', 'exports', 'Math', code);
-    fn(sandboxRequire, moduleObj, exportsObj, Math);
+    fn(sandboxRequire, moduleObj, moduleObj.exports, Math);
     const m = moduleObj.exports || {};
-    const mainFn = (typeof m.main === 'function') ? m.main : (typeof m === 'function' ? m : null);
-    if (!mainFn) throw new Error('Your code must export a `main` function via module.exports.');
+    const mainFn = (typeof m.main === 'function') ? m.main : null;
+    if (!mainFn) throw new Error('Template code must export a `main` function.');
     const geomOut = mainFn();
-    if (!geomOut) throw new Error('`main()` returned nothing. Build something and return it.');
+    if (!geomOut) throw new Error('`main()` returned nothing.');
     const geoms = Array.isArray(geomOut) ? geomOut : [geomOut];
-    const stlChunks = stlSerialize({ binary: false }, ...geoms);
-    const stlText = Array.isArray(stlChunks) ? stlChunks.join('') : String(stlChunks);
-    _cad.code = code;
-    _cad.stl = stlText;
-
+    const stl = stlSerialize({ binary: false }, ...geoms);
+    const stlText = Array.isArray(stl) ? stl.join('') : String(stl);
     const loader = new STLLoader();
-    const geometry = loader.parse(stlText);
-    geometry.computeVertexNormals();
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x6366f1, metalness: 0.05, roughness: 0.55,
-      flatShading: false
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    if (_cad.mesh) {
-      _cad.scene.remove(_cad.mesh);
-      _cad.mesh.geometry.dispose();
-      _cad.mesh.material.dispose();
+    const buf = loader.parse(stlText);
+    buf.computeVertexNormals();
+    return buf;
+  }
+
+  // Build (or rebuild) the visible mesh for one scene object from its current
+  // params + color + hole state. Preserves transform so inspector edits don't
+  // snap the object back to the origin.
+  function cadRegenObject(obj) {
+    const { THREE } = _cad.engine;
+    let geom;
+    if (obj.kind === 'primitive') {
+      geom = cadMakePrimitiveGeom(obj.type, obj.params);
+    } else if (obj.kind === 'template') {
+      const tpl = CAD_WIZ[obj.type];
+      if (!tpl) throw new Error('Unknown template: ' + obj.type);
+      geom = cadEvalTemplateGeom(tpl.build(obj.params));
+    } else if (obj.kind === 'compound') {
+      geom = cadEvalTemplateGeom(obj.code || '');
     }
-    _cad.scene.add(mesh);
-    _cad.mesh = mesh;
-    cadFitCameraToObject(mesh);
+    const material = cadMakeMaterial(obj.color, obj.isHole);
+    if (obj.mesh) {
+      if (obj.mesh.geometry) obj.mesh.geometry.dispose();
+      if (obj.mesh.material) obj.mesh.material.dispose();
+      obj.mesh.geometry = geom;
+      obj.mesh.material = material;
+    } else {
+      obj.mesh = new THREE.Mesh(geom, material);
+      obj.mesh.userData.objId = obj.id;
+      _cad.scene.add(obj.mesh);
+    }
+    obj.mesh.position.set(obj.transform.px, obj.transform.py, obj.transform.pz);
+    obj.mesh.rotation.set(obj.transform.rx, obj.transform.ry, obj.transform.rz);
+  }
+
+  function cadAddPrimitive(type) {
+    const def = CAD_PRIMITIVES[type];
+    if (!def) return;
+    const params = { ...def.defaultParams };
+    const off = _cad.dropOffset;
+    _cad.dropOffset = (_cad.dropOffset + 25) % 180;
+    const obj = {
+      id: cadNextObjId(),
+      kind: 'primitive',
+      type,
+      params,
+      transform: { px: off, py: off, pz: cadDefaultZ('primitive', type, params), rx: 0, ry: 0, rz: 0 },
+      color: 0x6366f1,
+      isHole: false,
+      mesh: null
+    };
+    _cad.objects.push(obj);
+    try {
+      cadRegenObject(obj);
+      cadSelectObject(obj.id);
+      cadSetStatus(`${def.title} added.`, 'good');
+    } catch (err) {
+      _cad.objects = _cad.objects.filter(o => o.id !== obj.id);
+      cadSetStatus('Failed to add shape.', 'error');
+      cadShowError(String(err && err.message || err));
+    }
+  }
+
+  function cadAddTemplate(key) {
+    const tpl = CAD_WIZ[key];
+    if (!tpl) return;
+    const params = {};
+    tpl.params.forEach(p => { params[p.key] = p.value; });
+    const off = _cad.dropOffset;
+    _cad.dropOffset = (_cad.dropOffset + 25) % 180;
+    const obj = {
+      id: cadNextObjId(),
+      kind: 'template',
+      type: key,
+      params,
+      transform: { px: off, py: off, pz: 0, rx: 0, ry: 0, rz: 0 },
+      color: 0x6366f1,
+      isHole: false,
+      mesh: null
+    };
+    _cad.objects.push(obj);
+    try {
+      cadRegenObject(obj);
+      cadSelectObject(obj.id);
+      cadSetStatus(`${tpl.title} added.`, 'good');
+    } catch (err) {
+      _cad.objects = _cad.objects.filter(o => o.id !== obj.id);
+      cadSetStatus('Template failed.', 'error');
+      cadShowError(String(err && err.message || err));
+    }
+  }
+
+  function cadAddCompoundFromCode(code) {
+    const obj = {
+      id: cadNextObjId(),
+      kind: 'compound',
+      type: 'ai-compound',
+      params: {},
+      code,
+      transform: { px: 0, py: 0, pz: 0, rx: 0, ry: 0, rz: 0 },
+      color: 0x6366f1,
+      isHole: false,
+      mesh: null
+    };
+    _cad.objects.push(obj);
+    try {
+      cadRegenObject(obj);
+      cadSelectObject(obj.id);
+      cadSetStatus('AI shape added.', 'good');
+    } catch (err) {
+      _cad.objects = _cad.objects.filter(o => o.id !== obj.id);
+      cadSetStatus('AI code failed to render.', 'error');
+      cadShowError(String(err && err.message || err));
+    }
+  }
+
+  function cadSelectObject(id) {
+    _cad.selectedId = id;
+    const obj = cadGetSelected();
+    if (obj && obj.mesh && _cad.gizmo) {
+      _cad.gizmo.setMode(_cad.gizmoMode || 'translate');
+      _cad.gizmo.attach(obj.mesh);
+    }
+    if (_cad.mode === 'wizard') {
+      const panel = document.getElementById('cadLeftBody');
+      if (panel) renderCadWizardPanel(panel);
+    }
+  }
+
+  function cadDeselect() {
+    if (_cad.gizmo) _cad.gizmo.detach();
+    _cad.selectedId = null;
+    if (_cad.mode === 'wizard') {
+      const panel = document.getElementById('cadLeftBody');
+      if (panel) renderCadWizardPanel(panel);
+    }
+  }
+
+  function cadDeleteObject(id) {
+    const i = _cad.objects.findIndex(o => o.id === id);
+    if (i < 0) return;
+    const obj = _cad.objects[i];
+    if (_cad.gizmo && _cad.selectedId === id) _cad.gizmo.detach();
+    if (obj.mesh) {
+      _cad.scene.remove(obj.mesh);
+      if (obj.mesh.geometry) obj.mesh.geometry.dispose();
+      if (obj.mesh.material) obj.mesh.material.dispose();
+    }
+    _cad.objects.splice(i, 1);
+    if (_cad.selectedId === id) cadDeselect();
+  }
+
+  function cadFitAll() {
+    const { THREE } = _cad.engine;
+    if (!_cad.objects.length) {
+      _cad.controls.target.set(0, 0, 20);
+      cadAnimateCamera(new THREE.Vector3(120, -160, 110), new THREE.Vector3(0, 0, 20));
+      return;
+    }
+    const box = new THREE.Box3();
+    _cad.objects.forEach(o => { if (o.mesh) box.expandByObject(o.mesh); });
+    if (!isFinite(box.min.x)) return;
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size); box.getCenter(center);
+    const maxDim = Math.max(size.x, size.y, size.z, 20);
+    const dist = maxDim * 3.6;
+    cadAnimateCamera(
+      new THREE.Vector3(center.x + dist * 0.65, center.y - dist * 0.85, center.z + dist * 0.55),
+      center
+    );
+    _cad.camera.near = Math.max(0.5, dist * 0.01);
+    _cad.camera.far = dist * 20;
+    _cad.camera.updateProjectionMatrix();
+  }
+
+  // Sync inspector inputs from the live gizmo drag — but skip the field the
+  // user is currently typing in so we don't yank their caret.
+  function cadUpdateInspectorLive() {
+    const obj = cadGetSelected();
+    if (!obj) return;
+    const setNum = (key, val) => {
+      const el = document.querySelector(`[data-cad-insp-key="${key}"]`);
+      if (!el || document.activeElement === el) return;
+      el.value = (typeof val === 'number') ? (+val.toFixed(2)) : val;
+    };
+    setNum('px', obj.transform.px);
+    setNum('py', obj.transform.py);
+    setNum('pz', obj.transform.pz);
+    setNum('rx', obj.transform.rx * 180 / Math.PI);
+    setNum('ry', obj.transform.ry * 180 / Math.PI);
+    setNum('rz', obj.transform.rz * 180 / Math.PI);
+  }
+
+  function cadClearScene() {
+    [..._cad.objects].forEach(o => cadDeleteObject(o.id));
+    _cad.objects = [];
+    _cad.selectedId = null;
+    _cad.dropOffset = 0;
+    _cad.code = '';
+    cadClearError();
+    cadSetStatus('Scene cleared.', 'good');
+    if (_cad.mode === 'wizard') {
+      const panel = document.getElementById('cadLeftBody');
+      if (panel) renderCadWizardPanel(panel);
+    }
   }
 
   function cadShowError(msg) {
@@ -14155,6 +14603,8 @@
     el.classList.toggle('is-good', kind === 'good');
   }
 
+  // Legacy entry point — kept for AI mode, which still produces a single
+  // compound mesh from JSCAD code. Now wraps the new scene-graph path.
   async function cadRunFromCurrent(code) {
     if (_cad.busy) return;
     _cad.busy = true;
@@ -14162,8 +14612,8 @@
     cadClearError();
     try {
       await cadLoadEngine();
-      cadRunCode(code);
-      cadSetStatus('Rendered.', 'good');
+      _cad.code = code;
+      cadAddCompoundFromCode(code);
     } catch (err) {
       const msg = (err && err.message) ? err.message : String(err);
       cadSetStatus('Error', 'error');
@@ -14186,23 +14636,39 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  function cadExportStl() {
-    if (!_cad.stl) { cadSetStatus('Run the part first.', 'error'); return; }
-    cadDownloadBlob(_cad.stl, 'stl', 'application/sla');
-    cadSetStatus('STL downloaded.', 'good');
-  }
-
-  // 3MF re-serializes the last-rendered geometry. We rebuild the geom from the
-  // current code rather than caching it, because the JSCAD geom object is
-  // discarded after STL serialization; this keeps memory low.
-  function cadExport3mf() {
-    const { threeMfSerialize } = _cad.engine || {};
-    if (!threeMfSerialize) { cadSetStatus('3MF unavailable — use STL.', 'error'); return; }
-    if (!_cad.code) { cadSetStatus('Run the part first.', 'error'); return; }
-    try {
-      // Re-evaluate the user code to recover the JSCAD geom (cheap; same path
-      // cadRunCode uses, minus the rendering).
-      const { modeling } = _cad.engine;
+  // Convert one scene object to a JSCAD geom with its scene transform baked
+  // in. Primitives use JSCAD primitive constructors directly; templates and
+  // AI compounds re-run their code to recover the geom.
+  function cadObjToJscadGeom(obj) {
+    const { modeling } = _cad.engine;
+    const { primitives, transforms, geometries } = modeling;
+    let geom = null;
+    if (obj.kind === 'primitive') {
+      const p = obj.params;
+      if (obj.type === 'cube') {
+        geom = primitives.cuboid({ size: [p.w, p.d, p.h] });
+      } else if (obj.type === 'cylinder') {
+        geom = primitives.cylinder({ radius: p.radius, height: p.height, segments: p.segments });
+      } else if (obj.type === 'sphere') {
+        geom = primitives.sphere({ radius: p.radius, segments: p.segments });
+      } else if (obj.type === 'cone') {
+        geom = primitives.cylinder({ radius: 0.01, height: p.height, segments: p.segments });
+        // Use a true cone via cylinderElliptic if available, else two-radii cylinder.
+        if (primitives.cylinderElliptic) {
+          geom = primitives.cylinderElliptic({
+            startRadius: [p.radius, p.radius],
+            endRadius:   [0.01, 0.01],
+            height: p.height, segments: p.segments
+          });
+        }
+      } else if (obj.type === 'torus') {
+        if (primitives.torus) {
+          geom = primitives.torus({ innerRadius: p.tube, outerRadius: p.radius, innerSegments: Math.max(8, Math.floor(p.segments/2)), outerSegments: p.segments });
+        }
+      }
+    } else if (obj.kind === 'template' || obj.kind === 'compound') {
+      const code = (obj.kind === 'template') ? CAD_WIZ[obj.type].build(obj.params) : (obj.code || '');
+      // Re-run the code, get the geom directly (skip the STL round-trip).
       const sandboxRequire = (name) => {
         if (name === '@jscad/modeling') return modeling;
         if (name.startsWith('@jscad/modeling/')) {
@@ -14212,22 +14678,69 @@
         throw new Error('Cannot import "' + name + '" inside the CAD tool.');
       };
       const moduleObj = { exports: {} };
-      // eslint-disable-next-line no-new-func
-      const fn = new Function('require', 'module', 'exports', 'Math', _cad.code);
+      const fn = new Function('require', 'module', 'exports', 'Math', code);
       fn(sandboxRequire, moduleObj, moduleObj.exports, Math);
       const m = moduleObj.exports || {};
       const mainFn = (typeof m.main === 'function') ? m.main : null;
-      if (!mainFn) throw new Error('main() not found.');
-      const geomOut = mainFn();
-      const geoms = Array.isArray(geomOut) ? geomOut : [geomOut];
-      // 3MF serializer returns either a string/array or a Uint8Array (ZIP).
-      const out = threeMfSerialize({}, ...geoms);
+      if (!mainFn) return null;
+      const out = mainFn();
+      if (!out) return null;
+      const arr = Array.isArray(out) ? out : [out];
+      // Combine multi-geom template outputs into one before transforming.
+      geom = (arr.length === 1) ? arr[0] : modeling.booleans.union(...arr);
+    }
+    if (!geom) return null;
+    // Apply scene transform (rotate first, then translate — match Three.js mesh order).
+    const t = obj.transform;
+    if (t.rx) geom = transforms.rotateX(t.rx, geom);
+    if (t.ry) geom = transforms.rotateY(t.ry, geom);
+    if (t.rz) geom = transforms.rotateZ(t.rz, geom);
+    if (t.px || t.py || t.pz) geom = transforms.translate([t.px, t.py, t.pz], geom);
+    return geom;
+  }
+
+  // Walk every scene object, union the solids, subtract the holes, return the
+  // combined JSCAD geom. Throws if there are no solid shapes to export.
+  function cadBuildSceneGeom() {
+    if (!_cad.objects.length) throw new Error('Nothing to export — drop a shape first.');
+    const { modeling } = _cad.engine;
+    const solids = [];
+    const holes = [];
+    _cad.objects.forEach(o => {
+      const g = cadObjToJscadGeom(o);
+      if (!g) return;
+      (o.isHole ? holes : solids).push(g);
+    });
+    if (!solids.length) throw new Error('At least one shape must be a Solid (not all Holes).');
+    let combined = (solids.length === 1) ? solids[0] : modeling.booleans.union(...solids);
+    if (holes.length) combined = modeling.booleans.subtract(combined, ...holes);
+    return combined;
+  }
+
+  function cadExportStl() {
+    try {
+      const { stlSerialize } = _cad.engine;
+      const geom = cadBuildSceneGeom();
+      const stl = stlSerialize({ binary: false }, geom);
+      const stlText = Array.isArray(stl) ? stl.join('') : String(stl);
+      cadDownloadBlob(stlText, 'stl', 'application/sla');
+      cadSetStatus('STL downloaded.', 'good');
+    } catch (err) {
+      cadSetStatus(err.message || 'STL export failed.', 'error');
+    }
+  }
+
+  function cadExport3mf() {
+    const { threeMfSerialize } = _cad.engine || {};
+    if (!threeMfSerialize) { cadSetStatus('3MF unavailable — use STL.', 'error'); return; }
+    try {
+      const geom = cadBuildSceneGeom();
+      const out = threeMfSerialize({}, geom);
       const payload = Array.isArray(out) ? out[0] : out;
       cadDownloadBlob(payload, '3mf', 'model/3mf');
       cadSetStatus('3MF downloaded.', 'good');
     } catch (err) {
-      cadSetStatus('3MF export failed.', 'error');
-      cadShowError(String(err && err.message || err));
+      cadSetStatus(err.message || '3MF export failed.', 'error');
     }
   }
 
@@ -14916,54 +15429,156 @@ module.exports = { main }`
   }
 
   // ---------- Mode renderers (left panel) ----------
+  // Sidebar contents for the Shapes tab. Top: inspector for the selected
+  // object (or a thin "tap a shape to add it" hint when nothing is selected).
+  // Below: the palette — basic primitives, then the AT templates grouped by
+  // category. Clicking a palette item DROPS that shape into the scene as a
+  // new independent object, just like Tinkercad.
   function renderCadWizardPanel(panel) {
-    const t = CAD_WIZ[_cad.wizActive];
-    const params = _cad.wizParams;
-    // Group templates by category; emit a small heading per category so the
-    // grid reads as "Switches / Joystick / Sensors…" instead of one wall.
-    const groupedHtml = CAD_CATEGORIES.map(cat => {
+    const selected = cadGetSelected();
+    const inspectorHtml = renderCadInspectorHtml(selected);
+
+    const primPaletteHtml = `
+      <h4 class="cad-wiz-cat">Basic Shapes</h4>
+      <div class="cad-wiz-templates">
+        ${Object.entries(CAD_PRIMITIVES).map(([key, def]) => `
+          <button type="button" class="cad-wiz-template" data-cad-prim="${key}" title="Drop a ${escapeHtml(def.title)} into the scene">
+            <span class="cad-wiz-template-title">${escapeHtml(def.title)}</span>
+          </button>`).join('')}
+      </div>`;
+
+    const templatePaletteHtml = CAD_CATEGORIES.map(cat => {
       const entries = Object.entries(CAD_WIZ).filter(([, tpl]) => tpl.category === cat.key);
       if (!entries.length) return '';
       return `
         <h4 class="cad-wiz-cat">${escapeHtml(cat.label)}</h4>
         <div class="cad-wiz-templates">
           ${entries.map(([key, tpl]) => `
-            <button type="button" class="cad-wiz-template ${key === _cad.wizActive ? 'is-active' : ''}" data-wiz="${key}" title="${escapeHtml(tpl.blurb)}">
+            <button type="button" class="cad-wiz-template" data-cad-tpl="${key}" title="${escapeHtml(tpl.blurb)}">
               <span class="cad-wiz-template-title">${escapeHtml(tpl.title)}</span>
-              <span class="cad-wiz-template-blurb">${escapeHtml(tpl.blurb)}</span>
             </button>`).join('')}
         </div>`;
     }).join('');
+
     panel.innerHTML = `
-      ${groupedHtml}
-      <div class="cad-wiz-form" id="cadWizForm">
-        ${t.params.map(p => `
-          <div class="cad-wiz-row">
-            <label for="cadWiz_${p.key}">${escapeHtml(p.label)}</label>
-            <input type="number" id="cadWiz_${p.key}" data-wiz-param="${p.key}"
-              value="${params[p.key]}" min="${p.min}" max="${p.max}" step="${p.step}" />
-          </div>`).join('')}
-      </div>
+      ${inspectorHtml}
+      ${primPaletteHtml}
+      ${templatePaletteHtml}
     `;
-    panel.querySelectorAll('[data-wiz]').forEach(b => {
-      b.addEventListener('click', () => {
-        _cad.wizActive = b.dataset.wiz;
-        _cad.wizParams = cadDefaultWizParams(_cad.wizActive);
-        renderCadWizardPanel(panel);
-        cadRunFromCurrent(cadCurrentWizardCode());
+
+    // Palette click handlers — drop a new shape into the scene.
+    panel.querySelectorAll('[data-cad-prim]').forEach(b => {
+      b.addEventListener('click', () => cadAddPrimitive(b.dataset.cadPrim));
+    });
+    panel.querySelectorAll('[data-cad-tpl]').forEach(b => {
+      b.addEventListener('click', () => cadAddTemplate(b.dataset.cadTpl));
+    });
+
+    // Inspector wiring (if something is selected).
+    if (selected) wireCadInspector(panel, selected);
+  }
+
+  // Inspector renderer. Pulls the right param-spec list based on the selected
+  // object's kind (primitive vs template vs compound), plus the universal
+  // transform fields, hole/solid toggle, and a delete button.
+  function renderCadInspectorHtml(obj) {
+    if (!obj) {
+      return `
+        <div class="cad-insp cad-insp--empty">
+          <p class="cad-insp-hint">Tap a shape below to drop it into the scene. Click a shape in the canvas to edit it here.</p>
+        </div>`;
+    }
+    let specs = [];
+    let title = '';
+    if (obj.kind === 'primitive') {
+      const def = CAD_PRIMITIVES[obj.type];
+      title = def.title;
+      specs = def.paramSpecs;
+    } else if (obj.kind === 'template') {
+      const tpl = CAD_WIZ[obj.type];
+      title = tpl.title;
+      // Template paramSpecs use a slightly different key (min/max/step/value/label).
+      specs = tpl.params.map(p => ({ key: p.key, label: p.label, min: p.min, max: p.max, step: p.step }));
+    } else if (obj.kind === 'compound') {
+      title = 'AI Shape';
+      specs = [];
+    }
+    const paramsHtml = specs.map(s => `
+      <div class="cad-wiz-row">
+        <label>${escapeHtml(s.label)}</label>
+        <input type="number" data-cad-param="${s.key}" value="${obj.params[s.key]}"
+          min="${s.min}" max="${s.max}" step="${s.step}" />
+      </div>`).join('');
+    return `
+      <div class="cad-insp">
+        <div class="cad-insp-head">
+          <strong>${escapeHtml(title)}</strong>
+          <div class="cad-insp-head-actions">
+            <button type="button" class="cad-insp-toggle ${obj.isHole ? 'is-hole' : ''}" data-cad-toggle-hole title="Solid / Hole">
+              ${obj.isHole ? 'Hole' : 'Solid'}
+            </button>
+            <button type="button" class="cad-insp-delete" data-cad-delete title="Delete (Backspace)">×</button>
+          </div>
+        </div>
+        ${paramsHtml ? `<div class="cad-insp-section"><span class="cad-insp-label">Size</span>${paramsHtml}</div>` : ''}
+        <div class="cad-insp-section">
+          <span class="cad-insp-label">Position (mm)</span>
+          <div class="cad-insp-triplet">
+            <input type="number" step="0.5" data-cad-insp-key="px" value="${(+obj.transform.px.toFixed(2))}" />
+            <input type="number" step="0.5" data-cad-insp-key="py" value="${(+obj.transform.py.toFixed(2))}" />
+            <input type="number" step="0.5" data-cad-insp-key="pz" value="${(+obj.transform.pz.toFixed(2))}" />
+          </div>
+          <div class="cad-insp-triplet-axes"><span>X</span><span>Y</span><span>Z</span></div>
+        </div>
+        <div class="cad-insp-section">
+          <span class="cad-insp-label">Rotation (°)</span>
+          <div class="cad-insp-triplet">
+            <input type="number" step="5" data-cad-insp-key="rx" value="${(+(obj.transform.rx * 180 / Math.PI).toFixed(1))}" />
+            <input type="number" step="5" data-cad-insp-key="ry" value="${(+(obj.transform.ry * 180 / Math.PI).toFixed(1))}" />
+            <input type="number" step="5" data-cad-insp-key="rz" value="${(+(obj.transform.rz * 180 / Math.PI).toFixed(1))}" />
+          </div>
+          <div class="cad-insp-triplet-axes"><span>X</span><span>Y</span><span>Z</span></div>
+        </div>
+      </div>`;
+  }
+
+  function wireCadInspector(panel, obj) {
+    // Size / shape params — regenerate the mesh when changed.
+    panel.querySelectorAll('[data-cad-param]').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const k = inp.dataset.cadParam;
+        const v = parseFloat(inp.value);
+        if (Number.isFinite(v)) {
+          obj.params[k] = v;
+          try { cadRegenObject(obj); cadClearError(); }
+          catch (err) { cadShowError(String(err && err.message || err)); }
+        }
       });
     });
-    panel.querySelectorAll('[data-wiz-param]').forEach(input => {
-      const key = input.dataset.wizParam;
-      const apply = () => {
-        const v = parseFloat(input.value);
-        if (Number.isFinite(v)) {
-          _cad.wizParams[key] = v;
-          cadRunFromCurrent(cadCurrentWizardCode());
+    // Transform fields — just update transform + re-place the mesh (no regen).
+    panel.querySelectorAll('[data-cad-insp-key]').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const k = inp.dataset.cadInspKey;
+        let v = parseFloat(inp.value);
+        if (!Number.isFinite(v)) return;
+        if (k === 'rx' || k === 'ry' || k === 'rz') v = v * Math.PI / 180;
+        obj.transform[k] = v;
+        if (obj.mesh) {
+          obj.mesh.position.set(obj.transform.px, obj.transform.py, obj.transform.pz);
+          obj.mesh.rotation.set(obj.transform.rx, obj.transform.ry, obj.transform.rz);
         }
-      };
-      input.addEventListener('change', apply);
+      });
     });
+    // Solid / Hole toggle — re-regen so material updates.
+    const tg = panel.querySelector('[data-cad-toggle-hole]');
+    if (tg) tg.addEventListener('click', () => {
+      obj.isHole = !obj.isHole;
+      cadRegenObject(obj);
+      renderCadWizardPanel(panel);
+    });
+    // Delete button.
+    const del = panel.querySelector('[data-cad-delete]');
+    if (del) del.addEventListener('click', () => cadDeleteObject(obj.id));
   }
 
   function renderCadAiPanel(panel) {
@@ -15064,11 +15679,8 @@ module.exports = { main }`
     const head = document.getElementById('cadLeftHead');
     if (!panel || !head) return;
     if (mode === 'wizard') {
-      head.textContent = 'Pick a part, tune the numbers';
+      head.textContent = 'Tap a shape to drop it · click in canvas to edit';
       renderCadWizardPanel(panel);
-      // Only auto-render if the engine is already booted; otherwise the engine
-      // loader's own callback will kick the first render when it's ready.
-      if (_cad.engine) cadRunFromCurrent(cadCurrentWizardCode());
     } else if (mode === 'ai') {
       head.textContent = 'Describe what you need';
       renderCadAiPanel(panel);
@@ -15148,28 +15760,44 @@ module.exports = { main }`
       }
     });
     document.getElementById('cadBtnRun').addEventListener('click', () => {
-      if (_cad.mode === 'wizard') return cadRunFromCurrent(cadCurrentWizardCode());
-      // AI mode Run just re-renders the last code.
-      if (_cad.code) return cadRunFromCurrent(_cad.code);
+      // Regen every scene object — useful after a transient error, or to
+      // refresh everything after editing a template's params heavily.
+      let n = 0;
+      _cad.objects.forEach(o => { try { cadRegenObject(o); n++; } catch (_) {} });
+      cadSetStatus(n ? `Rendered ${n} shape${n === 1 ? '' : 's'}.` : 'Scene is empty — drop a shape first.', n ? 'good' : 'error');
     });
     document.getElementById('cadBtnClear').addEventListener('click', cadClearScene);
-    document.getElementById('cadBtnCenter').addEventListener('click', () => {
-      if (_cad.mesh) cadFitCameraToObject(_cad.mesh);
+    document.getElementById('cadBtnCenter').addEventListener('click', cadFitAll);
+    // Keyboard shortcuts: Delete to remove selected, T/R to switch gizmo mode,
+    // Escape to deselect (Escape on maximized panel is handled elsewhere).
+    document.addEventListener('keydown', (e) => {
+      // Don't intercept while the student is typing into a number input or
+      // the AI textarea.
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (_cad.selectedId != null) { e.preventDefault(); cadDeleteObject(_cad.selectedId); }
+      } else if (e.key === 't' || e.key === 'T') {
+        _cad.gizmoMode = 'translate';
+        if (_cad.gizmo && _cad.selectedId != null) _cad.gizmo.setMode('translate');
+      } else if (e.key === 'r' || e.key === 'R') {
+        _cad.gizmoMode = 'rotate';
+        if (_cad.gizmo && _cad.selectedId != null) _cad.gizmo.setMode('rotate');
+      } else if (e.key === 'Escape') {
+        if (_cad.selectedId != null) cadDeselect();
+      }
     });
     document.querySelectorAll('#cadViewPad [data-cad-view]').forEach(b => {
       b.addEventListener('click', () => cadSetView(b.dataset.cadView));
     });
 
-    // Render the left-panel UI right away so the wizard's templates and
-    // inputs are visible while the 3D engine is still loading. Then boot the
-    // engine in the background and kick the first render when it's ready.
-    _cad.wizParams = cadDefaultWizParams(_cad.wizActive);
+    // Render the sidebar UI right away so the palette is visible while the
+    // 3D engine boots. Scene starts empty — student drops the first shape.
     cadSetMode(_cad.mode || 'wizard');
     cadLoadEngine().then(() => {
       cadBuildScene(document.getElementById('cadViewer'));
       const loading = document.getElementById('cadViewerLoading');
       if (loading) loading.remove();
-      if (_cad.mode === 'wizard') cadRunFromCurrent(cadCurrentWizardCode());
     }).catch((err) => {
       cadSetStatus('Engine failed: ' + (err.message || err), 'error');
     });
