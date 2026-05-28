@@ -973,9 +973,9 @@
   .prog-card {
     background: white;
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 18px;
     box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
-    padding: 22px 26px 22px;
+    padding: 24px 28px 26px;
     transition: box-shadow 0.2s ease, transform 0.12s ease;
   }
   .prog-card:hover {
@@ -986,10 +986,12 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(17, 17, 17, 0.06);
   }
   .prog-card-name {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--ink-hi);
@@ -1017,58 +1019,87 @@
   .prog-card.is-you:hover {
     box-shadow: 0 8px 24px rgba(99, 102, 241, 0.16);
   }
+  /* At-a-glance completion meter, right side of the card header. */
+  .prog-card-meter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .prog-card-meter-num {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-hi);
+    font-variant-numeric: tabular-nums;
+  }
+  .prog-card-meter-den {
+    color: var(--ink-low);
+    font-weight: 600;
+  }
+  .prog-card-meter-bar {
+    width: 84px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+  .prog-card-meter-bar > i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--success);
+    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .prog-card.is-you .prog-card-meter-bar > i { background: var(--accent); }
   .prog-card-rows {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
   }
+  /* Each project is one flowing line: label, a dotted leader that fills the
+     gap, then the step pips. The leader is what makes long and short rows read
+     as a single connected track instead of floating in empty space. */
   .prog-card-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 8px 0;
-  }
-  .prog-card-row + .prog-card-row {
-    border-top: 1px solid rgba(17, 17, 17, 0.04);
-  }
-  /* The culminating Instructable row, elevated as the capstone. */
-  .prog-card-row.is-final {
-    background: var(--accent-soft);
-    border-radius: 10px;
-    padding: 10px 14px;
-    margin-top: 6px;
-    box-shadow: inset 3px 0 0 var(--accent);
-  }
-  .prog-card-row + .prog-card-row.is-final { border-top: none; }
-  .prog-card-row.is-final .prog-card-row-prefix { color: var(--accent); }
-  .prog-card-row-label {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-    flex: 1;
-    min-width: 0;
+    gap: 12px;
+    padding: 9px 0;
   }
   .prog-card-row-prefix {
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 1.4px;
+    letter-spacing: 1.2px;
     text-transform: uppercase;
     color: var(--ink-low);
     flex-shrink: 0;
-    min-width: 64px;
+    min-width: 58px;
   }
   .prog-card-row-title {
     font-size: 14px;
     font-weight: 500;
     color: var(--paper-ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
+    flex-shrink: 0;
     white-space: nowrap;
   }
+  .prog-card-row-lead {
+    flex: 1 1 auto;
+    min-width: 18px;
+    height: 0;
+    border-bottom: 1.5px dotted var(--border-strong);
+    opacity: 0.55;
+    margin: 0 2px;
+  }
+  /* The culminating Instructable row, set off as the finish line. */
+  .prog-card-row.is-final {
+    margin-top: 6px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border-strong);
+  }
+  .prog-card-row.is-final .prog-card-row-prefix { color: var(--accent); }
+  .prog-card-row.is-final .prog-card-row-title { color: var(--ink-hi); font-weight: 600; }
+  .prog-card-row.is-final .prog-card-row-lead { border-bottom-style: dashed; }
   .prog-card-row-dots {
     display: flex;
     align-items: center;
@@ -1119,36 +1150,42 @@
     width: 13px;
     height: 13px;
   }
-  /* Capstone (Instructable) pip: larger, accent-tinted when pending. */
-  .prog-pip.is-final-pip {
-    width: 30px;
-    height: 30px;
-  }
+  /* Capstone (Instructable) pip: accent-tinted finish-flag when pending. */
   .prog-pip.is-final-pip:not(.is-done) {
     border-color: var(--accent);
     color: var(--accent);
     background: var(--accent-soft);
   }
-  .prog-pip.is-final-pip svg { width: 15px; height: 15px; }
+  .prog-pip.is-final-pip svg { width: 14px; height: 14px; }
 
-  /* Homework row at the bottom of each progress card. Light blue / sky to
-     differentiate from the green project pips above. */
+  /* Homework lives in its own sky-tinted panel at the foot of each card so it
+     reads as a separate track from the project work above, but still feels
+     like a deliberate part of the same card. */
   .prog-card-hw {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 10px 0 2px;
-    margin-top: 8px;
-    border-top: 1px solid rgba(17, 17, 17, 0.06);
+    gap: 12px;
+    margin-top: 18px;
+    padding: 13px 16px;
+    background: rgba(125, 211, 252, 0.09);
+    border: 1px solid rgba(125, 211, 252, 0.40);
+    border-radius: 12px;
   }
   .prog-card-hw-label {
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 1.4px;
+    letter-spacing: 1.2px;
     text-transform: uppercase;
-    color: var(--ink-low);
+    color: #0284c7;
     flex-shrink: 0;
+  }
+  .prog-card-hw-lead {
+    flex: 1 1 auto;
+    min-width: 14px;
+    height: 0;
+    border-bottom: 1.5px dotted #7dd3fc;
+    opacity: 0.7;
+    margin: 0 2px;
   }
   .prog-card-hw-dots {
     display: flex;
@@ -1211,15 +1248,15 @@
   }
 
   @media (max-width: 720px) {
-    .prog-card { padding: 18px 18px 16px; }
-    .prog-card-name { font-size: 18px; }
-    .prog-card-tally-num { font-size: 17px; }
-    .prog-card-row { flex-direction: column; align-items: flex-start; gap: 8px; }
-    .prog-card-row-label { width: 100%; }
+    .prog-card { padding: 18px 18px 18px; }
+    .prog-card-name { font-size: 16px; }
+    .prog-card-row { flex-wrap: wrap; gap: 4px 10px; padding: 10px 0; }
     .prog-card-row-prefix { min-width: 0; }
-    .prog-card-row-dots { padding-left: 0; }
-    .prog-card-hw { flex-direction: column; align-items: flex-start; gap: 8px; }
-    .prog-card-hw-dots { justify-content: flex-start; }
+    .prog-card-row-lead { display: none; }
+    .prog-card-row-dots { width: 100%; margin-top: 6px; gap: 10px; }
+    .prog-card-hw { flex-wrap: wrap; }
+    .prog-card-hw-lead { display: none; }
+    .prog-card-hw-dots { width: 100%; margin-top: 6px; justify-content: flex-start; }
   }
 
   /* Instructable submission panel — single link field, slim like checkpoint */
@@ -3076,13 +3113,20 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
     padding: 14px 18px;
     background: var(--bg-1);
     border: 1px solid var(--border);
     border-radius: 14px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    scrollbar-width: thin;
   }
+  .schem-toolbar::-webkit-scrollbar { height: 6px; }
+  .schem-toolbar::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; }
+  .schem-toolbar::-webkit-scrollbar-track { background: transparent; }
+  .schem-toolbar > * { flex-shrink: 0; }
   .schem-toolbar-group {
     display: flex;
     align-items: center;
@@ -3766,22 +3810,64 @@
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 6px 18px rgba(59, 130, 246, 0.10);
   }
-  .vibe-input {
+  /* The textarea sits transparently on top of a mirror layer that re-renders
+     the same text. The mirror is what's actually visible — it lets us paint
+     the <FILL-IN> tokens blue, which a bare textarea can't do. The two share
+     identical box metrics so the caret lands exactly on the painted glyphs. */
+  .vibe-input-wrap {
     flex: 1 1 auto;
-    border: none;
-    background: transparent;
-    padding: 7px 0;
+    position: relative;
+    display: flex;
+    min-width: 0;
+  }
+  .vibe-input,
+  .vibe-input-mirror {
     font: inherit;
     font-size: 14.5px;
     line-height: 1.5;
+    padding: 7px 0;
+    letter-spacing: normal;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  .vibe-input {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 auto;
+    width: 100%;
+    border: none;
+    background: transparent;
     min-height: 76px;
     max-height: 220px;
     overflow-y: auto;
-    color: var(--ink-hi);
+    color: transparent;
+    caret-color: var(--ink-hi);
     resize: none;
     outline: none;
   }
+  .vibe-input-mirror {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow-y: auto;
+    pointer-events: none;
+    color: var(--ink-hi);
+    margin: 0;
+  }
+  /* Empty mirror shows nothing; the textarea's own ::placeholder handles the
+     hint so we don't double up. */
+  .vibe-input-mirror:empty { display: none; }
+  .vibe-fillin {
+    color: var(--accent);
+    font-weight: 600;
+    background: var(--accent-soft);
+    border-radius: 4px;
+    padding: 0 2px;
+  }
   .vibe-input::placeholder { color: var(--ink-low); }
+  /* When a stem auto-selects the fill-in token, keep that selection blue too. */
+  .vibe-input::selection { background: rgba(99, 102, 241, 0.22); }
 
   /* Empty state: no conversation yet. Collapse the blank chat scroll and let
      the composer grow to fill the panel as one big writing box. */
@@ -3800,6 +3886,7 @@
     flex: 1 1 auto;
     align-items: stretch;
   }
+  .vibe-left.is-empty .vibe-input-wrap { height: 100%; }
   .vibe-left.is-empty .vibe-input {
     max-height: none;
     height: 100%;
@@ -4361,17 +4448,27 @@
     flex-direction: column;
     gap: 16px;
   }
+  /* One continuous toolbar across the top — never wraps to a second line.
+     If the viewport is too narrow to hold every group, the bar scrolls
+     horizontally (slim styled scrollbar) instead of stacking. */
   .idea-toolbar {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
     padding: 8px 12px;
     background: var(--bg-1);
     border: 1px solid var(--border);
     border-radius: 12px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    scrollbar-width: thin;
   }
+  .idea-toolbar::-webkit-scrollbar { height: 6px; }
+  .idea-toolbar::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; }
+  .idea-toolbar::-webkit-scrollbar-track { background: transparent; }
+  .idea-toolbar > * { flex-shrink: 0; }
   .idea-toolbar-group {
     display: flex;
     align-items: center;
@@ -5088,8 +5185,8 @@
     6: 'MldHiSD54Jw',
     7: '24ByEWUmJ3g',
     8: 'fB7eejt7Vw0',
-    9: '',
-    10: ''
+    9: 'cisdY-8hQPI',
+    10: 't6n-177CuIo'
   };
   const HOMEWORK = Array.from({ length: 10 }, (_, i) => {
     const week = i + 1;
@@ -7845,9 +7942,9 @@
   let _progressHomework = {}; // { studentName: Set(weekId) }
 
   const PROG_CHECK_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path class="prog-check-path" d="M5 12l5 5 9-11"/></svg>`;
-  // Incomplete capstone (Instructable) pip uses the same adaptive-switch glyph
-  // as the splash-page capstone card.
-  const PROG_FLAG_SVG = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.8" fill="currentColor" stroke="none"/></svg>`;
+  // Incomplete capstone (Instructable) pip shows a finish-line flag — it reads
+  // as "the end of the track" rather than just another empty circle.
+  const PROG_FLAG_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 5c3-1.6 5.5 1.4 8.5 0S18 5.4 19 5v8.5c-1 .4-2.5 1.4-5.5 0s-5.5-1.6-8.5 0"/></svg>`;
 
   function findBenchmarkById(id) {
     for (const p of PROJECTS) {
@@ -7958,9 +8055,14 @@
       PROJECTS.forEach(p => p.benchmarks.forEach(b => { if (done.has(b.id)) ownDone++; }));
       const isMe = myName && name.toLowerCase() === myName.toLowerCase();
 
+      const pct = totalBench ? Math.round(ownDone / totalBench * 100) : 0;
       html += `<article class="prog-card${isMe ? ' is-you' : ''}">
         <header class="prog-card-head">
           <h3 class="prog-card-name">${escapeHtml(name)}${isMe ? '<span class="prog-card-you">You</span>' : ''}</h3>
+          <div class="prog-card-meter" title="${ownDone} of ${totalBench} project steps complete">
+            <span class="prog-card-meter-num">${ownDone}<span class="prog-card-meter-den"> / ${totalBench}</span></span>
+            <span class="prog-card-meter-bar"><i style="width:${pct}%"></i></span>
+          </div>
         </header>
         <ul class="prog-card-rows">`;
 
@@ -7969,10 +8071,9 @@
         const subtitle = p.title.replace(/^[^:]+:\s*/, '');
         const rowFinalCls = p.id === 'final' ? ' is-final' : '';
         html += `<li class="prog-card-row${rowFinalCls}">
-          <div class="prog-card-row-label">
-            <span class="prog-card-row-prefix">${escapeHtml(prefix)}</span>
-            <span class="prog-card-row-title">${escapeHtml(subtitle)}</span>
-          </div>
+          <span class="prog-card-row-prefix">${escapeHtml(prefix)}</span>
+          <span class="prog-card-row-title">${escapeHtml(subtitle)}</span>
+          <span class="prog-card-row-lead"></span>
           <div class="prog-card-row-dots">`;
         p.benchmarks.forEach((b, idx) => {
           const isFinalPip = b.id === 'instructable';
@@ -7992,6 +8093,7 @@
       const hwDone = _progressHomework[name] || new Set();
       html += `<div class="prog-card-hw">
         <span class="prog-card-hw-label">Homework</span>
+        <span class="prog-card-hw-lead"></span>
         <div class="prog-card-hw-dots">`;
       HOMEWORK.forEach(w => {
         const isDone = hwDone.has(w.id);
@@ -10763,7 +10865,10 @@
           </div>
           <div class="vibe-input-row">
             <div class="vibe-composer">
-              <textarea class="vibe-input" id="vibeInput" rows="3" spellcheck="true" aria-label="Describe what your controller should do" placeholder="Describe what your controller should do — e.g. 'press W when the big button is held'"></textarea>
+              <div class="vibe-input-wrap">
+                <div class="vibe-input-mirror" id="vibeInputMirror" aria-hidden="true"></div>
+                <textarea class="vibe-input" id="vibeInput" rows="3" spellcheck="true" aria-label="Describe what your controller should do" placeholder="Describe what your controller should do — e.g. 'press W when the big button is held'"></textarea>
+              </div>
               <button class="vibe-send-btn" id="vibeSend" aria-label="Send" disabled>
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 2 L11 13"/>
@@ -10877,6 +10982,8 @@
       vibeAutoGrow(inputEl);
       vibeUpdateSendEnabled();
     });
+    inputEl.addEventListener('scroll', () => vibeSyncMirror(inputEl));
+    vibeSyncMirror(inputEl);
     vibeUpdateSendEnabled();
 
     document.getElementById('vibeClearEditor').addEventListener('click', () => {
@@ -11049,9 +11156,30 @@
     if (!el) return;
     // In the empty state the composer fills the panel via flex, so don't pin
     // an inline height (that would shrink the big writing box as you type).
-    if (el.closest('.vibe-left.is-empty')) { el.style.height = ''; return; }
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 220) + 'px';
+    if (!el.closest('.vibe-left.is-empty')) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 220) + 'px';
+    } else {
+      el.style.height = '';
+    }
+    vibeSyncMirror(el);
+  }
+  // Repaint the visible mirror layer to match the (transparent) textarea,
+  // wrapping any <FILL-IN> token in a blue chip so students see exactly what
+  // to replace. Keeps the mirror scrolled in lock-step with the textarea.
+  function vibeSyncMirror(el) {
+    const mirror = document.getElementById('vibeInputMirror');
+    if (!mirror || !el) return;
+    const raw = el.value || '';
+    // Escape first, then highlight <...> tokens on the escaped string.
+    const safe = raw
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const html = safe.replace(/&lt;[^&]*?&gt;/g, m => `<span class="vibe-fillin">${m}</span>`);
+    // Trailing newline needs a spacer so the mirror's last line has height.
+    mirror.innerHTML = html + (raw.endsWith('\n') ? '\n&#8203;' : '');
+    mirror.scrollTop = el.scrollTop;
   }
   function vibeUpdateSendEnabled() {
     const inp = document.getElementById('vibeInput');
@@ -11236,13 +11364,13 @@
   // pre-selected so the student types right over it. No HTML span tricks.
   const VIBE_STEMS = [
     {
-      label: 'Build for me',
+      label: 'Build',
       primary: true,
       text: "Build Arduino code for my adaptive controller that does this: <DESCRIBE THE BEHAVIOR>. Explain how to wire it and which pins to use.",
       placeholder: '<DESCRIBE THE BEHAVIOR>'
     },
     {
-      label: 'Debug this',
+      label: 'Debug',
       text: "My code isn't working right. Here's what's happening: <DESCRIBE WHAT'S WRONG>. The code is in my editor. Find the bug and fix it.",
       placeholder: "<DESCRIBE WHAT'S WRONG>"
     }
