@@ -121,9 +121,9 @@
     max-width: 640px;
   }
 
-  /* Culminating project — the "Final Project: Instructable" capstone hero.
-     A bright emerald arrival banner that anchors the bottom of the page,
-     set well apart from Project 4 so it reads as the finale, not a row. */
+  /* Final Project — the "Final Project: Instructable" capstone hero.
+     Shares the indigo accent palette and finish-flag glyph with the Progress
+     page's final pip so the two read as the same milestone across the app. */
   .project.is-standalone {
     margin-top: 40px;
   }
@@ -132,26 +132,26 @@
     border-radius: 18px;
     padding: 26px 30px 22px;
     cursor: pointer;
-    border: 1px solid rgba(16, 185, 129, 0.28);
+    border: 1px solid rgba(99, 102, 241, 0.30);
     background: var(--bg-1);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.08);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.08);
     transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   }
   .capstone-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(16, 185, 129, 0.45);
-    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.15);
+    border-color: rgba(99, 102, 241, 0.50);
+    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.16);
   }
   .capstone-card.done {
-    border-color: rgba(16, 185, 129, 0.55);
-    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(99, 102, 241, 0.55);
+    background: rgba(99, 102, 241, 0.05);
   }
   .capstone-eyebrow {
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #047857;
+    color: var(--accent);
     margin-bottom: 5px;
   }
   .capstone-check {
@@ -161,7 +161,7 @@
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    border: 2px solid rgba(16, 185, 129, 0.5);
+    border: 2px solid rgba(99, 102, 241, 0.5);
     background: rgba(255, 255, 255, 0.6);
     cursor: pointer;
     padding: 0;
@@ -196,8 +196,8 @@
     border-radius: 13px;
     display: grid;
     place-items: center;
-    color: #047857;
-    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent);
+    background: var(--accent-soft);
   }
   .capstone-title {
     margin: 2px 0 6px;
@@ -220,14 +220,14 @@
     gap: 14px;
     margin-top: 20px;
     padding-top: 18px;
-    border-top: 1px solid rgba(16, 185, 129, 0.18);
+    border-top: 1px solid rgba(99, 102, 241, 0.20);
   }
   .capstone-points {
     font-size: 13px;
     font-weight: 800;
-    color: #047857;
-    background: rgba(16, 185, 129, 0.14);
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--accent);
+    background: rgba(99, 102, 241, 0.14);
+    border: 1px solid rgba(99, 102, 241, 0.30);
     border-radius: 999px;
     padding: 5px 13px;
   }
@@ -238,7 +238,7 @@
     gap: 8px;
     font-size: 14px;
     font-weight: 700;
-    color: #047857;
+    color: var(--accent);
   }
   .capstone-arrow { transition: transform 0.18s ease; }
   .capstone-card:hover .capstone-arrow { transform: translateX(4px); }
@@ -5819,12 +5819,12 @@
           <div class="capstone-main">
             <div class="capstone-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="7.5"/>
-                <circle cx="12" cy="12" r="2.8" fill="currentColor" stroke="none"/>
+                <path d="M5 21V4"/>
+                <path d="M5 5c3-1.6 5.5 1.4 8.5 0S18 5.4 19 5v8.5c-1 .4-2.5 1.4-5.5 0s-5.5-1.6-8.5 0"/>
               </svg>
             </div>
             <div class="capstone-text">
-              <div class="capstone-eyebrow">Culminating Project</div>
+              <div class="capstone-eyebrow">Final Project</div>
               <h2 class="capstone-title">${escapeHtml(b.title)}</h2>
               ${project.goal ? `<p class="capstone-goal">${escapeHtml(project.goal)}</p>` : ''}
             </div>
@@ -13733,20 +13733,28 @@
     };
     setStatus('Loading 3D engine…');
     try {
-      const [modeling, ioStl, three, orbitMod, stlLoaderMod] = await Promise.all([
+      // @jscad/io is the umbrella package exporting stlSerializer; the direct
+      // package is @jscad/stl-serializer. Pull from the direct package to keep
+      // the bundle tight and avoid the umbrella's transitive serializers.
+      const [modeling, stlMod, three, orbitMod, stlLoaderMod] = await Promise.all([
         import('https://esm.sh/@jscad/modeling@2.12.0'),
-        import('https://esm.sh/@jscad/io@2.5.0/stl-serializer'),
+        import('https://esm.sh/@jscad/stl-serializer@2.1.11'),
         import('https://esm.sh/three@0.158.0'),
         import('https://esm.sh/three@0.158.0/examples/jsm/controls/OrbitControls.js'),
         import('https://esm.sh/three@0.158.0/examples/jsm/loaders/STLLoader.js')
       ]);
-      // Some bundlers expose default vs namespace; normalize.
       const modelingNs = modeling.default || modeling;
-      const stlNs = ioStl.default || ioStl;
+      const stlNs = stlMod.default || stlMod;
       const threeNs = three.default || three;
+      const serialize = (typeof stlNs.serialize === 'function')
+        ? stlNs.serialize
+        : (stlNs.stlSerializer && stlNs.stlSerializer.serialize);
+      if (typeof serialize !== 'function') {
+        throw new Error('STL serializer not found in module bundle.');
+      }
       _cad.engine = {
         modeling: modelingNs,
-        stlSerialize: stlNs.serialize,
+        stlSerialize: serialize,
         THREE: threeNs,
         OrbitControls: orbitMod.OrbitControls,
         STLLoader: stlLoaderMod.STLLoader
@@ -14276,7 +14284,9 @@ module.exports = { main }`
     if (mode === 'wizard') {
       head.textContent = 'Wizard — pick a template, tune the numbers';
       renderCadWizardPanel(panel);
-      cadRunFromCurrent(cadCurrentWizardCode());
+      // Only auto-render if the engine is already booted; otherwise the engine
+      // loader's own callback will kick the first render when it's ready.
+      if (_cad.engine) cadRunFromCurrent(cadCurrentWizardCode());
     } else if (mode === 'ai') {
       head.textContent = 'AI Build — describe what you need';
       renderCadAiPanel(panel);
@@ -14340,14 +14350,16 @@ module.exports = { main }`
       }
     });
 
-    // Boot: ensure default wizard params, build the scene, render the default
-    // template, then drop the loading overlay.
+    // Render the left-panel UI right away so the wizard's templates and
+    // inputs are visible while the 3D engine is still loading. Then boot the
+    // engine in the background and kick the first render when it's ready.
     _cad.wizParams = cadDefaultWizParams(_cad.wizActive);
+    cadSetMode(_cad.mode || 'wizard');
     cadLoadEngine().then(() => {
       cadBuildScene(document.getElementById('cadViewer'));
       const loading = document.getElementById('cadViewerLoading');
       if (loading) loading.remove();
-      cadSetMode(_cad.mode || 'wizard');
+      if (_cad.mode === 'wizard') cadRunFromCurrent(cadCurrentWizardCode());
     }).catch((err) => {
       cadSetStatus('Engine failed: ' + (err.message || err), 'error');
     });
