@@ -1133,6 +1133,13 @@
   .syllabus-card p + p { margin-top: 10px; }
   .syllabus-card p + ul,
   .syllabus-card ul + p { margin-top: 8px; }
+  .syllabus-card a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.30);
+    transition: border-color 0.15s ease;
+  }
+  .syllabus-card a:hover { border-bottom-color: var(--accent); }
   .syllabus-card em {
     color: var(--ink-low);
     font-style: italic;
@@ -16182,8 +16189,10 @@ module.exports = { main }`
         </article>
 
         <article class="syllabus-card">
-          <h3 class="syllabus-card-title">Office hours &amp; contact</h3>
-          <p><em>Placeholder.</em> Drop instructor name, room number, office hours, and email here.</p>
+          <h3 class="syllabus-card-title">Instructor</h3>
+          <p><strong>Ramsey Musallam, EdD</strong><br />
+          <a href="mailto:ramsey.musallam@sonomaacademy.org">ramsey.musallam@sonomaacademy.org</a></p>
+          <p><em>Office hours and room number to come.</em></p>
         </article>
       </div>
     `;
