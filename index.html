@@ -871,6 +871,86 @@
     border: 0;
   }
 
+  /* Project 0 grounding-video panel: video on the left, writer on the right
+     so a student can watch and write at the same time. Stacks below ~720px. */
+  .vs-panel { padding: 0; background: transparent; border: none; box-shadow: none; }
+  .vs-pair {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 20px;
+    align-items: start;
+  }
+  .vs-media {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 16 / 9;
+    box-shadow: 0 6px 18px rgba(17, 17, 17, 0.08);
+  }
+  .vs-media iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  .vs-media--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+    aspect-ratio: 16 / 9;
+  }
+  .vs-write {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+  .vs-prompt {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-mid);
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+  }
+  .vs-textarea {
+    width: 100%;
+    min-height: 200px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--ink-hi);
+    background: white;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .vs-textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+  .vs-textarea::placeholder { color: var(--ink-low); }
+  .vs-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  @media (max-width: 720px) {
+    .vs-pair { grid-template-columns: 1fr; gap: 14px; }
+    .vs-textarea { min-height: 160px; }
+  }
+
   .links a {
     display: inline-block;
     background: rgba(0, 0, 0, 0.05);
@@ -9012,14 +9092,15 @@
         });
       });
     }
-    // Video — heading reads "Video" for grounding videos (Project 0) and
-    // "Helper Video" for benchmarks that have a tutorial alongside steps.
-    if (b.videoUrl) {
+    // Video — for grounding videos (Project 0), the player is embedded inside
+    // the side-by-side "Watch + write" section below, so it sits next to the
+    // textarea instead of taking the full modal width. For everything else
+    // (helper videos accompanying tutorial steps), render here as before.
+    if (b.videoUrl && !b.summaryPrompt) {
       const sec = document.createElement('div');
       sec.className = 'modal-section';
-      const vidHeading = b.summaryPrompt ? 'Video' : 'Helper Video';
       sec.innerHTML = `
-        <h3>${badge()}${vidHeading}</h3>
+        <h3>${badge()}Helper Video</h3>
         <div class="video-wrap">
           <iframe src="${b.videoUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
@@ -9064,7 +9145,7 @@
     const isVideoSummary = !!b.summaryPrompt;
     const portfolioSec = document.createElement('div');
     portfolioSec.className = 'modal-section';
-    const submitHeading = isVideoSummary ? 'Write your summary'
+    const submitHeading = isVideoSummary ? 'Watch + write'
       : isInstructable ? 'Drop your Instructable link'
       : isPortfolioDrop ? 'Portfolio Drop'
       : 'Submit evidence + reflection';
@@ -10745,16 +10826,23 @@
   // the benchmark, and refreshes the count badge.
   function buildVideoSummaryPanel(b) {
     const panel = document.createElement('div');
-    panel.className = 'portfolio-panel checkpoint-panel';
+    panel.className = 'portfolio-panel checkpoint-panel vs-panel';
+    const videoSrc = b.videoUrl ? `${b.videoUrl}${b.videoUrl.includes('?') ? '&' : '?'}rel=0&modestbranding=1&playsinline=1` : '';
+    const mediaHtml = videoSrc
+      ? `<div class="vs-media"><iframe src="${videoSrc}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
+      : `<div class="vs-media vs-media--empty"><span>Video coming soon</span></div>`;
     panel.innerHTML = `
-      <div data-vs-namepicker></div>
-      <div class="cp-section">
-        ${b.summaryPrompt ? `<p class="vid-card-prompt">${escapeHtml(b.summaryPrompt)}</p>` : ''}
-        <textarea class="vid-summary" data-vs-text rows="5" maxlength="1500" placeholder="Write your summary here..."></textarea>
-      </div>
-      <div class="pf-actions">
-        <span class="vid-saved" data-vs-saved></span>
-        <button class="pf-submit" data-vs-save type="button">Save summary</button>
+      <div class="vs-pair">
+        ${mediaHtml}
+        <div class="vs-write">
+          <div data-vs-namepicker></div>
+          ${b.summaryPrompt ? `<p class="vs-prompt">${escapeHtml(b.summaryPrompt)}</p>` : ''}
+          <textarea class="vs-textarea" data-vs-text rows="8" maxlength="1500" placeholder="Write your summary here..."></textarea>
+          <div class="pf-actions vs-actions">
+            <span class="vid-saved" data-vs-saved></span>
+            <button class="pf-submit" data-vs-save type="button">Save summary</button>
+          </div>
+        </div>
       </div>
     `;
 
