@@ -4651,45 +4651,85 @@
      CAD TOOL — Wizard / AI Build / Code, sharing one JSCAD + Three.js
      engine. Lazy-loaded on first open so the rest of the hub stays
      light. Lives inside the standard /tools/* shell. */
+  /* Tinkercad-style layout: viewport-bounded canvas takes the main area, a
+     thin right rail holds Shapes + AI tabs that scroll independently. */
   .cad-wrap {
     display: flex;
     flex-direction: column;
     gap: 14px;
-  }
-  .cad-tabs {
-    display: inline-flex;
-    align-self: flex-start;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 4px;
-    gap: 2px;
-  }
-  .cad-tab {
-    background: transparent;
-    border: none;
-    padding: 8px 18px;
-    font: inherit;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--ink-mid);
-    border-radius: 9px;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-  .cad-tab:hover { color: var(--ink-hi); }
-  .cad-tab.is-active {
-    background: var(--accent);
-    color: white;
-    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.22);
+    /* Lock the whole working area to the visible viewport so scrolling inside
+       the sidebar never moves the canvas (or the page). */
+    height: calc(100vh - 200px);
+    min-height: 540px;
   }
   .cad-grid {
     display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-columns: minmax(0, 1fr) 320px;
     gap: 14px;
     align-items: stretch;
-    min-height: 560px;
+    flex: 1 1 auto;
+    min-height: 0;
   }
+  .cad-side {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .cad-side-tabs {
+    display: flex;
+    padding: 6px;
+    gap: 4px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .cad-side-tab {
+    flex: 1 1 0;
+    background: transparent;
+    border: none;
+    padding: 6px 0;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: var(--ink-mid);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .cad-side-tab:hover { color: var(--ink-hi); }
+  .cad-side-tab.is-active {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 2px 5px rgba(99, 102, 241, 0.22);
+  }
+  .cad-side-head {
+    padding: 9px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-1);
+  }
+  .cad-side-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+    scrollbar-width: thin;
+  }
+  .cad-side-body::-webkit-scrollbar { width: 6px; }
+  .cad-side-body::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; }
+  .cad-side-body::-webkit-scrollbar-track { background: transparent; }
   .cad-panel {
     background: white;
     border: 1px solid var(--border);
@@ -4856,24 +4896,24 @@
   .cad-status.is-error { color: #b91c1c; font-weight: 600; }
   .cad-status.is-good { color: #047857; font-weight: 600; }
 
-  /* ---- Wizard mode ---- */
+  /* ---- Shapes panel (dense, sidebar-friendly) ---- */
   .cad-wiz-templates {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
   }
   .cad-wiz-template {
     background: var(--bg-2);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
+    border-radius: 8px;
+    padding: 8px 10px;
     text-align: left;
     cursor: pointer;
     font: inherit;
     transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    min-height: 44px;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
   }
   .cad-wiz-template:hover { background: white; border-color: var(--accent); }
   .cad-wiz-template.is-active {
@@ -4881,21 +4921,23 @@
     border-color: var(--accent);
   }
   .cad-wiz-template-title {
-    font-size: 13.5px;
-    font-weight: 700;
+    font-size: 12px;
+    font-weight: 600;
     color: var(--ink-hi);
+    line-height: 1.25;
   }
+  /* The blurb still lives in the DOM (for accessibility and as a tooltip via
+     `title`), but it doesn't show in the dense layout. */
   .cad-wiz-template-blurb {
-    font-size: 11.5px;
-    color: var(--ink-low);
-    line-height: 1.4;
+    display: none;
   }
   .cad-wiz-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 9px;
     border-top: 1px dashed var(--border);
-    padding-top: 14px;
+    padding-top: 12px;
+    margin-top: 4px;
   }
   .cad-wiz-row {
     display: grid;
@@ -14870,7 +14912,7 @@ module.exports = { main }`
         <h4 class="cad-wiz-cat">${escapeHtml(cat.label)}</h4>
         <div class="cad-wiz-templates">
           ${entries.map(([key, tpl]) => `
-            <button type="button" class="cad-wiz-template ${key === _cad.wizActive ? 'is-active' : ''}" data-wiz="${key}">
+            <button type="button" class="cad-wiz-template ${key === _cad.wizActive ? 'is-active' : ''}" data-wiz="${key}" title="${escapeHtml(tpl.blurb)}">
               <span class="cad-wiz-template-title">${escapeHtml(tpl.title)}</span>
               <span class="cad-wiz-template-blurb">${escapeHtml(tpl.blurb)}</span>
             </button>`).join('')}
@@ -15001,18 +15043,18 @@ module.exports = { main }`
 
   function cadSetMode(mode) {
     _cad.mode = mode;
-    document.querySelectorAll('.cad-tab').forEach(t => t.classList.toggle('is-active', t.dataset.cadMode === mode));
+    document.querySelectorAll('.cad-side-tab').forEach(t => t.classList.toggle('is-active', t.dataset.cadMode === mode));
     const panel = document.getElementById('cadLeftBody');
     const head = document.getElementById('cadLeftHead');
     if (!panel || !head) return;
     if (mode === 'wizard') {
-      head.textContent = 'Templates — pick a part, tune the numbers';
+      head.textContent = 'Pick a part, tune the numbers';
       renderCadWizardPanel(panel);
       // Only auto-render if the engine is already booted; otherwise the engine
       // loader's own callback will kick the first render when it's ready.
       if (_cad.engine) cadRunFromCurrent(cadCurrentWizardCode());
     } else if (mode === 'ai') {
-      head.textContent = 'AI Build — describe what you need';
+      head.textContent = 'Describe what you need';
       renderCadAiPanel(panel);
     }
   }
@@ -15025,15 +15067,7 @@ module.exports = { main }`
       <h2 class="project-title">CAD Tool</h2>
       <p class="project-blurb">Design 3D-printable parts for your adaptive controller — enclosures, brackets, mounts. Pick a template, talk to AI, or write parametric code. Live preview on the right, one-click STL export.</p>
       <div class="cad-wrap">
-        <div class="cad-tabs" role="tablist">
-          <button type="button" class="cad-tab is-active" data-cad-mode="wizard" role="tab">Templates</button>
-          <button type="button" class="cad-tab" data-cad-mode="ai" role="tab">AI Build</button>
-        </div>
         <div class="cad-grid">
-          <div class="cad-panel">
-            <div class="cad-panel-head" id="cadLeftHead">Templates — pick a part, tune the numbers</div>
-            <div class="cad-panel-body" id="cadLeftBody"></div>
-          </div>
           <div class="cad-panel" id="cadPanel">
             <div class="cad-viewer-head">
               <button type="button" class="cad-btn" id="cadBtnRun" title="Re-render the current part">Run</button>
@@ -15068,12 +15102,20 @@ module.exports = { main }`
               </div>
             </div>
           </div>
+          <aside class="cad-side" id="cadSide">
+            <div class="cad-side-tabs" role="tablist">
+              <button type="button" class="cad-side-tab is-active" data-cad-mode="wizard" role="tab">Shapes</button>
+              <button type="button" class="cad-side-tab" data-cad-mode="ai" role="tab">AI</button>
+            </div>
+            <div class="cad-side-head" id="cadLeftHead">Pick a part, tune the numbers</div>
+            <div class="cad-side-body" id="cadLeftBody"></div>
+          </aside>
         </div>
       </div>
     `;
     app.appendChild(wrap);
 
-    document.querySelectorAll('.cad-tab').forEach(b => {
+    document.querySelectorAll('.cad-side-tab').forEach(b => {
       b.addEventListener('click', () => cadSetMode(b.dataset.cadMode));
     });
     document.getElementById('cadBtnExportStl').addEventListener('click', cadExportStl);
