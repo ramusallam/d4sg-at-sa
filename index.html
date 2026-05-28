@@ -2506,6 +2506,92 @@
     font-size: 14px;
     padding: 20px 0;
   }
+
+  /* ===== Summary splashboard (Project 0 class submissions) =====
+     All student summaries for a video, consolidated into one compact board
+     instead of one expandable dropdown per student. Rows clamp to two lines;
+     click to expand. "Download PDF" exports every summary as one document. */
+  .sb-board {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-1);
+    overflow: hidden;
+  }
+  .sb-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .sb-count {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+  }
+  .sb-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 13px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .sb-download:hover { background: var(--accent-hover); }
+  .sb-download svg { width: 15px; height: 15px; }
+  .sb-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .sb-row {
+    padding: 11px 14px;
+    border-top: 1px solid rgba(17, 17, 17, 0.05);
+  }
+  .sb-row:first-child { border-top: none; }
+  .sb-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .sb-row-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink-hi);
+  }
+  .sb-row-toggle {
+    color: var(--ink-low);
+    font-size: 13px;
+    transition: transform 0.18s ease;
+    flex-shrink: 0;
+  }
+  .sb-row.is-open .sb-row-toggle { transform: rotate(180deg); }
+  .sb-row-text {
+    margin: 5px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--paper-ink);
+    white-space: pre-wrap;
+  }
+  .sb-row-text.is-clamped {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
   .pf-row {
     background: white;
     border: 1px solid var(--border);
@@ -5175,7 +5261,9 @@
   ];
 
   // ============== HOMEWORK ==============
-  // 10 weeks of CAD homework. Add a YouTube video ID per week as Ramsey feeds them in.
+  // CAD homework, one week per video. Add a YouTube video ID here as Ramsey
+  // feeds them in — the homework list auto-grows to the highest week number,
+  // so dropping in a new ID is all it takes to add a week.
   const HW_VIDEO_IDS = {
     1: 'DtlmVaoMNMc',
     2: 'R3ZQIJMH0-8',
@@ -5186,9 +5274,12 @@
     7: '24ByEWUmJ3g',
     8: 'fB7eejt7Vw0',
     9: 'cisdY-8hQPI',
-    10: 't6n-177CuIo'
+    10: 't6n-177CuIo',
+    11: 'I9i0ZHkBIzc',
+    12: '6SotaBpeogc'
   };
-  const HOMEWORK = Array.from({ length: 10 }, (_, i) => {
+  const HW_WEEKS = Math.max(...Object.keys(HW_VIDEO_IDS).map(Number));
+  const HOMEWORK = Array.from({ length: HW_WEEKS }, (_, i) => {
     const week = i + 1;
     const id = HW_VIDEO_IDS[week];
     return {
@@ -5312,7 +5403,7 @@
               const items = [];
               snap.forEach(d => items.push({ id: d.id, ...d.data() }));
               items.sort((a, z) => (a.studentName || '').localeCompare(z.studentName || '', undefined, { sensitivity: 'base' }));
-              renderPortfolioGallery(galleryEl, items, { readOnly: true });
+              renderSummaryBoard(galleryEl, items, b);
             } catch (e) {
               galleryEl.innerHTML = `<div class="pf-gallery-empty">Could not load submissions.</div>`;
             }
@@ -9988,6 +10079,95 @@
       console.error('portfolio subscribe error', err);
       grid.innerHTML = `<div class="pf-gallery-empty">Could not load portfolios.</div>`;
     });
+  }
+
+  // Compact "splashboard" of every student's summary for a video benchmark.
+  // Replaces the one-dropdown-per-student gallery in Project 0 so a teacher can
+  // scan the whole class at once and export them all to a single PDF.
+  function renderSummaryBoard(mount, items, bench) {
+    if (!mount) return;
+    const rows = (items || [])
+      .map(it => ({
+        name: (it.studentName || 'Unnamed').trim(),
+        text: ((it.slots && it.slots.summary && it.slots.summary.text) || '').trim()
+      }))
+      .filter(r => r.text)
+      .sort((a, z) => a.name.localeCompare(z.name, undefined, { sensitivity: 'base' }));
+
+    if (!rows.length) {
+      mount.innerHTML = `<div class="pf-gallery-empty">No summaries submitted yet.</div>`;
+      return;
+    }
+
+    const dlIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>';
+    mount.innerHTML = `
+      <div class="sb-board">
+        <div class="sb-head">
+          <span class="sb-count">${rows.length} ${rows.length === 1 ? 'summary' : 'summaries'}</span>
+          <button type="button" class="sb-download" data-sb-download>${dlIcon}<span>Download PDF</span></button>
+        </div>
+        <ul class="sb-list">
+          ${rows.map((r, i) => `
+            <li class="sb-row" data-sb-row="${i}">
+              <div class="sb-row-head" data-sb-head>
+                <span class="sb-row-name">${escapeHtml(r.name)}</span>
+                <span class="sb-row-toggle">⌄</span>
+              </div>
+              <p class="sb-row-text is-clamped">${escapeHtml(r.text)}</p>
+            </li>`).join('')}
+        </ul>
+      </div>`;
+
+    mount.querySelectorAll('.sb-row').forEach(row => {
+      row.querySelector('[data-sb-head]').addEventListener('click', () => {
+        row.classList.toggle('is-open');
+        row.querySelector('.sb-row-text').classList.toggle('is-clamped');
+      });
+    });
+    const dl = mount.querySelector('[data-sb-download]');
+    if (dl) dl.addEventListener('click', () => downloadSummariesPdf(bench, rows));
+  }
+
+  async function downloadSummariesPdf(bench, rows) {
+    try {
+      await vibeLoadJsPdf();
+      const { jsPDF } = window.jspdf;
+      const docp = new jsPDF({ unit: 'pt', format: 'letter' });
+      const pageW = docp.internal.pageSize.getWidth();
+      const pageH = docp.internal.pageSize.getHeight();
+      const mx = 54, my = 60, maxW = pageW - mx * 2;
+      let y = my;
+      docp.setFont('helvetica', 'bold');
+      docp.setFontSize(16);
+      docp.text(`${bench && bench.title ? bench.title : 'Video'} — Class Summaries`, mx, y);
+      y += 20;
+      docp.setFont('helvetica', 'normal');
+      docp.setFontSize(9);
+      docp.setTextColor(120);
+      docp.text(`${new Date().toLocaleString()}  ·  ${rows.length} student${rows.length === 1 ? '' : 's'}`, mx, y);
+      y += 24;
+      docp.setTextColor(0);
+      rows.forEach(r => {
+        if (y + 18 > pageH - my) { docp.addPage(); y = my; }
+        docp.setFont('helvetica', 'bold');
+        docp.setFontSize(12);
+        docp.text(r.name, mx, y);
+        y += 16;
+        docp.setFont('helvetica', 'normal');
+        docp.setFontSize(10.5);
+        docp.splitTextToSize(r.text, maxW).forEach(line => {
+          if (y + 14 > pageH - my) { docp.addPage(); y = my; }
+          docp.text(line, mx, y);
+          y += 14;
+        });
+        y += 16;
+      });
+      const safe = (bench && bench.title ? bench.title : 'video')
+        .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      docp.save(`summaries-${safe || 'video'}.pdf`);
+    } catch (e) {
+      schemToast('Could not build the PDF.');
+    }
   }
 
   function renderPortfolioGallery(grid, items, opts = {}) {
