@@ -14371,9 +14371,11 @@ function main () {
   const wallH = ${p.wallH}, T = ${p.T}
   const switchSp = ${p.switchSp}, switchD = ${p.switchD}, mountD = ${p.mountD}
 
-  const base = roundedCuboid({ size: [baseW, baseD, T], roundRadius: 1.2, segments: 14, center: [0, 0, T/2] })
+  // roundRadius must stay under half of every dimension; T can be as low as 2.
+  const r = Math.max(0.3, Math.min(1.2, T/2 - 0.2))
+  const base = roundedCuboid({ size: [baseW, baseD, T], roundRadius: r, segments: 14, center: [0, 0, T/2] })
   // Vertical wall on the -Y edge.
-  const wall = roundedCuboid({ size: [baseW, T, wallH], roundRadius: 1.2, segments: 14, center: [0, -baseD/2 + T/2, wallH/2 + T] })
+  const wall = roundedCuboid({ size: [baseW, T, wallH], roundRadius: r, segments: 14, center: [0, -baseD/2 + T/2, wallH/2 + T] })
   const outer = union(base, wall)
 
   // Two base mounting holes near +Y edge.
@@ -14451,7 +14453,9 @@ function main () {
   const W = ${p.W}, L = ${p.L}, T = ${p.T}
   const slotW = ${p.slotW}, slotL = ${p.slotL}, slotDepth = ${p.slotDepth}
 
-  const pad = roundedCuboid({ size: [W, L, T], roundRadius: Math.min(W, L) * 0.18, segments: 28, center: [0,0,T/2] })
+  // roundRadius must stay below half of the smallest dimension (T is usually it).
+  const padRound = Math.max(0.5, Math.min(Math.min(W, L) * 0.18, T/2 - 0.2))
+  const pad = roundedCuboid({ size: [W, L, T], roundRadius: padRound, segments: 28, center: [0,0,T/2] })
   // Hidden switch pocket on the bottom face.
   const slot = cuboid({ size: [slotW, slotL, slotDepth + 0.1], center: [0, 0, slotDepth/2] })
   return subtract(pad, slot)
@@ -14520,7 +14524,9 @@ function main () {
   const cupR = ${p.cupR} / 2  // radius
   const cupDepth = ${p.cupDepth}
 
-  const pad = roundedCuboid({ size: [W, L, H], roundRadius: Math.min(W, L) * 0.20, segments: 32, center: [0,0,H/2] })
+  // roundRadius must stay under half of every dimension or JSCAD throws.
+  const padRound = Math.max(0.5, Math.min(Math.min(W, L) * 0.20, H/2 - 0.5))
+  const pad = roundedCuboid({ size: [W, L, H], roundRadius: padRound, segments: 32, center: [0,0,H/2] })
   // Sphere positioned so it bites only the top by 'cupDepth' mm.
   const dip = translate([0, 0, H + cupR - cupDepth], sphere({ radius: cupR, segments: 56 }))
   return subtract(pad, dip)
@@ -14553,7 +14559,9 @@ function main () {
   const w = ${p.w}, d = ${p.d}, t = ${p.t}
   const sx = ${p.spanX}, sy = ${p.spanY}, boltD = ${p.boltD}
 
-  const plate = roundedCuboid({ size: [w, d, t], roundRadius: 1.2, segments: 16, center: [0, 0, t/2] })
+  // Clamp roundRadius below half of the smallest dimension (t can be 1.5).
+  const r = Math.max(0.3, Math.min(1.2, t/2 - 0.2))
+  const plate = roundedCuboid({ size: [w, d, t], roundRadius: r, segments: 16, center: [0, 0, t/2] })
   const holeAt = (x, y) =>
     translate([x, y, t/2], cylinder({ radius: boltD/2, height: t + 1, segments: 36 }))
   return subtract(plate,
@@ -14587,7 +14595,8 @@ function main () {
   const armW = ${p.armW}, armH = ${p.armH}, armT = ${p.armT}
   const tiltDeg = ${p.tiltDeg}
 
-  const base = roundedCuboid({ size: [baseW, baseD, baseT], roundRadius: 1.2, segments: 14, center: [0,0,baseT/2] })
+  const baseR = Math.max(0.3, Math.min(1.2, baseT/2 - 0.2))
+  const base = roundedCuboid({ size: [baseW, baseD, baseT], roundRadius: baseR, segments: 14, center: [0,0,baseT/2] })
   // Arm built with its hinge edge at the origin (bottom-front), then rotated, then placed on +Y edge of base.
   const armRaw = cuboid({ size: [armW, armT, armH], center: [0, 0, armH/2] })
   const armRot = rotate([Math.PI * tiltDeg / 180, 0, 0], armRaw)
@@ -14657,7 +14666,9 @@ function main () {
   const w = ${p.w}, d = ${p.d}, h = ${p.h}
   const wallT = ${p.wallT}, round = ${p.round}
 
-  const outer = roundedCuboid({ size: [w, d, h], roundRadius: Math.max(0.5, round), segments: 20, center: [0, 0, h/2] })
+  // Clamp roundRadius below half of every dimension so it can't blow up.
+  const r = Math.max(0.5, Math.min(round, Math.min(w, d, h)/2 - 0.2))
+  const outer = roundedCuboid({ size: [w, d, h], roundRadius: r, segments: 20, center: [0, 0, h/2] })
   const inner = cuboid({ size: [w - 2*wallT, d - 2*wallT, h - wallT], center: [0, 0, (h - wallT)/2] })
   return subtract(outer, inner)
 }
@@ -14720,7 +14731,8 @@ function main () {
   const L = ${p.L}, W = ${p.W}, T = ${p.T}
   const cableD = ${p.cableD}, boltD = ${p.boltD}
 
-  const base = roundedCuboid({ size: [L, W, T], roundRadius: 1.0, segments: 14, center: [0, 0, T/2] })
+  const baseR = Math.max(0.3, Math.min(1.0, T/2 - 0.2))
+  const base = roundedCuboid({ size: [L, W, T], roundRadius: baseR, segments: 14, center: [0, 0, T/2] })
   const grooveZ = cylinder({ radius: cableD/2, height: L + 2, segments: 32 })
   const groove = translate([0, 0, T - cableD/2 + 0.4], rotate([0, Math.PI/2, 0], grooveZ))
   const screw = (x) => translate([x, 0, T/2], cylinder({ radius: boltD/2, height: T + 1, segments: 28 }))
@@ -14751,7 +14763,9 @@ function main () {
   const strapW = ${p.strapW}, slotL = ${p.slotL}
   const num = ${p.numStraps}
 
-  const plate = roundedCuboid({ size: [W, D, T], roundRadius: 2, segments: 18, center: [0,0,T/2] })
+  // roundRadius must be under half of every dimension; T (3mm default) drives it.
+  const plateRound = Math.max(0.4, Math.min(2, T/2 - 0.2))
+  const plate = roundedCuboid({ size: [W, D, T], roundRadius: plateRound, segments: 18, center: [0,0,T/2] })
   const slots = []
   for (let i = 0; i < num; i++) {
     const x = num === 1 ? 0 : (-(W - strapW * 2 - 8)/2 + i * (W - strapW * 2 - 8)/(num - 1))
@@ -14797,7 +14811,9 @@ function main () {
   const innerSocket = translate([0,0,knobH/2 + 0.5], cylinder({ radius: socketInnerR, height: knobH + 1, segments: 64 }))
 
   // Lever arm sticking out in +X, centered vertically on the socket.
-  const arm = roundedCuboid({ size: [armL, armW, armT], roundRadius: armW/3, segments: 18,
+  // roundRadius must stay under half of the smallest dimension or JSCAD throws.
+  const armRound = Math.max(0.5, Math.min(armW, armT) / 2 - 0.4)
+  const arm = roundedCuboid({ size: [armL, armW, armT], roundRadius: armRound, segments: 18,
     center: [socketOuterR + armL/2 - 1, 0, knobH/2] })
 
   // Vertical flex slot on -X side so the socket can spring onto the knob.
