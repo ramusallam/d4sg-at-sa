@@ -4949,25 +4949,52 @@
     color: var(--ink-hi);
   }
 
-  /* ---- Code mode ---- */
-  .cad-code-editor {
-    flex: 1 1 auto;
-    min-height: 320px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 12.5px;
-    line-height: 1.55;
-    background: var(--bg-1);
-    color: var(--ink-hi);
-    resize: vertical;
-    outline: none;
-    white-space: pre;
-    overflow: auto;
-    tab-size: 2;
+  /* ---- Template category heading inside the Templates panel ---- */
+  .cad-wiz-cat {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+    margin: 14px 0 -2px;
   }
-  .cad-code-editor:focus { border-color: var(--accent); }
+  .cad-wiz-cat:first-child { margin-top: 0; }
+
+  /* ---- Floating View Pad (Tinkercad-style face snapper) ---- */
+  .cad-view-pad {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: grid;
+    grid-template-columns: 32px 32px 32px;
+    gap: 4px;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .cad-view-pad button {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--ink-mid);
+    font: 700 10px/1 ui-sans-serif, system-ui, sans-serif;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.1s ease;
+    pointer-events: auto;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+  .cad-view-pad button:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: white;
+  }
+  .cad-view-pad button:active { transform: translateY(1px); }
+  .cad-view-pad .cad-view-pad-fit {
+    color: var(--accent);
+    border-color: var(--accent);
+    font-size: 14px;
+  }
 
   @media (max-width: 980px) {
     .cad-grid { grid-template-columns: 1fr; }
@@ -13846,12 +13873,84 @@
     box.getCenter(center);
     const maxDim = Math.max(size.x, size.y, size.z, 20);
     const dist = maxDim * 2.6;
-    _cad.controls.target.copy(center);
-    _cad.camera.position.set(center.x + dist * 0.65, center.y - dist * 0.85, center.z + dist * 0.55);
+    cadAnimateCamera(
+      new THREE.Vector3(center.x + dist * 0.65, center.y - dist * 0.85, center.z + dist * 0.55),
+      center
+    );
     _cad.camera.near = Math.max(0.5, dist * 0.01);
     _cad.camera.far = dist * 20;
     _cad.camera.updateProjectionMatrix();
-    _cad.controls.update();
+  }
+
+  // Smoothly fly the camera to a new position/target. Eases in-out so the
+  // transition feels like Tinkercad's ViewCube snap rather than a hard cut.
+  function cadAnimateCamera(toPos, toTarget, durationMs) {
+    if (!_cad.camera || !_cad.controls) return;
+    const { THREE } = _cad.engine;
+    const fromPos = _cad.camera.position.clone();
+    const fromTarget = _cad.controls.target.clone();
+    const target = toTarget ? new THREE.Vector3().copy(toTarget) : fromTarget;
+    const dur = durationMs || 380;
+    const t0 = performance.now();
+    const step = (now) => {
+      const u = Math.min(1, (now - t0) / dur);
+      // easeInOutQuad
+      const e = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+      _cad.camera.position.lerpVectors(fromPos, toPos, e);
+      _cad.controls.target.lerpVectors(fromTarget, target, e);
+      _cad.controls.update();
+      if (u < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  // Snap the camera to one of the standard views, Tinkercad-style. If there's
+  // a mesh, frame it; otherwise orbit the world origin.
+  function cadSetView(name) {
+    if (!_cad.camera || !_cad.controls) return;
+    const { THREE } = _cad.engine;
+    if (name === 'center') {
+      if (_cad.mesh) cadFitCameraToObject(_cad.mesh);
+      return;
+    }
+    // Anchor: the mesh's center if we have one, else the world origin.
+    let anchor = new THREE.Vector3(0, 0, 0);
+    let radius = 60;
+    if (_cad.mesh) {
+      const box = new THREE.Box3().setFromObject(_cad.mesh);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      box.getCenter(anchor);
+      radius = Math.max(size.x, size.y, size.z, 20) * 1.6;
+    }
+    const dirs = {
+      iso:    new THREE.Vector3( 1, -1.2,  0.85),
+      top:    new THREE.Vector3( 0,  0,    1.4),
+      bottom: new THREE.Vector3( 0,  0,   -1.4),
+      front:  new THREE.Vector3( 0, -1.4,  0.05),
+      back:   new THREE.Vector3( 0,  1.4,  0.05),
+      right:  new THREE.Vector3( 1.4, 0,   0.05),
+      left:   new THREE.Vector3(-1.4, 0,   0.05)
+    };
+    const d = (dirs[name] || dirs.iso).clone().normalize().multiplyScalar(radius);
+    const toPos = anchor.clone().add(d);
+    cadAnimateCamera(toPos, anchor);
+  }
+
+  // Wipe the rendered mesh and the stored code/STL. The build-plate grid and
+  // axes stay so the scene doesn't look broken. Disables Export until a new
+  // part is rendered.
+  function cadClearScene() {
+    if (_cad.mesh && _cad.scene) {
+      _cad.scene.remove(_cad.mesh);
+      _cad.mesh.geometry.dispose();
+      _cad.mesh.material.dispose();
+      _cad.mesh = null;
+    }
+    _cad.code = '';
+    _cad.stl = '';
+    cadClearError();
+    cadSetStatus('Scene cleared.', 'good');
   }
 
   // Run JSCAD source against the loaded @jscad/modeling, swap the result mesh
@@ -13960,9 +14059,23 @@
   // ---------- Wizard templates ----------
   // Each template returns the JSCAD source string for the configured params.
   // Code is written so the student can switch to Code mode and tweak it.
+  // Display order + label for the template categories. Templates are grouped
+  // by their `category` field at render time; new ones get a category here.
+  const CAD_CATEGORIES = [
+    { key: 'switches',  label: 'Switches & Buttons' },
+    { key: 'joystick',  label: 'Joystick & Pointer' },
+    { key: 'sensors',   label: 'Sensors & Mouth' },
+    { key: 'structure', label: 'Structure & Cabling' },
+    { key: 'grips',     label: 'Grips & Adaptations' }
+  ];
+
   const CAD_WIZ = {
+    // =========================================================
+    // SWITCHES & BUTTONS
+    // =========================================================
     buttonEnclosure: {
       title: 'Button Enclosure',
+      category: 'switches',
       blurb: 'Box with a panel-mount button on top and a cable hole in the back.',
       params: [
         { key: 'w', label: 'Width X (mm)',  type: 'number', value: 60, min: 25, max: 200, step: 1 },
@@ -13979,59 +14092,249 @@ const { translate, rotate } = transforms
 const { subtract } = booleans
 
 function main () {
-  // ===== Edit any number, then click Run =====
-  const w = ${p.w}        // X width, mm
-  const d = ${p.d}        // Y depth, mm
-  const h = ${p.h}        // Z height, mm
-  const wallT = ${p.wallT}   // wall thickness
-  const holeD = ${p.holeD}   // button hole diameter on top face
-  const cableD = ${p.cableD} // cable strain-relief hole on back face
-  // ============================================
+  const w = ${p.w}, d = ${p.d}, h = ${p.h}
+  const wallT = ${p.wallT}
+  const holeD = ${p.holeD}, cableD = ${p.cableD}
 
-  // Outer shell, slightly rounded corners, bottom resting on Z=0.
   const outer = roundedCuboid({ size: [w, d, h], roundRadius: 1.5, segments: 16, center: [0, 0, h/2] })
-  // Hollow it out (closed top, open bottom for assembly access).
   const inner = cuboid({ size: [w - 2*wallT, d - 2*wallT, h - wallT], center: [0, 0, (h - wallT)/2] })
-  // Button hole through the closed top face.
   const btnHole = cylinder({ radius: holeD/2, height: wallT + 2, segments: 48, center: [0, 0, h - wallT/2] })
-  // Cable strain relief on the back wall (positive Y).
-  const cableZ = cylinder({ radius: cableD/2, height: wallT + 4, segments: 32 })
-  const cableHole = translate([0, d/2, h/2], rotate([Math.PI/2, 0, 0], cableZ))
-
+  const cableHole = translate([0, d/2, h/2], rotate([Math.PI/2, 0, 0],
+    cylinder({ radius: cableD/2, height: wallT + 4, segments: 32 })))
   return subtract(outer, inner, btnHole, cableHole)
 }
 module.exports = { main }`
     },
 
-    projectBox: {
-      title: 'Project Box',
-      blurb: 'Plain hollow box for the Arduino + perfboard. No cutouts.',
+    largeSwitchDome: {
+      title: 'Large Switch Dome',
+      category: 'switches',
+      blurb: 'Big "Buddy button" style soft-touch switch shell. Cylindrical base with a domed top.',
       params: [
-        { key: 'w', label: 'Width X (mm)',  type: 'number', value: 80, min: 30, max: 200, step: 1 },
-        { key: 'd', label: 'Depth Y (mm)',  type: 'number', value: 55, min: 30, max: 200, step: 1 },
-        { key: 'h', label: 'Height Z (mm)', type: 'number', value: 30, min: 12, max: 80, step: 1 },
-        { key: 'wallT', label: 'Wall thickness (mm)', type: 'number', value: 2.0, min: 1.5, max: 5.0, step: 0.1 },
-        { key: 'round', label: 'Corner round (mm)', type: 'number', value: 2.0, min: 0, max: 6, step: 0.2 }
+        { key: 'outerD', label: 'Outer Ø (mm)', type: 'number', value: 80,  min: 50, max: 120, step: 1 },
+        { key: 'totalH', label: 'Total height (mm)', type: 'number', value: 30, min: 18, max: 50, step: 0.5 },
+        { key: 'wallT',  label: 'Wall thickness (mm)', type: 'number', value: 2.5, min: 1.6, max: 5, step: 0.1 },
+        { key: 'cableW', label: 'Cable exit width (mm)', type: 'number', value: 8, min: 3, max: 16, step: 0.5 },
+        { key: 'cableH', label: 'Cable exit height (mm)', type: 'number', value: 4, min: 2, max: 10, step: 0.5 }
       ],
       build: (p) =>
 `const { primitives, transforms, booleans } = require('@jscad/modeling')
-const { cuboid, roundedCuboid } = primitives
-const { subtract } = booleans
+const { cuboid, cylinder, sphere } = primitives
+const { translate } = transforms
+const { union, subtract, intersect } = booleans
 
 function main () {
-  const w = ${p.w}, d = ${p.d}, h = ${p.h}
-  const wallT = ${p.wallT}
-  const round = ${p.round}
+  const outerD = ${p.outerD}, totalH = ${p.totalH}, wallT = ${p.wallT}
+  const cableW = ${p.cableW}, cableH = ${p.cableH}
 
-  const outer = roundedCuboid({ size: [w, d, h], roundRadius: Math.max(0.5, round), segments: 20, center: [0, 0, h/2] })
-  const inner = cuboid({ size: [w - 2*wallT, d - 2*wallT, h - wallT], center: [0, 0, (h - wallT)/2] })
-  return subtract(outer, inner)
+  // Cylindrical body. The dome takes a bit less than half the diameter in height.
+  const bodyH = Math.max(2, totalH - outerD * 0.35)
+  const body = translate([0,0,bodyH/2], cylinder({ radius: outerD/2, height: bodyH, segments: 72 }))
+
+  // Upper-hemisphere dome cap sitting on top of the body.
+  const fullDome = translate([0,0,bodyH], sphere({ radius: outerD/2, segments: 56 }))
+  const clip = cuboid({ size: [outerD+4, outerD+4, outerD], center: [0,0,bodyH + outerD/2] })
+  const dome = intersect(fullDome, clip)
+  const outer = union(body, dome)
+
+  // Hollow interior, open bottom for the microswitch + wiring.
+  const inner = translate([0,0,bodyH/2 - 0.25],
+    cylinder({ radius: outerD/2 - wallT, height: bodyH + 0.5, segments: 64 }))
+
+  // Cable exit slot on the +Y side of the body.
+  const cable = cuboid({ size: [cableW, wallT + 4, cableH], center: [0, outerD/2 - wallT/2, cableH/2 + 1] })
+  return subtract(outer, inner, cable)
 }
 module.exports = { main }`
     },
 
+    microswitchLeverBracket: {
+      title: 'Microswitch Lever Bracket',
+      category: 'switches',
+      blurb: 'L-bracket that holds an SPDT roller-lever microswitch with two screw holes.',
+      params: [
+        { key: 'baseW', label: 'Base width X (mm)', type: 'number', value: 36, min: 20, max: 80, step: 1 },
+        { key: 'baseD', label: 'Base depth Y (mm)', type: 'number', value: 22, min: 14, max: 60, step: 1 },
+        { key: 'wallH', label: 'Wall height Z (mm)', type: 'number', value: 18, min: 10, max: 40, step: 1 },
+        { key: 'T',     label: 'Thickness (mm)', type: 'number', value: 3, min: 2, max: 6, step: 0.2 },
+        { key: 'switchSp', label: 'Switch hole spacing (mm)', type: 'number', value: 9.5, min: 6, max: 18, step: 0.1 },
+        { key: 'switchD',  label: 'Switch hole Ø (mm)', type: 'number', value: 2.4, min: 1.8, max: 4, step: 0.1 },
+        { key: 'mountD',   label: 'Base mount Ø (mm)', type: 'number', value: 3.4, min: 2, max: 6, step: 0.1 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, cylinder, roundedCuboid } = primitives
+const { translate, rotate } = transforms
+const { union, subtract } = booleans
+
+function main () {
+  const baseW = ${p.baseW}, baseD = ${p.baseD}
+  const wallH = ${p.wallH}, T = ${p.T}
+  const switchSp = ${p.switchSp}, switchD = ${p.switchD}, mountD = ${p.mountD}
+
+  const base = roundedCuboid({ size: [baseW, baseD, T], roundRadius: 1.2, segments: 14, center: [0, 0, T/2] })
+  // Vertical wall on the -Y edge.
+  const wall = roundedCuboid({ size: [baseW, T, wallH], roundRadius: 1.2, segments: 14, center: [0, -baseD/2 + T/2, wallH/2 + T] })
+  const outer = union(base, wall)
+
+  // Two base mounting holes near +Y edge.
+  const baseHole = (x) => translate([x, baseD/4, T/2], cylinder({ radius: mountD/2, height: T + 2, segments: 28 }))
+  // Two switch holes through the wall.
+  const switchHole = (x) => translate([x, -baseD/2 + T/2, wallH/2 + T],
+    rotate([Math.PI/2, 0, 0], cylinder({ radius: switchD/2, height: T + 2, segments: 24 })))
+
+  return subtract(outer,
+    baseHole( baseW/2 - 5), baseHole(-baseW/2 + 5),
+    switchHole( switchSp/2), switchHole(-switchSp/2))
+}
+module.exports = { main }`
+    },
+
+    buttonArrayBox: {
+      title: 'Button Array Box',
+      category: 'switches',
+      blurb: 'Enclosure with a grid of round button holes (any rows × columns). Great for multi-action input.',
+      params: [
+        { key: 'cols', label: 'Columns', type: 'number', value: 3, min: 1, max: 8, step: 1 },
+        { key: 'rows', label: 'Rows',    type: 'number', value: 2, min: 1, max: 6, step: 1 },
+        { key: 'pitch', label: 'Hole pitch (mm)', type: 'number', value: 25, min: 14, max: 50, step: 0.5 },
+        { key: 'holeD', label: 'Button hole Ø (mm)', type: 'number', value: 12.2, min: 6, max: 24, step: 0.1 },
+        { key: 'margin', label: 'Edge margin (mm)', type: 'number', value: 8, min: 4, max: 20, step: 0.5 },
+        { key: 'h', label: 'Box height Z (mm)', type: 'number', value: 24, min: 15, max: 60, step: 1 },
+        { key: 'wallT', label: 'Wall thickness (mm)', type: 'number', value: 2.0, min: 1.5, max: 5, step: 0.1 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, cylinder, roundedCuboid } = primitives
+const { subtract } = booleans
+
+function main () {
+  const cols = ${p.cols}, rows = ${p.rows}
+  const pitch = ${p.pitch}, holeD = ${p.holeD}
+  const margin = ${p.margin}, h = ${p.h}, wallT = ${p.wallT}
+  const w = (cols - 1) * pitch + holeD + margin * 2
+  const d = (rows - 1) * pitch + holeD + margin * 2
+
+  const outer = roundedCuboid({ size: [w, d, h], roundRadius: 1.8, segments: 18, center: [0,0,h/2] })
+  const inner = cuboid({ size: [w - 2*wallT, d - 2*wallT, h - wallT], center: [0,0,(h - wallT)/2] })
+  const holes = []
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      const x = -((cols - 1) * pitch)/2 + i * pitch
+      const y = -((rows - 1) * pitch)/2 + j * pitch
+      holes.push(cylinder({ radius: holeD/2, height: wallT + 2, segments: 36, center: [x, y, h - wallT/2] }))
+    }
+  }
+  return subtract(outer, inner, ...holes)
+}
+module.exports = { main }`
+    },
+
+    palmSwitchPlate: {
+      title: 'Palm Switch Plate',
+      category: 'switches',
+      blurb: 'Soft-edged flat plate with a hidden microswitch slot underneath. Press anywhere on top to activate.',
+      params: [
+        { key: 'W', label: 'Width X (mm)',  type: 'number', value: 80, min: 40, max: 160, step: 1 },
+        { key: 'L', label: 'Length Y (mm)', type: 'number', value: 80, min: 40, max: 160, step: 1 },
+        { key: 'T', label: 'Plate thickness (mm)', type: 'number', value: 6, min: 3, max: 14, step: 0.2 },
+        { key: 'slotW', label: 'Switch slot width (mm)',  type: 'number', value: 22, min: 10, max: 50, step: 0.5 },
+        { key: 'slotL', label: 'Switch slot length (mm)', type: 'number', value: 12, min: 6, max: 40, step: 0.5 },
+        { key: 'slotDepth', label: 'Switch slot depth (mm)', type: 'number', value: 4, min: 2, max: 10, step: 0.2 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, roundedCuboid } = primitives
+const { translate } = transforms
+const { subtract } = booleans
+
+function main () {
+  const W = ${p.W}, L = ${p.L}, T = ${p.T}
+  const slotW = ${p.slotW}, slotL = ${p.slotL}, slotDepth = ${p.slotDepth}
+
+  const pad = roundedCuboid({ size: [W, L, T], roundRadius: Math.min(W, L) * 0.18, segments: 28, center: [0,0,T/2] })
+  // Hidden switch pocket on the bottom face.
+  const slot = cuboid({ size: [slotW, slotL, slotDepth + 0.1], center: [0, 0, slotDepth/2] })
+  return subtract(pad, slot)
+}
+module.exports = { main }`
+    },
+
+    // =========================================================
+    // JOYSTICK & POINTER
+    // =========================================================
+    joystickHousing: {
+      title: 'Joystick Housing',
+      category: 'joystick',
+      blurb: 'Enclosure for a KY-023 joystick module with top hole for the thumbstick and 4 PCB mount holes.',
+      params: [
+        { key: 'w', label: 'Box width X (mm)',  type: 'number', value: 50, min: 32, max: 100, step: 1 },
+        { key: 'd', label: 'Box depth Y (mm)',  type: 'number', value: 50, min: 32, max: 100, step: 1 },
+        { key: 'h', label: 'Box height Z (mm)', type: 'number', value: 22, min: 14, max: 50, step: 1 },
+        { key: 'wallT',  label: 'Wall thickness (mm)', type: 'number', value: 2.0, min: 1.5, max: 5, step: 0.1 },
+        { key: 'thumbD', label: 'Thumbstick clearance Ø (mm)', type: 'number', value: 12, min: 8, max: 20, step: 0.2 },
+        { key: 'mountX', label: 'Mount span X (mm)', type: 'number', value: 24, min: 12, max: 60, step: 0.5 },
+        { key: 'mountY', label: 'Mount span Y (mm)', type: 'number', value: 24, min: 12, max: 60, step: 0.5 },
+        { key: 'mountD', label: 'Mount Ø (mm)', type: 'number', value: 2.7, min: 1.8, max: 5, step: 0.1 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, cylinder, roundedCuboid } = primitives
+const { translate } = transforms
+const { subtract } = booleans
+
+function main () {
+  const w = ${p.w}, d = ${p.d}, h = ${p.h}, wallT = ${p.wallT}
+  const thumbD = ${p.thumbD}
+  const mountX = ${p.mountX}, mountY = ${p.mountY}, mountD = ${p.mountD}
+
+  const outer = roundedCuboid({ size: [w, d, h], roundRadius: 2.2, segments: 20, center: [0,0,h/2] })
+  const inner = cuboid({ size: [w - 2*wallT, d - 2*wallT, h - wallT], center: [0,0,(h - wallT)/2] })
+  const thumbHole = cylinder({ radius: thumbD/2, height: wallT + 2, segments: 56, center: [0,0,h - wallT/2] })
+  const mh = (x,y) => translate([x,y,h - wallT/2], cylinder({ radius: mountD/2, height: wallT + 1.5, segments: 28 }))
+  const corners = [[mountX/2, mountY/2], [-mountX/2, mountY/2], [mountX/2, -mountY/2], [-mountX/2, -mountY/2]]
+  const mhs = corners.map(([x,y]) => mh(x,y))
+  return subtract(outer, inner, thumbHole, ...mhs)
+}
+module.exports = { main }`
+    },
+
+    joystickWristRest: {
+      title: 'Joystick Wrist Rest',
+      category: 'joystick',
+      blurb: 'Soft-cornered pad with a curved palm depression. Sits next to a joystick or trackball.',
+      params: [
+        { key: 'W', label: 'Width X (mm)',  type: 'number', value: 90, min: 50, max: 160, step: 1 },
+        { key: 'L', label: 'Length Y (mm)', type: 'number', value: 70, min: 40, max: 140, step: 1 },
+        { key: 'H', label: 'Thickness (mm)', type: 'number', value: 22, min: 12, max: 40, step: 0.5 },
+        { key: 'cupR', label: 'Palm dip Ø (mm)', type: 'number', value: 80, min: 40, max: 140, step: 1 },
+        { key: 'cupDepth', label: 'Palm dip depth (mm)', type: 'number', value: 8, min: 3, max: 18, step: 0.5 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { roundedCuboid, sphere } = primitives
+const { translate } = transforms
+const { subtract } = booleans
+
+function main () {
+  const W = ${p.W}, L = ${p.L}, H = ${p.H}
+  const cupR = ${p.cupR} / 2  // radius
+  const cupDepth = ${p.cupDepth}
+
+  const pad = roundedCuboid({ size: [W, L, H], roundRadius: Math.min(W, L) * 0.20, segments: 32, center: [0,0,H/2] })
+  // Sphere positioned so it bites only the top by 'cupDepth' mm.
+  const dip = translate([0, 0, H + cupR - cupDepth], sphere({ radius: cupR, segments: 56 }))
+  return subtract(pad, dip)
+}
+module.exports = { main }`
+    },
+
+    // =========================================================
+    // SENSORS & MOUTH
+    // =========================================================
     sensorPlate: {
       title: 'Sensor Mount Plate',
+      category: 'sensors',
       blurb: 'Flat plate with 4 bolt holes sized for a small breakout (VL53L0X, KY-023, etc.).',
       params: [
         { key: 'w', label: 'Plate width X (mm)', type: 'number', value: 40, min: 20, max: 120, step: 1 },
@@ -14049,28 +14352,157 @@ const { subtract } = booleans
 
 function main () {
   const w = ${p.w}, d = ${p.d}, t = ${p.t}
-  const sx = ${p.spanX}, sy = ${p.spanY}
-  const boltD = ${p.boltD}
+  const sx = ${p.spanX}, sy = ${p.spanY}, boltD = ${p.boltD}
 
-  // Plate centered on origin, bottom on Z=0.
   const plate = roundedCuboid({ size: [w, d, t], roundRadius: 1.2, segments: 16, center: [0, 0, t/2] })
-
-  // Four corner bolt holes through the plate.
   const holeAt = (x, y) =>
     translate([x, y, t/2], cylinder({ radius: boltD/2, height: t + 1, segments: 36 }))
-  const holes = [
-    holeAt( sx/2,  sy/2),
-    holeAt(-sx/2,  sy/2),
-    holeAt( sx/2, -sy/2),
-    holeAt(-sx/2, -sy/2)
-  ]
-  return subtract(plate, ...holes)
+  return subtract(plate,
+    holeAt( sx/2,  sy/2), holeAt(-sx/2,  sy/2),
+    holeAt( sx/2, -sy/2), holeAt(-sx/2, -sy/2))
+}
+module.exports = { main }`
+    },
+
+    tofTiltMount: {
+      title: 'Tilt Sensor Bracket',
+      category: 'sensors',
+      blurb: 'Angled L-bracket that aims a distance sensor (VL53L0X) or capacitive touch board at the user\'s hand.',
+      params: [
+        { key: 'baseW', label: 'Base width X (mm)', type: 'number', value: 36, min: 20, max: 80, step: 1 },
+        { key: 'baseD', label: 'Base depth Y (mm)', type: 'number', value: 26, min: 16, max: 60, step: 1 },
+        { key: 'baseT', label: 'Base thickness (mm)', type: 'number', value: 3, min: 2, max: 6, step: 0.2 },
+        { key: 'armW',  label: 'Sensor face width (mm)', type: 'number', value: 30, min: 14, max: 60, step: 1 },
+        { key: 'armH',  label: 'Sensor face height (mm)', type: 'number', value: 28, min: 14, max: 60, step: 1 },
+        { key: 'armT',  label: 'Sensor face thickness (mm)', type: 'number', value: 3, min: 2, max: 6, step: 0.2 },
+        { key: 'tiltDeg', label: 'Tilt angle (degrees back from vertical)', type: 'number', value: 25, min: 0, max: 60, step: 1 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, roundedCuboid, cylinder } = primitives
+const { translate, rotate } = transforms
+const { union, subtract } = booleans
+
+function main () {
+  const baseW = ${p.baseW}, baseD = ${p.baseD}, baseT = ${p.baseT}
+  const armW = ${p.armW}, armH = ${p.armH}, armT = ${p.armT}
+  const tiltDeg = ${p.tiltDeg}
+
+  const base = roundedCuboid({ size: [baseW, baseD, baseT], roundRadius: 1.2, segments: 14, center: [0,0,baseT/2] })
+  // Arm built with its hinge edge at the origin (bottom-front), then rotated, then placed on +Y edge of base.
+  const armRaw = cuboid({ size: [armW, armT, armH], center: [0, 0, armH/2] })
+  const armRot = rotate([Math.PI * tiltDeg / 180, 0, 0], armRaw)
+  const armPlaced = translate([0, -baseD/2 + armT/2, baseT], armRot)
+
+  // Two base mount holes near +Y edge.
+  const bh = (x) => translate([x, baseD/2 - 4, baseT/2], cylinder({ radius: 1.7, height: baseT + 2, segments: 24 }))
+  return subtract(union(base, armPlaced), bh(baseW/2 - 4), bh(-baseW/2 + 4))
+}
+module.exports = { main }`
+    },
+
+    sipPuffClip: {
+      title: 'Sip-and-Puff Tube Clip',
+      category: 'sensors',
+      blurb: 'Sleeve that grips a silicone sip-and-puff tube with snap-in opening on top and zip-tie slots underneath.',
+      params: [
+        { key: 'tubeD', label: 'Tube outer Ø (mm)', type: 'number', value: 6, min: 3, max: 12, step: 0.1 },
+        { key: 'L',     label: 'Clip length (mm)',  type: 'number', value: 22, min: 12, max: 60, step: 1 },
+        { key: 'wallT', label: 'Wall thickness (mm)', type: 'number', value: 2.0, min: 1.5, max: 4, step: 0.1 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, cylinder } = primitives
+const { translate, rotate } = transforms
+const { subtract } = booleans
+
+function main () {
+  const tubeD = ${p.tubeD}, L = ${p.L}, wallT = ${p.wallT}
+  const sleeveR = tubeD/2 + wallT
+
+  // Cylindrical sleeve laid along X.
+  const sleeve = rotate([0, Math.PI/2, 0], cylinder({ radius: sleeveR, height: L, segments: 48 }))
+  const channel = rotate([0, Math.PI/2, 0], cylinder({ radius: tubeD/2, height: L + 2, segments: 48 }))
+
+  // Snap-in slot on the top so the tube can be popped in.
+  const slot = cuboid({ size: [L + 2, tubeD * 0.7, sleeveR + 2], center: [0, 0, sleeveR] })
+
+  // Two zip-tie slots through the bottom for mounting to a surface.
+  const ztie = (x) => cuboid({ size: [2.5, sleeveR * 1.6, 1.6], center: [x, 0, -sleeveR + 1.0] })
+
+  return subtract(sleeve, channel, slot, ztie( L/3), ztie(-L/3))
+}
+module.exports = { main }`
+    },
+
+    // =========================================================
+    // STRUCTURE & CABLING
+    // =========================================================
+    projectBox: {
+      title: 'Project Box',
+      category: 'structure',
+      blurb: 'Plain hollow box for the Arduino + perfboard. No cutouts.',
+      params: [
+        { key: 'w', label: 'Width X (mm)',  type: 'number', value: 80, min: 30, max: 200, step: 1 },
+        { key: 'd', label: 'Depth Y (mm)',  type: 'number', value: 55, min: 30, max: 200, step: 1 },
+        { key: 'h', label: 'Height Z (mm)', type: 'number', value: 30, min: 12, max: 80, step: 1 },
+        { key: 'wallT', label: 'Wall thickness (mm)', type: 'number', value: 2.0, min: 1.5, max: 5.0, step: 0.1 },
+        { key: 'round', label: 'Corner round (mm)', type: 'number', value: 2.0, min: 0, max: 6, step: 0.2 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, roundedCuboid } = primitives
+const { subtract } = booleans
+
+function main () {
+  const w = ${p.w}, d = ${p.d}, h = ${p.h}
+  const wallT = ${p.wallT}, round = ${p.round}
+
+  const outer = roundedCuboid({ size: [w, d, h], roundRadius: Math.max(0.5, round), segments: 20, center: [0, 0, h/2] })
+  const inner = cuboid({ size: [w - 2*wallT, d - 2*wallT, h - wallT], center: [0, 0, (h - wallT)/2] })
+  return subtract(outer, inner)
+}
+module.exports = { main }`
+    },
+
+    trayClamp: {
+      title: 'Tray-Edge C-Clamp',
+      category: 'structure',
+      blurb: 'C-shaped clamp that grips a desk or wheelchair tray edge, with a hole on top for mounting other parts.',
+      params: [
+        { key: 'gapH',     label: 'Tray thickness (mm)', type: 'number', value: 20, min: 8, max: 40, step: 0.5 },
+        { key: 'legT',     label: 'Leg thickness (mm)',  type: 'number', value: 5,  min: 3, max: 10, step: 0.2 },
+        { key: 'reach',    label: 'Clamp reach (mm)',    type: 'number', value: 36, min: 20, max: 80, step: 1 },
+        { key: 'W',        label: 'Clamp width (mm)',    type: 'number', value: 24, min: 14, max: 50, step: 1 },
+        { key: 'mountD',   label: 'Top accessory hole Ø (mm)', type: 'number', value: 6, min: 3, max: 14, step: 0.2 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, cylinder, roundedCuboid } = primitives
+const { translate } = transforms
+const { subtract } = booleans
+
+function main () {
+  const gapH = ${p.gapH}, legT = ${p.legT}, reach = ${p.reach}, W = ${p.W}
+  const mountD = ${p.mountD}
+  const outerH = gapH + 2 * legT
+
+  // Solid block centered on +X so the clamp opens toward +X.
+  const block = roundedCuboid({ size: [reach, W, outerH], roundRadius: 2, segments: 18,
+    center: [reach/2 - 1, 0, outerH/2] })
+  // Slot for the tray (open on +X face).
+  const slot = cuboid({ size: [reach + 4, W + 2, gapH], center: [reach/2 + 1.5, 0, legT + gapH/2] })
+  // Accessory hole through the top leg.
+  const acc = translate([reach/2 - 5, 0, outerH - legT/2],
+    cylinder({ radius: mountD/2, height: legT + 2, segments: 32 }))
+  return subtract(block, slot, acc)
 }
 module.exports = { main }`
     },
 
     cableBracket: {
       title: 'Cable Strain Bracket',
+      category: 'structure',
       blurb: 'Snap-on bracket that anchors a cable to a flat surface via two screw holes.',
       params: [
         { key: 'L', label: 'Length (mm)', type: 'number', value: 30, min: 15, max: 80, step: 1 },
@@ -14087,23 +14519,168 @@ const { subtract } = booleans
 
 function main () {
   const L = ${p.L}, W = ${p.W}, T = ${p.T}
-  const cableD = ${p.cableD}
-  const boltD = ${p.boltD}
+  const cableD = ${p.cableD}, boltD = ${p.boltD}
 
-  // Base bar, bottom on Z=0.
   const base = roundedCuboid({ size: [L, W, T], roundRadius: 1.0, segments: 14, center: [0, 0, T/2] })
-
-  // Cable groove down the length (semi-circular channel along X).
   const grooveZ = cylinder({ radius: cableD/2, height: L + 2, segments: 32 })
-  const grooveX = rotate([0, Math.PI/2, 0], grooveZ)
-  const groove = translate([0, 0, T - cableD/2 + 0.4], grooveX)
-
-  // Two screw holes near each end, sized for self-tap into a 3D-printed lid.
+  const groove = translate([0, 0, T - cableD/2 + 0.4], rotate([0, Math.PI/2, 0], grooveZ))
   const screw = (x) => translate([x, 0, T/2], cylinder({ radius: boltD/2, height: T + 1, segments: 28 }))
-  const s1 = screw( L/2 - W*0.45)
-  const s2 = screw(-L/2 + W*0.45)
+  return subtract(base, groove, screw(L/2 - W*0.45), screw(-L/2 + W*0.45))
+}
+module.exports = { main }`
+    },
 
-  return subtract(base, groove, s1, s2)
+    velcroStrapPlate: {
+      title: 'Velcro Strap Plate',
+      category: 'structure',
+      blurb: 'Flat plate with pairs of slots so a Velcro or elastic strap can lash it to a hand, arm, or tray.',
+      params: [
+        { key: 'W', label: 'Plate width X (mm)',  type: 'number', value: 60, min: 30, max: 140, step: 1 },
+        { key: 'D', label: 'Plate depth Y (mm)',  type: 'number', value: 40, min: 24, max: 120, step: 1 },
+        { key: 'T', label: 'Plate thickness (mm)', type: 'number', value: 3, min: 2, max: 8, step: 0.2 },
+        { key: 'strapW', label: 'Strap width (mm)', type: 'number', value: 20, min: 8, max: 40, step: 0.5 },
+        { key: 'slotL',  label: 'Slot length (mm)', type: 'number', value: 4,  min: 3, max: 12, step: 0.2 },
+        { key: 'numStraps', label: 'Strap pairs',    type: 'number', value: 1, min: 1, max: 3, step: 1 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, roundedCuboid } = primitives
+const { subtract } = booleans
+
+function main () {
+  const W = ${p.W}, D = ${p.D}, T = ${p.T}
+  const strapW = ${p.strapW}, slotL = ${p.slotL}
+  const num = ${p.numStraps}
+
+  const plate = roundedCuboid({ size: [W, D, T], roundRadius: 2, segments: 18, center: [0,0,T/2] })
+  const slots = []
+  for (let i = 0; i < num; i++) {
+    const x = num === 1 ? 0 : (-(W - strapW * 2 - 8)/2 + i * (W - strapW * 2 - 8)/(num - 1))
+    // Pair of slots near +Y and -Y edges.
+    slots.push(cuboid({ size: [strapW, slotL, T + 2], center: [x,  D/2 - 5 - slotL/2, T/2] }))
+    slots.push(cuboid({ size: [strapW, slotL, T + 2], center: [x, -D/2 + 5 + slotL/2, T/2] }))
+  }
+  return subtract(plate, ...slots)
+}
+module.exports = { main }`
+    },
+
+    // =========================================================
+    // GRIPS & ADAPTATIONS
+    // =========================================================
+    knobLever: {
+      title: 'Adaptive Knob Lever',
+      category: 'grips',
+      blurb: 'Wing-handle adapter you snap onto a round knob (lamp switch, faucet, door) to add leverage.',
+      params: [
+        { key: 'knobD', label: 'Knob Ø (mm)', type: 'number', value: 26, min: 12, max: 60, step: 0.5 },
+        { key: 'knobH', label: 'Knob height (mm)', type: 'number', value: 18, min: 10, max: 50, step: 0.5 },
+        { key: 'wallT', label: 'Socket wall thickness (mm)', type: 'number', value: 2.5, min: 1.6, max: 5, step: 0.1 },
+        { key: 'armL',  label: 'Lever arm length (mm)', type: 'number', value: 70, min: 30, max: 140, step: 1 },
+        { key: 'armW',  label: 'Lever arm width (mm)',  type: 'number', value: 18, min: 10, max: 30, step: 0.5 },
+        { key: 'armT',  label: 'Lever arm thickness (mm)', type: 'number', value: 8, min: 4, max: 16, step: 0.5 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, cylinder, roundedCuboid } = primitives
+const { translate } = transforms
+const { union, subtract } = booleans
+
+function main () {
+  const knobD = ${p.knobD}, knobH = ${p.knobH}
+  const wallT = ${p.wallT}
+  const armL = ${p.armL}, armW = ${p.armW}, armT = ${p.armT}
+  const fitClearance = 0.6
+  const socketOuterR = (knobD + fitClearance + 2*wallT) / 2
+  const socketInnerR = (knobD + fitClearance) / 2
+
+  const outerSocket = translate([0,0,knobH/2], cylinder({ radius: socketOuterR, height: knobH, segments: 64 }))
+  const innerSocket = translate([0,0,knobH/2 + 0.5], cylinder({ radius: socketInnerR, height: knobH + 1, segments: 64 }))
+
+  // Lever arm sticking out in +X, centered vertically on the socket.
+  const arm = roundedCuboid({ size: [armL, armW, armT], roundRadius: armW/3, segments: 18,
+    center: [socketOuterR + armL/2 - 1, 0, knobH/2] })
+
+  // Vertical flex slot on -X side so the socket can spring onto the knob.
+  const flex = cuboid({ size: [wallT + 2, 1.8, knobH + 2], center: [-socketOuterR + wallT/2, 0, knobH/2] })
+
+  return subtract(union(outerSocket, arm), innerSocket, flex)
+}
+module.exports = { main }`
+    },
+
+    penGrip: {
+      title: 'Pen / Stylus Grip',
+      category: 'grips',
+      blurb: 'Chunky barrel grip with finger flutes — slips over a pen or stylus to make it easier to hold.',
+      params: [
+        { key: 'penD',  label: 'Pen barrel Ø (mm)', type: 'number', value: 9, min: 5, max: 16, step: 0.1 },
+        { key: 'gripD', label: 'Outer Ø (mm)',      type: 'number', value: 28, min: 14, max: 50, step: 0.5 },
+        { key: 'L',     label: 'Grip length (mm)',  type: 'number', value: 60, min: 25, max: 120, step: 1 },
+        { key: 'flutes', label: 'Finger flutes',    type: 'number', value: 6, min: 0, max: 12, step: 1 },
+        { key: 'fluteR', label: 'Flute radius (mm)', type: 'number', value: 3.0, min: 1.0, max: 6, step: 0.2 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cylinder } = primitives
+const { translate } = transforms
+const { subtract } = booleans
+
+function main () {
+  const penD = ${p.penD}, gripD = ${p.gripD}, L = ${p.L}
+  const flutes = ${p.flutes}, fluteR = ${p.fluteR}
+
+  const outer = translate([0,0,L/2], cylinder({ radius: gripD/2, height: L, segments: 72 }))
+  const bore  = translate([0,0,L/2], cylinder({ radius: penD/2, height: L + 1, segments: 48 }))
+
+  const flutesGeom = []
+  if (flutes > 0) {
+    const ringR = gripD/2 - 0.5
+    for (let i = 0; i < flutes; i++) {
+      const a = (i / flutes) * Math.PI * 2
+      flutesGeom.push(translate([Math.cos(a) * ringR, Math.sin(a) * ringR, L/2],
+        cylinder({ radius: fluteR, height: L + 1, segments: 24 })))
+    }
+  }
+  return subtract(outer, bore, ...flutesGeom)
+}
+module.exports = { main }`
+    },
+
+    universalCuff: {
+      title: 'Universal Cuff',
+      category: 'grips',
+      blurb: 'Open-ring palm/wrist cuff with a utensil socket on the underside. Velcro strap wraps around to secure.',
+      params: [
+        { key: 'palmR', label: 'Hand inner radius (mm)', type: 'number', value: 32, min: 18, max: 60, step: 0.5 },
+        { key: 'cuffT', label: 'Cuff wall thickness (mm)', type: 'number', value: 3, min: 2, max: 6, step: 0.2 },
+        { key: 'cuffW', label: 'Cuff width along arm (mm)', type: 'number', value: 28, min: 14, max: 60, step: 1 },
+        { key: 'utenD', label: 'Utensil socket Ø (mm)', type: 'number', value: 10, min: 5, max: 22, step: 0.2 },
+        { key: 'utenL', label: 'Utensil socket length (mm)', type: 'number', value: 20, min: 8, max: 40, step: 1 }
+      ],
+      build: (p) =>
+`const { primitives, transforms, booleans } = require('@jscad/modeling')
+const { cuboid, cylinder } = primitives
+const { translate, rotate } = transforms
+const { union, subtract } = booleans
+
+function main () {
+  const palmR = ${p.palmR}, cuffT = ${p.cuffT}, cuffW = ${p.cuffW}
+  const utenD = ${p.utenD}, utenL = ${p.utenL}
+
+  // Cuff ring laid flat (axis along Z), open on +Y so it slides onto the hand.
+  const outer = translate([0,0,cuffW/2], cylinder({ radius: palmR + cuffT, height: cuffW, segments: 64 }))
+  const inner = translate([0,0,cuffW/2], cylinder({ radius: palmR, height: cuffW + 1, segments: 64 }))
+  const opening = cuboid({ size: [(palmR + cuffT) * 2 + 4, palmR + cuffT + 6, cuffW + 2],
+    center: [0, (palmR + cuffT + 6)/2, cuffW/2] })
+
+  // External utensil socket on the -Y (palm-side) of the cuff.
+  const sockOuter = translate([0, -(palmR + cuffT + utenD/2 + 1), cuffW/2],
+    rotate([Math.PI/2, 0, 0], cylinder({ radius: utenD/2 + cuffT, height: utenL, segments: 40 })))
+  const sockBore  = translate([0, -(palmR + cuffT + utenD/2 + 1), cuffW/2],
+    rotate([Math.PI/2, 0, 0], cylinder({ radius: utenD/2, height: utenL + 2, segments: 40 })))
+
+  return subtract(union(outer, sockOuter), inner, opening, sockBore)
 }
 module.exports = { main }`
     }
@@ -14127,14 +14704,23 @@ module.exports = { main }`
   function renderCadWizardPanel(panel) {
     const t = CAD_WIZ[_cad.wizActive];
     const params = _cad.wizParams;
+    // Group templates by category; emit a small heading per category so the
+    // grid reads as "Switches / Joystick / Sensors…" instead of one wall.
+    const groupedHtml = CAD_CATEGORIES.map(cat => {
+      const entries = Object.entries(CAD_WIZ).filter(([, tpl]) => tpl.category === cat.key);
+      if (!entries.length) return '';
+      return `
+        <h4 class="cad-wiz-cat">${escapeHtml(cat.label)}</h4>
+        <div class="cad-wiz-templates">
+          ${entries.map(([key, tpl]) => `
+            <button type="button" class="cad-wiz-template ${key === _cad.wizActive ? 'is-active' : ''}" data-wiz="${key}">
+              <span class="cad-wiz-template-title">${escapeHtml(tpl.title)}</span>
+              <span class="cad-wiz-template-blurb">${escapeHtml(tpl.blurb)}</span>
+            </button>`).join('')}
+        </div>`;
+    }).join('');
     panel.innerHTML = `
-      <div class="cad-wiz-templates">
-        ${Object.entries(CAD_WIZ).map(([key, tpl]) => `
-          <button type="button" class="cad-wiz-template ${key === _cad.wizActive ? 'is-active' : ''}" data-wiz="${key}">
-            <span class="cad-wiz-template-title">${escapeHtml(tpl.title)}</span>
-            <span class="cad-wiz-template-blurb">${escapeHtml(tpl.blurb)}</span>
-          </button>`).join('')}
-      </div>
+      ${groupedHtml}
       <div class="cad-wiz-form" id="cadWizForm">
         ${t.params.map(p => `
           <div class="cad-wiz-row">
@@ -14256,25 +14842,6 @@ module.exports = { main }`
     }
   }
 
-  function renderCadCodePanel(panel) {
-    panel.innerHTML = `
-      <textarea class="cad-code-editor" id="cadCodeEditor" spellcheck="false"></textarea>
-      <div style="display:flex; gap:8px;">
-        <button type="button" class="cad-btn cad-btn--primary" id="cadCodeRun">Run</button>
-        <button type="button" class="cad-btn" id="cadCodeReset">Reset to default</button>
-      </div>
-    `;
-    const editor = panel.querySelector('#cadCodeEditor');
-    // Seed with the last-run code (any mode), or a starter if none yet.
-    const starter = _cad.code || cadCurrentWizardCode();
-    editor.value = starter;
-    panel.querySelector('#cadCodeRun').addEventListener('click', () => cadRunFromCurrent(editor.value));
-    panel.querySelector('#cadCodeReset').addEventListener('click', () => {
-      editor.value = cadCurrentWizardCode();
-      cadRunFromCurrent(editor.value);
-    });
-  }
-
   function cadSetMode(mode) {
     _cad.mode = mode;
     document.querySelectorAll('.cad-tab').forEach(t => t.classList.toggle('is-active', t.dataset.cadMode === mode));
@@ -14282,7 +14849,7 @@ module.exports = { main }`
     const head = document.getElementById('cadLeftHead');
     if (!panel || !head) return;
     if (mode === 'wizard') {
-      head.textContent = 'Wizard — pick a template, tune the numbers';
+      head.textContent = 'Templates — pick a part, tune the numbers';
       renderCadWizardPanel(panel);
       // Only auto-render if the engine is already booted; otherwise the engine
       // loader's own callback will kick the first render when it's ready.
@@ -14290,9 +14857,6 @@ module.exports = { main }`
     } else if (mode === 'ai') {
       head.textContent = 'AI Build — describe what you need';
       renderCadAiPanel(panel);
-    } else if (mode === 'code') {
-      head.textContent = 'Code — edit JSCAD directly';
-      renderCadCodePanel(panel);
     }
   }
 
@@ -14305,26 +14869,38 @@ module.exports = { main }`
       <p class="project-blurb">Design 3D-printable parts for your adaptive controller — enclosures, brackets, mounts. Pick a template, talk to AI, or write parametric code. Live preview on the right, one-click STL export.</p>
       <div class="cad-wrap">
         <div class="cad-tabs" role="tablist">
-          <button type="button" class="cad-tab is-active" data-cad-mode="wizard" role="tab">Wizard</button>
+          <button type="button" class="cad-tab is-active" data-cad-mode="wizard" role="tab">Templates</button>
           <button type="button" class="cad-tab" data-cad-mode="ai" role="tab">AI Build</button>
-          <button type="button" class="cad-tab" data-cad-mode="code" role="tab">Code</button>
         </div>
         <div class="cad-grid">
           <div class="cad-panel">
-            <div class="cad-panel-head" id="cadLeftHead">Wizard — pick a template, tune the numbers</div>
+            <div class="cad-panel-head" id="cadLeftHead">Templates — pick a part, tune the numbers</div>
             <div class="cad-panel-body" id="cadLeftBody"></div>
           </div>
           <div class="cad-panel">
             <div class="cad-panel-head">Preview <span class="cad-status" id="cadStatus"></span></div>
             <div class="cad-viewer-wrap" id="cadViewerWrap">
               <div class="cad-viewer" id="cadViewer"></div>
+              <div class="cad-view-pad" id="cadViewPad" aria-label="Snap to view">
+                <button type="button" data-cad-view="top" title="Top">T</button>
+                <button type="button" data-cad-view="iso" title="Isometric">ISO</button>
+                <button type="button" data-cad-view="center" title="Fit / Center" class="cad-view-pad-fit">⌂</button>
+                <button type="button" data-cad-view="left" title="Left">L</button>
+                <span></span>
+                <button type="button" data-cad-view="right" title="Right">R</button>
+                <button type="button" data-cad-view="front" title="Front">F</button>
+                <button type="button" data-cad-view="bottom" title="Bottom">Bot</button>
+                <button type="button" data-cad-view="back" title="Back">B</button>
+              </div>
               <div class="cad-viewer-loading" id="cadViewerLoading">
                 <div class="spin"></div>
                 <span>Booting 3D engine…</span>
               </div>
             </div>
             <div class="cad-viewer-toolbar">
-              <button type="button" class="cad-btn" id="cadBtnRun">Run</button>
+              <button type="button" class="cad-btn" id="cadBtnRun" title="Re-render the current part">Run</button>
+              <button type="button" class="cad-btn" id="cadBtnCenter" title="Re-center camera on the part">Center</button>
+              <button type="button" class="cad-btn" id="cadBtnClear" title="Clear the scene and start over">Clear</button>
               <button type="button" class="cad-btn cad-btn--primary" id="cadBtnExport">Export STL</button>
             </div>
           </div>
@@ -14338,16 +14914,16 @@ module.exports = { main }`
     });
     document.getElementById('cadBtnExport').addEventListener('click', cadExportStl);
     document.getElementById('cadBtnRun').addEventListener('click', () => {
-      // Re-run whatever code is current. In Code mode, pull from the editor.
-      if (_cad.mode === 'code') {
-        const ed = document.getElementById('cadCodeEditor');
-        if (ed) return cadRunFromCurrent(ed.value);
-      } else if (_cad.mode === 'wizard') {
-        return cadRunFromCurrent(cadCurrentWizardCode());
-      } else {
-        // AI mode Run just re-renders the last code.
-        if (_cad.code) return cadRunFromCurrent(_cad.code);
-      }
+      if (_cad.mode === 'wizard') return cadRunFromCurrent(cadCurrentWizardCode());
+      // AI mode Run just re-renders the last code.
+      if (_cad.code) return cadRunFromCurrent(_cad.code);
+    });
+    document.getElementById('cadBtnClear').addEventListener('click', cadClearScene);
+    document.getElementById('cadBtnCenter').addEventListener('click', () => {
+      if (_cad.mesh) cadFitCameraToObject(_cad.mesh);
+    });
+    document.querySelectorAll('#cadViewPad [data-cad-view]').forEach(b => {
+      b.addEventListener('click', () => cadSetView(b.dataset.cadView));
     });
 
     // Render the left-panel UI right away so the wizard's templates and
