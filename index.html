@@ -1130,6 +1130,9 @@
     line-height: 1.6;
     color: var(--paper-ink);
   }
+  .syllabus-card p + p { margin-top: 10px; }
+  .syllabus-card p + ul,
+  .syllabus-card ul + p { margin-top: 8px; }
   .syllabus-card em {
     color: var(--ink-low);
     font-style: italic;
@@ -16164,7 +16167,13 @@ module.exports = { main }`
 
         <article class="syllabus-card">
           <h3 class="syllabus-card-title">Grading</h3>
-          <p><em>Placeholder.</em> Drop the weights and the rubric philosophy in here. Each project's per-benchmark and portfolio points already live inside the app on the Progress page.</p>
+          <p>Grades are weighted roughly as follows:</p>
+          <ul class="syllabus-list">
+            <li><strong>Projects (1, 2, 3, 4)</strong> · approximately 50%</li>
+            <li><strong>Homework</strong> · approximately 25%</li>
+            <li><strong>Final Project (Instructable)</strong> · approximately 25%</li>
+          </ul>
+          <p>Per-benchmark and portfolio points for every project live inside the app on the Progress page.</p>
         </article>
 
         <article class="syllabus-card">
