@@ -4388,6 +4388,50 @@
     color: #475569;
     font-style: italic;
   }
+  .vibe-monitor-send {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 6px 8px;
+    background: #0b1220;
+    border-top: 1px solid #1e293b;
+  }
+  .vibe-monitor-input {
+    flex: 1 1 auto;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 6px;
+    color: #e2e8f0;
+    padding: 5px 9px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.12s ease;
+  }
+  .vibe-monitor-input:focus { border-color: var(--accent); }
+  .vibe-monitor-input::placeholder { color: #475569; }
+  .vibe-monitor-input:disabled { opacity: 0.5; }
+  .vibe-monitor-ending {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 6px;
+    color: #cbd5e1;
+    font-size: 11px;
+    padding: 4px 6px;
+    cursor: pointer;
+  }
+  .vibe-monitor-send-btn {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    padding: 5px 14px;
+    font-weight: 600;
+  }
+  .vibe-monitor-send-btn:hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+  }
+  .vibe-monitor-send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
   .vibe-btn {
     background: var(--bg-1);
@@ -12128,6 +12172,16 @@
               </div>
             </div>
             <div class="vibe-monitor" id="vibeMonitor"><span class="vibe-monitor-empty">Click "Connect Arduino" above. Web Serial works in Chrome and Edge.</span></div>
+            <div class="vibe-monitor-send">
+              <input type="text" id="vibeMonitorInput" class="vibe-monitor-input" placeholder="Send a line to the Arduino (e.g. set port 0 to space)" autocomplete="off" />
+              <select id="vibeMonitorLineEnding" class="vibe-monitor-ending" title="Line ending">
+                <option value="\n" selected>Newline</option>
+                <option value="\r\n">CR + Newline</option>
+                <option value="\r">Carriage return</option>
+                <option value="">No line ending</option>
+              </select>
+              <button type="button" class="vibe-mini-btn vibe-monitor-send-btn" id="vibeMonitorSend" title="Send the line to the Arduino" disabled>Send</button>
+            </div>
           </div>
           <div class="vibe-status" id="vibeStatus">
             <span class="vibe-status-dot"></span>
@@ -12255,6 +12309,14 @@
     document.getElementById('vibeMonitorClear').addEventListener('click', () => {
       const m = document.getElementById('vibeMonitor');
       m.innerHTML = '<span class="vibe-monitor-empty">Cleared.</span>';
+    });
+
+    // Send line to Arduino over Serial. Enter in the input or click Send.
+    const sendInput = document.getElementById('vibeMonitorInput');
+    const sendBtn = document.getElementById('vibeMonitorSend');
+    if (sendBtn) sendBtn.addEventListener('click', () => vibeMonitorSendLine());
+    if (sendInput) sendInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); vibeMonitorSendLine(); }
     });
 
     document.getElementById('vibeBaudRate').addEventListener('change', () => {
@@ -13264,6 +13326,7 @@
       monitor.innerHTML = '';
       vibeAppendMonitor('[ connected at ' + baud + ' baud ]\n');
       vibeSetStatus('connected', `Connected at ${baud} baud. Upload your sketch in the desktop Arduino IDE; output streams here.`);
+      vibeMonitorSetSendEnabled(true);
       vibeReadLoop();
     } catch (err) {
       // User cancelled the picker, or open failed.
@@ -13310,6 +13373,7 @@
     }
     vibeAppendMonitor('[ disconnected ]\n');
     vibeSetStatus('disconnected', 'Disconnected. Choose your Leonardo or Micro after clicking Connect Arduino.');
+    vibeMonitorSetSendEnabled(false);
   }
 
   function vibeStopReading() {
@@ -13328,6 +13392,43 @@
     if (_vibeMonitorAutoScroll) {
       m.scrollTop = m.scrollHeight;
     }
+  }
+
+  // Write a line over Serial. Read by the Arduino sketch via Serial.read(). The
+  // line ending matches what the student selected in the dropdown so they can
+  // match whatever protocol their firmware expects.
+  async function vibeMonitorSendLine() {
+    if (!_vibeSerialPort || !_vibeSerialPort.writable) {
+      schemToast('Connect to the Arduino first (click the monitor icon above).');
+      return;
+    }
+    const input = document.getElementById('vibeMonitorInput');
+    const endingSelect = document.getElementById('vibeMonitorLineEnding');
+    if (!input) return;
+    const text = input.value;
+    if (!text) return;
+    // Unescape the select's "\n" / "\r" / "\r\n" representation.
+    const rawEnding = endingSelect ? endingSelect.value : '\n';
+    const ending = rawEnding.replace(/\\n/g, '\n').replace(/\\r/g, '\r');
+    const writer = _vibeSerialPort.writable.getWriter();
+    try {
+      const payload = new TextEncoder().encode(text + ending);
+      await writer.write(payload);
+      vibeAppendMonitor('> ' + text + '\n');
+      input.value = '';
+    } catch (err) {
+      vibeAppendMonitor('[ send error: ' + (err.message || err) + ' ]\n');
+    } finally {
+      try { writer.releaseLock(); } catch (_) {}
+    }
+  }
+
+  // Enable / disable the send controls based on whether we have a live port.
+  function vibeMonitorSetSendEnabled(enabled) {
+    const sendBtn = document.getElementById('vibeMonitorSend');
+    const input = document.getElementById('vibeMonitorInput');
+    if (sendBtn) sendBtn.disabled = !enabled;
+    if (input) input.disabled = !enabled;
   }
 
   // ============== UTIL ==============
