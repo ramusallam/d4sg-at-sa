@@ -4807,6 +4807,22 @@
     color: var(--accent);
   }
   .idea-stamp-btn:active { transform: translateY(1px); }
+  .idea-stamp-btn--export {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .idea-stamp-btn--export:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: white;
+  }
+  .idea-stamp-divider {
+    width: 1px;
+    align-self: stretch;
+    background: var(--border-strong);
+    margin: 0 4px;
+  }
   .idea-pro-frame {
     position: relative;
     flex: 1 1 auto;
@@ -13938,12 +13954,68 @@
   function renderIdeaProStamps() {
     const mount = document.getElementById('ideaProStamps');
     if (!mount) return;
-    mount.innerHTML = IDEA_STAMPS.map(s =>
+    const stampHtml = IDEA_STAMPS.map(s =>
       `<button type="button" class="idea-stamp-btn" data-stamp="${s.key}" title="Drop a ${escapeHtml(s.label)}">${escapeHtml(s.label)}</button>`
     ).join('');
+    const exportHtml = `
+      <span class="idea-stamp-divider" aria-hidden="true"></span>
+      <button type="button" class="idea-stamp-btn idea-stamp-btn--export" data-export="png" title="Download the whole board as a PNG image">Export PNG</button>
+      <button type="button" class="idea-stamp-btn idea-stamp-btn--export" data-export="svg" title="Download the whole board as an SVG image">Export SVG</button>
+    `;
+    mount.innerHTML = stampHtml + exportHtml;
     mount.querySelectorAll('[data-stamp]').forEach(b => {
       b.addEventListener('click', () => ideaDropStamp(b.dataset.stamp));
     });
+    mount.querySelectorAll('[data-export]').forEach(b => {
+      b.addEventListener('click', () => ideaExport(b.dataset.export));
+    });
+  }
+
+  async function ideaExport(format) {
+    if (!_ideaExcalApi || !window.ExcalidrawLib) return;
+    try {
+      const elements = _ideaExcalApi.getSceneElements();
+      const appState = _ideaExcalApi.getAppState();
+      const files = _ideaExcalApi.getFiles ? _ideaExcalApi.getFiles() : null;
+      if (!elements || !elements.length) {
+        schemToast && schemToast('The board is empty.');
+        return;
+      }
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      if (format === 'png' && window.ExcalidrawLib.exportToBlob) {
+        const blob = await window.ExcalidrawLib.exportToBlob({
+          elements,
+          appState: Object.assign({}, appState, { exportWithDarkMode: false, exportBackground: true, viewBackgroundColor: '#ffffff' }),
+          files,
+          mimeType: 'image/png',
+          quality: 1
+        });
+        ideaDownloadBlob(blob, `idea-board-${stamp}.png`);
+      } else if (format === 'svg' && window.ExcalidrawLib.exportToSvg) {
+        const svg = await window.ExcalidrawLib.exportToSvg({
+          elements,
+          appState: Object.assign({}, appState, { exportWithDarkMode: false, exportBackground: true, viewBackgroundColor: '#ffffff' }),
+          files
+        });
+        const svgText = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([svgText], { type: 'image/svg+xml' });
+        ideaDownloadBlob(blob, `idea-board-${stamp}.svg`);
+      }
+    } catch (err) {
+      console.warn('Idea Board export failed', err);
+      schemToast && schemToast('Could not export. ' + (err && err.message || ''));
+    }
+  }
+
+  function ideaDownloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
 
   function ideaDropStamp(key) {
