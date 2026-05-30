@@ -4432,6 +4432,25 @@
     border-color: var(--accent-hover);
   }
   .vibe-monitor-send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .vibe-monitor-fix-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: white;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    margin: 4px 0;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .vibe-monitor-fix-btn:hover { background: var(--accent-hover); }
+  .vibe-monitor-fix-btn:active { transform: translateY(1px); }
 
   .vibe-btn {
     background: var(--bg-1);
@@ -13096,21 +13115,61 @@
     btn.disabled = true;
     btn.classList.add('is-active');
     vibeMonitorLine('[ Verifying… ]', 'info');
+    let lastStderr = '';
     try {
       const data = await vibeCompileSketch(sketch);
       if (data.stdout) vibeMonitorLine(data.stdout.trimEnd(), 'dim');
       if (data.hex) {
         vibeMonitorLine('[ ✓ Compile succeeded ]', 'ok');
       } else {
-        if (data.stderr) vibeMonitorLine(data.stderr.trimEnd(), 'err');
+        if (data.stderr) {
+          lastStderr = data.stderr.trimEnd();
+          vibeMonitorLine(lastStderr, 'err');
+        }
         vibeMonitorLine('[ ✗ Verify failed ]', 'err');
+        vibeOfferFixButton(lastStderr);
       }
     } catch (err) {
-      vibeMonitorLine('[ Verify error: ' + (err.message || err) + ' ]', 'err');
+      lastStderr = err.message || String(err);
+      vibeMonitorLine('[ Verify error: ' + lastStderr + ' ]', 'err');
+      vibeOfferFixButton(lastStderr);
     } finally {
       btn.disabled = false;
       btn.classList.remove('is-active');
     }
+  }
+
+  // When the compile errors out, drop a friendly "Ask AI to fix this" button
+  // into the monitor. Clicking it preloads the chat input with a structured
+  // prompt that gives the AI the error text and asks for a corrected sketch.
+  function vibeOfferFixButton(stderr) {
+    const monitor = document.getElementById('vibeMonitor');
+    if (!monitor) return;
+    // Remove any old fix button so only the most recent error has one.
+    monitor.querySelectorAll('.vibe-monitor-fix-btn').forEach(b => b.remove());
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'vibe-monitor-fix-btn';
+    btn.textContent = 'Ask AI to fix this';
+    btn.addEventListener('click', () => vibeAskAiToFix(stderr));
+    monitor.appendChild(document.createTextNode('\n'));
+    monitor.appendChild(btn);
+    monitor.appendChild(document.createTextNode('\n'));
+    if (_vibeMonitorAutoScroll) monitor.scrollTop = monitor.scrollHeight;
+  }
+
+  function vibeAskAiToFix(stderr) {
+    const inp = document.getElementById('vibeInput');
+    if (!inp) return;
+    // Trim the stderr to the most useful slice (last ~1500 chars; keep the
+    // tail because gcc errors usually summarize at the bottom).
+    const tail = (stderr || '').slice(-1500).trim();
+    const prompt = 'My sketch in the editor does not compile. Please fix it and return the full corrected sketch in one ```cpp code block. Here is the compiler output:\n\n' + tail;
+    inp.value = prompt;
+    if (typeof vibeAutoGrow === 'function') vibeAutoGrow(inp);
+    if (typeof vibeUpdateSendEnabled === 'function') vibeUpdateSendEnabled();
+    if (typeof vibeSyncMirror === 'function') vibeSyncMirror(inp);
+    if (typeof vibeSend === 'function') vibeSend();
   }
 
   async function vibeUploadToArduino() {
