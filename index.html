@@ -6682,6 +6682,15 @@
   // pin coord to pin coord.
 
   const SCHEM_STORAGE_KEY = 'd4sg-schematic-v1';
+  // Per-student storage key. Mirrors the Vibe Coding pattern: each named
+  // student gets their own slot, and anonymous work stays on the legacy key
+  // so existing per-laptop boards keep working until a name is picked.
+  function schemStorageKey() {
+    const slug = (typeof nameSlug === 'function')
+      ? (nameSlug(localStorage.getItem(LAST_PICK_KEY) || '') || '')
+      : '';
+    return slug ? `${SCHEM_STORAGE_KEY}::${slug}` : SCHEM_STORAGE_KEY;
+  }
   const SCHEM_GRID_PITCH = 22;     // px between dots
   const SCHEM_DOT_RADIUS = 1.6;
   const SCHEM_PIN_RADIUS = 5;
@@ -7183,7 +7192,9 @@
 
   function schemLoad() {
     try {
-      const raw = localStorage.getItem(SCHEM_STORAGE_KEY);
+      // Prefer the per-student slot; fall back to the legacy global key so
+      // diagrams drawn before the per-student migration still appear.
+      const raw = localStorage.getItem(schemStorageKey()) || localStorage.getItem(SCHEM_STORAGE_KEY);
       if (!raw) return _schemDefaultState();
       const parsed = JSON.parse(raw);
       // Merge defaults so older saves don't crash.
@@ -7208,10 +7219,45 @@
 
   function schemSave() {
     try {
-      localStorage.setItem(SCHEM_STORAGE_KEY, JSON.stringify(_schemState));
+      const payload = JSON.stringify(_schemState);
+      localStorage.setItem(schemStorageKey(), payload);
+      schemMirrorDraftDebounced(payload);
     } catch (err) {
       console.warn('schematic save failed', err);
     }
+  }
+
+  // Cloud mirror to Firestore so a student's schematic follows them across
+  // laptops. Matches the Vibe Coding pattern. Only runs once a name is picked.
+  const schemMirrorDraftDebounced = debounce((payload) => {
+    const name = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
+    if (!name) return;
+    try { saveDraft(name, 'schematic', { schematic: payload }); } catch (_) {}
+  }, 1200);
+
+  // First-load hydrate from cloud: if local is empty for this student but
+  // Firestore has a saved schematic, seed localStorage so schemLoad picks it up.
+  async function schemHydrateFromCloud() {
+    const name = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
+    if (!name) return;
+    const key = schemStorageKey();
+    if (localStorage.getItem(key)) return; // already have local
+    try {
+      const draft = await loadDraft(name, 'schematic');
+      if (draft && typeof draft.schematic === 'string') {
+        localStorage.setItem(key, draft.schematic);
+      }
+    } catch (_) {}
+  }
+
+  // Called when the student switches names in the identity strip. Reloads the
+  // canvas from whichever slot now matches.
+  async function schemSwitchStudent() {
+    await schemHydrateFromCloud();
+    try {
+      _schemState = schemLoad();
+      if (typeof schemRender === 'function') schemRender();
+    } catch (e) { console.warn('schemSwitchStudent failed', e); }
   }
 
   function schemNewId(prefix) {
@@ -7383,8 +7429,17 @@
     // Identity strip so the student picks their name before they wire anything.
     const schemIdentityMount = wrap.querySelector('[data-schem-identity]');
     if (schemIdentityMount) {
-      schemIdentityMount.appendChild(renderIdentityStrip());
+      schemIdentityMount.appendChild(renderIdentityStrip({
+        onChange: () => { schemSwitchStudent(); }
+      }));
     }
+    // Pull the student's saved schematic from cloud on first visit on this
+    // device (no-op if local already has data).
+    schemHydrateFromCloud().catch(() => null).then(() => {
+      // After hydrate, reload state in case the cloud seeded localStorage.
+      _schemState = schemLoad();
+      if (typeof schemRender === 'function') schemRender();
+    });
 
     document.getElementById('schemBack').addEventListener('click', () => {
       history.pushState({}, '', '/tools');
