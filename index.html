@@ -4773,10 +4773,12 @@
   .idea-pro-wrap {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: 12px;
     height: calc(100vh - 200px);
     min-height: 540px;
   }
+  .idea-pro-wrap .schem-back { align-self: flex-start; }
   .idea-pro-frame {
     position: relative;
     flex: 1 1 auto;
@@ -13462,8 +13464,18 @@
   // The old Konva helpers below this function are preserved for safety but no
   // longer reachable — they will be removed once Excalidraw v2 is stable.
 
-  const IDEA_EXCAL_VERSION = '0.18.0';
-  const IDEA_EXCAL_CSS_HREF = `https://esm.sh/@excalidraw/excalidraw@${IDEA_EXCAL_VERSION}/index.css`;
+  // Excalidraw embedding via UMD bundles (the official documented CDN pattern).
+  // Loading via dynamic ES-module imports against esm.sh was flaky; the UMD
+  // <script> route is what Excalidraw's own README recommends and gives us
+  // window.React / window.ReactDOM / window.ExcalidrawLib reliably.
+  const IDEA_EXCAL_VERSION = '0.17.6';
+  const IDEA_REACT_VERSION = '18.2.0';
+  const IDEA_UMD_SCRIPTS = [
+    `https://unpkg.com/react@${IDEA_REACT_VERSION}/umd/react.production.min.js`,
+    `https://unpkg.com/react-dom@${IDEA_REACT_VERSION}/umd/react-dom.production.min.js`,
+    `https://unpkg.com/@excalidraw/excalidraw@${IDEA_EXCAL_VERSION}/dist/excalidraw.production.min.js`
+  ];
+  const IDEA_EXCAL_CSS_HREF = `https://unpkg.com/@excalidraw/excalidraw@${IDEA_EXCAL_VERSION}/dist/excalidraw.production.min.css`;
   let _ideaExcalRoot = null;
   let _ideaExcalReact = null;
   let _ideaExcalComp = null;
@@ -13545,12 +13557,8 @@
     ensureExcalidrawCss();
 
     try {
-      const [React, ReactDOMClient, ExcalMod] = await Promise.all([
-        import(`https://esm.sh/react@18.2.0`),
-        import(`https://esm.sh/react-dom@18.2.0/client`),
-        import(`https://esm.sh/@excalidraw/excalidraw@${IDEA_EXCAL_VERSION}`)
-      ]);
-      mountIdeaProBoard(React, ReactDOMClient.createRoot, ExcalMod.Excalidraw);
+      await loadExcalidrawUmd();
+      mountIdeaProBoard();
     } catch (err) {
       const loading = document.getElementById('ideaProLoading');
       if (loading) {
@@ -13559,11 +13567,44 @@
     }
   }
 
-  function mountIdeaProBoard(React, createRoot, Excalidraw) {
+  // Load the three UMD scripts in sequence (order matters: React, ReactDOM,
+  // then Excalidraw which depends on both).
+  function loadExcalidrawUmd() {
+    if (window.ExcalidrawLib && window.React && window.ReactDOM) return Promise.resolve();
+    return IDEA_UMD_SCRIPTS.reduce((chain, src) => chain.then(() => loadOneScript(src)), Promise.resolve());
+  }
+  function loadOneScript(src) {
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[data-cdn-src="${src}"]`);
+      if (existing) {
+        if (existing.dataset.cdnLoaded === '1') return resolve();
+        existing.addEventListener('load', () => resolve());
+        existing.addEventListener('error', () => reject(new Error('Failed to load ' + src)));
+        return;
+      }
+      const s = document.createElement('script');
+      s.src = src;
+      s.crossOrigin = 'anonymous';
+      s.dataset.cdnSrc = src;
+      s.onload = () => { s.dataset.cdnLoaded = '1'; resolve(); };
+      s.onerror = () => reject(new Error('Failed to load ' + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  function mountIdeaProBoard() {
     const container = document.getElementById('excalidrawRoot');
     if (!container) return;
     const loading = document.getElementById('ideaProLoading');
     if (loading) loading.remove();
+
+    const React = window.React;
+    const ReactDOM = window.ReactDOM;
+    const Excalidraw = window.ExcalidrawLib && window.ExcalidrawLib.Excalidraw;
+    if (!React || !ReactDOM || !Excalidraw) {
+      container.innerHTML = `<div class="idea-pro-error" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">Drawing engine did not initialize. Please refresh.</div>`;
+      return;
+    }
 
     _ideaExcalReact = React;
     _ideaExcalComp = Excalidraw;
@@ -13588,7 +13629,7 @@
       }
     };
 
-    _ideaExcalRoot = createRoot(container);
+    _ideaExcalRoot = ReactDOM.createRoot(container);
     _ideaExcalRoot.render(React.createElement(Excalidraw, props));
   }
 
