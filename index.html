@@ -4779,6 +4779,34 @@
     min-height: 540px;
   }
   .idea-pro-wrap .schem-back { align-self: flex-start; }
+  /* Horizontal strip of one-click AT component stamps above the canvas. */
+  .idea-pro-stamps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .idea-stamp-btn {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--ink-mid);
+    padding: 6px 11px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
+  }
+  .idea-stamp-btn:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .idea-stamp-btn:active { transform: translateY(1px); }
   .idea-pro-frame {
     position: relative;
     flex: 1 1 auto;
@@ -13479,6 +13507,7 @@
   let _ideaExcalRoot = null;
   let _ideaExcalReact = null;
   let _ideaExcalComp = null;
+  let _ideaExcalApi = null;
   let _ideaExcalSaveTimer = null;
 
   function ideaStorageKey() {
@@ -13507,9 +13536,36 @@
       delete cleanAppState.activeEmbeddable;
       const payload = JSON.stringify({ elements: elements || [], appState: cleanAppState });
       localStorage.setItem(ideaStorageKey(), payload);
+      // Mirror to Firestore so the board follows the student to other laptops.
+      ideaMirrorDraftDebounced(payload);
     } catch (err) {
       console.warn('Idea Board save failed', err);
     }
+  }
+
+  // Debounced cloud mirror (matches the Vibe Coding pattern). Only runs if a
+  // student name is picked; anonymous work stays local.
+  const ideaMirrorDraftDebounced = debounce((payload) => {
+    const name = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
+    if (!name) return;
+    try { saveDraft(name, 'idea-board', { ideaBoard: payload }); } catch (_) {}
+  }, 1200);
+
+  // On boot or student switch: if local is empty for this slug but the cloud
+  // has a saved board, pull it down and seed localStorage.
+  async function ideaHydrateFromCloud() {
+    const name = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
+    if (!name) return null;
+    const hasLocal = !!localStorage.getItem(ideaStorageKey());
+    if (hasLocal) return null;
+    try {
+      const draft = await loadDraft(name, 'idea-board');
+      if (draft && typeof draft.ideaBoard === 'string') {
+        localStorage.setItem(ideaStorageKey(), draft.ideaBoard);
+        return JSON.parse(draft.ideaBoard);
+      }
+    } catch (_) {}
+    return null;
   }
 
   function ensureExcalidrawCss() {
@@ -13529,6 +13585,7 @@
       <button class="schem-back" id="ideaBack" aria-label="Back to Tools"><span class="schem-back-arrow">←</span> Back to Tools</button>
       <h2 class="project-title">Idea Board</h2>
       <div data-idea-identity></div>
+      <div class="idea-pro-stamps" id="ideaProStamps" aria-label="Assistive technology stamps"></div>
       <div class="idea-pro-frame">
         <div id="excalidrawRoot" class="idea-pro-canvas"></div>
         <div class="idea-pro-loading" id="ideaProLoading">
@@ -13557,7 +13614,10 @@
     ensureExcalidrawCss();
 
     try {
-      await loadExcalidrawUmd();
+      await Promise.all([
+        loadExcalidrawUmd(),
+        ideaHydrateFromCloud().catch(() => null)
+      ]);
       mountIdeaProBoard();
     } catch (err) {
       const loading = document.getElementById('ideaProLoading');
@@ -13610,7 +13670,7 @@
     _ideaExcalComp = Excalidraw;
 
     const initial = ideaLoadState();
-    const defaultAppState = { viewBackgroundColor: '#faf8f0' };
+    const defaultAppState = { viewBackgroundColor: '#ffffff' };
 
     const props = {
       initialData: initial || { elements: [], appState: defaultAppState },
@@ -13620,6 +13680,7 @@
       },
       theme: 'light',
       name: 'D4SG Idea Board',
+      excalidrawAPI: (api) => { _ideaExcalApi = api; },
       UIOptions: {
         canvasActions: {
           loadScene: false,
@@ -13631,13 +13692,287 @@
 
     _ideaExcalRoot = ReactDOM.createRoot(container);
     _ideaExcalRoot.render(React.createElement(Excalidraw, props));
+    renderIdeaProStamps();
+  }
+
+  // ===== Assistive Tech stamp library =====
+  // Each stamp is a function (x, y) => [element, ...] returning a list of
+  // grouped Excalidraw element objects that together compose the component.
+
+  function _ideaSeed() { return Math.floor(Math.random() * 2 ** 31); }
+  function _ideaShortId() { return Math.random().toString(36).slice(2, 10); }
+
+  // Defaults: every stamp element starts from this base, then overrides fields.
+  function _ideaEl(props, groupId) {
+    return Object.assign({
+      id: _ideaShortId(),
+      type: 'rectangle',
+      x: 0, y: 0,
+      width: 40, height: 40,
+      angle: 0,
+      strokeColor: '#1e1b4b',
+      backgroundColor: 'transparent',
+      fillStyle: 'solid',
+      strokeWidth: 1.5,
+      strokeStyle: 'solid',
+      roughness: 1,
+      opacity: 100,
+      groupIds: groupId ? [groupId] : [],
+      frameId: null,
+      roundness: null,
+      seed: _ideaSeed(),
+      version: 1,
+      versionNonce: _ideaSeed(),
+      isDeleted: false,
+      boundElements: [],
+      updated: Date.now(),
+      link: null,
+      locked: false,
+      customData: null
+    }, props);
+  }
+  function _ideaText(props, groupId) {
+    return _ideaEl(Object.assign({
+      type: 'text',
+      text: '',
+      fontSize: 14,
+      fontFamily: 2, // 2 = Helvetica (clean sans for labels)
+      textAlign: 'center',
+      verticalAlign: 'middle',
+      containerId: null,
+      baseline: 14,
+      lineHeight: 1.2,
+      strokeColor: '#1f1f1f',
+      backgroundColor: 'transparent',
+      fillStyle: 'solid',
+      strokeWidth: 1,
+      roughness: 0
+    }, props), groupId);
+  }
+  const _AT_ACCENT = '#6366f1';
+  const _AT_SOFT = '#e0e7ff';
+
+  // Each stamp: { key, label, build(x,y) -> elements[] }
+  const IDEA_STAMPS = [
+    {
+      key: 'button', label: 'Button',
+      build(x, y) {
+        const g = 'btn_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'ellipse', x, y, width:80, height:80, strokeColor:_AT_ACCENT, backgroundColor:_AT_SOFT, fillStyle:'solid', strokeWidth:2 }, g),
+          _ideaEl({ type:'ellipse', x:x+14, y:y+14, width:52, height:52, strokeColor:_AT_ACCENT, backgroundColor:'#ffffff', fillStyle:'solid', strokeWidth:1 }, g),
+          _ideaText({ x:x-5, y:y+86, width:90, height:18, text:'BUTTON', fontSize:13 }, g)
+        ];
+      }
+    },
+    {
+      key: 'lever', label: 'Lever',
+      build(x, y) {
+        const g = 'lev_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'rectangle', x, y:y+30, width:80, height:30, strokeColor:_AT_ACCENT, backgroundColor:_AT_SOFT, fillStyle:'solid', roundness:{ type:3 } }, g),
+          _ideaEl({ type:'line', x:x+10, y:y+45, width:50, height:-35, points:[[0,0],[50,-35]], strokeColor:_AT_ACCENT, strokeWidth:3 }, g),
+          _ideaEl({ type:'ellipse', x:x+55, y:y+5, width:14, height:14, strokeColor:_AT_ACCENT, backgroundColor:_AT_ACCENT, fillStyle:'solid' }, g),
+          _ideaText({ x:x-5, y:y+66, width:90, height:18, text:'LEVER', fontSize:13 }, g)
+        ];
+      }
+    },
+    {
+      key: 'palm', label: 'Palm Switch',
+      build(x, y) {
+        const g = 'palm_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'ellipse', x, y, width:120, height:80, strokeColor:_AT_ACCENT, backgroundColor:_AT_SOFT, fillStyle:'solid', strokeWidth:2 }, g),
+          _ideaEl({ type:'ellipse', x:x+15, y:y+12, width:90, height:56, strokeColor:_AT_ACCENT, backgroundColor:'#ffffff', fillStyle:'solid', strokeWidth:1 }, g),
+          _ideaText({ x:x-5, y:y+86, width:130, height:18, text:'PALM SWITCH', fontSize:13 }, g)
+        ];
+      }
+    },
+    {
+      key: 'sipPuff', label: 'Sip & Puff',
+      build(x, y) {
+        const g = 'spp_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'ellipse', x:x+20, y, width:30, height:30, strokeColor:_AT_ACCENT, backgroundColor:_AT_SOFT, fillStyle:'solid' }, g),
+          _ideaEl({ type:'line', x:x+35, y:y+15, width:60, height:30, points:[[0,0],[20,10],[40,5],[60,30]], strokeColor:'#4b5563', strokeWidth:2 }, g),
+          _ideaText({ x:x-5, y:y+36, width:100, height:18, text:'SIP & PUFF', fontSize:13 }, g)
+        ];
+      }
+    },
+    {
+      key: 'jack', label: '3.5mm Jack',
+      build(x, y) {
+        const g = 'jack_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'ellipse', x, y, width:50, height:50, strokeColor:_AT_ACCENT, backgroundColor:'#ffffff', fillStyle:'solid', strokeWidth:2 }, g),
+          _ideaEl({ type:'ellipse', x:x+18, y:y+18, width:14, height:14, strokeColor:_AT_ACCENT, backgroundColor:_AT_ACCENT, fillStyle:'solid' }, g),
+          _ideaText({ x:x-15, y:y+56, width:80, height:18, text:'3.5mm JACK', fontSize:12 }, g)
+        ];
+      }
+    },
+    {
+      key: 'jst', label: 'JST Header',
+      build(x, y) {
+        const g = 'jst_' + _ideaShortId();
+        const els = [
+          _ideaEl({ type:'rectangle', x, y, width:80, height:24, strokeColor:_AT_ACCENT, backgroundColor:'#fde68a', fillStyle:'solid', strokeWidth:2, roundness:{ type:3 } }, g)
+        ];
+        for (let i = 0; i < 4; i++) {
+          els.push(_ideaEl({ type:'ellipse', x:x+8+i*18, y:y+8, width:8, height:8, strokeColor:_AT_ACCENT, backgroundColor:_AT_ACCENT, fillStyle:'solid' }, g));
+        }
+        els.push(_ideaText({ x:x-5, y:y+30, width:90, height:18, text:'JST-XH', fontSize:13 }, g));
+        return els;
+      }
+    },
+    {
+      key: 'joystick', label: 'Joystick',
+      build(x, y) {
+        const g = 'joy_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'ellipse', x, y:y+40, width:80, height:80, strokeColor:_AT_ACCENT, backgroundColor:_AT_SOFT, fillStyle:'solid', strokeWidth:2 }, g),
+          _ideaEl({ type:'line', x:x+40, y:y+80, width:0, height:-50, points:[[0,0],[0,-50]], strokeColor:_AT_ACCENT, strokeWidth:5 }, g),
+          _ideaEl({ type:'ellipse', x:x+22, y:y+8, width:36, height:36, strokeColor:_AT_ACCENT, backgroundColor:'#000000', fillStyle:'solid' }, g),
+          _ideaText({ x:x-5, y:y+124, width:90, height:18, text:'JOYSTICK', fontSize:13 }, g)
+        ];
+      }
+    },
+    {
+      key: 'ir', label: 'IR Sensor',
+      build(x, y) {
+        const g = 'ir_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'rectangle', x, y, width:70, height:40, strokeColor:_AT_ACCENT, backgroundColor:'#1f2937', fillStyle:'solid', strokeWidth:2, roundness:{ type:3 } }, g),
+          _ideaEl({ type:'ellipse', x:x+12, y:y+12, width:16, height:16, strokeColor:'#fbbf24', backgroundColor:'#f59e0b', fillStyle:'solid' }, g),
+          _ideaEl({ type:'ellipse', x:x+44, y:y+12, width:16, height:16, strokeColor:'#fbbf24', backgroundColor:'#f59e0b', fillStyle:'solid' }, g),
+          _ideaText({ x:x-5, y:y+44, width:80, height:18, text:'IR DISTANCE', fontSize:12 }, g)
+        ];
+      }
+    },
+    {
+      key: 'touch', label: 'Cap Touch',
+      build(x, y) {
+        const g = 'touch_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'rectangle', x, y, width:70, height:40, strokeColor:_AT_ACCENT, backgroundColor:'#a78bfa', fillStyle:'solid', strokeWidth:2, roundness:{ type:3 } }, g),
+          _ideaEl({ type:'ellipse', x:x+8, y:y+8, width:24, height:24, strokeColor:'#1e1b4b', backgroundColor:'#c4b5fd', fillStyle:'solid', strokeWidth:1 }, g),
+          _ideaEl({ type:'ellipse', x:x+38, y:y+8, width:24, height:24, strokeColor:'#1e1b4b', backgroundColor:'#c4b5fd', fillStyle:'solid', strokeWidth:1 }, g),
+          _ideaText({ x:x-5, y:y+44, width:80, height:18, text:'CAP TOUCH', fontSize:12 }, g)
+        ];
+      }
+    },
+    {
+      key: 'led', label: 'LED',
+      build(x, y) {
+        const g = 'led_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'ellipse', x, y, width:40, height:40, strokeColor:_AT_ACCENT, backgroundColor:'#ef4444', fillStyle:'solid', strokeWidth:2 }, g),
+          _ideaEl({ type:'line', x:x+10, y:y+40, width:0, height:30, points:[[0,0],[0,30]], strokeColor:'#4b5563', strokeWidth:2 }, g),
+          _ideaEl({ type:'line', x:x+30, y:y+40, width:0, height:40, points:[[0,0],[0,40]], strokeColor:'#4b5563', strokeWidth:2 }, g),
+          _ideaText({ x:x-15, y:y+74, width:70, height:18, text:'LED', fontSize:13 }, g)
+        ];
+      }
+    },
+    {
+      key: 'arduino', label: 'Arduino',
+      build(x, y) {
+        const g = 'ard_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'rectangle', x, y, width:140, height:80, strokeColor:'#0f766e', backgroundColor:'#5eead4', fillStyle:'solid', strokeWidth:2, roundness:{ type:3 } }, g),
+          _ideaEl({ type:'rectangle', x:x-12, y:y+20, width:14, height:24, strokeColor:'#374151', backgroundColor:'#d1d5db', fillStyle:'solid', strokeWidth:1 }, g),
+          _ideaText({ x:x+10, y:y+22, width:120, height:18, text:'Arduino Leonardo', fontSize:13 }, g),
+          _ideaText({ x:x-5, y:y+84, width:150, height:18, text:'ARDUINO', fontSize:13 }, g)
+        ];
+      }
+    },
+    {
+      key: 'perfboard', label: 'Perfboard',
+      build(x, y) {
+        const g = 'pb_' + _ideaShortId();
+        const els = [
+          _ideaEl({ type:'rectangle', x, y, width:120, height:90, strokeColor:'#92400e', backgroundColor:'#fed7aa', fillStyle:'solid', strokeWidth:2 }, g)
+        ];
+        for (let i = 0; i < 6; i++) {
+          for (let j = 0; j < 4; j++) {
+            els.push(_ideaEl({ type:'ellipse', x:x+12+i*18, y:y+10+j*22, width:4, height:4, strokeColor:'#92400e', backgroundColor:'#92400e', fillStyle:'solid', strokeWidth:1 }, g));
+          }
+        }
+        els.push(_ideaText({ x:x-5, y:y+94, width:130, height:18, text:'PERFBOARD', fontSize:13 }, g));
+        return els;
+      }
+    },
+    {
+      key: 'cylinder', label: 'Cylinder',
+      build(x, y) {
+        const g = 'cyl_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'rectangle', x, y:y+10, width:60, height:80, strokeColor:_AT_ACCENT, backgroundColor:_AT_SOFT, fillStyle:'solid', strokeWidth:2 }, g),
+          _ideaEl({ type:'ellipse', x, y, width:60, height:22, strokeColor:_AT_ACCENT, backgroundColor:'#ffffff', fillStyle:'solid', strokeWidth:2 }, g),
+          _ideaEl({ type:'ellipse', x, y:y+80, width:60, height:22, strokeColor:_AT_ACCENT, backgroundColor:_AT_SOFT, fillStyle:'solid', strokeWidth:2 }, g),
+          _ideaText({ x:x-15, y:y+104, width:90, height:18, text:'CYLINDER', fontSize:13 }, g)
+        ];
+      }
+    },
+    {
+      key: 'sphere', label: 'Sphere',
+      build(x, y) {
+        const g = 'sph_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'ellipse', x, y, width:80, height:80, strokeColor:_AT_ACCENT, backgroundColor:_AT_SOFT, fillStyle:'solid', strokeWidth:2 }, g),
+          _ideaEl({ type:'ellipse', x:x+14, y:y+10, width:24, height:18, strokeColor:'#ffffff', backgroundColor:'#ffffff', fillStyle:'solid', strokeWidth:1, opacity:60 }, g),
+          _ideaText({ x:x-5, y:y+86, width:90, height:18, text:'SPHERE', fontSize:13 }, g)
+        ];
+      }
+    },
+    {
+      key: 'disc', label: 'Disc',
+      build(x, y) {
+        const g = 'disc_' + _ideaShortId();
+        return [
+          _ideaEl({ type:'ellipse', x, y, width:100, height:30, strokeColor:_AT_ACCENT, backgroundColor:_AT_SOFT, fillStyle:'solid', strokeWidth:2 }, g),
+          _ideaText({ x:x+5, y:y+34, width:90, height:18, text:'DISC', fontSize:13 }, g)
+        ];
+      }
+    }
+  ];
+
+  function renderIdeaProStamps() {
+    const mount = document.getElementById('ideaProStamps');
+    if (!mount) return;
+    mount.innerHTML = IDEA_STAMPS.map(s =>
+      `<button type="button" class="idea-stamp-btn" data-stamp="${s.key}" title="Drop a ${escapeHtml(s.label)}">${escapeHtml(s.label)}</button>`
+    ).join('');
+    mount.querySelectorAll('[data-stamp]').forEach(b => {
+      b.addEventListener('click', () => ideaDropStamp(b.dataset.stamp));
+    });
+  }
+
+  function ideaDropStamp(key) {
+    if (!_ideaExcalApi) return;
+    const stamp = IDEA_STAMPS.find(s => s.key === key);
+    if (!stamp) return;
+    // Drop near the current viewport center, with a small random offset so
+    // repeated drops do not stack on top of each other.
+    const appState = _ideaExcalApi.getAppState();
+    const container = document.getElementById('excalidrawRoot');
+    const zoom = (appState.zoom && appState.zoom.value) || 1;
+    const cx = (container ? container.clientWidth / 2 : 400);
+    const cy = (container ? container.clientHeight / 2 : 280);
+    const worldX = (cx - (appState.scrollX || 0) * zoom) / zoom + (Math.random() * 60 - 30);
+    const worldY = (cy - (appState.scrollY || 0) * zoom) / zoom + (Math.random() * 60 - 30);
+    const newElements = stamp.build(Math.round(worldX), Math.round(worldY));
+    const sceneElements = _ideaExcalApi.getSceneElements();
+    _ideaExcalApi.updateScene({
+      elements: [...sceneElements, ...newElements]
+    });
   }
 
   // Re-mount with the new student's saved board when the identity strip changes.
-  function ideaProSwitchStudent() {
+  async function ideaProSwitchStudent() {
     if (!_ideaExcalRoot || !_ideaExcalReact || !_ideaExcalComp) return;
+    // Pull from cloud first in case this is the student's first time on this device.
+    await ideaHydrateFromCloud().catch(() => null);
     const initial = ideaLoadState();
-    const defaultAppState = { viewBackgroundColor: '#faf8f0' };
+    const defaultAppState = { viewBackgroundColor: '#ffffff' };
     const props = {
       initialData: initial || { elements: [], appState: defaultAppState },
       onChange: (elements, appState) => {
@@ -13646,6 +13981,7 @@
       },
       theme: 'light',
       name: 'D4SG Idea Board',
+      excalidrawAPI: (api) => { _ideaExcalApi = api; },
       UIOptions: {
         canvasActions: {
           loadScene: false,
