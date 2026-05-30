@@ -13467,7 +13467,7 @@
   let _ideaExcalRoot = null;
   let _ideaExcalReact = null;
   let _ideaExcalComp = null;
-  let _ideaSaveTimer = null;
+  let _ideaExcalSaveTimer = null;
 
   function ideaStorageKey() {
     const slug = (typeof nameSlug === 'function')
@@ -13574,8 +13574,8 @@
     const props = {
       initialData: initial || { elements: [], appState: defaultAppState },
       onChange: (elements, appState) => {
-        if (_ideaSaveTimer) clearTimeout(_ideaSaveTimer);
-        _ideaSaveTimer = setTimeout(() => ideaSaveState(elements, appState), 500);
+        if (_ideaExcalSaveTimer) clearTimeout(_ideaExcalSaveTimer);
+        _ideaExcalSaveTimer = setTimeout(() => ideaSaveState(elements, appState), 500);
       },
       theme: 'light',
       name: 'D4SG Idea Board',
@@ -13600,8 +13600,8 @@
     const props = {
       initialData: initial || { elements: [], appState: defaultAppState },
       onChange: (elements, appState) => {
-        if (_ideaSaveTimer) clearTimeout(_ideaSaveTimer);
-        _ideaSaveTimer = setTimeout(() => ideaSaveState(elements, appState), 500);
+        if (_ideaExcalSaveTimer) clearTimeout(_ideaExcalSaveTimer);
+        _ideaExcalSaveTimer = setTimeout(() => ideaSaveState(elements, appState), 500);
       },
       theme: 'light',
       name: 'D4SG Idea Board',
