@@ -4769,6 +4769,67 @@
   /* One continuous toolbar across the top — never wraps to a second line.
      If the viewport is too narrow to hold every group, the bar scrolls
      horizontally (slim styled scrollbar) instead of stacking. */
+  /* ====== Idea Board v2 (Excalidraw embedded) ====== */
+  .idea-pro-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: calc(100vh - 200px);
+    min-height: 540px;
+  }
+  .idea-pro-frame {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
+  }
+  .idea-pro-canvas {
+    position: absolute;
+    inset: 0;
+  }
+  /* Excalidraw root mounts inside .idea-pro-canvas; the library renders its
+     own toolbar, hand-drawn shapes, palette, etc. We only constrain it to fit
+     the working area. */
+  .idea-pro-canvas .excalidraw {
+    height: 100%;
+    width: 100%;
+  }
+  .idea-pro-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-direction: column;
+    color: var(--ink-mid);
+    font-size: 13.5px;
+    pointer-events: none;
+  }
+  .idea-pro-loading .spin {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border-strong);
+    border-top-color: var(--accent);
+    animation: cadSpin 0.9s linear infinite;
+  }
+  .idea-pro-error {
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 14px 18px;
+    max-width: 480px;
+    text-align: center;
+    font-size: 13.5px;
+    line-height: 1.55;
+    pointer-events: auto;
+  }
+
   .idea-toolbar {
     display: flex;
     align-items: center;
@@ -13395,7 +13456,173 @@
   function ideaPalette() { return IDEA_COLORS[_ideaColor] || IDEA_COLORS.black; }
   function ideaStroke() { return IDEA_WIDTHS[_ideaWidth] || IDEA_WIDTHS.medium; }
 
-  function initIdeaBoardTool() {
+  // ====== Idea Board v2: Excalidraw-based ======
+  // Replaces the Konva implementation. Excalidraw is loaded lazily from esm.sh
+  // on first visit to /tools/idea-board so it does not bloat any other route.
+  // The old Konva helpers below this function are preserved for safety but no
+  // longer reachable — they will be removed once Excalidraw v2 is stable.
+
+  const IDEA_EXCAL_VERSION = '0.18.0';
+  const IDEA_EXCAL_CSS_HREF = `https://esm.sh/@excalidraw/excalidraw@${IDEA_EXCAL_VERSION}/index.css`;
+  let _ideaExcalRoot = null;
+  let _ideaExcalReact = null;
+  let _ideaExcalComp = null;
+  let _ideaSaveTimer = null;
+
+  function ideaStorageKey() {
+    const slug = (typeof nameSlug === 'function')
+      ? (nameSlug(localStorage.getItem(LAST_PICK_KEY) || '') || '_anon')
+      : '_anon';
+    return `d4sg-idea-pro::${slug}`;
+  }
+
+  function ideaLoadState() {
+    try {
+      const raw = localStorage.getItem(ideaStorageKey());
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (_) { return null; }
+  }
+
+  function ideaSaveState(elements, appState) {
+    try {
+      const cleanAppState = appState ? { ...appState } : {};
+      delete cleanAppState.collaborators;
+      delete cleanAppState.editingElement;
+      delete cleanAppState.draggingElement;
+      delete cleanAppState.resizingElement;
+      delete cleanAppState.selectedElementIds;
+      delete cleanAppState.activeEmbeddable;
+      const payload = JSON.stringify({ elements: elements || [], appState: cleanAppState });
+      localStorage.setItem(ideaStorageKey(), payload);
+    } catch (err) {
+      console.warn('Idea Board save failed', err);
+    }
+  }
+
+  function ensureExcalidrawCss() {
+    if (document.querySelector('link[data-excal-css]')) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = IDEA_EXCAL_CSS_HREF;
+    link.dataset.excalCss = '1';
+    document.head.appendChild(link);
+  }
+
+  async function initIdeaBoardTool() {
+    app.innerHTML = '';
+    const wrap = document.createElement('section');
+    wrap.className = 'project idea-pro-wrap';
+    wrap.innerHTML = `
+      <button class="schem-back" id="ideaBack" aria-label="Back to Tools"><span class="schem-back-arrow">←</span> Back to Tools</button>
+      <h2 class="project-title">Idea Board</h2>
+      <div data-idea-identity></div>
+      <div class="idea-pro-frame">
+        <div id="excalidrawRoot" class="idea-pro-canvas"></div>
+        <div class="idea-pro-loading" id="ideaProLoading">
+          <div class="spin"></div>
+          <span>Loading the drawing board…</span>
+        </div>
+      </div>
+    `;
+    app.appendChild(wrap);
+
+    document.getElementById('ideaBack').addEventListener('click', () => {
+      if (typeof history !== 'undefined' && typeof applyRoute === 'function') {
+        history.pushState({}, '', '/tools');
+        applyRoute('/tools');
+      }
+    });
+
+    // Identity strip — switching students reloads their saved board.
+    const idEl = wrap.querySelector('[data-idea-identity]');
+    if (idEl && typeof renderIdentityStrip === 'function') {
+      idEl.appendChild(renderIdentityStrip({
+        onChange: () => ideaProSwitchStudent()
+      }));
+    }
+
+    ensureExcalidrawCss();
+
+    try {
+      const [React, ReactDOMClient, ExcalMod] = await Promise.all([
+        import(`https://esm.sh/react@18.2.0`),
+        import(`https://esm.sh/react-dom@18.2.0/client`),
+        import(`https://esm.sh/@excalidraw/excalidraw@${IDEA_EXCAL_VERSION}`)
+      ]);
+      mountIdeaProBoard(React, ReactDOMClient.createRoot, ExcalMod.Excalidraw);
+    } catch (err) {
+      const loading = document.getElementById('ideaProLoading');
+      if (loading) {
+        loading.innerHTML = `<div class="idea-pro-error">Could not load the drawing board. Check your internet connection and refresh.<br/><small>${(err && err.message) || err}</small></div>`;
+      }
+    }
+  }
+
+  function mountIdeaProBoard(React, createRoot, Excalidraw) {
+    const container = document.getElementById('excalidrawRoot');
+    if (!container) return;
+    const loading = document.getElementById('ideaProLoading');
+    if (loading) loading.remove();
+
+    _ideaExcalReact = React;
+    _ideaExcalComp = Excalidraw;
+
+    const initial = ideaLoadState();
+    const defaultAppState = { viewBackgroundColor: '#faf8f0' };
+
+    const props = {
+      initialData: initial || { elements: [], appState: defaultAppState },
+      onChange: (elements, appState) => {
+        if (_ideaSaveTimer) clearTimeout(_ideaSaveTimer);
+        _ideaSaveTimer = setTimeout(() => ideaSaveState(elements, appState), 500);
+      },
+      theme: 'light',
+      name: 'D4SG Idea Board',
+      UIOptions: {
+        canvasActions: {
+          loadScene: false,
+          saveAsImage: true,
+          changeViewBackgroundColor: false
+        }
+      }
+    };
+
+    _ideaExcalRoot = createRoot(container);
+    _ideaExcalRoot.render(React.createElement(Excalidraw, props));
+  }
+
+  // Re-mount with the new student's saved board when the identity strip changes.
+  function ideaProSwitchStudent() {
+    if (!_ideaExcalRoot || !_ideaExcalReact || !_ideaExcalComp) return;
+    const initial = ideaLoadState();
+    const defaultAppState = { viewBackgroundColor: '#faf8f0' };
+    const props = {
+      initialData: initial || { elements: [], appState: defaultAppState },
+      onChange: (elements, appState) => {
+        if (_ideaSaveTimer) clearTimeout(_ideaSaveTimer);
+        _ideaSaveTimer = setTimeout(() => ideaSaveState(elements, appState), 500);
+      },
+      theme: 'light',
+      name: 'D4SG Idea Board',
+      UIOptions: {
+        canvasActions: {
+          loadScene: false,
+          saveAsImage: true,
+          changeViewBackgroundColor: false
+        }
+      },
+      // Force remount by changing the key.
+      key: ideaStorageKey() + '_' + Date.now()
+    };
+    _ideaExcalRoot.render(_ideaExcalReact.createElement(_ideaExcalComp, props));
+  }
+
+  // ====== End Idea Board v2 ======
+  // The Konva-based legacy implementation below is preserved unreachable for
+  // safety. Will be removed once Excalidraw v2 is verified in classroom use.
+
+  function _legacyKonvaInitIdeaBoardTool() {
     if (typeof Konva === 'undefined') {
       app.innerHTML = '<section class="project"><h2 class="project-title">Idea Board</h2><p>Drawing library failed to load. Check your internet connection and refresh.</p></section>';
       return;
