@@ -14531,6 +14531,7 @@
     const exportHtml = `
       <span class="idea-stamp-divider" aria-hidden="true"></span>
       <button type="button" class="idea-stamp-btn idea-stamp-btn--export" data-export="png" title="Download the whole board as a PNG image">Export PNG</button>
+      <button type="button" class="idea-stamp-btn idea-stamp-btn--export" data-export="jpg" title="Download the whole board as a JPG image">Export JPG</button>
       <button type="button" class="idea-stamp-btn idea-stamp-btn--export" data-export="svg" title="Download the whole board as an SVG image">Export SVG</button>
     `;
     mount.innerHTML = stampHtml + exportHtml;
@@ -14553,15 +14554,18 @@
         return;
       }
       const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      if (format === 'png' && window.ExcalidrawLib.exportToBlob) {
+      if ((format === 'png' || format === 'jpg') && window.ExcalidrawLib.exportToBlob) {
+        // JPG has no transparency, so a white background is essential (already
+        // forced below). Quality 0.92 keeps JPGs crisp but reasonably small.
+        const isJpg = format === 'jpg';
         const blob = await window.ExcalidrawLib.exportToBlob({
           elements,
           appState: Object.assign({}, appState, { exportWithDarkMode: false, exportBackground: true, viewBackgroundColor: '#ffffff' }),
           files,
-          mimeType: 'image/png',
-          quality: 1
+          mimeType: isJpg ? 'image/jpeg' : 'image/png',
+          quality: isJpg ? 0.92 : 1
         });
-        ideaDownloadBlob(blob, `idea-board-${stamp}.png`);
+        ideaDownloadBlob(blob, `idea-board-${stamp}.${isJpg ? 'jpg' : 'png'}`);
       } else if (format === 'svg' && window.ExcalidrawLib.exportToSvg) {
         const svg = await window.ExcalidrawLib.exportToSvg({
           elements,
