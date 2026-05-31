@@ -4891,15 +4891,30 @@
     color: var(--accent);
   }
   .idea-stamp-btn:active { transform: translateY(1px); }
+  /* Export = secondary (outline). Saving straight into a benchmark is the
+     primary path, so file download is de-emphasized. */
   .idea-stamp-btn--export {
-    background: var(--accent);
-    color: white;
+    background: transparent;
+    color: var(--accent);
     border-color: var(--accent);
   }
   .idea-stamp-btn--export:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  /* Save to Benchmark / Portfolio = the primary call to action. */
+  .idea-stamp-btn--save {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    font-weight: 700;
+    box-shadow: 0 1px 6px rgba(79, 70, 229, 0.28);
+  }
+  .idea-stamp-btn--save:hover {
     background: var(--accent-hover);
     border-color: var(--accent-hover);
-    color: white;
+    color: #fff;
   }
   .idea-stamp-divider {
     width: 1px;
@@ -14596,6 +14611,8 @@
     ).join('');
     const exportHtml = `
       <span class="idea-stamp-divider" aria-hidden="true"></span>
+      <button type="button" class="idea-stamp-btn idea-stamp-btn--save" id="ideaSaveTo" title="Drop this board straight into a benchmark or your portfolio — no download needed">↳ Save to Benchmark ▾</button>
+      <span class="idea-stamp-divider" aria-hidden="true"></span>
       <button type="button" class="idea-stamp-btn idea-stamp-btn--export" data-export="png" title="Download the whole board as a PNG image">Export PNG</button>
       <button type="button" class="idea-stamp-btn idea-stamp-btn--export" data-export="jpg" title="Download the whole board as a JPG image">Export JPG</button>
       <button type="button" class="idea-stamp-btn idea-stamp-btn--export" data-export="svg" title="Download the whole board as an SVG image">Export SVG</button>
@@ -14606,6 +14623,39 @@
     });
     mount.querySelectorAll('[data-export]').forEach(b => {
       b.addEventListener('click', () => ideaExport(b.dataset.export));
+    });
+    // "Save to Benchmark" — drops the board's PNG straight into a benchmark's
+    // sketch slot (or a Portfolio drop) via the shared save-to popover. The
+    // whole idea-board path through openSaveToPop / handleSaveToPick already
+    // exists; this just reconnects the button the Excalidraw rebuild dropped.
+    const saveBtn = mount.querySelector('#ideaSaveTo');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (_saveToPopOpen && _saveToPopOpen.anchorEl === saveBtn) { closeSaveToPop(); return; }
+        const els = _ideaExcalApi ? _ideaExcalApi.getSceneElements() : [];
+        if (!els || !els.length) { if (typeof schemToast === 'function') schemToast('Draw or stamp something first, then save.'); return; }
+        openSaveToPop(saveBtn, 'idea-board', () => ideaBuildExcalPngBlob());
+      });
+    }
+  }
+
+  // PNG Blob of the current Excalidraw board (white background, native res).
+  // Used by the "Save to Benchmark" flow (mirrors the PNG export path).
+  async function ideaBuildExcalPngBlob() {
+    if (!_ideaExcalApi || !window.ExcalidrawLib || !window.ExcalidrawLib.exportToBlob) {
+      throw new Error('Idea Board is not ready yet.');
+    }
+    const elements = _ideaExcalApi.getSceneElements();
+    if (!elements || !elements.length) throw new Error('The board is empty.');
+    const appState = _ideaExcalApi.getAppState();
+    const files = _ideaExcalApi.getFiles ? _ideaExcalApi.getFiles() : null;
+    return await window.ExcalidrawLib.exportToBlob({
+      elements,
+      appState: Object.assign({}, appState, { exportWithDarkMode: false, exportBackground: true, viewBackgroundColor: '#ffffff' }),
+      files,
+      mimeType: 'image/png',
+      quality: 1
     });
   }
 
