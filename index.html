@@ -7206,6 +7206,43 @@
       pinLabels: true
     },
 
+    plug35mm: {
+      group: 'components',
+      label: '3.5mm Plug (cable)',
+      // The mating MALE side of the jack — the connector an adaptive switch's
+      // cable terminates in. Mono TS plug: kids solder the switch's two wires to
+      // TIP (signal) and SLEEVE (GND), then it clicks into a panel jack.
+      w: 4, h: 2,
+      pins: [
+        { name: 'TIP',    gx: 0.5, gy: 0.5 },
+        { name: 'SLEEVE', gx: 0.5, gy: 1.5 }
+      ],
+      svg: function() {
+        const W = 4 * SCHEM_GRID_PITCH;
+        const H = 2 * SCHEM_GRID_PITCH;
+        return `
+          <!-- Cable boot / strain relief (far left, where the switch wire enters) -->
+          <rect x="${W*0.02}" y="${H*0.36}" width="${W*0.09}" height="${H*0.28}" rx="3" fill="#1f2937" stroke="#0f172a" stroke-width="1"/>
+          <!-- Molded grip housing with knurl lines -->
+          <rect x="${W*0.10}" y="${H*0.30}" width="${W*0.32}" height="${H*0.40}" rx="3" fill="#374151" stroke="#0f172a" stroke-width="1.2"/>
+          <line x1="${W*0.18}" y1="${H*0.32}" x2="${W*0.18}" y2="${H*0.68}" stroke="#1f2937" stroke-width="1"/>
+          <line x1="${W*0.26}" y1="${H*0.32}" x2="${W*0.26}" y2="${H*0.68}" stroke="#1f2937" stroke-width="1"/>
+          <line x1="${W*0.34}" y1="${H*0.32}" x2="${W*0.34}" y2="${H*0.68}" stroke="#1f2937" stroke-width="1"/>
+          <!-- Sleeve contact (silver band right after the housing) -->
+          <rect x="${W*0.42}" y="${H*0.38}" width="${W*0.15}" height="${H*0.24}" fill="#cbd5e1" stroke="#64748b" stroke-width="0.8"/>
+          <!-- Insulating ring -->
+          <rect x="${W*0.57}" y="${H*0.38}" width="${W*0.04}" height="${H*0.24}" fill="#0f172a"/>
+          <!-- Tip contact (silver shaft with a rounded end) -->
+          <path d="M ${W*0.61} ${H*0.38} L ${W*0.90} ${H*0.38} Q ${W*0.97} ${H*0.50} ${W*0.90} ${H*0.62} L ${W*0.61} ${H*0.62} Z" fill="#e2e8f0" stroke="#64748b" stroke-width="0.8"/>
+          <!-- Solder cups where the cable's two wires land (left edge, on the pins) -->
+          <rect x="${W*0.03}" y="${H*0.17}" width="${W*0.13}" height="${H*0.16}" rx="1" fill="#fbbf24" stroke="#92400e" stroke-width="0.6"/>
+          <rect x="${W*0.03}" y="${H*0.67}" width="${W*0.13}" height="${H*0.16}" rx="1" fill="#fbbf24" stroke="#92400e" stroke-width="0.6"/>
+          <text x="${W*0.55}" y="${H*0.97}" text-anchor="middle" font-size="9" fill="#111" font-family="system-ui, sans-serif" font-weight="700" letter-spacing="0.3">3.5mm</text>
+        `;
+      },
+      pinLabels: true
+    },
+
     jstxh3: {
       group: 'components',
       label: 'JST-XH 3-pin',
