@@ -4451,6 +4451,27 @@
   }
   .vibe-monitor-fix-btn:hover { background: var(--accent-hover); }
   .vibe-monitor-fix-btn:active { transform: translateY(1px); }
+  /* Secondary "Explain this error" button — outline, sits beside the fix button.
+     Explaining first (instead of auto-fixing) is the pedagogical default. */
+  .vibe-monitor-explain-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    color: #93c5fd;
+    border: 1px solid #3b557a;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    margin: 4px 0 4px 8px;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  }
+  .vibe-monitor-explain-btn:hover { background: rgba(147,197,253,0.12); border-color: #93c5fd; }
+  .vibe-monitor-explain-btn:active { transform: translateY(1px); }
 
   .vibe-btn {
     background: var(--bg-1);
@@ -12086,6 +12107,8 @@
   let _vibeSerialReader = null;
   let _vibeSerialKeepReading = false;
   let _vibeMonitorAutoScroll = true;
+  let _vibeAwaitingFix = false;   // set when the student clicks "Ask AI to fix" so the
+                                  // next code block they load auto-re-verifies (closes the loop)
 
   // ----- Per-student persistence -----
   // Chat + editor are keyed to the picked student so two kids on one machine
@@ -12724,6 +12747,13 @@
       loadBtn.classList.add('is-done');
       schemToast('Code loaded into the editor.');
       setTimeout(() => { loadBtn.textContent = 'Load into editor'; loadBtn.classList.remove('is-done'); }, 1600);
+      // If this code came from an "Ask AI to fix" request, close the loop by
+      // re-verifying automatically — the student sees a green check or a fresh
+      // error (with its own fix/explain buttons) without an extra click.
+      if (_vibeAwaitingFix) {
+        _vibeAwaitingFix = false;
+        if (typeof vibeVerifyCode === 'function') setTimeout(() => vibeVerifyCode(), 200);
+      }
     });
 
     const copyBtn = document.createElement('button');
@@ -13139,32 +13169,58 @@
     }
   }
 
-  // When the compile errors out, drop a friendly "Ask AI to fix this" button
-  // into the monitor. Clicking it preloads the chat input with a structured
-  // prompt that gives the AI the error text and asks for a corrected sketch.
+  // When the compile errors out, drop two buttons into the monitor:
+  // "Explain this error" (plain-English, learn-first) and "Ask AI to fix this"
+  // (returns a corrected sketch). Explain comes first because understanding the
+  // error beats blindly accepting a patch.
   function vibeOfferFixButton(stderr) {
     const monitor = document.getElementById('vibeMonitor');
     if (!monitor) return;
-    // Remove any old fix button so only the most recent error has one.
-    monitor.querySelectorAll('.vibe-monitor-fix-btn').forEach(b => b.remove());
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'vibe-monitor-fix-btn';
-    btn.textContent = 'Ask AI to fix this';
-    btn.addEventListener('click', () => vibeAskAiToFix(stderr));
+    // Remove any old buttons so only the most recent error has them.
+    monitor.querySelectorAll('.vibe-monitor-fix-btn, .vibe-monitor-explain-btn').forEach(b => b.remove());
+
+    const explainBtn = document.createElement('button');
+    explainBtn.type = 'button';
+    explainBtn.className = 'vibe-monitor-explain-btn';
+    explainBtn.textContent = 'Explain this error';
+    explainBtn.addEventListener('click', () => vibeAskAiToExplain(stderr));
+
+    const fixBtn = document.createElement('button');
+    fixBtn.type = 'button';
+    fixBtn.className = 'vibe-monitor-fix-btn';
+    fixBtn.textContent = 'Ask AI to fix this';
+    fixBtn.addEventListener('click', () => vibeAskAiToFix(stderr));
+
     monitor.appendChild(document.createTextNode('\n'));
-    monitor.appendChild(btn);
+    monitor.appendChild(fixBtn);
+    monitor.appendChild(explainBtn);
     monitor.appendChild(document.createTextNode('\n'));
     if (_vibeMonitorAutoScroll) monitor.scrollTop = monitor.scrollHeight;
   }
 
+  // Trim stderr to the most useful slice (last ~1500 chars; gcc summarizes at the bottom).
+  function vibeErrTail(stderr) { return (stderr || '').slice(-1500).trim(); }
+
   function vibeAskAiToFix(stderr) {
     const inp = document.getElementById('vibeInput');
     if (!inp) return;
-    // Trim the stderr to the most useful slice (last ~1500 chars; keep the
-    // tail because gcc errors usually summarize at the bottom).
-    const tail = (stderr || '').slice(-1500).trim();
-    const prompt = 'My sketch in the editor does not compile. Please fix it and return the full corrected sketch in one ```cpp code block. Here is the compiler output:\n\n' + tail;
+    _vibeAwaitingFix = true;   // arm the auto-verify loop for the next code block loaded
+    const prompt = 'My sketch in the editor does not compile. Please fix it and return the full corrected sketch in one ```cpp code block. Here is the compiler output:\n\n' + vibeErrTail(stderr);
+    inp.value = prompt;
+    if (typeof vibeAutoGrow === 'function') vibeAutoGrow(inp);
+    if (typeof vibeUpdateSendEnabled === 'function') vibeUpdateSendEnabled();
+    if (typeof vibeSyncMirror === 'function') vibeSyncMirror(inp);
+    if (typeof vibeSend === 'function') vibeSend();
+  }
+
+  // Learn-first: ask the AI to explain the error in plain English WITHOUT
+  // rewriting the code, so the student understands what went wrong and can fix
+  // it themselves. Does not arm the auto-verify loop.
+  function vibeAskAiToExplain(stderr) {
+    const inp = document.getElementById('vibeInput');
+    if (!inp) return;
+    _vibeAwaitingFix = false;
+    const prompt = 'My Arduino sketch did not compile. In plain English, explain what this error means, what most likely caused it in my code, and what to look for to fix it myself. Do NOT rewrite the whole sketch — just point me to the problem. Here is the compiler output:\n\n' + vibeErrTail(stderr);
     inp.value = prompt;
     if (typeof vibeAutoGrow === 'function') vibeAutoGrow(inp);
     if (typeof vibeUpdateSendEnabled === 'function') vibeUpdateSendEnabled();
