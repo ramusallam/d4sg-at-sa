@@ -4923,11 +4923,17 @@
     background: #ffffff;
   }
   /* We drive Excalidraw entirely from our own docked toolbar (.idea-toolbar),
-     so hide its built-in floating UI overlay — the top shape toolbar, the
-     hamburger menu, the bottom zoom/undo/redo footer, and side panels. The
-     canvas and all pointer/keyboard interaction live outside this wrapper, so
-     drawing still works. layer-ui__wrapper is a stable Excalidraw class. */
-  .idea-pro-canvas .excalidraw .layer-ui__wrapper { display: none !important; }
+     so hide ALL of its built-in chrome. Excalidraw puts that chrome in
+     different direct children of .excalidraw depending on width — desktop uses
+     .layer-ui__wrapper; the narrow/compact layout uses .App-top-bar +
+     .App-bottom-bar. Rather than chase class names per breakpoint, hide every
+     direct-child UI div and allowlist only the functional overlays we need:
+     the canvas wrapper, the text-edit container, the right-click context menu,
+     the eyedropper, and the laser overlay. The interactive <canvas> is a direct
+     child too but it's a <canvas> (not a div), so this never touches it. */
+  .idea-pro-canvas .excalidraw > div:not(.excalidraw__canvas-wrapper):not(.excalidraw-textEditorContainer):not(.excalidraw-contextMenuContainer):not(.excalidraw-eye-dropper-container):not(.LaserToolOverlay) {
+    display: none !important;
+  }
 
   /* ---- Unified docked drawing toolbar (replaces Excalidraw's floating UI) ---- */
   .idea-toolbar {
