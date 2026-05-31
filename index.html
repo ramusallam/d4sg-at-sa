@@ -4859,8 +4859,8 @@
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
-    height: calc(100vh - 200px);
-    min-height: 540px;
+    height: calc(100vh - 150px);
+    min-height: 760px;
   }
   .idea-pro-wrap .schem-back { align-self: flex-start; }
   /* Horizontal strip of one-click AT component stamps above the canvas. */
@@ -13926,6 +13926,7 @@
   let _ideaExcalComp = null;
   let _ideaExcalApi = null;
   let _ideaExcalSaveTimer = null;
+  let _ideaDropCount = 0;   // cascades each new stamp into a fresh grid cell so drops never pile up
 
   function ideaStorageKey() {
     const slug = (typeof nameSlug === 'function')
@@ -14423,15 +14424,27 @@
     if (!_ideaExcalApi) return;
     const stamp = IDEA_STAMPS.find(s => s.key === key);
     if (!stamp) return;
-    // Drop near the current viewport center, with a small random offset so
-    // repeated drops do not stack on top of each other.
+    // Cascade each drop into its own grid cell (in WORLD units, so the spacing
+    // holds at any zoom) instead of piling them all at the viewport center.
     const appState = _ideaExcalApi.getAppState();
     const container = document.getElementById('excalidrawRoot');
     const zoom = (appState.zoom && appState.zoom.value) || 1;
-    const cx = (container ? container.clientWidth / 2 : 400);
-    const cy = (container ? container.clientHeight / 2 : 280);
-    const worldX = (cx - (appState.scrollX || 0) * zoom) / zoom + (Math.random() * 60 - 30);
-    const worldY = (cy - (appState.scrollY || 0) * zoom) / zoom + (Math.random() * 60 - 30);
+    const vw = container ? container.clientWidth : 800;
+    const vh = container ? container.clientHeight : 560;
+    // World coordinates of the current viewport center.
+    const centerWorldX = (vw / 2 - (appState.scrollX || 0) * zoom) / zoom;
+    const centerWorldY = (vh / 2 - (appState.scrollY || 0) * zoom) / zoom;
+    // 5-wide grid, ~150px cells (stamps run 50-120px wide, so this leaves a gap).
+    const STEP = 150, PER_ROW = 5;
+    const i = _ideaDropCount % (PER_ROW * 4);   // wrap after a 5x4 block so the cascade stays near view
+    const col = i % PER_ROW;
+    const row = Math.floor(i / PER_ROW);
+    // Start the block up-and-left of center so the grid fans out into view.
+    const baseX = centerWorldX - (PER_ROW * STEP) / 2 + 30;
+    const baseY = centerWorldY - 1.5 * STEP;
+    const worldX = baseX + col * STEP + (Math.random() * 14 - 7);
+    const worldY = baseY + row * STEP + (Math.random() * 14 - 7);
+    _ideaDropCount++;
     const newElements = stamp.build(Math.round(worldX), Math.round(worldY));
     const sceneElements = _ideaExcalApi.getSceneElements();
     _ideaExcalApi.updateScene({
