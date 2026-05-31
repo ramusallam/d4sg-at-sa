@@ -4984,6 +4984,33 @@
   }
   .idea-color-swatch:hover { transform: scale(1.14); }
   .idea-color-swatch.is-active { box-shadow: 0 0 0 2px var(--accent); }
+  /* Fill swatches are SQUARES to read differently from the round stroke swatches. */
+  .idea-fill-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--border);
+    padding: 0;
+    transition: transform 0.08s ease, box-shadow 0.12s ease;
+  }
+  .idea-fill-swatch:hover { transform: scale(1.14); }
+  .idea-fill-swatch.is-active { box-shadow: 0 0 0 2px var(--accent); }
+  /* "No fill" chip: white with a red diagonal slash. */
+  .idea-fill-clear {
+    background: #fff;
+    background-image: linear-gradient(45deg, transparent 44%, #ef4444 44%, #ef4444 56%, transparent 56%);
+  }
+  .idea-tb-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    opacity: 0.7;
+    margin-right: 3px;
+  }
   .idea-zoom-label {
     min-width: 44px;
     text-align: center;
@@ -14095,10 +14122,13 @@
   function ideaInitialData() {
     const initial = ideaLoadState();
     if (initial) {
-      initial.appState = Object.assign({}, initial.appState, { viewBackgroundColor: '#ffffff' });
+      // Keep the student's last fill style if they set one; otherwise default to
+      // solid (Excalidraw's stock default is the hachure line pattern). Always
+      // force a white canvas.
+      initial.appState = Object.assign({ currentItemFillStyle: 'solid' }, initial.appState, { viewBackgroundColor: '#ffffff' });
       return initial;
     }
-    return { elements: [], appState: { viewBackgroundColor: '#ffffff' } };
+    return { elements: [], appState: { viewBackgroundColor: '#ffffff', currentItemFillStyle: 'solid' } };
   }
 
   function ideaUIOptions() {
@@ -14134,7 +14164,10 @@
     minus:   _ideaIc('<path d="M4 10h12"/>'),
     plus:    _ideaIc('<path d="M10 4v12"/><path d="M4 10h12"/>'),
     fit:     _ideaIc('<path d="M4 7.5V4h3.5M16 7.5V4h-3.5M4 12.5V16h3.5M16 12.5V16h-3.5"/>'),
-    trash:   _ideaIc('<path d="M4.5 6h11"/><path d="M8 6V4h4v2"/><path d="M6 6l.8 11h6.4L14 6"/>')
+    trash:   _ideaIc('<path d="M4.5 6h11"/><path d="M8 6V4h4v2"/><path d="M6 6l.8 11h6.4L14 6"/>'),
+    fillSolid:   _ideaIc('<rect x="3.5" y="3.5" width="13" height="13" rx="2"/>', true),
+    fillHachure: _ideaIc('<rect x="3.5" y="3.5" width="13" height="13" rx="2"/><path d="M5.5 12.5l5-5M9 14l5-5"/>'),
+    fillCross:   _ideaIc('<rect x="3.5" y="3.5" width="13" height="13" rx="2"/><path d="M5.5 12.5l5-5M9 14l5-5M7.5 5.5l5 5M5 8.5l6 6"/>')
   };
   // type maps to Excalidraw's activeTool.type passed to setActiveTool().
   const IDEA_TOOLS = [
@@ -14149,6 +14182,8 @@
     { type: 'eraser',    label: 'Eraser',    icon: IDEA_IC.eraser }
   ];
   const IDEA_TB_COLORS = ['#1f2937', '#4f46e5', '#dc2626', '#2563eb', '#16a34a', '#f59e0b'];
+  // Fill palette: 'transparent' is the clear/no-fill chip; the rest are soft tints.
+  const IDEA_TB_FILLS = ['transparent', '#fef3c7', '#dbeafe', '#dcfce7', '#fce7f3', '#ede9fe'];
 
   function renderIdeaToolbar() {
     const bar = document.getElementById('ideaToolsBar');
@@ -14156,13 +14191,27 @@
     const tools = IDEA_TOOLS.map(t =>
       `<button type="button" class="idea-tool-btn" data-tool="${t.type}" title="${t.label}" aria-label="${t.label}">${t.icon}</button>`
     ).join('');
-    const colors = IDEA_TB_COLORS.map(c =>
-      `<button type="button" class="idea-color-swatch" data-color="${c}" title="Color" aria-label="Set color" style="background:${c}"></button>`
+    const strokes = IDEA_TB_COLORS.map(c =>
+      `<button type="button" class="idea-color-swatch" data-color="${c}" title="Outline color" aria-label="Outline color" style="background:${c}"></button>`
     ).join('');
+    const fills = IDEA_TB_FILLS.map(c =>
+      c === 'transparent'
+        ? `<button type="button" class="idea-fill-swatch idea-fill-clear" data-fill="transparent" title="No fill (clear)" aria-label="No fill"></button>`
+        : `<button type="button" class="idea-fill-swatch" data-fill="${c}" title="Fill color" aria-label="Fill color" style="background:${c}"></button>`
+    ).join('');
+    const fillStyles = [
+      { s: 'solid',       ic: IDEA_IC.fillSolid,   label: 'Solid fill' },
+      { s: 'hachure',     ic: IDEA_IC.fillHachure, label: 'Lines (hachure)' },
+      { s: 'cross-hatch', ic: IDEA_IC.fillCross,   label: 'Cross-hatch' }
+    ].map(f => `<button type="button" class="idea-tool-btn" data-fillstyle="${f.s}" title="${f.label}" aria-label="${f.label}">${f.ic}</button>`).join('');
     bar.innerHTML = `
       <div class="idea-tb-group">${tools}</div>
       <span class="idea-tb-div" aria-hidden="true"></span>
-      <div class="idea-tb-group idea-tb-colors">${colors}</div>
+      <div class="idea-tb-group idea-tb-colors"><span class="idea-tb-label">Line</span>${strokes}</div>
+      <span class="idea-tb-div" aria-hidden="true"></span>
+      <div class="idea-tb-group idea-tb-colors"><span class="idea-tb-label">Fill</span>${fills}</div>
+      <span class="idea-tb-div" aria-hidden="true"></span>
+      <div class="idea-tb-group">${fillStyles}</div>
       <span class="idea-tb-div" aria-hidden="true"></span>
       <div class="idea-tb-group">
         <button type="button" class="idea-tool-btn" data-act="undo" title="Undo" aria-label="Undo">${IDEA_IC.undo}</button>
@@ -14182,6 +14231,8 @@
     `;
     bar.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => ideaTbSetTool(b.dataset.tool)));
     bar.querySelectorAll('[data-color]').forEach(b => b.addEventListener('click', () => ideaSetColor(b.dataset.color)));
+    bar.querySelectorAll('[data-fill]').forEach(b => b.addEventListener('click', () => ideaSetFill(b.dataset.fill)));
+    bar.querySelectorAll('[data-fillstyle]').forEach(b => b.addEventListener('click', () => ideaSetFillStyle(b.dataset.fillstyle)));
     bar.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => ideaToolbarAction(b.dataset.act)));
     const zl = bar.querySelector('#ideaZoomLabel');
     if (zl) zl.addEventListener('click', () => ideaZoom('reset'));
@@ -14210,6 +14261,14 @@
     document.querySelectorAll('#ideaToolsBar [data-color]').forEach(b => {
       b.classList.toggle('is-active', (b.dataset.color || '').toLowerCase() === cur);
     });
+    const bg = (appState.currentItemBackgroundColor || 'transparent').toLowerCase();
+    document.querySelectorAll('#ideaToolsBar [data-fill]').forEach(b => {
+      b.classList.toggle('is-active', (b.dataset.fill || '').toLowerCase() === bg);
+    });
+    const fstyle = appState.currentItemFillStyle || '';
+    document.querySelectorAll('#ideaToolsBar [data-fillstyle]').forEach(b => {
+      b.classList.toggle('is-active', b.dataset.fillstyle === fstyle);
+    });
     const zl = document.getElementById('ideaZoomLabel');
     if (zl) zl.textContent = Math.round(((appState.zoom && appState.zoom.value) || 1) * 100) + '%';
   }
@@ -14220,23 +14279,30 @@
     ideaSyncToolbar();
   }
 
-  // Set the stroke color for new shapes AND recolor anything currently selected.
-  function ideaSetColor(color) {
+  // Apply a style change as the default for NEW shapes (via currentItem* in
+  // appState) AND to anything currently selected (by patching those elements).
+  function ideaApplyStyle(elementProps, appStateProps) {
     if (!_ideaExcalApi) return;
     const appState = _ideaExcalApi.getAppState();
     const sel = appState.selectedElementIds || {};
     const hasSel = Object.keys(sel).some(id => sel[id]);
-    const update = { appState: { currentItemStrokeColor: color } };
-    if (hasSel) {
+    const update = { appState: appStateProps || {} };
+    if (hasSel && elementProps) {
       update.elements = _ideaExcalApi.getSceneElements().map(e =>
         sel[e.id]
-          ? Object.assign({}, e, { strokeColor: color, version: (e.version || 1) + 1, versionNonce: Math.floor(Math.random() * 2147483647) })
+          ? Object.assign({}, e, elementProps, { version: (e.version || 1) + 1, versionNonce: Math.floor(Math.random() * 2147483647) })
           : e
       );
     }
     _ideaExcalApi.updateScene(update);
     ideaSyncToolbar();
   }
+  // Outline color, fill color (use 'transparent' to clear), and fill style
+  // (solid / hachure / cross-hatch). Each sets the default and recolors the
+  // current selection.
+  function ideaSetColor(color)     { ideaApplyStyle({ strokeColor: color },      { currentItemStrokeColor: color }); }
+  function ideaSetFill(color)      { ideaApplyStyle({ backgroundColor: color },  { currentItemBackgroundColor: color }); }
+  function ideaSetFillStyle(style) { ideaApplyStyle({ fillStyle: style },        { currentItemFillStyle: style }); }
 
   function ideaZoom(dir) {
     if (!_ideaExcalApi) return;
