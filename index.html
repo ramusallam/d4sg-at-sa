@@ -14243,6 +14243,11 @@
       <div class="idea-tb-group">
         <button type="button" class="idea-tool-btn idea-tool-btn--danger" data-act="clear" title="Clear board" aria-label="Clear board">${IDEA_IC.trash}</button>
       </div>
+      <span class="idea-tb-div" aria-hidden="true"></span>
+      <div class="idea-tb-group">
+        <button type="button" class="idea-tool-btn" id="ideaSaveTo" title="Save to benchmark or Portfolio Drop" aria-label="Save to benchmark or Portfolio Drop"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg></button>
+        <button type="button" class="idea-tool-btn" id="ideaDownload" title="Download image (PNG)" aria-label="Download image (PNG)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><circle cx="12" cy="12" r="1.6"/><path d="M9 17l3 3 3-3"/><path d="M12 14v6"/></svg></button>
+      </div>
     `;
     bar.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => ideaTbSetTool(b.dataset.tool)));
     bar.querySelectorAll('[data-color]').forEach(b => b.addEventListener('click', () => ideaSetColor(b.dataset.color)));
@@ -14251,6 +14256,17 @@
     bar.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => ideaToolbarAction(b.dataset.act)));
     const zl = bar.querySelector('#ideaZoomLabel');
     if (zl) zl.addEventListener('click', () => ideaZoom('reset'));
+    // Save-to-benchmark (icon) + download (icon) — mirrors the Vibe/Schematic tools.
+    const saveBtn = bar.querySelector('#ideaSaveTo');
+    if (saveBtn) saveBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (_saveToPopOpen && _saveToPopOpen.anchorEl === saveBtn) { closeSaveToPop(); return; }
+      const els = _ideaExcalApi ? _ideaExcalApi.getSceneElements() : [];
+      if (!els || !els.length) { if (typeof schemToast === 'function') schemToast('Draw or stamp something first, then save.'); return; }
+      openSaveToPop(saveBtn, 'idea-board', () => ideaBuildExcalPngBlob());
+    });
+    const dlBtn = bar.querySelector('#ideaDownload');
+    if (dlBtn) dlBtn.addEventListener('click', () => ideaExport('png'));
     ideaSyncToolbar();
   }
 
@@ -14606,38 +14622,15 @@
   function renderIdeaProStamps() {
     const mount = document.getElementById('ideaProStamps');
     if (!mount) return;
-    const stampHtml = IDEA_STAMPS.map(s =>
+    // The components row is just the stamp palette now. Save-to-benchmark and
+    // download live in the drawing toolbar as icon buttons (renderIdeaToolbar),
+    // matching the Vibe Coding and Schematic tools.
+    mount.innerHTML = IDEA_STAMPS.map(s =>
       `<button type="button" class="idea-stamp-btn" data-stamp="${s.key}" title="Drop a ${escapeHtml(s.label)}">${escapeHtml(s.label)}</button>`
     ).join('');
-    const exportHtml = `
-      <span class="idea-stamp-divider" aria-hidden="true"></span>
-      <button type="button" class="idea-stamp-btn idea-stamp-btn--save" id="ideaSaveTo" title="Drop this board straight into a benchmark or your portfolio — no download needed">↳ Save to Benchmark ▾</button>
-      <span class="idea-stamp-divider" aria-hidden="true"></span>
-      <button type="button" class="idea-stamp-btn idea-stamp-btn--export" data-export="png" title="Download the whole board as a PNG image">Export PNG</button>
-      <button type="button" class="idea-stamp-btn idea-stamp-btn--export" data-export="jpg" title="Download the whole board as a JPG image">Export JPG</button>
-      <button type="button" class="idea-stamp-btn idea-stamp-btn--export" data-export="svg" title="Download the whole board as an SVG image">Export SVG</button>
-    `;
-    mount.innerHTML = stampHtml + exportHtml;
     mount.querySelectorAll('[data-stamp]').forEach(b => {
       b.addEventListener('click', () => ideaDropStamp(b.dataset.stamp));
     });
-    mount.querySelectorAll('[data-export]').forEach(b => {
-      b.addEventListener('click', () => ideaExport(b.dataset.export));
-    });
-    // "Save to Benchmark" — drops the board's PNG straight into a benchmark's
-    // sketch slot (or a Portfolio drop) via the shared save-to popover. The
-    // whole idea-board path through openSaveToPop / handleSaveToPick already
-    // exists; this just reconnects the button the Excalidraw rebuild dropped.
-    const saveBtn = mount.querySelector('#ideaSaveTo');
-    if (saveBtn) {
-      saveBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (_saveToPopOpen && _saveToPopOpen.anchorEl === saveBtn) { closeSaveToPop(); return; }
-        const els = _ideaExcalApi ? _ideaExcalApi.getSceneElements() : [];
-        if (!els || !els.length) { if (typeof schemToast === 'function') schemToast('Draw or stamp something first, then save.'); return; }
-        openSaveToPop(saveBtn, 'idea-board', () => ideaBuildExcalPngBlob());
-      });
-    }
   }
 
   // PNG Blob of the current Excalidraw board (white background, native res).
