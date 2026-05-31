@@ -12109,6 +12109,7 @@
   let _vibeMonitorAutoScroll = true;
   let _vibeAwaitingFix = false;   // set when the student clicks "Ask AI to fix" so the
                                   // next code block they load auto-re-verifies (closes the loop)
+  let _vibeFixAttempts = 0;       // consecutive failed auto-fix rounds; after 2 we nudge "Explain"
 
   // ----- Per-student persistence -----
   // Chat + editor are keyed to the picked student so two kids on one machine
@@ -12752,7 +12753,7 @@
       // error (with its own fix/explain buttons) without an extra click.
       if (_vibeAwaitingFix) {
         _vibeAwaitingFix = false;
-        if (typeof vibeVerifyCode === 'function') setTimeout(() => vibeVerifyCode(), 200);
+        if (typeof vibeVerifyCode === 'function') setTimeout(() => vibeVerifyCode(true), 200);
       }
     });
 
@@ -13135,7 +13136,7 @@
     return data; // { hex, stdout, stderr, board }
   }
 
-  async function vibeVerifyCode() {
+  async function vibeVerifyCode(fromAutoFix) {
     const sketch = vibeGetEditorText();
     if (!sketch || !sketch.trim()) {
       schemToast('Editor is empty. Generate or paste code first.', 2400);
@@ -13151,17 +13152,20 @@
       if (data.stdout) vibeMonitorLine(data.stdout.trimEnd(), 'dim');
       if (data.hex) {
         vibeMonitorLine('[ ✓ Compile succeeded ]', 'ok');
+        _vibeFixAttempts = 0;   // clean compile resets the thrash counter
       } else {
         if (data.stderr) {
           lastStderr = data.stderr.trimEnd();
           vibeMonitorLine(lastStderr, 'err');
         }
         vibeMonitorLine('[ ✗ Verify failed ]', 'err');
+        if (fromAutoFix) _vibeFixAttempts++;
         vibeOfferFixButton(lastStderr);
       }
     } catch (err) {
       lastStderr = err.message || String(err);
       vibeMonitorLine('[ Verify error: ' + lastStderr + ' ]', 'err');
+      if (fromAutoFix) _vibeFixAttempts++;
       vibeOfferFixButton(lastStderr);
     } finally {
       btn.disabled = false;
@@ -13179,21 +13183,33 @@
     // Remove any old buttons so only the most recent error has them.
     monitor.querySelectorAll('.vibe-monitor-fix-btn, .vibe-monitor-explain-btn').forEach(b => b.remove());
 
+    // After two failed auto-fix rounds, the AI is clearly stuck — nudge the
+    // student to slow down and actually understand the error via Explain.
+    const stuck = _vibeFixAttempts >= 2;
+    if (stuck) {
+      vibeMonitorLine('[ The AI fix did not work twice in a row. Try "Explain this error" and fix it yourself — you have got this. ]', 'info');
+    }
+
     const explainBtn = document.createElement('button');
     explainBtn.type = 'button';
-    explainBtn.className = 'vibe-monitor-explain-btn';
     explainBtn.textContent = 'Explain this error';
     explainBtn.addEventListener('click', () => vibeAskAiToExplain(stderr));
 
     const fixBtn = document.createElement('button');
     fixBtn.type = 'button';
-    fixBtn.className = 'vibe-monitor-fix-btn';
     fixBtn.textContent = 'Ask AI to fix this';
     fixBtn.addEventListener('click', () => vibeAskAiToFix(stderr));
 
+    // The first (filled) slot is the recommended action; the second (outline)
+    // slot is the alternative. Normally Fix leads; once the AI is stuck, Explain
+    // leads so the student is steered toward understanding over re-rolling.
+    const [primary, secondary] = stuck ? [explainBtn, fixBtn] : [fixBtn, explainBtn];
+    primary.className = 'vibe-monitor-fix-btn';
+    secondary.className = 'vibe-monitor-explain-btn';
+
     monitor.appendChild(document.createTextNode('\n'));
-    monitor.appendChild(fixBtn);
-    monitor.appendChild(explainBtn);
+    monitor.appendChild(primary);
+    monitor.appendChild(secondary);
     monitor.appendChild(document.createTextNode('\n'));
     if (_vibeMonitorAutoScroll) monitor.scrollTop = monitor.scrollHeight;
   }
