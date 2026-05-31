@@ -10807,7 +10807,7 @@
           // Scroll the Summary slot into view inside the modal.
           summarySlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        const verb = pa.kind === 'vibe' ? 'Code' : 'Wiring';
+        const verb = pa.kind === 'vibe' ? 'Code' : pa.kind === 'idea-board' ? 'Sketch' : 'Wiring';
         schemToast(`${verb} loaded. Write your summary and hit Submit.`, 3200);
       }, 60);
     }
@@ -11091,7 +11091,7 @@
         if (getCurrentName()) {
           setTimeout(() => {
             handleFiles([synth]);
-            const verb = isPdf ? 'Code PDF' : 'Wiring schematic';
+            const verb = pa.kind === 'vibe' ? 'Code PDF' : pa.kind === 'idea-board' ? 'Sketch' : 'Wiring schematic';
             schemToast(`${verb} added to ${getCurrentName()}'s draft. Reflection still needed.`, 3200);
             // Drop the student straight into the reflection so they can type
             // without hunting for the textarea.
