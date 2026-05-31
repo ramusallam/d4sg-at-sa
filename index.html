@@ -4986,6 +4986,36 @@
     color: var(--ink-mid);
     font-variant-numeric: tabular-nums;
   }
+
+  /* "New version available" banner — surfaced when the loaded index.html no
+     longer matches what the server is serving (single-page app can't see new
+     deploys without a full reload). */
+  #updateBanner {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: var(--accent);
+    color: #fff;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.20);
+  }
+  #updateBannerBtn {
+    background: #fff;
+    color: var(--accent);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #updateBannerBtn:hover { background: #eef2ff; }
   /* Excalidraw root mounts inside .idea-pro-canvas; the library renders its
      own toolbar, hand-drawn shapes, palette, etc. We only constrain it to fit
      the working area. */
@@ -17642,6 +17672,8 @@ module.exports = { main }`
       renderProjects();
     }
     window.scrollTo(0, 0);
+    // Every navigation is a cheap moment to notice a new deploy.
+    if (typeof checkForUpdate === 'function') checkForUpdate().catch(() => {});
   }
 
   // Intercept top-nav links so navigation feels instant. Only intercept
@@ -17659,6 +17691,44 @@ module.exports = { main }`
     applyRoute(href);
   });
   window.addEventListener('popstate', () => applyRoute(location.pathname));
+
+  // ---- Stale-tab guard ----
+  // The app is a single-page app: navigating inside it never re-downloads
+  // index.html, so an open tab can silently run code from an old deploy. We
+  // snapshot the served index.html ETag at boot, then re-check on a timer and
+  // on every route change; when it differs, a "Refresh now" banner appears.
+  // Declared before the first applyRoute() call so checkForUpdate() (invoked
+  // from applyRoute) never hits the temporal dead zone.
+  let _loadedEtag = null;
+  let _updateBannerShown = false;
+  async function _fetchIndexEtag() {
+    try {
+      const r = await fetch('/index.html', { method: 'HEAD', cache: 'no-store' });
+      return r.headers.get('etag') || r.headers.get('last-modified') || null;
+    } catch (_) { return null; }
+  }
+  async function checkForUpdate() {
+    if (_updateBannerShown) return;
+    const cur = await _fetchIndexEtag();
+    if (!cur) return;
+    if (_loadedEtag == null) { _loadedEtag = cur; return; }
+    if (cur !== _loadedEtag) showUpdateBanner();
+  }
+  function showUpdateBanner() {
+    if (_updateBannerShown || document.getElementById('updateBanner')) return;
+    _updateBannerShown = true;
+    const bar = document.createElement('div');
+    bar.id = 'updateBanner';
+    bar.innerHTML = '<span>A newer version of this page is available.</span>' +
+      '<button type="button" id="updateBannerBtn">Refresh now</button>';
+    document.body.appendChild(bar);
+    const btn = document.getElementById('updateBannerBtn');
+    if (btn) btn.addEventListener('click', () => location.reload());
+  }
+  try {
+    _fetchIndexEtag().then(e => { _loadedEtag = e; });
+    setInterval(() => { checkForUpdate().catch(() => {}); }, 90000);
+  } catch (_) {}
 
   applyRoute(location.pathname);
   // Pull initial counts via getCountFromServer (1 read per benchmark).
