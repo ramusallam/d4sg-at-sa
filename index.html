@@ -1239,6 +1239,33 @@
     padding-bottom: 16px;
     border-bottom: 1px solid rgba(17, 17, 17, 0.06);
   }
+  .prog-card-head-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .prog-card-rank {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 26px;
+    padding: 0 8px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    font-variant-numeric: tabular-nums;
+  }
+  /* #1 gets a warm gold pill. */
+  .prog-card-rank.is-top {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 1px 6px rgba(217, 119, 6, 0.35);
+  }
   .prog-card-name {
     font-size: 17px;
     font-weight: 700;
@@ -9349,15 +9376,21 @@
       return;
     }
 
+    const totalBench = PROJECTS.reduce((s, p) => s + p.benchmarks.length, 0);
+
+    // Rank students by how many tasks they've completed (leaderboard order),
+    // with an alphabetical tiebreak. "You" stays highlighted wherever you land.
+    const doneCountFor = (nm) => {
+      const set = merged[nm] || new Set();
+      let n = 0;
+      PROJECTS.forEach(p => p.benchmarks.forEach(b => { if (set.has(b.id)) n++; }));
+      return n;
+    };
     const studentNames = Array.from(allNames).sort((a, b) => {
-      if (myName) {
-        if (a.toLowerCase() === myName.toLowerCase()) return -1;
-        if (b.toLowerCase() === myName.toLowerCase()) return 1;
-      }
+      const diff = doneCountFor(b) - doneCountFor(a);
+      if (diff) return diff;
       return a.localeCompare(b, undefined, { sensitivity: 'base' });
     });
-
-    const totalBench = PROJECTS.reduce((s, p) => s + p.benchmarks.length, 0);
 
     let html = '<div class="prog-cards">';
     studentNames.forEach(name => {
@@ -9365,11 +9398,16 @@
       let ownDone = 0;
       PROJECTS.forEach(p => p.benchmarks.forEach(b => { if (done.has(b.id)) ownDone++; }));
       const isMe = myName && name.toLowerCase() === myName.toLowerCase();
+      // Competition rank: 1 + students strictly ahead (ties share a rank).
+      const rank = studentNames.filter(n => doneCountFor(n) > ownDone).length + 1;
 
       const pct = totalBench ? Math.round(ownDone / totalBench * 100) : 0;
       html += `<article class="prog-card${isMe ? ' is-you' : ''}">
         <header class="prog-card-head">
-          <h3 class="prog-card-name">${escapeHtml(name)}${isMe ? '<span class="prog-card-you">You</span>' : ''}</h3>
+          <div class="prog-card-head-left">
+            <span class="prog-card-rank${rank === 1 ? ' is-top' : ''}" title="Rank by tasks completed">#${rank}</span>
+            <h3 class="prog-card-name">${escapeHtml(name)}${isMe ? '<span class="prog-card-you">You</span>' : ''}</h3>
+          </div>
           <div class="prog-card-meter" title="${ownDone} of ${totalBench} project steps complete">
             <span class="prog-card-meter-num">${ownDone}<span class="prog-card-meter-den"> / ${totalBench}</span></span>
             <span class="prog-card-meter-bar"><i style="width:${pct}%"></i></span>
