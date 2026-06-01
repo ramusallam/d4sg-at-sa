@@ -4866,21 +4866,28 @@
   /* Horizontal strip of one-click AT component stamps above the canvas. */
   .idea-pro-stamps {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 10px 12px;
+    flex-wrap: nowrap;           /* stay on ONE line — never spill to a 2nd row */
+    gap: 5px;
+    padding: 8px 10px;
     background: var(--bg-2);
     border: 1px solid var(--border);
     border-radius: 12px;
+    overflow-x: auto;            /* if the chips don't fit, scroll sideways */
+    overflow-y: hidden;
+    scrollbar-width: thin;
   }
+  .idea-pro-stamps::-webkit-scrollbar { height: 6px; }
+  .idea-pro-stamps::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
   .idea-stamp-btn {
+    flex: 0 0 auto;              /* keep natural width; don't squish */
+    white-space: nowrap;
     background: white;
     border: 1px solid var(--border);
     color: var(--ink-mid);
-    padding: 6px 11px;
-    border-radius: 8px;
+    padding: 4px 9px;
+    border-radius: 7px;
     font: inherit;
-    font-size: 12.5px;
+    font-size: 11.5px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
