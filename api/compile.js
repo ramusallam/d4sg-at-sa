@@ -1,12 +1,30 @@
 // Vercel Node.js serverless function: Arduino sketch compile proxy.
-// Forwards source to Wokwi's free hexi service (hexi.wokwi.com/build) and
-// returns { hex, stdout, stderr } so the Vibe Coding tool can Verify or
-// Upload directly to a connected Leonardo / Micro over Web Serial. Wokwi's
-// API has open CORS, but going through our own function lets us swap
-// providers later without touching the client.
+//
+// Routing:
+//   - If COMPILE_URL is set, forward to our own arduino-cli service (real
+//     Leonardo/Micro USB-HID core + Joystick/VL53L0X libraries). This is the
+//     real backend; see the d4sg-compile-service repo.
+//   - Otherwise fall back to Wokwi's free hexi builder (works for plain GPIO /
+//     Servo only — no HID), so nothing breaks before the service is deployed.
+//
+// Returns { hex, stdout, stderr, board }. `hex` is Intel-HEX text; the client
+// parses it with parseIntelHex and flashes over Web Serial (AVR109).
+//
+// Rate limiting is PER STUDENT (the client sends `student`), not per IP — a
+// whole class behind one school NAT used to share a single 80/day bucket. A
+// high per-IP cap remains only as an anti-abuse backstop. Identical compiles
+// (same source+board) are cached so the AI "fix → auto-recompile" loop doesn't
+// burn the quota re-building the same sketch.
 
-const RATE_LIMIT_PER_DAY = 80;
-const rateBuckets = new Map();
+const crypto = require('crypto');
+
+const PER_STUDENT_PER_DAY = 200;
+const PER_IP_PER_DAY = 600;            // abuse backstop only
+const CACHE_TTL_MS = 10 * 60 * 1000;   // 10 min, per warm instance
+
+const studentBuckets = new Map();
+const ipBuckets = new Map();
+const compileCache = new Map();        // hash -> { at, result }
 
 function getClientIp(req) {
   const xff = req.headers['x-forwarded-for'];
@@ -14,17 +32,16 @@ function getClientIp(req) {
   if (req.headers['x-real-ip']) return String(req.headers['x-real-ip']);
   return req.socket && req.socket.remoteAddress ? req.socket.remoteAddress : 'unknown';
 }
-
 function todayUtc() { return new Date().toISOString().slice(0, 10); }
 
-function checkRateLimit(ip) {
-  const key = ip + '|' + todayUtc();
-  const count = rateBuckets.get(key) || 0;
-  if (count >= RATE_LIMIT_PER_DAY) return false;
-  rateBuckets.set(key, count + 1);
-  if (rateBuckets.size > 5000) {
+function bump(map, rawKey, cap) {
+  const key = rawKey + '|' + todayUtc();
+  const count = map.get(key) || 0;
+  if (count >= cap) return false;
+  map.set(key, count + 1);
+  if (map.size > 8000) {
     const today = todayUtc();
-    for (const k of rateBuckets.keys()) if (!k.endsWith('|' + today)) rateBuckets.delete(k);
+    for (const k of map.keys()) if (!k.endsWith('|' + today)) map.delete(k);
   }
   return true;
 }
@@ -37,60 +54,81 @@ async function readJson(req) {
   return await new Promise((resolve) => {
     let data = '';
     req.on('data', (chunk) => { data += chunk; });
-    req.on('end', () => {
-      if (!data) return resolve({});
-      try { resolve(JSON.parse(data)); } catch (_) { resolve({}); }
-    });
+    req.on('end', () => { try { resolve(data ? JSON.parse(data) : {}); } catch (_) { resolve({}); } });
     req.on('error', () => resolve({}));
   });
 }
 
 const ALLOWED_BOARDS = new Set(['leonardo', 'micro', 'uno', 'mega', 'pro', 'nano']);
 
+async function compileViaService(sketch, board) {
+  const url = process.env.COMPILE_URL;
+  const headers = { 'Content-Type': 'application/json' };
+  if (process.env.COMPILE_KEY) headers['X-Compile-Key'] = process.env.COMPILE_KEY;
+  const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ sketch, board }) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok && !data.stderr) {
+    throw new Error(data.error || ('compile service HTTP ' + r.status));
+  }
+  return { hex: data.hex || '', stdout: data.stdout || '', stderr: data.stderr || '', board };
+}
+
+async function compileViaWokwi(sketch, board) {
+  const r = await fetch('https://hexi.wokwi.com/build', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sketch, board }),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const e = new Error('Compile service error');
+    e.status = 502; e.stderr = data.stderr || ''; throw e;
+  }
+  return { hex: data.hex || '', stdout: data.stdout || '', stderr: data.stderr || '', board };
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'Method not allowed' }); }
 
   const body = await readJson(req);
   const sketch = (body.sketch || '').toString();
   let board = (body.board || 'leonardo').toString().toLowerCase();
   if (!ALLOWED_BOARDS.has(board)) board = 'leonardo';
+  const student = (body.student || '').toString().slice(0, 80).toLowerCase().replace(/[^a-z0-9_-]/g, '') || null;
 
   if (!sketch.trim()) return res.status(400).json({ error: 'Empty sketch' });
   if (sketch.length > 200000) return res.status(413).json({ error: 'Sketch too long' });
 
-  const ip = getClientIp(req);
-  if (!checkRateLimit(ip)) {
-    return res.status(429).json({ error: 'Daily compile limit reached. Try again tomorrow.' });
+  // Cache: identical source+board returns instantly and skips the quota.
+  const hash = crypto.createHash('sha256').update(board + '\n' + sketch).digest('hex');
+  const cached = compileCache.get(hash);
+  if (cached && (Date.now() - cached.at) < CACHE_TTL_MS) {
+    return res.status(200).json({ ...cached.result, cached: true });
+  }
+
+  // Per-student limit first; per-IP only as an abuse backstop.
+  if (student && !bump(studentBuckets, 'stu:' + student, PER_STUDENT_PER_DAY)) {
+    return res.status(429).json({ error: "You have hit today's compile limit. Try again tomorrow." });
+  }
+  if (!bump(ipBuckets, getClientIp(req), PER_IP_PER_DAY)) {
+    return res.status(429).json({ error: 'This network hit its daily compile limit. Try again later.' });
   }
 
   try {
-    const r = await fetch('https://hexi.wokwi.com/build', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sketch, board })
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) {
-      return res.status(502).json({
-        error: 'Compile service error',
-        detail: 'HTTP ' + r.status,
-        stderr: data.stderr || ''
-      });
-    }
-    return res.status(200).json({
-      hex: data.hex || '',
-      stdout: data.stdout || '',
-      stderr: data.stderr || '',
-      board
-    });
+    const result = process.env.COMPILE_URL
+      ? await compileViaService(sketch, board)
+      : await compileViaWokwi(sketch, board);
+    // Only cache real outcomes (a hex, or a deterministic compiler error).
+    if (result.hex || result.stderr) compileCache.set(hash, { at: Date.now(), result });
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(502).json({ error: 'Compile service unavailable', detail: String(err.message || err) });
+    return res.status(err.status || 502).json({
+      error: 'Compile service unavailable',
+      detail: String(err.message || err),
+      stderr: err.stderr || '',
+    });
   }
 }

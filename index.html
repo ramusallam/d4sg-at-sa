@@ -13156,7 +13156,7 @@
     const r = await fetch('/api/compile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sketch, board: 'leonardo' })
+      body: JSON.stringify({ sketch, board: 'leonardo', student: (typeof vibeSlug === 'function' ? vibeSlug() : '') })
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) {
@@ -13590,6 +13590,25 @@
         packet.set(block, header.length);
         await writeBytes(packet);
         await expectAck();
+      }
+
+      // Verify (best-effort): read the flash back and compare to what we wrote.
+      // Fully guarded — every page write was already ACKed, so a flaky read-back
+      // must never fail a good upload. Worst case it logs "verify skipped".
+      try {
+        let mismatch = false;
+        for (let addr = 0; addr < total && !mismatch; addr += PAGE) {
+          const wordAddr = addr >> 1;
+          await writeBytes(new Uint8Array([0x41, (wordAddr >> 8) & 0xFF, wordAddr & 0xFF])); // 'A' set addr
+          await expectAck();
+          await writeBytes(new Uint8Array([0x67, 0x00, PAGE, 0x46])); // 'g' read PAGE bytes of Flash
+          const back = await readN(PAGE, 4000);
+          const len = Math.min(PAGE, total - addr);
+          for (let i = 0; i < len; i++) { if (back[i] !== hexBytes[addr + i]) { mismatch = true; break; } }
+        }
+        log(mismatch ? '[ ⚠ Verify mismatch — upload again to be safe ]' : '[ ✓ Verified flash ]', mismatch ? 'err' : 'ok');
+      } catch (e) {
+        log('[ verify skipped (' + (e && e.message || e) + ') — write was acknowledged ]', 'dim');
       }
 
       // Leave programming mode and exit bootloader (reboot into new sketch).
