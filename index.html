@@ -6131,6 +6131,21 @@
     .exhibit-grid { grid-template-columns: 1fr; }
     .exhibit-admin .ex-fields { grid-template-columns: 1fr; }
   }
+  /* Respect reduced-motion: drop the card lift + thumb zoom for
+     vestibular-sensitive users (a bar this very class teaches). */
+  @media (prefers-reduced-motion: reduce) {
+    .exhibit-card,
+    .exhibit-card:hover,
+    .exhibit-thumb img,
+    .exhibit-card:hover .exhibit-thumb img,
+    .exhibit-portal a,
+    .exhibit-portal a:hover,
+    .exhibit-portal .ex-arrow,
+    .exhibit-portal a:hover .ex-arrow {
+      transform: none !important;
+      transition: color .15s ease, background .15s ease, border-color .15s ease !important;
+    }
+  }
 </style>
 <script src="https://unpkg.com/konva@9.3.16/konva.min.js"></script>
 </head>
