@@ -56,6 +56,22 @@ service cloud.firestore {
       allow delete: if true;
     }
 
+    // Exhibit: a curated wall of past student work (websites, Instructables,
+    // builds). Public read; the admin-URL-token gate + honor code govern the
+    // add/delete UI, so create/delete stay permissive with light validation.
+    match /exhibit/{exhibitId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['title','url','createdAt']) &&
+                       request.resource.data.title is string &&
+                       request.resource.data.title.size() > 0 &&
+                       request.resource.data.title.size() <= 120 &&
+                       request.resource.data.url is string &&
+                       request.resource.data.url.size() <= 500 &&
+                       request.resource.data.createdAt == request.time;
+      allow delete: if true;
+      allow update: if false;
+    }
+
     // Class roster: students self-identify on first add. Honor-code class
     // means anyone can read/write; the slug-doc-id ensures we don't dupe.
     match /students/{studentSlug} {

@@ -5815,6 +5815,322 @@
     .cad-grid { grid-template-columns: 1fr; }
     .cad-viewer-wrap { min-height: 360px; }
   }
+
+  /* ============================================================
+     EXHIBIT — a quiet, dedicated wall of past student work.
+     Lives on its own route (/exhibit), reached only through a
+     soft link under the home hero. Never in the top toolbar.
+     ============================================================ */
+
+  /* Soft entry portal under the home hero */
+  .exhibit-portal {
+    margin-top: 56px;
+    padding-top: 34px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+  }
+  .exhibit-portal a {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    color: var(--ink-mid);
+    text-decoration: none;
+    background: transparent;
+    border: 1px solid transparent;
+    margin: 0;
+    padding: 9px 18px;
+    border-radius: 999px;
+    transition: color .18s ease, background .18s ease, gap .18s ease;
+  }
+  .exhibit-portal a:hover {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-color: transparent;
+    gap: 13px;
+  }
+  .exhibit-portal .ex-spark { color: var(--accent); opacity: .9; }
+  .exhibit-portal .ex-arrow { transition: transform .18s ease; }
+  .exhibit-portal a:hover .ex-arrow { transform: translateX(2px); }
+
+  /* Exhibit page hero */
+  .exhibit-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--ink-low);
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    margin: 0;
+    padding: 0;
+    transition: color .15s ease, gap .15s ease;
+  }
+  .exhibit-back:hover { color: var(--accent); gap: 9px; background: transparent; border-color: transparent; }
+  .exhibit-hero {
+    text-align: center;
+    max-width: 660px;
+    margin: 26px auto 46px;
+  }
+  .exhibit-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px;
+  }
+  .exhibit-title {
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--ink-hi);
+    margin: 0 0 14px;
+    line-height: 1.04;
+  }
+  .exhibit-sub {
+    font-size: 14.5px;
+    color: var(--ink-mid);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* Card grid */
+  .exhibit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(278px, 1fr));
+    gap: 22px;
+  }
+  .exhibit-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+    transition: transform .2s cubic-bezier(.2,.7,.3,1), box-shadow .2s ease, border-color .2s ease;
+  }
+  .exhibit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-strong);
+  }
+  .exhibit-thumb {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff 70%);
+  }
+  .exhibit-thumb img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .45s cubic-bezier(.2,.7,.3,1);
+  }
+  .exhibit-card:hover .exhibit-thumb img { transform: scale(1.045); }
+  .exhibit-thumb .ex-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    opacity: .5;
+  }
+  .exhibit-type {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ink-hi);
+    background: rgba(255,255,255,.92);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    padding: 5px 11px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+  }
+  .exhibit-body {
+    padding: 15px 17px 17px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+  }
+  .exhibit-card-title {
+    font-size: 15.5px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink-hi);
+    line-height: 1.25;
+  }
+  .exhibit-maker {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .exhibit-blurb {
+    font-size: 12.5px;
+    color: var(--ink-mid);
+    line-height: 1.5;
+    margin-top: 1px;
+  }
+  .exhibit-visit {
+    margin-top: auto;
+    padding-top: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink-low);
+    transition: color .15s ease, gap .15s ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .exhibit-card:hover .exhibit-visit { color: var(--accent); gap: 9px; }
+
+  /* Admin: delete a card */
+  .exhibit-del {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,.94);
+    color: #ef4444;
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+  }
+  body.is-admin .exhibit-card .exhibit-del { display: flex; }
+  .exhibit-del:hover { background: #ef4444; color: #fff; transform: scale(1.06); }
+
+  /* Admin: add-work panel (hidden for students) */
+  .exhibit-admin {
+    display: none;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px 20px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-sm);
+  }
+  body.is-admin .exhibit-admin { display: block; }
+  .exhibit-admin h3 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink-hi);
+    margin: 0 0 4px;
+  }
+  .exhibit-admin .ex-admin-hint {
+    font-size: 11.5px;
+    color: var(--ink-low);
+    margin: 0 0 14px;
+  }
+  .exhibit-admin .ex-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .exhibit-admin .ex-fields .ex-full { grid-column: 1 / -1; }
+  .exhibit-admin label {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin: 0 0 5px;
+  }
+  .exhibit-admin input,
+  .exhibit-admin textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--ink-hi);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 9px 11px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .exhibit-admin input:focus,
+  .exhibit-admin textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .exhibit-admin textarea { resize: vertical; min-height: 56px; }
+  .exhibit-admin .ex-add-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .exhibit-admin .ex-add-msg { font-size: 12px; color: var(--ink-mid); margin-right: auto; }
+  .exhibit-admin .ex-add-btn {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background .15s ease, transform .1s ease;
+  }
+  .exhibit-admin .ex-add-btn:hover { background: var(--accent-hover); }
+  .exhibit-admin .ex-add-btn:active { transform: translateY(1px); }
+  .exhibit-admin .ex-add-btn:disabled { opacity: .55; cursor: default; }
+
+  /* Empty / loading states */
+  .exhibit-empty {
+    text-align: center;
+    color: var(--ink-low);
+    font-size: 13.5px;
+    padding: 60px 20px;
+    border: 1px dashed var(--border-strong);
+    border-radius: 16px;
+    background: var(--bg-2);
+  }
+
+  @media (max-width: 560px) {
+    .exhibit-grid { grid-template-columns: 1fr; }
+    .exhibit-admin .ex-fields { grid-template-columns: 1fr; }
+  }
 </style>
 <script src="https://unpkg.com/konva@9.3.16/konva.min.js"></script>
 </head>
@@ -6776,6 +7092,19 @@
       });
       app.appendChild(projEl);
     });
+
+    // Quiet, intentional doorway to the Exhibit — a wall of past student
+    // work. Lives only here under the home content, never in the toolbar.
+    const portal = document.createElement('div');
+    portal.className = 'exhibit-portal';
+    portal.innerHTML = `
+      <a href="/exhibit" class="nav-link">
+        <svg class="ex-spark" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z"/></svg>
+        <span>See what past makers built</span>
+        <svg class="ex-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    `;
+    app.appendChild(portal);
   }
 
   function updateCountBadge(benchmarkId, n) {
@@ -17624,6 +17953,187 @@ module.exports = { main }`
   // four nav pills (which are app surfaces). Drop real syllabus copy or a
   // remote URL in here as the course solidifies; for now it's placeholder
   // structure aligned with the four-project sequence.
+  // ============== EXHIBIT page render ==============
+  // A quiet, dedicated wall of past student assistive-tech work: websites,
+  // Instructables, builds, videos. Students see gorgeous read-only cards that
+  // link out to the real work. Admin (?admin token) gets an add form + delete.
+  function exhibitHostLabel(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ''); }
+    catch (_) { return 'Open'; }
+  }
+
+  function renderExhibit() {
+    app.innerHTML = '';
+    const wrap = document.createElement('section');
+    wrap.className = 'exhibit';
+    wrap.innerHTML = `
+      <a href="/" class="exhibit-back nav-link">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+        <span>Back</span>
+      </a>
+      <div class="exhibit-hero">
+        <p class="exhibit-eyebrow">Exhibit</p>
+        <h1 class="exhibit-title">What past makers built</h1>
+        <p class="exhibit-sub">A wall of assistive-tech work from students who came before you &mdash; websites, Instructables, builds, and more. Open any of them for inspiration before you design your own.</p>
+      </div>
+
+      <form class="exhibit-admin" id="exAdminForm" autocomplete="off">
+        <h3>Add work to the Exhibit</h3>
+        <p class="ex-admin-hint">Admin only. Title and link are required; everything else is optional.</p>
+        <div class="ex-fields">
+          <div>
+            <label for="exTitle">Title</label>
+            <input id="exTitle" type="text" maxlength="120" placeholder="e.g. One-Handed Keyboard Mount" required>
+          </div>
+          <div>
+            <label for="exMaker">Maker &amp; year</label>
+            <input id="exMaker" type="text" maxlength="80" placeholder="e.g. Maya R. · 2024">
+          </div>
+          <div>
+            <label for="exType">Type</label>
+            <input id="exType" type="text" maxlength="32" list="exTypeList" placeholder="Website, Instructable, Build…">
+            <datalist id="exTypeList">
+              <option value="Website"></option>
+              <option value="Instructable"></option>
+              <option value="App"></option>
+              <option value="Build"></option>
+              <option value="Video"></option>
+              <option value="Doc"></option>
+            </datalist>
+          </div>
+          <div>
+            <label for="exLink">Link (URL)</label>
+            <input id="exLink" type="url" maxlength="500" placeholder="https://…" required>
+          </div>
+          <div class="ex-full">
+            <label for="exImage">Image URL (optional)</label>
+            <input id="exImage" type="url" maxlength="500" placeholder="https://… a screenshot or photo of the work">
+          </div>
+          <div class="ex-full">
+            <label for="exBlurb">Short blurb (optional)</label>
+            <textarea id="exBlurb" maxlength="240" placeholder="One line on what it is and who it helps."></textarea>
+          </div>
+        </div>
+        <div class="ex-add-row">
+          <span class="ex-add-msg" id="exAddMsg"></span>
+          <button type="submit" class="ex-add-btn" id="exAddBtn">Add to Exhibit</button>
+        </div>
+      </form>
+
+      <div class="exhibit-grid" id="exGrid">
+        <div class="exhibit-empty">Loading…</div>
+      </div>
+    `;
+    app.appendChild(wrap);
+
+    const grid = wrap.querySelector('#exGrid');
+
+    function cardHtml(item) {
+      const id = item.id;
+      const title = escapeHtml(item.title || 'Untitled');
+      const maker = item.maker ? `<div class="exhibit-maker">${escapeHtml(item.maker)}</div>` : '';
+      const blurb = item.blurb ? `<div class="exhibit-blurb">${escapeHtml(item.blurb)}</div>` : '';
+      const type = item.type ? `<span class="exhibit-type">${escapeHtml(item.type)}</span>` : '';
+      const initial = escapeHtml((item.title || '?').trim().charAt(0).toUpperCase() || '?');
+      const img = item.image
+        ? `<img src="${escapeHtml(item.image)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+        : '';
+      const host = escapeHtml(exhibitHostLabel(item.url || ''));
+      const href = escapeHtml(item.url || '#');
+      return `
+        <a class="exhibit-card" href="${href}" target="_blank" rel="noopener noreferrer" data-ex-id="${escapeHtml(id)}">
+          <button class="exhibit-del" type="button" data-ex-del="${escapeHtml(id)}" aria-label="Delete">×</button>
+          <div class="exhibit-thumb">
+            <div class="ex-fallback">${initial}</div>
+            ${img}
+            ${type}
+          </div>
+          <div class="exhibit-body">
+            <div class="exhibit-card-title">${title}</div>
+            ${maker}
+            ${blurb}
+            <span class="exhibit-visit">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+              ${host}
+            </span>
+          </div>
+        </a>
+      `;
+    }
+
+    async function load() {
+      try {
+        const snap = await getDocs(query(collection(db, 'exhibit'), orderBy('createdAt', 'desc')));
+        const items = [];
+        snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+        if (!items.length) {
+          grid.innerHTML = `<div class="exhibit-empty">${isAdmin ? 'No work here yet — add the first piece above.' : 'Past student work will appear here soon.'}</div>`;
+          return;
+        }
+        grid.innerHTML = items.map(cardHtml).join('');
+      } catch (err) {
+        grid.innerHTML = `<div class="exhibit-empty">Could not load the Exhibit. ${escapeHtml(err && err.message || '')}</div>`;
+      }
+    }
+
+    // Delete (admin) — intercept the click before the card's link fires.
+    grid.addEventListener('click', async (e) => {
+      const del = e.target.closest('[data-ex-del]');
+      if (!del) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isAdmin) return;
+      if (!confirm('Remove this piece from the Exhibit?')) return;
+      try {
+        await deleteDoc(doc(db, 'exhibit', del.dataset.exDel));
+        const card = del.closest('.exhibit-card');
+        if (card) card.remove();
+        if (!grid.querySelector('.exhibit-card')) {
+          grid.innerHTML = `<div class="exhibit-empty">No work here yet — add the first piece above.</div>`;
+        }
+      } catch (err) {
+        alert('Could not delete: ' + (err && err.message || err));
+      }
+    });
+
+    // Add (admin)
+    if (isAdmin) {
+      const form = wrap.querySelector('#exAdminForm');
+      const btn = wrap.querySelector('#exAddBtn');
+      const msg = wrap.querySelector('#exAddMsg');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = wrap.querySelector('#exTitle').value.trim();
+        const url = wrap.querySelector('#exLink').value.trim();
+        if (!title || !url) { msg.textContent = 'Title and link are required.'; return; }
+        const data = {
+          title,
+          url,
+          maker: wrap.querySelector('#exMaker').value.trim(),
+          type: wrap.querySelector('#exType').value.trim(),
+          image: wrap.querySelector('#exImage').value.trim(),
+          blurb: wrap.querySelector('#exBlurb').value.trim(),
+          createdAt: serverTimestamp()
+        };
+        btn.disabled = true;
+        msg.textContent = 'Adding…';
+        try {
+          await addDoc(collection(db, 'exhibit'), data);
+          form.reset();
+          msg.textContent = 'Added.';
+          await load();
+          setTimeout(() => { msg.textContent = ''; }, 1800);
+        } catch (err) {
+          msg.textContent = 'Could not add: ' + (err && err.message || err);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+
+    load();
+  }
+
   function renderSyllabus() {
     app.innerHTML = '';
     const sec = document.createElement('section');
@@ -17835,8 +18345,11 @@ module.exports = { main }`
 
   function applyRoute(path) {
     const r = (path || '').replace(/\/+$/, '');
-    document.body.classList.remove('view-home', 'view-hw', 'view-progress', 'view-tools', 'view-tools-detail', 'view-syllabus');
-    if (r === '/syllabus') {
+    document.body.classList.remove('view-home', 'view-hw', 'view-progress', 'view-tools', 'view-tools-detail', 'view-syllabus', 'view-exhibit');
+    if (r === '/exhibit') {
+      document.body.classList.add('view-exhibit');
+      renderExhibit();
+    } else if (r === '/syllabus') {
       document.body.classList.add('view-syllabus');
       renderSyllabus();
     } else if (r === '/hw') {

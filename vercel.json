@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/exhibit", "destination": "/index.html" },
+    { "source": "/exhibit/", "destination": "/index.html" },
     { "source": "/hw", "destination": "/index.html" },
     { "source": "/hw/", "destination": "/index.html" },
     { "source": "/progress", "destination": "/index.html" },
