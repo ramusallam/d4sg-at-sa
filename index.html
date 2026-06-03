@@ -5898,6 +5898,48 @@
   .exhibit-portal .ex-arrow { transition: transform .18s ease; }
   .exhibit-portal a:hover .ex-arrow { transform: translateX(2px); }
 
+  /* Top-of-home entry to the Exhibit — a single slim accent band above the
+     projects. Deliberately quiet (one line, soft tint, no toolbar clutter). */
+  .exhibit-topentry {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: 0 0 30px;
+    padding: 12px 18px;
+    background: var(--accent-soft);
+    border: 1px solid transparent;
+    border-radius: 14px;
+    text-decoration: none;
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 400;
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+  .exhibit-topentry:hover {
+    background: var(--accent-soft);
+    border-color: rgba(99, 102, 241, 0.28);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+  }
+  .exhibit-topentry .et-spark { color: var(--accent); display: inline-flex; flex: 0 0 auto; }
+  .exhibit-topentry .et-text {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 9px;
+    flex: 1;
+    min-width: 0;
+  }
+  .exhibit-topentry .et-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink-hi);
+  }
+  .exhibit-topentry .et-sub { font-size: 12.5px; color: var(--ink-mid); }
+  .exhibit-topentry .et-arrow { color: var(--accent); display: inline-flex; flex: 0 0 auto; transition: transform .18s ease; }
+  .exhibit-topentry:hover .et-arrow { transform: translateX(2px); }
+
   /* Exhibit page hero */
   .exhibit-back {
     display: inline-flex;
@@ -6890,6 +6932,19 @@
 
   function renderProjects() {
     app.innerHTML = '';
+
+    // Quiet top-of-home doorway to the Exhibit — one slim accent band above the
+    // projects so the wall of past work is reachable up top, not just below.
+    const topEntry = document.createElement('a');
+    topEntry.href = '/exhibit';
+    topEntry.className = 'exhibit-topentry nav-link';
+    topEntry.innerHTML = `
+      <span class="et-spark"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z"/></svg></span>
+      <span class="et-text"><span class="et-title">Exhibit</span><span class="et-sub">See what past students built</span></span>
+      <span class="et-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    `;
+    app.appendChild(topEntry);
+
     PROJECTS.forEach(project => {
       // Single-benchmark projects (like the Final/Instructable) collapse into
       // one clean row: no h2, no benchmark number, label uses the full project
@@ -18027,9 +18082,6 @@ module.exports = { main }`
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
         <span>Back</span>
       </a>
-      <div class="exhibit-hero">
-        <p class="exhibit-eyebrow">Exhibit</p>
-      </div>
 
       <form class="exhibit-admin" id="exAdminForm" autocomplete="off">
         <h3>Add work to the Exhibit</h3>
