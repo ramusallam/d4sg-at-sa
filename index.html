@@ -1102,6 +1102,46 @@
     border-radius: 14px;
     box-shadow: var(--shadow-sm);
   }
+  /* Instructor sits up top under the title as a flat accent band — deliberately
+     NOT a white card, so it reads as a header detail, not one of the sections. */
+  .syllabus-instructor {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+    margin: 4px 0 26px;
+    padding: 13px 18px;
+    background: var(--accent-soft);
+    border-radius: 12px;
+  }
+  .syllabus-instructor .si-eyebrow {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .syllabus-instructor .si-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink-hi);
+  }
+  .syllabus-instructor .si-meta {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--ink-mid);
+  }
+  .syllabus-instructor a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.30);
+    transition: border-color 0.15s ease;
+  }
+  .syllabus-instructor a:hover { border-bottom-color: var(--accent); }
+  .syllabus-instructor .si-dot { color: var(--ink-low); }
   .syllabus-head {
     margin-bottom: 8px;
   }
@@ -18159,6 +18199,16 @@ module.exports = { main }`
         </div>
       </header>
 
+      <div class="syllabus-instructor">
+        <span class="si-eyebrow">Instructor</span>
+        <span class="si-name">Ramsey Musallam, EdD</span>
+        <span class="si-meta">
+          <a href="mailto:ramsey.musallam@sonomaacademy.org">ramsey.musallam@sonomaacademy.org</a>
+          <span class="si-dot">·</span>
+          <span>Office hours: every Coyote Block, Room B220</span>
+        </span>
+      </div>
+
       <section class="syllabus-section syllabus-lead">
         <p>Design for Social Good is a project-based class where students practice human-centered design thinking on a real need in the world. This semester the theme is <strong>assistive technology for computer access</strong>. Students build low-cost, open-source adaptive controllers, switches, and sensors that let an end-user operate a computer using whatever motion they can reliably make, at a fraction of the cost of commercial gear. The social good at the center is straightforward: assistive technology lets individuals with disabilities participate in society on the same terms as everyone else.</p>
       </section>
@@ -18202,13 +18252,6 @@ module.exports = { main }`
       <section class="syllabus-section">
         <h3 class="syllabus-section-title">Materials</h3>
         <p>A laptop with reliable internet and enough capacity to run the Arduino IDE. All prototyping materials (Arduino, switches, sensors, perfboard, solder, 3D-print filament, consumables) are provided in class.</p>
-      </section>
-
-      <section class="syllabus-section">
-        <h3 class="syllabus-section-title">Instructor</h3>
-        <p><strong>Ramsey Musallam, EdD</strong><br />
-        <a href="mailto:ramsey.musallam@sonomaacademy.org">ramsey.musallam@sonomaacademy.org</a><br />
-        Office hours: every Coyote Block, Room B220.</p>
       </section>
 
       <section class="syllabus-section">
