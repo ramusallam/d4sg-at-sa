@@ -5898,47 +5898,80 @@
   .exhibit-portal .ex-arrow { transition: transform .18s ease; }
   .exhibit-portal a:hover .ex-arrow { transform: translateX(2px); }
 
-  /* Top-of-home entry to the Exhibit — a single slim accent band above the
-     projects. Deliberately quiet (one line, soft tint, no toolbar clutter). */
+  /* Top-of-home entry to the Exhibit — a compact, gallery-style doorway.
+     Quiet by default (hairline pill, faint indigo wash, small-caps label) so
+     it never competes with the header's syllabus link; it blooms softly on
+     hover so it stays discoverable and clearly clickable. */
   .exhibit-topentry {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 11px;
-    margin: 0 0 30px;
-    padding: 12px 18px;
-    background: var(--accent-soft);
-    border: 1px solid transparent;
-    border-radius: 14px;
+    gap: 10px;
+    width: fit-content;
+    max-width: 100%;
+    margin: 2px 0 30px;
+    padding: 8px 15px 8px 12px;
+    background: linear-gradient(180deg, rgba(99,102,241,0.055), rgba(99,102,241,0.02));
+    border: 1px solid var(--border);
+    border-radius: 999px;
     text-decoration: none;
     text-transform: none;
     letter-spacing: normal;
     font-weight: 400;
-    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    box-shadow: 0 1px 0 rgba(15,23,42,0.02);
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background .2s ease;
   }
   .exhibit-topentry:hover {
-    background: var(--accent-soft);
-    border-color: rgba(99, 102, 241, 0.28);
-    box-shadow: var(--shadow-sm);
+    background: linear-gradient(180deg, rgba(99,102,241,0.10), rgba(99,102,241,0.04));
+    border-color: rgba(99, 102, 241, 0.32);
+    box-shadow: 0 8px 20px -12px rgba(99,102,241,0.55);
     transform: translateY(-1px);
   }
-  .exhibit-topentry .et-spark { color: var(--accent); display: inline-flex; flex: 0 0 auto; }
+  .exhibit-topentry .et-spark {
+    color: var(--accent);
+    display: inline-flex;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 0 5px rgba(99,102,241,0.28));
+    transition: transform .3s ease;
+  }
+  .exhibit-topentry:hover .et-spark { transform: rotate(-8deg) scale(1.08); }
   .exhibit-topentry .et-text {
     display: inline-flex;
-    flex-wrap: wrap;
     align-items: baseline;
-    gap: 4px 9px;
-    flex: 1;
+    gap: 9px;
     min-width: 0;
   }
   .exhibit-topentry .et-title {
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
     color: var(--ink-hi);
   }
-  .exhibit-topentry .et-sub { font-size: 12.5px; color: var(--ink-mid); }
-  .exhibit-topentry .et-arrow { color: var(--accent); display: inline-flex; flex: 0 0 auto; transition: transform .18s ease; }
-  .exhibit-topentry:hover .et-arrow { transform: translateX(2px); }
+  .exhibit-topentry .et-sub {
+    font-size: 12.5px;
+    color: var(--ink-mid);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .exhibit-topentry .et-sub::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--border);
+    vertical-align: middle;
+    margin-right: 9px;
+  }
+  .exhibit-topentry .et-arrow {
+    color: var(--accent);
+    display: inline-flex;
+    flex: 0 0 auto;
+    opacity: .7;
+    transition: transform .2s ease, opacity .2s ease;
+  }
+  .exhibit-topentry:hover .et-arrow { transform: translateX(3px); opacity: 1; }
 
   /* Exhibit page hero */
   .exhibit-back {
