@@ -4368,6 +4368,54 @@
     white-space: pre;
   }
 
+  /* Compact "loaded into editor" confirmation chip — replaces the duplicate
+     black code box in the chat. Keeps the conversation clean so only the
+     wiring + loading instructions remain readable. */
+  .vibe-codeloaded {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0 6px;
+    padding: 9px 11px;
+    border-radius: 10px;
+    border: 1px solid rgba(16, 185, 129, 0.32);
+    background: rgba(16, 185, 129, 0.08);
+  }
+  .vibe-codeloaded-icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--success);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .vibe-codeloaded-text {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-hi);
+  }
+  .vibe-codeloaded-actions { display: flex; gap: 6px; flex: none; }
+  .vibe-codeloaded-btn {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+  }
+  .vibe-codeloaded-btn:hover { background: var(--bg-2); border-color: var(--border-strong); }
+  .vibe-codeloaded-btn.is-done { color: var(--success); border-color: var(--success); }
+
   /* Editor panel: takes full page width now. Editor expands, monitor docks
      at bottom. */
   .vibe-right {
@@ -13267,31 +13315,37 @@
     });
   }
 
+  // The assistant's code goes straight into the editor, so the chat never
+  // shows a duplicate black code box. Where a fenced block would have been we
+  // render a compact confirmation chip — the student keeps reading the wiring
+  // and loading instructions, with quiet Reload / Copy fallbacks.
   function vibeBuildCodeBlock(code) {
-    const block = document.createElement('div');
-    block.className = 'vibe-codeblock';
-    const bar = document.createElement('div');
-    bar.className = 'vibe-codeblock-bar';
-    const lang = document.createElement('span');
-    lang.className = 'vibe-codeblock-lang';
-    lang.textContent = 'Arduino';
+    const chip = document.createElement('div');
+    chip.className = 'vibe-codeloaded';
+
+    const icon = document.createElement('span');
+    icon.className = 'vibe-codeloaded-icon';
+    icon.textContent = '✓';
+
+    const text = document.createElement('span');
+    text.className = 'vibe-codeloaded-text';
+    text.textContent = 'Code loaded into your editor';
+
     const actions = document.createElement('div');
-    actions.className = 'vibe-codeblock-actions';
+    actions.className = 'vibe-codeloaded-actions';
 
     const loadBtn = document.createElement('button');
-    loadBtn.className = 'vibe-codeblock-btn is-primary';
-    loadBtn.textContent = 'Load into editor';
+    loadBtn.className = 'vibe-codeloaded-btn';
+    loadBtn.textContent = 'Reload';
+    loadBtn.title = 'Replace the editor with this version';
     loadBtn.addEventListener('click', () => {
       vibeSetEditorText(code);
       vibeSaveEditorText(code);
       vibeUpdateLibraries();
-      loadBtn.textContent = 'Loaded';
+      loadBtn.textContent = 'Reloaded';
       loadBtn.classList.add('is-done');
       schemToast('Code loaded into the editor.');
-      setTimeout(() => { loadBtn.textContent = 'Load into editor'; loadBtn.classList.remove('is-done'); }, 1600);
-      // If this code came from an "Ask AI to fix" request, close the loop by
-      // re-verifying automatically — the student sees a green check or a fresh
-      // error (with its own fix/explain buttons) without an extra click.
+      setTimeout(() => { loadBtn.textContent = 'Reload'; loadBtn.classList.remove('is-done'); }, 1600);
       if (_vibeAwaitingFix) {
         _vibeAwaitingFix = false;
         if (typeof vibeVerifyCode === 'function') setTimeout(() => vibeVerifyCode(true), 200);
@@ -13299,7 +13353,7 @@
     });
 
     const copyBtn = document.createElement('button');
-    copyBtn.className = 'vibe-codeblock-btn';
+    copyBtn.className = 'vibe-codeloaded-btn';
     copyBtn.textContent = 'Copy';
     copyBtn.addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(code); copyBtn.textContent = 'Copied'; copyBtn.classList.add('is-done'); }
@@ -13309,13 +13363,10 @@
 
     actions.appendChild(loadBtn);
     actions.appendChild(copyBtn);
-    bar.appendChild(lang);
-    bar.appendChild(actions);
-    const pre = document.createElement('pre');
-    pre.textContent = code;
-    block.appendChild(bar);
-    block.appendChild(pre);
-    return block;
+    chip.appendChild(icon);
+    chip.appendChild(text);
+    chip.appendChild(actions);
+    return chip;
   }
 
   function vibeRenderChat() {
@@ -13539,19 +13590,26 @@
         _vibeChat.push({ role: 'error', content: 'Something went wrong, try again. (' + errMsg + ')' });
       } else {
         const reply = (data.reply || '').trim();
-        const code = (data.code || '').trim();
+        // Prefer the structured code field; fall back to the first fenced
+        // block inside the reply so we always have something to auto-load.
+        let code = (data.code || '').trim();
+        if (!code && reply) {
+          const m = reply.match(/```(?:arduino|cpp|c\+\+|c|ino)?\s*\n?([\s\S]*?)```/i);
+          if (m) code = (m[1] || '').replace(/\n$/, '').trim();
+        }
         if (reply) {
           _vibeChat.push({ role: 'assistant', content: reply });
-          // Non-destructive: only auto-load code when the editor is still the
-          // empty default. Otherwise the chat code block has a "Load into
-          // editor" button so we never clobber hand-edited work.
+          // Vibe-coding flow: the code drops straight into the editor so the
+          // chat stays clean — only the wiring + loading instructions live
+          // there. Any fenced block in the reply renders as a small "loaded"
+          // chip (see vibeBuildCodeBlock), not a duplicate black code box.
           if (code) {
-            const cur = vibeGetEditorText();
-            const curIsDefault = !cur || !cur.trim() || cur.trim() === VIBE_DEFAULT_CODE.trim();
-            if (curIsDefault) {
-              vibeSetEditorText(code);
-              vibeSaveEditorText(code);
-              vibeUpdateLibraries();
+            vibeSetEditorText(code);
+            vibeSaveEditorText(code);
+            vibeUpdateLibraries();
+            if (_vibeAwaitingFix) {
+              _vibeAwaitingFix = false;
+              if (typeof vibeVerifyCode === 'function') setTimeout(() => vibeVerifyCode(true), 200);
             }
           }
         } else if (code) {
