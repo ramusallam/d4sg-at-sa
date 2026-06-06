@@ -940,6 +940,53 @@
     text-transform: uppercase;
     font-size: 10.5px;
   }
+  /* Video panel: read-only browse + the single "submitted" area below input. */
+  .vs-panel.is-viewonly .vs-textarea,
+  .vs-panel.is-viewonly .vs-actions { display: none; }
+  .vs-viewbanner { display: none; }
+  .vs-panel.is-viewonly .vs-viewbanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 13px;
+    margin: 4px 0 10px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--ink-mid);
+  }
+  .vs-submitted { margin-top: 12px; }
+  .vs-submitted-card {
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg-2);
+    padding: 11px 14px;
+  }
+  .vs-submitted-label {
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 5px;
+  }
+  .vs-submitted-text {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-mid);
+    font-style: italic;
+    white-space: pre-wrap;
+  }
+  .vs-submitted-empty {
+    font-size: 12.5px;
+    color: var(--ink-low);
+    font-style: italic;
+    padding: 4px 2px;
+  }
   .vs-textarea {
     width: 100%;
     min-height: 130px;
@@ -10464,23 +10511,18 @@
       );
     }
 
-    // Class submissions. The Portfolio has NO public gallery — you see a
-    // classmate's work by picking their name in "Saving as" (read-only). Other
-    // benchmarks still show the standard gallery for now.
-    if (!isPortfolioDrop) {
+    // No public "class" pile on the Portfolio or Video panels — you see one
+    // person at a time by picking their name (read-only when it isn't you).
+    // Checkpoint/product benchmarks still use the standard gallery for now.
+    if (!isPortfolioDrop && !isVideoSummary) {
       const gallerySec = document.createElement('div');
       gallerySec.className = 'modal-section';
-      const galleryHeading = isVideoSummary ? 'Class summaries' : 'Class submissions';
       gallerySec.innerHTML = `
-        <h3>${galleryHeading}</h3>
+        <h3>Class submissions</h3>
         <div class="pf-gallery" id="pfGallery"></div>
       `;
       modalBody.appendChild(gallerySec);
-      if (isVideoSummary) {
-        subscribeVideoSummaries(b);
-      } else {
-        subscribePortfolios(b.id);
-      }
+      subscribePortfolios(b.id);
     }
 
     modal.classList.add('open');
@@ -12340,6 +12382,7 @@
         ${mediaHtml}
         <div class="vs-write">
           <div data-vs-namepicker></div>
+          <div class="vs-viewbanner" data-vs-viewbanner></div>
           ${b.summaryPrompt ? `<p class="vs-prompt">${escapeHtml(b.summaryPrompt)}</p>` : ''}
           ${b.gradeNote ? `<p class="grade-note"><span class="grade-note__label">Grading</span><span>${escapeHtml(b.gradeNote)}</span></p>` : ''}
           <textarea class="vs-textarea" data-vs-text rows="8" maxlength="1500" placeholder="Write your summary here..."></textarea>
@@ -12347,21 +12390,28 @@
             <span class="vid-saved" data-vs-saved></span>
             <button class="pf-submit" data-vs-save type="button">Save summary</button>
           </div>
+          <div class="vs-submitted" data-vs-submitted></div>
         </div>
       </div>
     `;
 
-    const picker = renderNamePicker({
-      initial: localStorage.getItem(LAST_PICK_KEY) || '',
-      onChange: (n) => { if (n) { ensureRosterEntry(n); hydrate(n); } }
-    });
-    panel.querySelector('[data-vs-namepicker]').appendChild(picker.element);
-    panel._cleanup = () => picker.destroy();
-    const getName = () => picker.getName();
-
     const textarea = panel.querySelector('[data-vs-text]');
     const saveBtn  = panel.querySelector('[data-vs-save]');
     const savedPill = panel.querySelector('[data-vs-saved]');
+    const viewBanner = panel.querySelector('[data-vs-viewbanner]');
+    const submittedEl = panel.querySelector('[data-vs-submitted]');
+
+    // Identity: this device's name is editable; other names load read-only.
+    const norm = (s) => (s || '').trim().toLowerCase();
+    let ownerName = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
+    const submittedByName = new Map(); // norm(name) -> { studentName, text }
+
+    const picker = renderNamePicker({
+      initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      onChange: (n) => { if (n) ensureRosterEntry(n); applyMode(n); }
+    });
+    panel.querySelector('[data-vs-namepicker]').appendChild(picker.element);
+    const getName = () => picker.getName();
 
     function hydrate(n) {
       if (!n) return;
@@ -12371,11 +12421,49 @@
         }
       });
     }
-    hydrate(getName());
+
+    // The single "submitted" area below the input: shows the saved summary for
+    // whoever is selected (your own as confirmation, a classmate's read-only).
+    function renderSubmitted(n) {
+      const name = (n || '').trim();
+      const isOwner = !name || norm(name) === norm(ownerName);
+      const entry = submittedByName.get(norm(name));
+      const txt = entry && entry.text;
+      if (!txt) {
+        submittedEl.innerHTML = isOwner ? '' : `<div class="vs-submitted-empty">${escapeHtml(name)} hasn&rsquo;t saved a summary yet.</div>`;
+        return;
+      }
+      submittedEl.innerHTML = `
+        <div class="vs-submitted-card">
+          <div class="vs-submitted-label">${isOwner ? 'Saved' : escapeHtml(name) + '&rsquo;s summary'}</div>
+          <p class="vs-submitted-text">${escapeHtml(txt)}</p>
+        </div>`;
+    }
+
+    function applyMode(n) {
+      const name = (n || '').trim();
+      if (!ownerName && name) { ownerName = name; try { localStorage.setItem(LAST_PICK_KEY, name); } catch (_) {} }
+      const isOwner = !name || norm(name) === norm(ownerName);
+      if (isOwner) {
+        panel.classList.remove('is-viewonly');
+        viewBanner.innerHTML = '';
+        hydrate(name);
+      } else {
+        panel.classList.add('is-viewonly');
+        viewBanner.innerHTML = `
+          <span class="pf-viewbanner-text">Viewing <strong>${escapeHtml(name)}</strong>&rsquo;s summary — read only.</span>
+          <button type="button" class="pf-viewbanner-btn" data-vs-claim>This is me — let me edit</button>
+        `;
+        const c = viewBanner.querySelector('[data-vs-claim]');
+        if (c) c.addEventListener('click', () => { ownerName = name; try { localStorage.setItem(LAST_PICK_KEY, name); } catch (_) {} applyMode(name); });
+      }
+      renderSubmitted(name);
+    }
 
     const auto = debounce(() => {
       const n = getName();
-      if (!n || !textarea.value.trim()) return;
+      if (!n || norm(n) !== norm(ownerName)) return;
+      if (!textarea.value.trim()) return;
       saveDraft(n, b.id, { reflection: textarea.value });
       savedPill.textContent = 'Draft saved';
       clearTimeout(savedPill._t);
@@ -12402,6 +12490,7 @@
         markChecked(b.id);
         refreshCountBadge(b.id);
         schemToast('Summary saved.');
+        renderSubmitted(n);
       } catch (e) {
         schemToast('Save failed. Check your connection.');
       }
@@ -12409,6 +12498,24 @@
       saveBtn.textContent = 'Save summary';
     });
 
+    // Live-load saved summaries so picking a name shows that person's work.
+    let _vsUnsub = null;
+    try {
+      const _vsq = query(collection(db, 'portfolios'), where('benchmarkId', '==', b.id));
+      _vsUnsub = onSnapshot(_vsq, (snap) => {
+        submittedByName.clear();
+        snap.forEach(d => {
+          const data = d.data() || {};
+          const nm = (data.studentName || '').trim();
+          const t = data.slots && data.slots.summary && data.slots.summary.text;
+          if (nm) submittedByName.set(norm(nm), { studentName: nm, text: t || '' });
+        });
+        renderSubmitted(getName());
+      });
+    } catch (_) {}
+    panel._cleanup = () => { try { picker.destroy(); } catch (_) {} if (_vsUnsub) { try { _vsUnsub(); } catch (_) {} } };
+
+    applyMode(getName());
     return panel;
   }
 
