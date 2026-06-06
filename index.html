@@ -921,6 +921,25 @@
     border-radius: 0 6px 6px 0;
     padding: 7px 11px;
   }
+  /* Lightweight grading line under a prompt. One reusable element so every
+     benchmark can state how it is scored without a heavy rubric box. */
+  .grade-note {
+    margin: 7px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--ink-mid);
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+  .grade-note__label {
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-size: 10.5px;
+  }
   .vs-textarea {
     width: 100%;
     min-height: 130px;
@@ -6502,6 +6521,7 @@
           points: 2,
           videoUrl: 'https://www.youtube.com/embed/9fcK19CAjWM',
           summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
+          gradeNote: '3-4 sentences = full 2 pts · 1-2 sentences = 1 pt',
           links: [],
           rubric: []
         },
@@ -6511,6 +6531,7 @@
           points: 2,
           videoUrl: 'https://www.youtube.com/embed/MHOYQQTvQu4',
           summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
+          gradeNote: '3-4 sentences = full 2 pts · 1-2 sentences = 1 pt',
           links: [],
           rubric: []
         },
@@ -6520,6 +6541,7 @@
           points: 2,
           videoUrl: 'https://www.youtube.com/embed/sMD2NIOmwQw',
           summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
+          gradeNote: '3-4 sentences = full 2 pts · 1-2 sentences = 1 pt',
           links: [],
           rubric: []
         },
@@ -6529,6 +6551,7 @@
           points: 2,
           videoUrl: 'https://www.youtube.com/embed/Dhjwg-LS8bY',
           summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
+          gradeNote: '3-4 sentences = full 2 pts · 1-2 sentences = 1 pt',
           links: [],
           rubric: []
         },
@@ -6538,6 +6561,7 @@
           points: 2,
           videoUrl: 'https://www.youtube.com/embed/2UxHX20C0s0',
           summaryPrompt: 'What drew your attention in this video? What surprised you, moved you, or changed how you think about who you are designing for? Write 3-4 sentences.',
+          gradeNote: '3-4 sentences = full 2 pts · 1-2 sentences = 1 pt',
           links: [],
           rubric: []
         }
@@ -6552,6 +6576,7 @@
           id: 'p1b1',
           title: 'Button',
           points: 2,
+          gradeNote: 'Evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'Open the [Vibe Coding Tool](tools#vibe), click **Build for me**, and describe this behavior in the input: *"Activate the W key each time a simple tactile button is pressed."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to lay out a digital schematic of your circuit using a **breadboard**.',
@@ -6567,6 +6592,7 @@
           id: 'p1b2',
           title: 'Lever',
           points: 2,
+          gradeNote: 'Evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Keep your Button wiring intact.** You will keep building on the same breadboard - add the lever switch alongside your existing button. Do not unplug or remove anything from the previous benchmark.',
             'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button code in the editor - you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: activate the A key each time a simple lever switch is triggered. Keep the W-key button behavior I already have."*',
@@ -6583,6 +6609,7 @@
           id: 'p1b3',
           title: 'LEDs',
           points: 2,
+          gradeNote: 'Evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Keep your Button and Lever wiring intact.** You will keep building on the same breadboard - add two different-color LEDs alongside your existing button and lever. **Each LED needs a 220 ohm resistor in series.** Do not unplug or remove anything from the previous benchmark.',
             'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button and Lever code in the editor - you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the button is pressed, and a different-color LED while the lever is triggered. Keep the W-key and A-key behaviors I already have."*',
@@ -6599,6 +6626,7 @@
           id: 'p1b4',
           title: 'Product',
           points: 2,
+          gradeNote: 'Working device for your user, with evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           brief: {
             hook: "A switch worth $15 can unlock a one-button rhythm game for an individual who can only move one wrist. The most important assistive technology in the world is sometimes the simplest. Now it is your turn.",
             challenge: "How might we use a button, a lever, two LEDs, and an Arduino Leonardo to give one specific person a way to do something they want to do but can't?",
@@ -6650,6 +6678,7 @@
           id: 'p2b1',
           title: 'Touch',
           points: 2,
+          gradeNote: 'Evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'Open the [Vibe Coding Tool](tools#vibe), click **Build for me**, and describe this behavior in the input: *"Activate the W key each time I lightly touch a capacitive touch sensor. No force or pressing should be needed."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to lay out a digital schematic of your circuit using a **breadboard**.',
@@ -6665,6 +6694,7 @@
           id: 'p2b2',
           title: 'Distance',
           points: 2,
+          gradeNote: 'Evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Keep your Capacitive Touch wiring intact.** You will keep building on the same breadboard - add the IR distance sensor alongside your existing touch sensor. Do not unplug or remove anything from the previous benchmark.',
             'Open the [Vibe Coding Tool](tools#vibe). **Keep your Capacitive Touch code in the editor - you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: activate the A key each time a hand or object comes within a set distance of a VL53L0X infrared distance sensor. Keep the W-key touch behavior I already have. Explain how to wire the sensor over I2C, including soldering its header pins onto the breakout board."*',
@@ -6682,6 +6712,7 @@
           id: 'p2b3',
           title: 'LEDs',
           points: 2,
+          gradeNote: 'Evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Keep your Capacitive Touch and Distance Sensor wiring intact.** You will keep building on the same breadboard - add two different-color LEDs alongside your existing touch and distance sensors. **Each LED needs a 220 ohm resistor in series.** Do not unplug or remove anything from the previous benchmark.',
             'Open the [Vibe Coding Tool](tools#vibe). **Keep your Capacitive Touch and Distance Sensor code in the editor - you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the touch sensor is active, and a different-color LED while the distance sensor is triggered. Keep the W-key and A-key behaviors I already have."*',
@@ -6698,6 +6729,7 @@
           id: 'p2b4',
           title: 'Product',
           points: 2,
+          gradeNote: 'Working device for your user, with evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           brief: {
             hook: "An individual who can only graze a pad with one fingertip can still turn the page, send a message, or call for help, as long as the sensor needs no force at all. The right sensor does not wait for a push - it answers the smallest movement a body can make. Now it is your turn.",
             challenge: "How might we use a capacitive touch sensor, an IR distance sensor, two LEDs, and an Arduino Leonardo to give one specific person a way to do something they want to do but can't - using only the smallest movement they have, and no force at all?",
@@ -6749,6 +6781,7 @@
           id: 'p3b1',
           title: 'Joystick',
           points: 2,
+          gradeNote: 'Evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'Open the [Vibe Coding Tool](tools#vibe), click **Build for me**, and describe this behavior in the input: *"Move the mouse cursor with a 5-pin joystick, and left-click each time I press the joystick button."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to lay out a digital schematic of your circuit using a **breadboard**.',
@@ -6764,6 +6797,7 @@
           id: 'p3b2',
           title: 'Air',
           points: 2,
+          gradeNote: 'Evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Keep your Joystick wiring intact.** You will keep building on the same breadboard - add the sip-and-puff switch alongside your existing joystick. Do not unplug or remove anything from the previous benchmark.',
             'Open the [Vibe Coding Tool](tools#vibe). **Keep your Joystick code in the editor - you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: press the spacebar each time I puff into a sip-and-puff switch, which acts like a digital button with a ground pin and a signal pin. Keep the joystick mouse and click behaviors I already have."*',
@@ -6780,6 +6814,7 @@
           id: 'p3b3',
           title: 'LEDs',
           points: 2,
+          gradeNote: 'Evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Keep your Joystick and Sip-and-Puff wiring intact.** You will keep building on the same breadboard - add two different-color LEDs alongside your existing joystick and sip-and-puff switch. **Each LED needs a 220 ohm resistor in series.** Do not unplug or remove anything from the previous benchmark.',
             'Open the [Vibe Coding Tool](tools#vibe). **Keep your Joystick and Sip-and-Puff code in the editor - you will extend it, not replace it.** Click **Build for me** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the joystick button is pressed, and a different-color LED while the sip-and-puff switch is triggered. Keep the mouse, click, and spacebar behaviors I already have."*',
@@ -6796,6 +6831,7 @@
           id: 'p3b4',
           title: 'Product',
           points: 2,
+          gradeNote: 'Working device for your user, with evidence (schematic + code + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           brief: {
             hook: "An individual who cannot move their hands can still aim, click, and play, if the controls meet their mouth instead of their fingers. A joystick they steer with their lips and a switch they trigger with a breath can open a whole screen back up. Now it is your turn.",
             challenge: "How might we use a joystick, a sip-and-puff switch, two LEDs, and an Arduino Leonardo to give one specific person a way to do something they want to do but can't - using only their mouth, chin, and breath, with the whole rig mounted where they can reach it?",
@@ -6847,6 +6883,7 @@
           id: 'p4b1',
           title: 'Plan',
           points: 2,
+          gradeNote: 'Port-layout sketch + Bill of Materials with instructor sign-off = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'Think across the end-users you designed for in Projects 1, 2, and 3. The hub does not pick one person. It is a universal junction that makes room for every switch and sensor system you built so different users can drive the same hub using their own inputs. A user with a single big button drops their button into one 3.5mm jack and goes. A user with a joystick and a sip-and-puff drops both their inputs into the ports that fit them.',
             'Decide how many ports of each type the hub needs to support all of those users at once. Count the switches (one **3.5mm jack** each) and the sensors (one **JST-XH header** each) across your P1-P3 designs. A reasonable starter hub is 4 jacks and 3 JST headers.',
@@ -6862,6 +6899,7 @@
           id: 'p4b2',
           title: 'Perfboard',
           points: 2,
+          gradeNote: 'Evidence (perfboard front + back + code PDF + powered-board photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'You are about to take the circuit you grew across Projects 1, 2, and 3 and make it permanent. **Do not rewrite the code yet.** The perfboard runs the same sketch your breadboard ran. The only difference is that the connections are now soldered and the inputs exit the board through panel-mount connectors instead of jumper wires.',
             'Open the [Wiring Schematic Tool](tools#schematic) and redraw your wiring as a **perfboard layout**. The perfboard is the bridge: Arduino pins land on one edge, the 3.5mm jacks and JST-XH headers land on the opposite edges, and every input pairs with the panel connector it bridges to. A switch input runs Arduino pin to trace to the solder lug of one 3.5mm jack. A sensor input runs the relevant Arduino pins (signal, VCC, GND, plus any I2C or analog extras) to traces to the solder lugs of one JST-XH header.',
@@ -6878,6 +6916,7 @@
           id: 'p4b3',
           title: 'Enclosure',
           points: 2,
+          gradeNote: 'Evidence (final STL + mid-iteration print photo + installed-board photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'Open [Tinkercad](https://www.tinkercad.com) and design the 3D-printed hub.',
             'Required features: (a) internal posts or pockets that hold the Arduino and the perfboard rigidly, (b) a labeled panel on one face for the **row of 3.5mm jacks**, (c) a labeled panel on an adjacent face for the **row of JST-XH headers** (the JST plug should click in flush and hold), (d) a **USB cutout** on the back, and (e) a flat area on the back or bottom for the QR code label that goes on in the next benchmark.',
@@ -6894,6 +6933,7 @@
           id: 'p4b4',
           title: 'Remap',
           points: 2,
+          gradeNote: 'Evidence (live web-app URL + interface screenshot + mounted QR photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'What you are building: a small update to your Arduino sketch on the hub plus a live website that talks to the hub. When you are done, an end-user opens the site on a laptop, presses a switch on the hub, watches it light up on the screen, picks a new action from a dropdown, presses the switch again, and the new action fires on the computer. Two notes before you start. (1) Web Serial only works in **Chrome** or **Edge** (not Safari, not Firefox). (2) The laptop must have the hub plugged into it over USB. A phone cannot do this directly.',
             'Update your Arduino sketch with the [Vibe Coding Tool](tools#vibe). Click **Build** and paste this prompt exactly: *"Build remap support into my existing Arduino sketch on the Leonardo. Use Serial at 9600 baud. Each input on the hub has a port number (0, 1, 2, and so on). The messages between the hub and the computer should look like plain English. On startup, print: `ready`. When a port is pressed, print: `port <n> pressed`. When a port is released, print: `port <n> released`. Listen for incoming Serial lines in the format: `set port <n> to <a single key A through Z, or one of: space, enter, up, down, left, right, mouse left, mouse right>`. When that line arrives, update the action that port fires next and print back: `port <n> is now <action>`. Store the current mapping for each port in an array, load defaults at startup, and always call Keyboard.release or Mouse.release after a press."* Vibe Coding writes the sketch. Load it onto your Arduino.',
@@ -11387,8 +11427,10 @@
   function buildCheckpointPanel(benchmarkId) {
     const panel = document.createElement('div');
     panel.className = 'portfolio-panel checkpoint-panel';
+    const cpBench = findBenchmarkById(benchmarkId);
     panel.innerHTML = `
       <div data-cp-namepicker></div>
+      ${cpBench && cpBench.gradeNote ? `<p class="grade-note"><span class="grade-note__label">Grading</span><span>${escapeHtml(cpBench.gradeNote)}</span></p>` : ''}
       <div class="cp-section">
         <div class="cp-section-label">Evidence</div>
         <div class="pf-drop" data-cp-drop>
@@ -11855,6 +11897,7 @@
         <div class="vs-write">
           <div data-vs-namepicker></div>
           ${b.summaryPrompt ? `<p class="vs-prompt">${escapeHtml(b.summaryPrompt)}</p>` : ''}
+          ${b.gradeNote ? `<p class="grade-note"><span class="grade-note__label">Grading</span><span>${escapeHtml(b.gradeNote)}</span></p>` : ''}
           <textarea class="vs-textarea" data-vs-text rows="8" maxlength="1500" placeholder="Write your summary here..."></textarea>
           <div class="pf-actions vs-actions">
             <span class="vid-saved" data-vs-saved></span>
