@@ -1011,6 +1011,83 @@
     flex-shrink: 0;
   }
 
+  /* ===== Traditional analytic rubric grid (portfolio) ===== */
+  .rubric-grid-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .rubric-grid {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 560px;
+    font-size: 12.5px;
+    table-layout: fixed;
+  }
+  /* Criterion column a bit wider; the three level columns share equal width. */
+  .rubric-grid thead .rg-corner,
+  .rubric-grid .rg-crit { width: 34%; }
+  .rubric-grid thead th:not(.rg-corner),
+  .rubric-grid .rg-cell { width: 22%; }
+  .rubric-grid thead th {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 9px 13px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .rubric-grid thead .rg-corner { color: var(--ink-mid); }
+  .rubric-grid td,
+  .rubric-grid tbody th { vertical-align: top; }
+  .rubric-grid tbody tr + tr th,
+  .rubric-grid tbody tr + tr td { border-top: 1px solid var(--border); }
+  .rubric-grid .rg-crit {
+    text-align: left;
+    padding: 12px 13px;
+    background: var(--bg-2);
+    border-right: 1px solid var(--border);
+    word-break: break-word;
+  }
+  .rg-crit-name {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--paper-ink);
+    margin-bottom: 6px;
+  }
+  .rg-crit-desc {
+    display: block;
+    font-size: 11.5px;
+    line-height: 1.42;
+    color: var(--ink-mid);
+    font-weight: 400;
+  }
+  .rubric-grid .rg-cell {
+    padding: 12px 13px;
+    border-right: 1px solid var(--border);
+  }
+  .rubric-grid .rg-cell:last-child { border-right: none; }
+  .rg-cell-pts {
+    display: inline-block;
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--paper-ink);
+    margin-bottom: 5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .rubric-grid tbody td:last-child .rg-cell-pts { color: var(--success); }
+  .rg-cell-desc {
+    display: block;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: var(--ink-mid);
+  }
+
   /* ============== HEADER NAV (Homework / Back) ============== */
   .nav-link {
     display: inline-flex;
@@ -2301,6 +2378,122 @@
     grid-template-columns: repeat(7, 1fr);
     gap: 10px;
   }
+
+  /* ===== Unified rubric + drop: criterion rows, with an upload box in the
+     final column. Clicking a box expands that row inline (the drawer body). ==== */
+  .pf-rubric {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  /* Editable vs read-only browse: toggled by .is-viewonly on the panel. */
+  .pf-rubric-panel .pf-viewbanner,
+  .pf-rubric-panel .pf-viewonly { display: none; }
+  .pf-rubric-panel.is-viewonly .pf-rubric,
+  .pf-rubric-panel.is-viewonly .pf-actions { display: none; }
+  .pf-rubric-panel.is-viewonly .pf-viewbanner { display: flex; }
+  .pf-rubric-panel.is-viewonly .pf-viewonly { display: grid; }
+  .pf-viewbanner {
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 11px 14px;
+    margin-bottom: 14px;
+    border-radius: 11px;
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--ink-mid);
+  }
+  .pf-viewbanner-text strong { color: var(--accent); font-weight: 700; }
+  .pf-viewbanner-btn {
+    flex: none;
+    border: 1px solid var(--accent);
+    background: #fff;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .pf-viewbanner-btn:hover { background: var(--accent); color: #fff; }
+  .pf-viewonly {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .pf-rubric-head,
+  .pf-rubric-row {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr 1fr 1fr 122px;
+  }
+  .pf-rubric-head {
+    background: var(--accent-soft);
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+  }
+  .pf-rubric-head > span {
+    padding: 9px 12px;
+    border-right: 1px solid var(--border);
+  }
+  .pf-rubric-head > span:last-child { border-right: none; }
+  .pf-rubric-head > span:first-child { color: var(--ink-mid); }
+  .pf-rubric-row { border-top: 1px solid var(--border); }
+  .pf-rubric-row > .prc {
+    padding: 11px 12px;
+    border-right: 1px solid var(--border);
+    min-width: 0;
+  }
+  .prc-crit { background: var(--bg-2); }
+  .prc-name { display: block; font-size: 13px; font-weight: 800; color: var(--paper-ink); }
+  .prc-text { display: block; font-size: 11px; line-height: 1.4; color: var(--ink-mid); margin-top: 3px; }
+  .prc-lvl .prc-pts {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--paper-ink);
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .pf-rubric-row > .prc-lvl:nth-child(4) .prc-pts { color: var(--success); }
+  .prc-lvl .prc-desc { display: block; font-size: 11px; line-height: 1.4; color: var(--ink-mid); }
+  .pf-rubric-slotmount {
+    display: flex;
+    align-items: stretch;
+    padding: 8px;
+    min-width: 0;
+  }
+  /* Compact upload tile inside a row's final column. */
+  .pf-rubric-slotmount .pf-slot { width: 100%; border-radius: 9px; }
+  .pf-rubric-slotmount .pf-slot-number,
+  .pf-rubric-slotmount .pf-slot-label { display: none; }
+  .pf-rubric-slotmount .pf-slot-tile {
+    min-height: 62px;
+    padding: 8px 6px;
+    gap: 3px;
+  }
+  .pf-rubric-slotmount .pf-slot-icon { font-size: 19px; }
+  .pf-rubric-slotmount .pf-slot-status { font-size: 9.5px; }
+  /* Row expands inline: when a slot is open, its upload cell takes the whole
+     row width and the criterion/level cells step aside for the drawer. */
+  .pf-rubric-row:has(.pf-slot.is-open) > .prc { display: none; }
+  .pf-rubric-row:has(.pf-slot.is-open) > .pf-rubric-slotmount {
+    grid-column: 1 / -1;
+    padding: 12px;
+    background: var(--accent-soft);
+  }
+  @media (max-width: 620px) {
+    .pf-rubric-head { display: none; }
+    .pf-rubric-row { grid-template-columns: 1fr 1fr; }
+    .pf-rubric-row > .prc-crit { grid-column: 1 / -1; }
+    .pf-rubric-row > .pf-rubric-slotmount { grid-column: 1 / -1; border-top: 1px solid var(--border); }
+  }
+
   .pf-slot {
     background: var(--bg-2);
     border: 1.5px dashed var(--border-strong);
@@ -2753,6 +2946,39 @@
   }
   .pf-filled-preview .pf-fp-thumb img,
   .pf-filled-preview .pf-fp-thumb video { width: 100%; height: 100%; object-fit: cover; }
+  .pf-filled-preview .pf-fp-thumb[data-pf-enlarge] { cursor: zoom-in; position: relative; transition: border-color 0.15s ease; }
+  .pf-filled-preview .pf-fp-thumb[data-pf-enlarge]:hover { border-color: var(--accent); }
+  .pf-fp-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .pf-fp-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--ink-mid);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .pf-fp-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .pf-fp-btn.pf-fp-remove:hover { border-color: #ef4444; color: #ef4444; }
+  .pf-fp-rename-input {
+    flex: 1;
+    min-width: 0;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--paper-ink);
+    border: 1px solid var(--accent);
+    border-radius: 7px;
+    padding: 6px 9px;
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
   .pf-filled-preview .pf-fp-info {
     flex: 1;
     min-width: 0;
@@ -2778,8 +3004,8 @@
   .pf-filled-preview .pf-fp-remove {
     width: 30px;
     height: 30px;
-    border-radius: 50%;
-    background: transparent;
+    border-radius: 8px;
+    background: #fff;
     border: 1px solid var(--border);
     color: var(--ink-mid);
     cursor: pointer;
@@ -6641,7 +6867,7 @@
             'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one switch and one LED. Maximum: both switches and both LEDs.** Pick what your user\'s motion and goal actually need - **design before aesthetics, always.** Where does their reliable motion meet the switch? Where do the LEDs sit so they can see them? What shape does your 3D-printed mount need to be?',
             'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Button, Lever, and LED benchmarks. Be precise about **what you want** (which switches and LEDs you are using, what keystrokes the device must send for your user, how the LEDs give them feedback, the arm/disarm safety) and **what the outcome should do** (what happens on press, on release, on hold; when each LED is on or off; what happens when no input arrives). Click **Build for me** with your prompt.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
-            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in **Tinkercad** that holds the switch where your user\'s motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL.',
             '3D print your mount and assemble the final product - switch, mount, LEDs, Arduino. Then **test it like your user would** - use only the motion they actually have. If it does not work for their motion, redesign and reprint.',
             'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
@@ -6744,7 +6970,7 @@
             'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one sensor and one LED. Maximum: both sensors and both LEDs.** Pick what your user\'s motion and goal actually need - **design before aesthetics, always.** Where does their smallest reliable movement meet the sensor? Where do the LEDs sit so they can see them? What shape does your 3D-printed mount need to be?',
             'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Capacitive Touch, Distance Sensor, and LED benchmarks. Be precise about **what you want** (which sensors and LEDs you are using, what keystrokes the device must send for your user, how the LEDs give them feedback, the arm/disarm safety) and **what the outcome should do** (what happens on touch or approach, on release, on hold; when each LED is on or off; what happens when no input arrives). Click **Build for me** with your prompt.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.** If your design uses the IR distance sensor, make sure its header pins are soldered.',
-            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in **Tinkercad** that holds the sensor where your user\'s smallest motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL.',
             '3D print your mount and assemble the final product - sensor, mount, LEDs, Arduino. Then **test it like your user would** - use only the motion they actually have, with no force. If it does not work for their motion, redesign and reprint.',
             'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
@@ -6846,7 +7072,7 @@
             'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one input and one LED. Maximum: both inputs and both LEDs.** Pick what your user\'s motion and goal actually need - **design before aesthetics, always.** Where does their mouth, chin, or breath meet the joystick and the sip-and-puff tube? Where do the LEDs sit so they can see them? What shape does your 3D-printed mount need to be so the rig stays put?',
             'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Joystick, Sip-and-Puff, and LED benchmarks. Be precise about **what you want** (which inputs and LEDs you are using, what mouse moves or keystrokes the device must send for your user, how the LEDs give them feedback, the arm/disarm safety) and **what the outcome should do** (what happens on joystick move, on click, on puff; when each LED is on or off; what happens when no input arrives). Click **Build for me** with your prompt.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
-            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in **Tinkercad** that holds the joystick and the sip-and-puff tube where your user\'s mouth and chin actually reach them. **It must clamp or bolt to a table, wheelchair tray, or mount arm so it stays rock-steady - your user drives it with their face, so it cannot shift.** Export the STL.',
             '3D print your mount and assemble the final product - joystick, sip-and-puff, mount, LEDs, Arduino. Then **test it like your user would** - use only your mouth, chin, and breath, with the rig secured in place. If it does not work that way, redesign and reprint.',
             'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
@@ -10119,7 +10345,7 @@
       `;
       modalBody.appendChild(sec);
     }
-    if (b.instructions) {
+    if (b.instructions && b.title !== 'Portfolio') {
       const sec = document.createElement('div');
       sec.className = 'modal-section';
       if (Array.isArray(b.instructions) && b.instructions.length) {
@@ -10175,7 +10401,10 @@
       modalBody.appendChild(sec);
     }
     // Rubric
-    if (b.rubric && b.rubric.length) {
+    // Portfolios render their rubric inside the drop panel (one upload box per
+    // criterion row), so the standalone rubric section is skipped for them.
+    // Everything else (e.g. the Instructable) keeps the simple list here.
+    if (b.rubric && b.rubric.length && b.title !== 'Portfolio') {
       const sec = document.createElement('div');
       sec.className = 'modal-section';
       const total = b.rubric.reduce((s, r) => s + r.points, 0);
@@ -10201,42 +10430,57 @@
     const isPortfolioDrop = b.title === 'Portfolio';
     const isInstructable = b.id === 'instructable';
     const isVideoSummary = !!b.summaryPrompt;
-    const portfolioSec = document.createElement('div');
-    portfolioSec.className = 'modal-section';
-    const submitHeading = isVideoSummary ? 'Watch + write'
-      : isInstructable ? 'Drop your Instructable link'
-      : isPortfolioDrop ? 'Portfolio Drop'
-      : 'Submit evidence + reflection';
-    portfolioSec.innerHTML = `
-      <h3>${badge()}${submitHeading}</h3>
-      <div id="portfolioPanelMount"></div>
-    `;
-    modalBody.appendChild(portfolioSec);
-    const panelMount = portfolioSec.querySelector('#portfolioPanelMount');
-    panelMount.appendChild(
-      isVideoSummary ? buildVideoSummaryPanel(b)
-      : isInstructable ? buildInstructablePanel(b.id)
-      : isPortfolioDrop ? buildPortfolioPanel(b.id)
-      : buildCheckpointPanel(b.id)
-    );
-
-    // Gallery / Class submissions. Video-summary benchmarks use the compact
-    // splashboard (every student's summary in one scannable list). Everything
-    // else uses the standard portfolio gallery with expandable rows.
-    const gallerySec = document.createElement('div');
-    gallerySec.className = 'modal-section';
-    const galleryHeading = isVideoSummary ? 'Class summaries'
-      : isPortfolioDrop ? 'Class portfolios'
-      : 'Class submissions';
-    gallerySec.innerHTML = `
-      <h3>${galleryHeading}</h3>
-      <div class="pf-gallery" id="pfGallery"></div>
-    `;
-    modalBody.appendChild(gallerySec);
-    if (isVideoSummary) {
-      subscribeVideoSummaries(b);
+    if (isPortfolioDrop) {
+      // Portfolio: the name picker is its own section, then the rubric grid
+      // (with a built-in upload box per criterion row) is the next section.
+      const parts = buildPortfolioPanel(b.id);
+      const nameSec = document.createElement('div');
+      nameSec.className = 'modal-section';
+      nameSec.innerHTML = `<h3>${badge()}Saving as</h3>`;
+      nameSec.appendChild(parts.nameWrap);
+      modalBody.appendChild(nameSec);
+      const total = b.rubric.reduce((s, r) => s + r.points, 0);
+      const rubricSec = document.createElement('div');
+      rubricSec.className = 'modal-section';
+      rubricSec.innerHTML = `<h3>${badge()}Rubric &amp; Drop · ${total} pts total</h3>`;
+      rubricSec.appendChild(parts.gridWrap);
+      modalBody.appendChild(rubricSec);
     } else {
-      subscribePortfolios(b.id);
+      const portfolioSec = document.createElement('div');
+      portfolioSec.className = 'modal-section';
+      const submitHeading = isVideoSummary ? 'Watch + write'
+        : isInstructable ? 'Drop your Instructable link'
+        : 'Submit evidence + reflection';
+      portfolioSec.innerHTML = `
+        <h3>${badge()}${submitHeading}</h3>
+        <div id="portfolioPanelMount"></div>
+      `;
+      modalBody.appendChild(portfolioSec);
+      const panelMount = portfolioSec.querySelector('#portfolioPanelMount');
+      panelMount.appendChild(
+        isVideoSummary ? buildVideoSummaryPanel(b)
+        : isInstructable ? buildInstructablePanel(b.id)
+        : buildCheckpointPanel(b.id)
+      );
+    }
+
+    // Class submissions. The Portfolio has NO public gallery — you see a
+    // classmate's work by picking their name in "Saving as" (read-only). Other
+    // benchmarks still show the standard gallery for now.
+    if (!isPortfolioDrop) {
+      const gallerySec = document.createElement('div');
+      gallerySec.className = 'modal-section';
+      const galleryHeading = isVideoSummary ? 'Class summaries' : 'Class submissions';
+      gallerySec.innerHTML = `
+        <h3>${galleryHeading}</h3>
+        <div class="pf-gallery" id="pfGallery"></div>
+      `;
+      modalBody.appendChild(gallerySec);
+      if (isVideoSummary) {
+        subscribeVideoSummaries(b);
+      } else {
+        subscribePortfolios(b.id);
+      }
     }
 
     modal.classList.add('open');
@@ -10768,6 +11012,49 @@
     { key: 'video',   label: 'Video',   icon: ICON_VIDEO,   accept: 'video/mp4',                                                     exts: 'MP4',       fileTypes: 'video', allowFile: true,  allowLink: true  },
     { key: 'summary', label: 'Summary', icon: ICON_SUMMARY, accept: '',                                                              exts: 'Text only', fileTypes: 'text', allowFile: false, allowLink: false }
   ];
+
+  // Traditional analytic rubric: three performance levels per criterion, keyed
+  // by the portfolio rubric's criterion label. Emerging is the 50% floor;
+  // Mastered is full credit. Shared across every project's portfolio (the
+  // criteria and point splits are identical project to project), so the render
+  // looks these up by label instead of duplicating them in every benchmark.
+  const PF_RUBRIC_LEVELS = {
+    Sketch: [
+      { name: 'Emerging',   points: 3, desc: 'An idea is sketched, but rough or missing key parts.' },
+      { name: 'Developing', points: 5, desc: 'A clear sketch of your design, made before building.' },
+      { name: 'Mastered',   points: 6, desc: 'A detailed, labeled sketch that clearly guided your build.' }
+    ],
+    CAD: [
+      { name: 'Emerging',   points: 5,  desc: 'An STL is uploaded, but it does not fully fit the build.' },
+      { name: 'Developing', points: 8,  desc: 'An STL that integrates into your final product.' },
+      { name: 'Mastered',   points: 10, desc: 'A precise, well-fitted STL clearly designed for this product.' }
+    ],
+    Code: [
+      { name: 'Emerging',   points: 4, desc: 'Code is uploaded, but incomplete or does not fully work.' },
+      { name: 'Developing', points: 6, desc: 'A PDF of working code used in your final product.' },
+      { name: 'Mastered',   points: 8, desc: 'Clean, working code that fully matches the behavior you built.' }
+    ],
+    Wiring: [
+      { name: 'Emerging',   points: 4, desc: 'A wiring image is uploaded, but unclear or only partial.' },
+      { name: 'Developing', points: 5, desc: 'A clear wiring diagram of your final product.' },
+      { name: 'Mastered',   points: 7, desc: 'An accurate, easy-to-read diagram that matches your real build.' }
+    ],
+    Image: [
+      { name: 'Emerging',   points: 2, desc: 'A photo is uploaded, but blurry or hard to make out.' },
+      { name: 'Developing', points: 3, desc: 'A clear photo of your final product.' },
+      { name: 'Mastered',   points: 4, desc: 'A clear, well-framed photo that shows your finished product.' }
+    ],
+    Video: [
+      { name: 'Emerging',   points: 5,  desc: 'A video is uploaded, but does not clearly show it working.' },
+      { name: 'Developing', points: 8,  desc: 'A short video of your product in action.' },
+      { name: 'Mastered',   points: 10, desc: 'A clear video showing your product working the way the user needs.' }
+    ],
+    Summary: [
+      { name: 'Emerging',   points: 3, desc: '1-2 sentences, or missing parts of the reflection.' },
+      { name: 'Developing', points: 4, desc: 'A 4-5 sentence reflection on your process.' },
+      { name: 'Mastered',   points: 5, desc: 'A thoughtful reflection: process, problems, and what you learned.' }
+    ]
+  };
   const SUMMARY_MAX = 1500;
   const PORTFOLIO_MAX_FILE = 100 * 1024 * 1024; // 100MB
 
@@ -10819,36 +11106,87 @@
   }
 
   function buildPortfolioPanel(benchmarkId) {
-    const panel = document.createElement('div');
-    panel.className = 'portfolio-panel';
+    const bench = findBenchmarkById(benchmarkId);
+    const rubric = (bench && Array.isArray(bench.rubric)) ? bench.rubric : [];
 
+    // Section 1 element (mounted into its own "Saving as" modal section): the
+    // name picker. The slot logic reads the name through the `picker` closure,
+    // so the picker works no matter where this element is mounted.
+    const nameWrap = document.createElement('div');
+    nameWrap.className = 'pf-namepick';
+
+    // Section 2 element: the rubric grid with an upload box per criterion row,
+    // plus the submit button. This element carries the portfolio-panel class +
+    // _cleanup that closeModal looks for.
+    const panel = document.createElement('div');
+    panel.className = 'portfolio-panel pf-rubric-panel';
     panel.innerHTML = `
-      <div data-pf-namepicker></div>
-      <div class="pf-slots" data-pf-slots></div>
+      <div class="pf-viewbanner" data-pf-viewbanner></div>
+      <div class="pf-rubric" data-pf-slots>
+        <div class="pf-rubric-head">
+          <span>Criterion</span><span>Emerging</span><span>Developing</span><span>Mastered</span><span>Your work</span>
+        </div>
+      </div>
+      <div class="pf-viewonly" data-pf-viewonly></div>
       <div class="pf-actions">
         <div class="pf-status" data-pf-status></div>
         <button class="pf-submit" data-pf-submit type="button" disabled>Submit Portfolio</button>
       </div>
     `;
 
-    const namePickerMount = panel.querySelector('[data-pf-namepicker]');
-    const picker = renderNamePicker({
-      initial: localStorage.getItem(LAST_PICK_KEY) || '',
-      onChange: (n) => { if (n) ensureRosterEntry(n); }
-    });
-    namePickerMount.appendChild(picker.element);
-    // Compat shim so existing code that reads `nameInput.value` keeps working.
-    const nameInput = { get value() { return picker.getName(); }, set value(v) { picker.setName(v); } };
-    panel._cleanup = () => picker.destroy();
     const slotsEl = panel.querySelector('[data-pf-slots]');
     const submitBtn = panel.querySelector('[data-pf-submit]');
     const statusEl = panel.querySelector('[data-pf-status]');
+    const viewBanner = panel.querySelector('[data-pf-viewbanner]');
+    const viewMount = panel.querySelector('[data-pf-viewonly]');
+
+    // Identity: the name this device works as is the "owner" (editable). Picking
+    // any other name loads that person's submitted work read-only, so classmates'
+    // work is visible without a public gallery and can't be accidentally changed.
+    const norm = (s) => (s || '').trim().toLowerCase();
+    let ownerName = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
+    const submittedByName = new Map(); // norm(name) -> { studentName, slots }
+
+    const picker = renderNamePicker({
+      initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      onChange: (n) => { if (n) ensureRosterEntry(n); applyMode(n); }
+    });
+    nameWrap.appendChild(picker.element);
+    // Compat shim so existing code that reads `nameInput.value` keeps working.
+    const nameInput = { get value() { return picker.getName(); }, set value(v) { picker.setName(v); } };
 
     // In-memory slot state: { image: {...}, video: {...}, ... } or null
     const state = { image: null, video: null, code: null, cad: null, summary: null };
     // Pending file objects, before submit (so we can upload at submit time)
     const pendingFiles = {}; // { slotKey: File }
     let openSlotKey = null;
+
+    // One rubric row per criterion: criterion + Emerging/Developing/Mastered
+    // cells + an upload mount. Each slot below routes into its row by slot key
+    // (label lowercased === slot key, e.g. 'Sketch' -> 'sketch').
+    const slotMountByKey = {};
+    rubric.forEach((r) => {
+      const key = (r.label || '').toLowerCase();
+      const levels = PF_RUBRIC_LEVELS[r.label] || [];
+      const row = document.createElement('div');
+      row.className = 'pf-rubric-row';
+      row.dataset.row = key;
+      row.innerHTML = `
+        <div class="prc prc-crit">
+          <span class="prc-name">${escapeHtml(r.label || '')}</span>
+          <span class="prc-text">${escapeHtml(r.text || '')}</span>
+        </div>
+        ${levels.map((l) => `
+          <div class="prc prc-lvl">
+            <span class="prc-pts">${l.points} pts</span>
+            <span class="prc-desc">${escapeHtml(l.desc)}</span>
+          </div>
+        `).join('')}
+        <div class="pf-rubric-slotmount" data-slot-mount="${key}"></div>
+      `;
+      slotsEl.appendChild(row);
+      slotMountByKey[key] = row.querySelector('[data-slot-mount]');
+    });
 
     SLOT_DEFS.forEach((def, defIdx) => {
       const slot = document.createElement('div');
@@ -10876,7 +11214,7 @@
           <div class="pf-slot-body-inner" data-pf-body-inner></div>
         </div>
       `;
-      slotsEl.appendChild(slot);
+      (slotMountByKey[def.key] || slotsEl).appendChild(slot);
 
       const tile = slot.querySelector('[data-pf-tile]');
       const collapseBtn = slot.querySelector('[data-pf-collapse]');
@@ -10978,14 +11316,18 @@
           const meta = filled.mode === 'link'
             ? (getDomain(filled.url) || 'External link')
             : (filled.contentType || '');
+          const isFileMode = filled.mode === 'file';
           previewHtml = `
             <div class="pf-filled-preview">
-              <div class="pf-fp-thumb">${thumb}</div>
+              <div class="pf-fp-thumb" data-pf-enlarge role="button" tabindex="0" title="Click to enlarge">${thumb}</div>
               <div class="pf-fp-info">
-                <div class="pf-fp-title">${escapeHtml(title)}</div>
+                <div class="pf-fp-title" data-pf-title>${escapeHtml(title)}</div>
                 <div class="pf-fp-meta">${escapeHtml(meta)}</div>
               </div>
-              <button type="button" class="pf-fp-remove" data-pf-clear aria-label="Remove">×</button>
+              <div class="pf-fp-actions">
+                ${isFileMode ? `<button type="button" class="pf-fp-btn" data-pf-rename aria-label="Rename" title="Rename">✎</button>` : ''}
+                <button type="button" class="pf-fp-btn pf-fp-remove" data-pf-clear aria-label="Remove" title="Remove">×</button>
+              </div>
             </div>
           `;
         }
@@ -11018,6 +11360,54 @@
           e.stopPropagation();
           clearSlot(def.key);
           renderBody();
+        });
+
+        // Click the thumbnail to enlarge (image/video in the lightbox; PDFs and
+        // links open in a new tab).
+        bodyInner.querySelectorAll('[data-pf-enlarge]').forEach((el) => {
+          const enlarge = (e) => {
+            e.stopPropagation();
+            const f = state[def.key];
+            if (!f) return;
+            if (f.mode === 'file') openPortfolioLightbox(f, nameInput.value || '', def.label);
+            else if (f.mode === 'link' && f.url) window.open(f.url, '_blank', 'noopener');
+          };
+          el.addEventListener('click', enlarge);
+          el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); enlarge(e); } });
+        });
+
+        // Rename the uploaded file (display name only; persists on submit).
+        const renameBtn = bodyInner.querySelector('[data-pf-rename]');
+        if (renameBtn) renameBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const titleEl = bodyInner.querySelector('[data-pf-title]');
+          const cur = state[def.key];
+          if (!titleEl || !cur) return;
+          const orig = cur.fileName || '';
+          const input = document.createElement('input');
+          input.className = 'pf-fp-rename-input';
+          input.value = orig;
+          titleEl.replaceWith(input);
+          input.focus();
+          input.select();
+          let done = false;
+          const commit = () => {
+            if (done) return;
+            done = true;
+            let v = input.value.trim();
+            if (v && state[def.key]) {
+              const ext = (orig.match(/\.[a-z0-9]+$/i) || [''])[0];
+              if (ext && !v.toLowerCase().endsWith(ext.toLowerCase())) v += ext;
+              state[def.key].fileName = v;
+            }
+            refreshTile(def.key);
+            renderBody();
+          };
+          input.addEventListener('blur', commit);
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+            else if (e.key === 'Escape') { input.value = orig; input.blur(); }
+          });
         });
 
         if (dropZone && fileInput) {
@@ -11415,8 +11805,62 @@
       }, 60);
     }
 
+    // ----- Identity-aware mode: editable for the owner, read-only for others ---
+    function applyMode(name) {
+      const n = (name || '').trim();
+      // First name actively chosen on this device claims edit ownership.
+      if (!ownerName && n) { ownerName = n; try { localStorage.setItem(LAST_PICK_KEY, n); } catch (_) {} }
+      const isOwner = !n || norm(n) === norm(ownerName);
+      if (isOwner) {
+        panel.classList.remove('is-viewonly');
+        viewBanner.innerHTML = '';
+        viewMount.innerHTML = '';
+        refreshSubmit();
+        return;
+      }
+      // View-only: show this person's submitted work, hide the editable grid.
+      panel.classList.add('is-viewonly');
+      viewBanner.innerHTML = `
+        <span class="pf-viewbanner-text">Viewing <strong>${escapeHtml(n)}</strong>'s work — read only.</span>
+        <button type="button" class="pf-viewbanner-btn" data-pf-claim>This is me — let me edit</button>
+      `;
+      const claimBtn = viewBanner.querySelector('[data-pf-claim]');
+      if (claimBtn) claimBtn.addEventListener('click', () => {
+        ownerName = n;
+        try { localStorage.setItem(LAST_PICK_KEY, n); } catch (_) {}
+        applyMode(n);
+      });
+      const entry = submittedByName.get(norm(n));
+      if (entry && entry.slots && Object.values(entry.slots).some(Boolean)) {
+        renderRowBody(viewMount, { studentName: entry.studentName || n, slots: entry.slots }, { readOnly: true });
+      } else {
+        viewMount.innerHTML = `<div class="pf-gallery-empty">${escapeHtml(n)} hasn't submitted this portfolio yet.</div>`;
+      }
+    }
+
+    // Live-load classmates' submissions so picking a name can show their work
+    // (replaces the old public "Class portfolios" gallery).
+    let _pfUnsub = null;
+    try {
+      const _pfq = query(collection(db, 'portfolios'), where('benchmarkId', '==', benchmarkId));
+      _pfUnsub = onSnapshot(_pfq, (snap) => {
+        submittedByName.clear();
+        snap.forEach(d => {
+          const data = d.data() || {};
+          const nm = (data.studentName || '').trim();
+          if (nm) submittedByName.set(norm(nm), { studentName: nm, slots: data.slots || {} });
+        });
+        if (panel.classList.contains('is-viewonly')) applyMode(nameInput.value);
+      });
+    } catch (_) {}
+    panel._cleanup = () => {
+      try { picker.destroy(); } catch (_) {}
+      if (_pfUnsub) { try { _pfUnsub(); } catch (_) {} }
+    };
+
+    applyMode(picker.getName());
     refreshSubmit();
-    return panel;
+    return { nameWrap, gridWrap: panel };
   }
 
   // ----- Checkpoint panel (benchmarks 1-4): name picker + photos/PDF + reflection -----
