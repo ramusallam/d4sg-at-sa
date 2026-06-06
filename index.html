@@ -4431,11 +4431,14 @@
     flex-direction: column;
     min-height: 340px;
   }
-  .vibe-editor-wrap .CodeMirror {
+  .vibe-editor-wrap .vibe-monaco {
+    width: 100%;
     height: 100%;
-    font-size: 13px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    min-height: 0;
+    flex: 1 1 auto;
   }
+  /* Let Monaco's find/IntelliSense overflow widgets escape the editor box. */
+  .vibe-editor-wrap .monaco-editor .overflow-guard { border-radius: 0; }
   .vibe-editor-fallback {
     flex: 1 1 auto;
     width: 100%;
@@ -12683,13 +12686,13 @@
 
   // ============== VIBE CODING TOOL ==============
   // Two-panel chat-driven Arduino code workbench. Talks to /api/vibe-code
-  // (Anthropic proxy with class-code gate). Right panel is a CodeMirror
-  // editor + Web Serial monitor. Pass 2: copy-to-clipboard upload flow.
+  // (class-code-gated AI proxy). Right panel is a Monaco (VS Code) editor +
+  // Web Serial monitor with a real AVR109/Caterina flash-to-board flow.
 
   const VIBE_CLASSCODE_KEY = 'd4sg-vibe-classcode-v1';
   const VIBE_DEFAULT_CODE = '// Your Arduino code will appear here.\n// Ask the AI assistant on the left to build something, then load it in.\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n}\n';
 
-  let _vibeEditor = null;     // CodeMirror instance (or null if fallback textarea used)
+  let _vibeEditor = null;     // Monaco editor instance (or null if fallback textarea used)
   let _vibeChat = [];         // [{ role: 'user'|'assistant'|'error', content: string }]
   let _vibeBusy = false;
   let _vibeSerialPort = null;
@@ -12799,25 +12802,35 @@
     try { localStorage.removeItem(VIBE_CLASSCODE_KEY); } catch (_) {}
   }
 
-  function vibeLoadCodeMirror() {
-    if (window.CodeMirror) return Promise.resolve();
-    const cssHref = 'https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css';
-    if (!document.querySelector('link[data-vibe-cm]')) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = cssHref;
-      link.setAttribute('data-vibe-cm', '1');
-      document.head.appendChild(link);
-    }
-    const loadScript = (src) => new Promise((resolve, reject) => {
+  // Load the Monaco editor (the engine behind VS Code) from a CDN. Monaco
+  // uses an AMD loader and spins up a web worker for editor smarts; the
+  // getWorkerUrl shim below lets that worker run even though Monaco is served
+  // cross-origin from jsDelivr (the worker bootstraps itself off the same CDN).
+  function vibeLoadMonaco() {
+    if (window.monaco) return Promise.resolve();
+    if (window._vibeMonacoLoading) return window._vibeMonacoLoading;
+    const BASE = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/';
+    const VS = BASE + 'vs';
+    window._vibeMonacoLoading = new Promise((resolve, reject) => {
+      window.MonacoEnvironment = {
+        getWorkerUrl: function () {
+          const src = "self.MonacoEnvironment={baseUrl:'" + BASE + "'};" +
+            "importScripts('" + VS + "/base/worker/workerMain.js');";
+          return 'data:text/javascript;charset=utf-8,' + encodeURIComponent(src);
+        }
+      };
       const s = document.createElement('script');
-      s.src = src;
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error('Failed to load ' + src));
+      s.src = VS + '/loader.js';
+      s.onload = () => {
+        try {
+          window.require.config({ paths: { vs: VS } });
+          window.require(['vs/editor/editor.main'], () => resolve(), reject);
+        } catch (e) { reject(e); }
+      };
+      s.onerror = () => reject(new Error('Failed to load Monaco loader'));
       document.head.appendChild(s);
     });
-    return loadScript('https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js')
-      .then(() => loadScript('https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/clike/clike.min.js'));
+    return window._vibeMonacoLoading;
   }
 
   // Lazy-load jsPDF on first export.
@@ -13155,35 +13168,49 @@
       vibeUpdateLibraries();
     });
 
-    vibeLoadCodeMirror().then(() => {
+    vibeLoadMonaco().then(() => {
       try {
         const wrapEl = document.getElementById('vibeEditorWrap');
         if (!wrapEl) return; // user navigated away
+        const initial = vibeLoadEditorText();
         wrapEl.innerHTML = '';
-        const ta = document.createElement('textarea');
-        wrapEl.appendChild(ta);
-        ta.value = vibeLoadEditorText();
-        _vibeEditor = window.CodeMirror.fromTextArea(ta, {
-          mode: 'text/x-c++src',
-          lineNumbers: true,
+        const host = document.createElement('div');
+        host.className = 'vibe-monaco';
+        wrapEl.appendChild(host);
+        _vibeEditor = window.monaco.editor.create(host, {
+          value: initial,
+          language: 'cpp',
+          theme: 'vs-dark',
+          automaticLayout: true,   // tracks the flex container, no manual refresh
+          fontSize: 14,
+          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, monospace',
+          fontLigatures: true,
           tabSize: 2,
-          indentUnit: 2,
-          lineWrapping: true,
-          theme: 'default'
+          insertSpaces: true,
+          wordWrap: 'on',
+          minimap: { enabled: true },
+          scrollBeyondLastLine: false,
+          smoothScrolling: true,
+          cursorBlinking: 'smooth',
+          cursorSmoothCaretAnimation: 'on',
+          renderLineHighlight: 'all',
+          roundedSelection: true,
+          padding: { top: 12, bottom: 12 },
+          scrollbar: { verticalScrollbarSize: 11, horizontalScrollbarSize: 11 },
+          fixedOverflowWidgets: true,
+          bracketPairColorization: { enabled: true }
         });
-        _vibeEditor.on('change', () => {
+        _vibeEditor.onDidChangeModelContent(() => {
           vibeSaveEditorText(_vibeEditor.getValue());
           vibeUpdateLibraries();
         });
-        // Force layout
-        setTimeout(() => _vibeEditor.refresh(), 50);
         vibeUpdateLibraries();
       } catch (err) {
         // Fallback textarea is already in place
-        console.warn('CodeMirror init failed, using textarea fallback', err);
+        console.warn('Monaco init failed, using textarea fallback', err);
       }
     }).catch((err) => {
-      console.warn('CodeMirror failed to load, using textarea fallback', err);
+      console.warn('Monaco failed to load, using textarea fallback', err);
     });
 
     vibeUpdateLibraries();
@@ -14016,6 +14043,7 @@
       const cleanup = () => {
         navigator.serial.removeEventListener('connect', onConnect);
         clearInterval(poll);
+        clearTimeout(coach);
         clearTimeout(timeout);
       };
       // Poll getPorts() in parallel — 'connect' only fires for ports the
@@ -14036,20 +14064,30 @@
         }
       }, 250);
       navigator.serial.addEventListener('connect', onConnect);
+      // The 1200-baud knock only reboots the board if the running sketch
+      // cooperates. On a fresh board, a stuck sketch, or the very first upload
+      // of a session it often doesn't fire — so after ~2s with no bootloader,
+      // coach the student to tap the physical RESET button (the canonical
+      // Leonardo/Micro move) and keep listening for the full window.
+      const coach = setTimeout(() => {
+        if (resolved) return;
+        vibeMonitorLine('Almost there — if nothing happens, press the RESET button on your Arduino once now, then wait.', 'info');
+        vibeSetStatus('connecting', 'Waiting for the board… tap RESET on the Arduino if it does not appear.');
+      }, 2200);
       const timeout = setTimeout(async () => {
         if (resolved) return;
         cleanup();
-        // Last resort: ask the user to pick the bootloader port.
+        // Last resort: ask the user to pick the bootloader port by hand.
         try {
-          vibeMonitorLine('Pick the Arduino bootloader port (it usually shows up as "Arduino Leonardo bootloader" or similar).', 'info');
+          vibeMonitorLine('Still waiting. Tap RESET on the board, then pick the port that shows up (often "Arduino Leonardo bootloader").', 'info');
           const p = await navigator.serial.requestPort({
             filters: [{ usbVendorId: ARDUINO_USB_VID }]
           });
           resolve(p);
         } catch (e) {
-          reject(new Error('Bootloader port did not appear within 6s.'));
+          reject(new Error('Board did not enter upload mode. Tap the RESET button on the Arduino and press Upload again.'));
         }
-      }, 6000);
+      }, 15000);
     });
 
     // Caterina runs USB CDC; baud rate is ignored. 57600 is conventional.
