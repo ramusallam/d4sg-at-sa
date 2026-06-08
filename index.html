@@ -2565,6 +2565,14 @@
     display: grid;
     grid-template-columns: 1.7fr 1fr 1fr 1fr 122px;
   }
+  /* Read-only variant (Instructable): no "Your work" column, 4 columns. */
+  .pf-rubric--readonly .pf-rubric-head,
+  .pf-rubric--readonly .pf-rubric-row { grid-template-columns: 1.7fr 1fr 1fr 1fr; }
+  .pf-rubric--readonly .pf-rubric-row > .prc:last-child { border-right: none; }
+  @media (max-width: 620px) {
+    .pf-rubric--readonly .pf-rubric-row { grid-template-columns: 1fr 1fr; }
+    .pf-rubric--readonly .pf-rubric-row > .prc-crit { grid-column: 1 / -1; }
+  }
   .pf-rubric-head {
     background: var(--accent-soft);
     font-size: 10.5px;
@@ -7281,7 +7289,7 @@
           gradeNote: 'Evidence (final STL + mid-iteration print photo + installed-board photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'Open [Tinkercad](https://www.tinkercad.com) and design the 3D-printed hub.',
-            'Required features: (a) internal posts or pockets that hold the Arduino and the perfboard rigidly, (b) a labeled panel on one face for the **row of 3.5mm jacks**, (c) a labeled panel on an adjacent face for the **row of JST-XH headers** (the JST plug should click in flush and hold), (d) a **USB cutout** on the back, and (e) a flat area on the back or bottom for the QR code label that goes on in the next benchmark.',
+            'Required features: (a) internal posts or pockets that hold the Arduino and the perfboard rigidly, (b) a labeled panel on one face for the **row of 3.5mm jacks**, (c) a labeled panel on an adjacent face for the **row of JST-XH headers** (the JST plug should click in flush and hold), (d) a **USB cutout** on the back, and (e) a flat area on the **front** for the QR code label (with room to write the URL under it) that goes on in the next benchmark.',
             'Iterate. Print a first version with thin walls to dry-fit your perfboard, jacks, and JST headers. The first print is always slightly off. Adjust the CAD, reprint, and check again until the perfboard drops in cleanly and every connector sits flush in its cutout.',
             'Final print. Use 2mm walls minimum. Label each 3.5mm jack and each JST header on the printed panel so a user knows which physical port maps to which channel in the remap web app.',
             '**Stretch (optional, XBAC-style):** add a few **built-in inputs** on the lid or front face the way the Xbox Adaptive Controller does. A couple of large tactile buttons, a built-in directional pad, a small joystick, or a fixed capacitive touch pad, all wired straight to spare Arduino pins. The external 3.5mm jacks and JST headers stay as your universal expansion. Built-in inputs just give your end-user a few defaults that work with nothing plugged in.',
@@ -7297,16 +7305,13 @@
           points: 2,
           gradeNote: 'Evidence (live web-app URL + interface screenshot + mounted QR photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
-            'What you are building: a small update to your Arduino sketch on the hub plus a live website that talks to the hub. When you are done, an end-user opens the site on a laptop, presses a switch on the hub, watches it light up on the screen, picks a new action from a dropdown, presses the switch again, and the new action fires on the computer. Two notes before you start. (1) Web Serial only works in **Chrome** or **Edge** (not Safari, not Firefox). (2) The laptop must have the hub plugged into it over USB. A phone cannot do this directly.',
-            'Update your Arduino sketch with the [Vibe Coding Tool](tools#vibe). Click **Build** and paste this prompt exactly: *"Build remap support into my existing Arduino sketch on the Leonardo. Use Serial at 9600 baud. Each input on the hub has a port number (0, 1, 2, and so on). The messages between the hub and the computer should look like plain English. On startup, print: `ready`. When a port is pressed, print: `port <n> pressed`. When a port is released, print: `port <n> released`. Listen for incoming Serial lines in the format: `set port <n> to <a single key A through Z, or one of: space, enter, up, down, left, right, mouse left, mouse right>`. When that line arrives, update the action that port fires next and print back: `port <n> is now <action>`. Store the current mapping for each port in an array, load defaults at startup, and always call Keyboard.release or Mouse.release after a press."* Vibe Coding writes the sketch. Load it onto your Arduino.',
-            'Test the Arduino half by itself. Open the Arduino IDE\'s **Serial Monitor** at **9600 baud**. You should see `ready` appear. Press a switch on the hub. You should see lines like `port 0 pressed` and `port 0 released`. In the Serial Monitor\'s send field, type `set port 0 to space` and hit send. Press the switch on port 0 again. The hub should now fire the spacebar instead of its old action. If any of this fails, paste the Serial Monitor output back into Vibe Coding and ask it to fix.',
-            'Generate the web app code. Open [Gemini](https://gemini.google.com) (or [Google AI Studio](https://aistudio.google.com)) in a new tab. Paste this prompt exactly: *"Build me a single index.html file (HTML, CSS, and vanilla JavaScript, no frameworks) for a remap interface that talks to an Arduino over Web Serial. Requirements: (1) a big Connect button at the top that calls navigator.serial.requestPort() and opens the chosen port at 9600 baud; (2) once connected, listen for plain-English lines from the Arduino in these formats: `ready`, `port <n> pressed`, `port <n> released`, and `port <n> is now <action>`; (3) show a grid of 8 cards, one per port, each with the port number, a colored light that turns on while the port is pressed and off when released, the current action mapped to that port, and a dropdown of new actions (A through Z, space, enter, up, down, left, right, mouse left, mouse right); (4) when the dropdown changes, send the line `set port <n> to <action>` followed by a newline; (5) style it big, accessible, and high-contrast with a large font and large hit targets; (6) include a five-step instructions block at the top: plug the hub in, click Connect, pick the Arduino port, press a switch and watch it light up, change a dropdown to remap. Single file, no external dependencies, no build step."*',
-            'Save the web app to a file. Copy every line of code Gemini gave you. Open **TextEdit** on Mac or **Notepad** on Windows. On Mac, switch TextEdit to plain text first: Format menu, then Make Plain Text. Paste the code. Save the file as **index.html** on your Desktop where you can find it.',
-            'Deploy to **Netlify Drop**. First, make a free Netlify account at https://app.netlify.com/signup (no credit card needed). This makes sure your URL stays alive long term. Then go to **https://app.netlify.com/drop**. Drag your **index.html** file from your Desktop onto the dropzone. In about 30 seconds Netlify gives you a public URL that looks like https://something-something-12345.netlify.app. Copy that URL.',
-            'Make a QR code for that URL. Go to **https://www.qr-code-generator.com** (or any free QR generator). Paste your Netlify URL. Download the QR as a PNG. Print it on a small label. Stick the label on the flat area you left on the back or bottom of the hub.',
-            'Final test as the end-user. On a laptop with **Chrome** or **Edge**, open your Netlify URL. Plug the hub into the laptop over USB. Click **Connect**. A pop-up lists USB devices. Pick the **Arduino Leonardo**. Press a switch on the hub. The matching port on the page lights up. Use the dropdown next to that port to pick a new action. Press the switch again. The new action fires on the computer.',
-            '**Stretch:** persist the remap to **EEPROM** so the hub remembers its mapping across power cycles. Open Vibe Coding and paste: *"Add EEPROM persistence. On startup, load the mapping array from EEPROM. Every time a SET line arrives, save the updated mapping to EEPROM."* Load the new sketch and replug the hub. It should come back with the last mapping intact.',
-            'Complete **Evidence + Reflection** below. *Evidence* = live URL of your web app, screenshot of the remap interface in action, photo of the QR code mounted on your hub.'
+            'What you are making: a simple web page that opens from a **QR code on the front of the hub** and lets anyone change what each switch does - live, no coding. It runs on a laptop in **Chrome or Edge** with the hub plugged in over USB.',
+            'Teach the hub to listen. Open the [Vibe Coding Tool](tools#vibe), click **Build**, and paste: *"Add remap support to my Arduino Leonardo sketch over Serial at 9600 baud. Each port has a number (0, 1, 2...). On startup print `ready`. When a port is pressed print `port <n> pressed`, and on release `port <n> released`. When a line `set port <n> to <action>` arrives (action = a key A-Z, or space, enter, up, down, left, right, mouse left, mouse right), update that port and print `port <n> is now <action>`. Always release the key after each press."* Load the new sketch onto your hub.',
+            'Build the remap page. Open [Gemini](https://gemini.google.com) and paste: *"Build one index.html file (HTML, CSS, vanilla JS, no frameworks) that talks to an Arduino over Web Serial. A big Connect button opens the chosen port at 9600 baud. Show one card per port with a light that turns on while the port is pressed, the current action, and a dropdown to pick a new action (A-Z, space, enter, up, down, left, right, mouse left, mouse right). When a dropdown changes, send `set port <n> to <action>` + a newline. Make it big, high-contrast, with large hit targets and a short 3-step how-to at the top."* Copy the code into a plain-text file named **index.html**.',
+            'Put it online. Go to [Netlify Drop](https://app.netlify.com/drop), drag your **index.html** onto the page, and in about 30 seconds you get a public URL - copy it. (Make a free Netlify account so the URL stays live.)',
+            'Tape it to the hub. Make a QR code for your URL at [a QR generator](https://www.qr-code-generator.com), print it, and tape it to the **front of the hub** with the URL written underneath.',
+            'Test as the end-user. On a laptop in **Chrome or Edge**, open your URL (or scan the QR), plug in the hub, click **Connect**, and choose the **Arduino Leonardo**. Press a switch - it lights up on the page. Change its dropdown - that switch now fires the new action. If something is off, paste the page or Serial output back into Vibe Coding to fix.',
+            'Complete **Evidence + Reflection** below. *Evidence* = your live web-app URL, a screenshot of the remap page, and a photo of the QR taped to the front of your hub. **Keep your index.html and QR - they go in your Instructable.**'
           ],
           videoUrl: '',
           links: [],
@@ -7361,17 +7366,41 @@
             { label: 'How to publish (guide)', url: 'https://www.instructables.com/Publishing-an-Instructable/' }
           ],
           rubric: [
-            { category: 'The Instructable', label: 'Cover image',       text: 'A clear, bright photo of your finished, complete hub.',                   points: 6 },
-            { category: 'The Instructable', label: 'Who it is for',      text: 'A short intro: what the whole system is and who it is for.',              points: 6 },
-            { category: 'The Instructable', label: 'Materials + links',  text: 'Every part for the full build - all switches and the hub - each with a purchase link.', points: 8 },
-            { category: 'The Instructable', label: 'Build steps',        text: 'Step-by-step instructions for the complete system, each step with a photo.', points: 14 },
-            { category: 'The Instructable', label: 'Video in action',    text: 'A video of your complete hub working, embedded in the body.',             points: 8 },
-            { category: 'The Instructable', label: 'All files',          text: 'Every STL, code PDF, and wiring image from all your projects.',           points: 8 },
-            { category: 'Publish + Compete', label: 'Published live',    text: 'Posted on Instructables and tagged assistive technology.',                points: 10 },
-            { category: 'Publish + Compete', label: 'Contest entry',     text: 'Entered the open contest that best fits your build, with proof.',          points: 10 },
-            { category: 'Instructable Live', label: 'The display',       text: 'Your complete hub on display with a printed step card so a guest knows what to do.', points: 8 },
-            { category: 'Instructable Live', label: 'All-switch interface', text: 'A game, soundboard, or instrument that uses all your switches at once.', points: 14 },
-            { category: 'Instructable Live', label: 'A guest plays it',  text: 'A guest can walk up and use it hands-on.',                                points: 8 }
+            { label: 'Cover + Intro', levels: [
+              { name: 'Emerging',   points: 6,  desc: 'A cover photo and intro are there, but unclear or thin.' },
+              { name: 'Developing', points: 9,  desc: 'A clear cover photo of the hub, with an intro of what it is and who it is for.' },
+              { name: 'Mastered',   points: 12, desc: 'A polished cover and intro that make the whole system and its user clear at a glance.' }
+            ]},
+            { label: 'Materials + links', levels: [
+              { name: 'Emerging',   points: 6,  desc: 'A materials list, but missing parts or purchase links.' },
+              { name: 'Developing', points: 9,  desc: 'Every part for the full build listed, each with a purchase link.' },
+              { name: 'Mastered',   points: 12, desc: 'A complete bill of materials - every switch and the hub - each with a working purchase link.' }
+            ]},
+            { label: 'Build steps', levels: [
+              { name: 'Emerging',   points: 10, desc: 'Some steps, but gaps or missing photos make it hard to follow.' },
+              { name: 'Developing', points: 15, desc: 'Clear step-by-step instructions for the whole system, each with a photo.' },
+              { name: 'Mastered',   points: 20, desc: 'A complete guide - each switch, the hub, the remap - that someone could build start to finish.' }
+            ]},
+            { label: 'Video in action', levels: [
+              { name: 'Emerging',   points: 6,  desc: 'A video, but it does not clearly show the hub working.' },
+              { name: 'Developing', points: 9,  desc: 'A clear video of the complete hub in action, embedded in the body.' },
+              { name: 'Mastered',   points: 12, desc: 'A clear, well-shot video showing the full system working the way the user needs.' }
+            ]},
+            { label: 'All files', levels: [
+              { name: 'Emerging',   points: 6,  desc: 'Some files attached, but not every project is covered.' },
+              { name: 'Developing', points: 9,  desc: 'Every STL, code PDF, and wiring image from all your projects.' },
+              { name: 'Mastered',   points: 12, desc: 'Every file attached and clearly labeled so a reader can download and build.' }
+            ]},
+            { label: 'Published + Contest', levels: [
+              { name: 'Emerging',   points: 7,  desc: 'Published, but not tagged or not entered in a contest.' },
+              { name: 'Developing', points: 11, desc: 'Published and tagged assistive technology, and entered in a contest.' },
+              { name: 'Mastered',   points: 14, desc: 'Published, tagged, and entered in the contest that best fits your build - with proof.' }
+            ]},
+            { label: 'Instructable Live', levels: [
+              { name: 'Emerging',   points: 9,  desc: 'A display is set up, but the interface does not use all switches or a guest cannot really use it.' },
+              { name: 'Developing', points: 14, desc: 'Your complete hub on display with an interface that uses all your switches, that a guest can play.' },
+              { name: 'Mastered',   points: 18, desc: 'A polished display - hub, step card, and an engaging game/soundboard/instrument using every switch - a guest plays it on their own.' }
+            ]}
           ]
         }
       ]
@@ -10570,16 +10599,43 @@
     if (b.rubric && b.rubric.length && b.title !== 'Portfolio') {
       const sec = document.createElement('div');
       sec.className = 'modal-section';
-      const total = b.rubric.reduce((s, r) => s + r.points, 0);
+      const maxPts = (r) => (r.levels && r.levels.length) ? r.levels[r.levels.length - 1].points : (r.points || 0);
+      const total = b.rubric.reduce((s, r) => s + maxPts(r), 0);
       const rowHtml = (r) => `
         <div class="rubric-row">
           <div class="rubric-criterion">${r.label ? `<strong>${escapeHtml(r.label)}:</strong> ` : ''}${escapeHtml(r.text || r.criterion || '')}</div>
           <div class="rubric-points">${r.points} pts</div>
         </div>`;
+      let bodyHtml;
+      // Leveled items → the SAME Emerging/Developing/Mastered grid the project
+      // portfolios use (.pf-rubric), minus the "Your work" column since the
+      // Instructable is submitted separately. Keeps the look identical.
+      if (b.rubric.some(r => Array.isArray(r.levels) && r.levels.length)) {
+        const levelNames = (b.rubric.find(r => r.levels) || { levels: [] }).levels.map(l => l.name);
+        sec.innerHTML = `
+          <h3>${badge()}Rubric · ${total} pts total</h3>
+          <div class="pf-rubric pf-rubric--readonly">
+            <div class="pf-rubric-head">
+              <span>Criterion</span>${levelNames.map(n => `<span>${escapeHtml(n)}</span>`).join('')}
+            </div>
+            ${b.rubric.map(r => `
+              <div class="pf-rubric-row">
+                <div class="prc prc-crit"><span class="prc-name">${escapeHtml(r.label || '')}</span></div>
+                ${(r.levels || []).map(l => `
+                  <div class="prc prc-lvl">
+                    <span class="prc-pts">${l.points} pts</span>
+                    <span class="prc-desc">${escapeHtml(l.desc)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            `).join('')}
+          </div>
+        `;
+        bodyHtml = null;
+      }
       // If rubric items carry a `category`, render them grouped (parts checklist
       // with a subtotal per category); otherwise a flat list.
-      let bodyHtml;
-      if (b.rubric.some(r => r.category)) {
+      else if (b.rubric.some(r => r.category)) {
         const order = [];
         const byCat = {};
         b.rubric.forEach(r => {
@@ -10603,10 +10659,13 @@
       } else {
         bodyHtml = b.rubric.map(rowHtml).join('');
       }
-      sec.innerHTML = `
-        <h3>${badge()}Rubric · ${total} pts total</h3>
-        <div class="rubric">${bodyHtml}</div>
-      `;
+      // bodyHtml is null when the leveled grid already filled sec above.
+      if (bodyHtml !== null) {
+        sec.innerHTML = `
+          <h3>${badge()}Rubric · ${total} pts total</h3>
+          <div class="rubric">${bodyHtml}</div>
+        `;
+      }
       modalBody.appendChild(sec);
     }
 
