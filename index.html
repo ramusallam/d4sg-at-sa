@@ -987,6 +987,56 @@
     font-style: italic;
     padding: 4px 2px;
   }
+  /* Instructable panel: read-only browse + the submitted-links area below. */
+  .instructable-panel.is-viewonly .cp-section,
+  .instructable-panel.is-viewonly .pf-actions { display: none; }
+  .inst-viewbanner { display: none; }
+  .instructable-panel.is-viewonly .inst-viewbanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 13px;
+    margin: 4px 0 4px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--ink-mid);
+  }
+  .inst-submitted { margin-top: 14px; }
+  .inst-sub-card {
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg-2);
+    padding: 12px 14px;
+  }
+  .inst-sub-row {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    padding: 4px 0;
+    min-width: 0;
+  }
+  .inst-sub-rowlabel {
+    flex: none;
+    width: 92px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-mid);
+  }
+  .inst-sub-link {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    word-break: break-all;
+  }
+  .inst-sub-link:hover { text-decoration: underline; }
   .vs-textarea {
     width: 100%;
     min-height: 130px;
@@ -1056,6 +1106,45 @@
     font-weight: 600;
     color: var(--paper-accent);
     flex-shrink: 0;
+  }
+  /* Grouped parts rubric (e.g. the Instructable): category headers + subtotals. */
+  .rubric-group + .rubric-group { margin-top: 6px; padding-top: 14px; border-top: 1px solid rgba(0,0,0,0.08); }
+  .rubric-group-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 2px 0 6px;
+  }
+  .rubric-group-badge {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .rubric-group-name {
+    flex: 1;
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--paper-ink);
+    letter-spacing: 0.01em;
+  }
+  .rubric-group-pts {
+    flex: none;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-variant-numeric: tabular-nums;
   }
 
   /* ===== Traditional analytic rubric grid (portfolio) ===== */
@@ -7250,12 +7339,38 @@
         {
           id: 'instructable',
           title: 'Instructable',
-          points: 50,
-          instructions: 'Publish your finished controller as a step-by-step Instructable on instructables.com. Include build photos, materials list, code, and STL files in the post. Then drop the public URL below.',
+          points: 100,
+          instructions: [
+            'Build your best assistive-tech device for a specific user - this is the project you will publish to the world.',
+            'Make a free account at [Instructables](https://www.instructables.com) and click **Create** to start a new Instructable.',
+            'Add a **cover image**: a clear, bright photo of your finished device.',
+            'Write a short **intro**: who your user is and what your device lets them do.',
+            'Make your first step a **Materials** list - every part, each with a **purchase link** (Amazon or another store).',
+            'Write **step-by-step build instructions**. One step per stage, each with a photo and clear, simple text.',
+            'Embed a short **video of your device in action** in the body of the Instructable.',
+            'Attach **all your files**: STL(s), a PDF of your code, and your wiring image.',
+            'Browse the [open contests](https://www.instructables.com/contest) and **enter the one that best fits your design**. (If nothing fits, the always-open *Anything Goes* contest qualifies.) Save proof that you entered.',
+            'Publish, then complete **Submit + Reflect** below: drop your public Instructable URL and a link that shows your contest entry.',
+            '**Instructable Live:** set up a display of your hub with a printed step card, and build an interface - a game, soundboard, or instrument - that uses *all your switches at once*, so a guest can walk up and play it.'
+          ],
           videoUrl: '',
-          links: [],
+          links: [
+            { label: 'Instructables', url: 'https://www.instructables.com' },
+            { label: 'Find your contest', url: 'https://www.instructables.com/contest' },
+            { label: 'How to publish (guide)', url: 'https://www.instructables.com/Publishing-an-Instructable/' }
+          ],
           rubric: [
-            { label: 'Instructable', text: 'Public link to a complete, published Instructable.', points: 50 }
+            { category: 'The Instructable', label: 'Cover image',       text: 'A clear, bright photo of your finished device.',                          points: 6 },
+            { category: 'The Instructable', label: 'Who it is for',      text: 'A short intro naming your user and what they can now do.',                 points: 6 },
+            { category: 'The Instructable', label: 'Materials + links',  text: 'Every part listed, each with a purchase link.',                           points: 8 },
+            { category: 'The Instructable', label: 'Build steps',        text: 'Step-by-step instructions, each step with a photo.',                      points: 14 },
+            { category: 'The Instructable', label: 'Video in action',    text: 'A video of the device working, embedded in the body.',                    points: 8 },
+            { category: 'The Instructable', label: 'Files attached',     text: 'All STL(s), a code PDF, and your wiring image.',                          points: 8 },
+            { category: 'Publish + Compete', label: 'Published live',    text: 'Posted on Instructables and tagged assistive technology.',                points: 10 },
+            { category: 'Publish + Compete', label: 'Contest entry',     text: 'Entered the open contest that best fits your design, with proof.',         points: 10 },
+            { category: 'Instructable Live', label: 'The display',       text: 'Your hub set up with a printed step card so a guest knows what to do.',    points: 8 },
+            { category: 'Instructable Live', label: 'All-switch interface', text: 'A game, soundboard, or instrument you built that uses all your switches at once.', points: 14 },
+            { category: 'Instructable Live', label: 'A guest plays it',  text: 'A guest can walk up and use it hands-on.',                                points: 8 }
           ]
         }
       ]
@@ -10455,16 +10570,41 @@
       const sec = document.createElement('div');
       sec.className = 'modal-section';
       const total = b.rubric.reduce((s, r) => s + r.points, 0);
+      const rowHtml = (r) => `
+        <div class="rubric-row">
+          <div class="rubric-criterion">${r.label ? `<strong>${escapeHtml(r.label)}:</strong> ` : ''}${escapeHtml(r.text || r.criterion || '')}</div>
+          <div class="rubric-points">${r.points} pts</div>
+        </div>`;
+      // If rubric items carry a `category`, render them grouped (parts checklist
+      // with a subtotal per category); otherwise a flat list.
+      let bodyHtml;
+      if (b.rubric.some(r => r.category)) {
+        const order = [];
+        const byCat = {};
+        b.rubric.forEach(r => {
+          const c = r.category || 'Other';
+          if (!byCat[c]) { byCat[c] = []; order.push(c); }
+          byCat[c].push(r);
+        });
+        bodyHtml = order.map((c, i) => {
+          const items = byCat[c];
+          const sub = items.reduce((s, r) => s + r.points, 0);
+          return `
+            <div class="rubric-group">
+              <div class="rubric-group-head">
+                <span class="rubric-group-badge">${i + 1}</span>
+                <span class="rubric-group-name">${escapeHtml(c)}</span>
+                <span class="rubric-group-pts">${sub} pts</span>
+              </div>
+              ${items.map(rowHtml).join('')}
+            </div>`;
+        }).join('');
+      } else {
+        bodyHtml = b.rubric.map(rowHtml).join('');
+      }
       sec.innerHTML = `
         <h3>${badge()}Rubric · ${total} pts total</h3>
-        <div class="rubric">
-          ${b.rubric.map(r => `
-            <div class="rubric-row">
-              <div class="rubric-criterion">${r.label ? `<strong>${escapeHtml(r.label)}:</strong> ` : ''}${escapeHtml(r.text || r.criterion || '')}</div>
-              <div class="rubric-points">${r.points} pts</div>
-            </div>
-          `).join('')}
-        </div>
+        <div class="rubric">${bodyHtml}</div>
       `;
       modalBody.appendChild(sec);
     }
@@ -10514,7 +10654,7 @@
     // No public "class" pile on the Portfolio or Video panels — you see one
     // person at a time by picking their name (read-only when it isn't you).
     // Checkpoint/product benchmarks still use the standard gallery for now.
-    if (!isPortfolioDrop && !isVideoSummary) {
+    if (!isPortfolioDrop && !isVideoSummary && !isInstructable) {
       const gallerySec = document.createElement('div');
       gallerySec.className = 'modal-section';
       gallerySec.innerHTML = `
@@ -12282,46 +12422,104 @@
 
     panel.innerHTML = `
       <div data-inst-namepicker></div>
+      <div class="inst-viewbanner" data-inst-viewbanner></div>
       <div class="cp-section">
-        <div class="cp-section-label">Public Instructable URL</div>
+        <div class="cp-section-label">Your published Instructable</div>
         <input class="inst-link-input" type="url" data-inst-link placeholder="https://www.instructables.com/..." />
+      </div>
+      <div class="cp-section">
+        <div class="cp-section-label">Your contest entry (proof you submitted)</div>
+        <input class="inst-link-input" type="url" data-inst-contest placeholder="Link to your project on its contest page" />
       </div>
       <div class="pf-actions">
         <div class="pf-status" data-inst-status></div>
         <button class="pf-submit" data-inst-submit type="button" disabled>Submit</button>
       </div>
+      <div class="inst-submitted" data-inst-submitted></div>
     `;
 
-    const namePickerMount = panel.querySelector('[data-inst-namepicker]');
-    const picker = renderNamePicker({
-      initial: localStorage.getItem(LAST_PICK_KEY) || '',
-      onChange: (n) => { if (n) ensureRosterEntry(n); setTimeout(refresh, 0); }
-    });
-    namePickerMount.appendChild(picker.element);
-    const nameInput = { get value() { return picker.getName(); }, set value(v) { picker.setName(v); } };
-    panel._cleanup = () => picker.destroy();
-
     const linkInput = panel.querySelector('[data-inst-link]');
+    const contestInput = panel.querySelector('[data-inst-contest]');
     const submitBtn = panel.querySelector('[data-inst-submit]');
     const statusEl = panel.querySelector('[data-inst-status]');
+    const viewBanner = panel.querySelector('[data-inst-viewbanner]');
+    const submittedEl = panel.querySelector('[data-inst-submitted]');
+
+    // Identity: this device's name is editable; other names load read-only.
+    const norm = (s) => (s || '').trim().toLowerCase();
+    let ownerName = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
+    const submittedByName = new Map(); // norm(name) -> { studentName, instructableUrl, contestUrl }
+
+    const picker = renderNamePicker({
+      initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      onChange: (n) => { if (n) ensureRosterEntry(n); applyMode(n); }
+    });
+    panel.querySelector('[data-inst-namepicker]').appendChild(picker.element);
+    const nameInput = { get value() { return picker.getName(); }, set value(v) { picker.setName(v); } };
 
     function setStatus(msg, isErr) {
       statusEl.textContent = msg || '';
       statusEl.classList.toggle('is-error', !!isErr);
     }
     function refresh() {
-      const ok = nameInput.value.trim() && /^https?:\/\/\S+/i.test(linkInput.value.trim());
+      const ok = nameInput.value.trim()
+        && /^https?:\/\/\S+/i.test(linkInput.value.trim())
+        && norm(nameInput.value) === norm(ownerName);
       submitBtn.disabled = !ok;
     }
     linkInput.addEventListener('input', refresh);
+    contestInput.addEventListener('input', refresh);
+
+    function linkRow(label, url) {
+      const safe = escapeHtml(url);
+      return `<div class="inst-sub-row"><span class="inst-sub-rowlabel">${label}</span><a class="inst-sub-link" href="${safe}" target="_blank" rel="noopener">${safe}</a></div>`;
+    }
+    // The single "submitted" area below the inputs: shows the links for whoever
+    // is selected (your own as confirmation, a classmate's read-only).
+    function renderSubmitted(n) {
+      const name = (n || '').trim();
+      const isOwner = !name || norm(name) === norm(ownerName);
+      const entry = submittedByName.get(norm(name));
+      if (!entry || (!entry.instructableUrl && !entry.contestUrl)) {
+        submittedEl.innerHTML = isOwner ? '' : `<div class="vs-submitted-empty">${escapeHtml(name)} hasn&rsquo;t submitted yet.</div>`;
+        return;
+      }
+      submittedEl.innerHTML = `
+        <div class="inst-sub-card">
+          <div class="vs-submitted-label">${isOwner ? 'Submitted' : escapeHtml(name) + '&rsquo;s submission'}</div>
+          ${entry.instructableUrl ? linkRow('Instructable', entry.instructableUrl) : ''}
+          ${entry.contestUrl ? linkRow('Contest entry', entry.contestUrl) : ''}
+        </div>`;
+    }
+
+    function applyMode(n) {
+      const name = (n || '').trim();
+      if (!ownerName && name) { ownerName = name; try { localStorage.setItem(LAST_PICK_KEY, name); } catch (_) {} }
+      const isOwner = !name || norm(name) === norm(ownerName);
+      if (isOwner) {
+        panel.classList.remove('is-viewonly');
+        viewBanner.innerHTML = '';
+      } else {
+        panel.classList.add('is-viewonly');
+        viewBanner.innerHTML = `
+          <span class="pf-viewbanner-text">Viewing <strong>${escapeHtml(name)}</strong>&rsquo;s submission — read only.</span>
+          <button type="button" class="pf-viewbanner-btn" data-inst-claim>This is me — let me edit</button>`;
+        const c = viewBanner.querySelector('[data-inst-claim]');
+        if (c) c.addEventListener('click', () => { ownerName = name; try { localStorage.setItem(LAST_PICK_KEY, name); } catch (_) {} applyMode(name); });
+      }
+      renderSubmitted(name);
+      refresh();
+    }
 
     let isSubmitting = false;
     submitBtn.addEventListener('click', async () => {
       if (isSubmitting) return;
       const name = nameInput.value.trim();
       const url = linkInput.value.trim();
+      const contest = contestInput.value.trim();
       if (!name) { setStatus('Please enter your name.', true); return; }
-      if (!/^https?:\/\//i.test(url)) { setStatus('Link must start with http:// or https://', true); return; }
+      if (!/^https?:\/\//i.test(url)) { setStatus('Instructable link must start with http:// or https://', true); return; }
+      if (contest && !/^https?:\/\//i.test(contest)) { setStatus('Contest link must start with http:// or https://', true); return; }
 
       isSubmitting = true;
       submitBtn.disabled = true;
@@ -12330,28 +12528,29 @@
       localStorage.setItem(LAST_PICK_KEY, name);
 
       try {
-        await addDoc(collection(db, 'portfolios'), {
+        await setDoc(doc(db, 'portfolios', `${benchmarkId}__${nameSlug(name)}`), {
           benchmarkId,
           studentName: name,
+          nameSlug: nameSlug(name),
           createdAt: serverTimestamp(),
-          slots: {
-            image: null, video: null, code: { mode: 'link', url }, cad: null, summary: null
-          }
-        });
-        linkInput.value = '';
+          slots: { image: null, video: null, code: { mode: 'link', url }, cad: null, summary: null },
+          instructableUrl: url,
+          contestUrl: contest
+        }, { merge: true });
         refreshCountBadge(benchmarkId);
         markChecked(benchmarkId);
 
         submitBtn.textContent = '✓ Submitted!';
         submitBtn.classList.add('is-success');
-        setStatus('Your Instructable is in the gallery below.');
+        setStatus('Saved.');
+        renderSubmitted(name);
         setTimeout(() => {
           submitBtn.classList.remove('is-success');
           submitBtn.textContent = 'Submit';
           setStatus('');
           isSubmitting = false;
           refresh();
-        }, 1800);
+        }, 1600);
       } catch (err) {
         console.error('instructable submit failed', err);
         setStatus('Submit failed. Check your wifi and try again.', true);
@@ -12361,7 +12560,26 @@
       }
     });
 
-    refresh();
+    // Live-load submissions so picking a name shows that person's links.
+    let _instUnsub = null;
+    try {
+      const _iq = query(collection(db, 'portfolios'), where('benchmarkId', '==', benchmarkId));
+      _instUnsub = onSnapshot(_iq, (snap) => {
+        submittedByName.clear();
+        snap.forEach(d => {
+          const data = d.data() || {};
+          const nm = (data.studentName || '').trim();
+          if (!nm) return;
+          const iu = data.instructableUrl || (data.slots && data.slots.code && data.slots.code.url) || '';
+          const cu = data.contestUrl || '';
+          submittedByName.set(norm(nm), { studentName: nm, instructableUrl: iu, contestUrl: cu });
+        });
+        renderSubmitted(nameInput.value);
+      });
+    } catch (_) {}
+    panel._cleanup = () => { try { picker.destroy(); } catch (_) {} if (_instUnsub) { try { _instUnsub(); } catch (_) {} } };
+
+    applyMode(picker.getName());
     return panel;
   }
 
