@@ -11827,10 +11827,10 @@
         if (filled.mode === 'text') {
           const wordCount = filled.text.trim().split(/\s+/).filter(Boolean).length;
           statusEl.textContent = wordCount === 1 ? '1 word written' : `${wordCount} words written`;
-          iconEl.textContent = def.icon;
+          iconEl.innerHTML = def.icon;
         } else if (filled.mode === 'link') {
           statusEl.textContent = `Link · ${getDomain(filled.url) || 'external'}`;
-          iconEl.textContent = def.icon;
+          iconEl.innerHTML = def.icon;
         } else {
           // File: show filename truncated, swap icon for a tiny thumb if image/video
           statusEl.textContent = filled.fileName || 'File';
@@ -11839,13 +11839,13 @@
           } else if ((filled.contentType || '').startsWith('video/')) {
             iconEl.innerHTML = `<div class="pf-slot-thumb"><video src="${filled.url}" muted></video></div>`;
           } else {
-            iconEl.textContent = def.icon;
+            iconEl.innerHTML = def.icon;
           }
         }
         labelEl.textContent = def.label;
       } else {
         slot.classList.remove('is-filled');
-        iconEl.textContent = def.icon;
+        iconEl.innerHTML = def.icon;
         statusEl.textContent = '+ Add';
         labelEl.textContent = def.label;
       }
