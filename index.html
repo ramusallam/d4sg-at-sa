@@ -7303,14 +7303,14 @@
           id: 'p4b2',
           title: 'Perfboard',
           points: 2,
-          gradeNote: 'Evidence (perfboard photo front + back + code PDF + powered-board photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
+          gradeNote: 'Evidence (perfboard photo front/back + code PDF + powered-board photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'You are about to take the circuit you grew across Projects 1, 2, and 3 and make it permanent. **Do not rewrite the code yet.** The perfboard runs the same sketch your breadboard ran. The only difference is that the connections are now soldered and the inputs exit the board through panel-mount connectors instead of jumper wires.',
             'Open the [Wiring Schematic Tool](tools#schematic) and redraw your wiring as a **perfboard layout**. The perfboard is the bridge: Arduino pins land on one edge, the 3.5mm jacks and JST-XH headers land on the opposite edges, and every input pairs with the panel connector it bridges to. A switch input runs Arduino pin to trace to the solder lug of one 3.5mm jack. A sensor input runs the relevant Arduino pins (signal, VCC, GND, plus any I2C or analog extras) to traces to the solder lugs of one JST-XH header.',
             'Pick your connector strategy. The cleanest is **panel-mount female 3.5mm jacks** and **panel-mount female JST-XH headers** soldered directly onto the perfboard with short pigtails to the panel cutouts. The simpler alternative is **board-edge connectors** soldered along the perfboard\'s perimeter so the perfboard itself becomes the back wall of the connector panel.',
             'Solder it. Components first: Arduino headers, then the row of 3.5mm jacks, then the row of JST-XH headers, then any indicator LEDs. Bridge the signal traces on the back of the perfboard. Check every joint with the Arduino USB-powered and your code running.',
             'Test on USB with everything plugged in externally. Connect a switch into each 3.5mm jack and a sensor pigtail into each JST header. Every input should still do what it did on the breadboard. If something misbehaves, the bug is almost always a cold joint or a missed bridge. Reflow until it works.',
-            'Complete **Evidence + Reflection** below. *Evidence* = perfboard photo (front + back), code PDF, powered-board photo.'
+            'Complete **Evidence + Reflection** below. *Evidence* = perfboard photo (front/back), code PDF, powered-board photo.'
           ],
           videoUrl: '',
           links: [],
