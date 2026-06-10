@@ -3248,6 +3248,40 @@
     font-size: 14px;
     padding: 20px 0;
   }
+  /* ===== Jump-to-student picker (above the class submissions list) ===== */
+  .pf-jumpbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .pf-jumpbar label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--ink-low);
+    white-space: nowrap;
+  }
+  .pf-jump {
+    flex: 1;
+    min-width: 0;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-hi);
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-1, #fff);
+    cursor: pointer;
+    transition: border-color 150ms, box-shadow 150ms;
+  }
+  .pf-jump:hover { border-color: var(--accent); }
+  .pf-jump:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
 
   /* ===== Summary splashboard (Project 0 class submissions) =====
      All student summaries for a video, consolidated into one compact board
@@ -10755,9 +10789,16 @@
       gallerySec.className = 'modal-section';
       gallerySec.innerHTML = `
         <h3>Class submissions</h3>
+        <div class="pf-jumpbar" id="pfJumpbar" hidden>
+          <label for="pfJump">Jump to student</label>
+          <select id="pfJump" class="pf-jump"><option value="">Choose a name…</option></select>
+        </div>
         <div class="pf-gallery" id="pfGallery"></div>
       `;
       modalBody.appendChild(gallerySec);
+      gallerySec.querySelector('#pfJump').addEventListener('change', (e) => {
+        jumpToPortfolioStudent(e.target.value);
+      });
       subscribePortfolios(b.id);
     }
 
@@ -12987,8 +13028,58 @@
     });
   }
 
+  // Fill the "Jump to student" dropdown above the class-submissions list with
+  // the names of everyone who has actually submitted to this benchmark.
+  function populatePfJump(items, readOnly) {
+    const bar = document.getElementById('pfJumpbar');
+    const sel = document.getElementById('pfJump');
+    if (!bar || !sel) return;
+    const names = Array.from(new Set((items || [])
+      .map(it => (it.studentName || '').trim())
+      .filter(Boolean)))
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    // A picker only earns its space once there are at least two names to pick from.
+    if (readOnly || names.length < 2) { bar.hidden = true; return; }
+    bar.hidden = false;
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">Choose a name…</option>' +
+      names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+    if (prev && names.some(n => n === prev)) sel.value = prev;
+  }
+
+  // Expand + scroll to one student's submission row from the dropdown. Grows the
+  // paginated page first if their row hasn't been painted yet.
+  function jumpToPortfolioStudent(name) {
+    if (!name) return;
+    const grid = document.getElementById('pfGallery');
+    if (!grid) return;
+    const items = grid._pfItems || [];
+    const opts = grid._pfOpts || {};
+    const idx = items.findIndex(it =>
+      (it.studentName || '').localeCompare(name, undefined, { sensitivity: 'base' }) === 0);
+    if (idx >= 0 && idx >= _pfGalleryPage) {
+      _pfGalleryPage = items.length;
+      _focusStudent = name; // the render's focus block expands + scrolls
+      renderPortfolioGallery(grid, items, opts);
+      return;
+    }
+    const rows = grid.querySelectorAll('.pf-row');
+    for (const r of rows) {
+      const rn = (r.querySelector('.pf-row-name')?.textContent || '').trim();
+      if (rn.localeCompare(name, undefined, { sensitivity: 'base' }) === 0) {
+        if (!r.classList.contains('is-open')) r.querySelector('[data-pf-row-head]')?.click();
+        setTimeout(() => r.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+        return;
+      }
+    }
+  }
+
   function renderPortfolioGallery(grid, items, opts = {}) {
     const readOnly = !!opts.readOnly;
+    // Stash for the jump-to-student dropdown handler.
+    grid._pfItems = items;
+    grid._pfOpts = opts;
+    populatePfJump(items, readOnly);
     // Track which IDs were already painted so we only animate genuinely-new rows.
     const knownIds = grid._pfKnownIds || new Set();
     // Preserve which row was open before re-render
