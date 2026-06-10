@@ -2434,7 +2434,9 @@
   .lightbox.open { display: flex; }
   .lightbox-media {
     max-width: min(1100px, 92vw);
-    max-height: 78vh;
+    /* Reserve room for padding + close button + caption so tall images
+       never get chopped, including on short mobile viewports. */
+    max-height: calc(100dvh - 150px);
     border-radius: 12px;
     overflow: hidden;
     background: black;
@@ -2443,7 +2445,7 @@
   .lightbox-media video {
     display: block;
     max-width: 100%;
-    max-height: 78vh;
+    max-height: calc(100dvh - 150px);
     object-fit: contain;
   }
   .lightbox-meta {
@@ -12371,7 +12373,9 @@
         try { URL.revokeObjectURL(p.url); } catch (_) {}
       }
       if (p.filePath) {
-        try { deleteObject(storageRef(storage, p.filePath)); } catch (_) {}
+        // Async delete: catch on the promise so a failed cleanup never becomes
+        // an unhandled rejection (a sync try/catch can't catch it).
+        deleteObject(storageRef(storage, p.filePath)).catch(() => {});
       }
       pendingFiles.splice(idx, 1);
       renderPreviews();
@@ -13175,8 +13179,13 @@
       pager.className = 'pf-pager';
       pager.innerHTML = `<button type="button">Show next ${nextChunk} (${remaining} more)</button>`;
       pager.querySelector('button').addEventListener('click', () => {
+        // Hold the reader's place: re-rendering clears the grid and would snap
+        // the modal body back to the top otherwise.
+        const scroller = grid.closest('.modal-body') || document.getElementById('modalBody');
+        const prevScroll = scroller ? scroller.scrollTop : 0;
         _pfGalleryPage += PF_PAGE_SIZE;
         renderPortfolioGallery(grid, items, opts);
+        if (scroller) requestAnimationFrame(() => { scroller.scrollTop = prevScroll; });
       });
       grid.appendChild(pager);
     }
