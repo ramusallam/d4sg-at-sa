@@ -7557,10 +7557,21 @@
   const WORK_TAB_NAME = 'd4sgBenchmark';
   function openBenchmarkTab(b) {
     const url = location.origin + '/?b=' + encodeURIComponent(b.id);
-    let win = null;
-    try { win = window.open(url, WORK_TAB_NAME); } catch (_) { win = null; }
-    if (win) { try { win.focus(); } catch (_) {} }
-    else { openModal(b); }
+    // A native anchor click with a fixed target name is the bulletproof way to
+    // open a new tab: unlike window.open it is NEVER treated as a blockable
+    // pop-up, and the shared target name makes every click reuse the same work
+    // tab. (No rel=noopener — that can defeat named-tab reuse in some browsers.)
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = WORK_TAB_NAME;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (_) {
+      // Last-ditch fallback if DOM/anchor is unavailable for any reason.
+      openModal(b);
+    }
   }
 
   function renderProjects() {
