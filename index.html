@@ -7547,6 +7547,22 @@
   const ICON_SKETCH  = `<svg ${_SVG_ATTRS}><path d="M12 19l7-7 3 3-7 7H12z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18"/><path d="M2 2l7.586 7.586"/></svg>`;
   const ICON_DOC     = `<svg ${_SVG_ATTRS}><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/></svg>`;
 
+  // Benchmarks open in ONE dedicated "work" tab so the home list never has to
+  // be backed out of. The first benchmark click spawns the tab; every click
+  // after reuses the SAME named tab (window.open with a fixed target name
+  // navigates the existing tab instead of piling up new ones), so jumping from
+  // one project's benchmark straight to another is a single click — the home
+  // tab stays parked on the full project list the whole time. If a pop-up
+  // blocker eats the new tab, fall back to the in-page modal so nothing breaks.
+  const WORK_TAB_NAME = 'd4sgBenchmark';
+  function openBenchmarkTab(b) {
+    const url = location.origin + '/?b=' + encodeURIComponent(b.id);
+    let win = null;
+    try { win = window.open(url, WORK_TAB_NAME); } catch (_) { win = null; }
+    if (win) { try { win.focus(); } catch (_) {} }
+    else { openModal(b); }
+  }
+
   function renderProjects() {
     app.innerHTML = '';
 
@@ -7766,7 +7782,7 @@
         `;
         card.addEventListener('click', (e) => {
           if (e.target.closest('[data-checkbox]')) return;
-          openModal(b);
+          openBenchmarkTab(b);
         });
         const cb = card.querySelector('[data-checkbox]');
         cb.addEventListener('click', (e) => { e.stopPropagation(); toggleChecked(b.id, card, cb); });
@@ -7801,7 +7817,7 @@
         // open modal on click of row (not checkbox)
         row.addEventListener('click', (e) => {
           if (e.target.closest('[data-checkbox]')) return;
-          openModal(b);
+          openBenchmarkTab(b);
         });
         // checkbox toggle
         const cb = row.querySelector('[data-checkbox]');
@@ -19629,6 +19645,16 @@ module.exports = { main }`
   applyRoute(location.pathname);
   // Pull initial counts via getCountFromServer (1 read per benchmark).
   loadInitialCounts();
+  // Deep link to a benchmark: ?b=<id> opens it straight into the modal. This is
+  // what the "open in a dedicated work tab" flow points at — each benchmark now
+  // has its own URL, so the home tab can stay put while work happens in one
+  // reused tab. Deferred slightly so the project list renders underneath first.
+  const benchDeepLink = urlParams.get('b');
+  if (benchDeepLink) {
+    const bench = PROJECTS.flatMap(p => p.benchmarks || []).find(x => x.id === benchDeepLink);
+    if (bench) setTimeout(() => openModal(bench), 50);
+  }
+
   // Deep link to an archive: ?admin=ramsey-d4sg&archive=2026-04-15T12-34-56
   if (isAdmin) {
     const archiveDeepLink = urlParams.get('archive');
