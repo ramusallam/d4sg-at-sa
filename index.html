@@ -14886,7 +14886,16 @@
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) {
-      throw new Error(data.error || ('compile HTTP ' + r.status));
+      // Annotate the error so callers can tell a real compiler error (the
+      // server returned stderr — the AI can fix it) apart from an infra
+      // failure (server offline/waking, rate limit, network — the AI cannot
+      // fix it and the student should NOT be funneled into the fix loop).
+      const e = new Error(data.error || ('compile HTTP ' + r.status));
+      e.httpStatus = r.status;
+      e.stderr = (data.stderr || '').trimEnd();
+      e.isInfra = !e.stderr;            // no compiler output => not the student's code
+      e.isRateLimit = r.status === 429;
+      throw e;
     }
     return data; // { hex, stdout, stderr, board }
   }
@@ -14918,10 +14927,25 @@
         vibeOfferFixButton(lastStderr);
       }
     } catch (err) {
-      lastStderr = err.message || String(err);
-      vibeMonitorLine('[ Verify error: ' + lastStderr + ' ]', 'err');
-      if (fromAutoFix) _vibeFixAttempts++;
-      vibeOfferFixButton(lastStderr);
+      if (err && err.stderr && !err.isInfra) {
+        // Non-2xx, but the compiler still produced an error message — treat it
+        // like a real compile error so the AI fix loop can act on it.
+        lastStderr = err.stderr;
+        vibeMonitorLine(lastStderr, 'err');
+        vibeMonitorLine('[ ✗ Verify failed ]', 'err');
+        if (fromAutoFix) _vibeFixAttempts++;
+        vibeOfferFixButton(lastStderr);
+      } else {
+        // Infrastructure failure (server offline/waking, rate limit, network).
+        // The AI can't fix this — do NOT offer the fix button, or the student
+        // re-rolls forever chasing a ghost. Say plainly it isn't their code.
+        vibeMonitorLine('[ ' + (err.message || String(err)) + ' ]', 'err');
+        if (err && err.isRateLimit) {
+          vibeMonitorLine("That's a daily compile limit, not a problem with your code. Try again later.", 'info');
+        } else {
+          vibeMonitorLine("The compile server is offline or waking up right now. This is NOT a problem with your code. Wait about a minute and click Verify again, or use the Arduino IDE for now.", 'info');
+        }
+      }
     } finally {
       btn.disabled = false;
       btn.classList.remove('is-active');
@@ -15027,6 +15051,9 @@
       hexText = data.hex;
     } catch (err) {
       vibeMonitorLine('[ Compile error: ' + (err.message || err) + ' ]', 'err');
+      if (!err || err.isInfra) {
+        vibeMonitorLine("The compile server is offline or waking up right now. This is NOT a problem with your code. Wait about a minute and try again, or use the Arduino IDE for now.", 'info');
+      }
       return;
     } finally {
       // Reactivated after the upload step (or on early return).
