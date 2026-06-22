@@ -4948,6 +4948,18 @@
   .vibe-monitor-controls .vibe-mini-btn:hover {
     background: #334155;
   }
+  .vibe-example-select {
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 5px 9px;
+    font-size: 11.5px;
+    font-family: inherit;
+    cursor: pointer;
+    max-width: 160px;
+    height: 30px;
+  }
   .vibe-monitor {
     background: #0b1220;
     color: #4ade80;
@@ -13821,6 +13833,180 @@
   const VIBE_CLASSCODE_KEY = 'd4sg-vibe-classcode-v1';
   const VIBE_DEFAULT_CODE = '// Your Arduino code will appear here.\n// Ask the AI assistant on the left to build something, then load it in.\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n}\n';
 
+  // Curated, known-good example sketches. These are a guaranteed-compile
+  // fallback so a class is never dead-ended when the AI or compile server is
+  // down — a student can always load one of these, Verify, and Upload. Every
+  // sketch uses only libraries installed on the compile service (Keyboard,
+  // Mouse, Adafruit_VL53L0X) and the project's standard hardware/pin wiring.
+  const VIBE_EXAMPLES = [
+    { id: 'button-key', name: 'Button → key', code:
+`// Single button -> presses the SPACE key.
+// Wire: button between pin 2 and GND (uses the chip's internal pull-up).
+#include <Keyboard.h>
+
+const int BUTTON_PIN = 2;
+bool wasPressed = false;
+
+void setup() {
+  pinMode(BUTTON_PIN, INPUT_PULLUP); // HIGH when open, LOW when pressed
+  Keyboard.begin();
+  Serial.begin(9600);
+}
+
+void loop() {
+  bool pressed = (digitalRead(BUTTON_PIN) == LOW);
+  if (pressed && !wasPressed) {   // just went down
+    Keyboard.press(' ');
+    Serial.println("SPACE down");
+  }
+  if (!pressed && wasPressed) {   // just released
+    Keyboard.release(' ');
+    Serial.println("SPACE up");
+  }
+  wasPressed = pressed;
+  delay(15); // simple debounce
+}
+` },
+    { id: 'two-buttons', name: 'Two buttons → arrow keys', code:
+`// Two buttons -> left arrow and right arrow.
+// Wire: button A between pin 2 and GND, button B between pin 3 and GND.
+#include <Keyboard.h>
+
+const int BTN_A = 2;
+const int BTN_B = 3;
+bool aWas = false, bWas = false;
+
+void setup() {
+  pinMode(BTN_A, INPUT_PULLUP);
+  pinMode(BTN_B, INPUT_PULLUP);
+  Keyboard.begin();
+  Serial.begin(9600);
+}
+
+void loop() {
+  bool a = (digitalRead(BTN_A) == LOW);
+  bool b = (digitalRead(BTN_B) == LOW);
+  if (a && !aWas) Keyboard.press(KEY_LEFT_ARROW);
+  if (!a && aWas) Keyboard.release(KEY_LEFT_ARROW);
+  if (b && !bWas) Keyboard.press(KEY_RIGHT_ARROW);
+  if (!b && bWas) Keyboard.release(KEY_RIGHT_ARROW);
+  aWas = a; bWas = b;
+  delay(15);
+}
+` },
+    { id: 'button-phrase', name: 'Button → types a phrase', code:
+`// One button -> types a whole phrase, then Enter (like sending a message).
+// Wire: button between pin 2 and GND.
+#include <Keyboard.h>
+
+const int BUTTON_PIN = 2;
+bool wasPressed = false;
+
+void setup() {
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  Keyboard.begin();
+  Serial.begin(9600);
+}
+
+void loop() {
+  bool pressed = (digitalRead(BUTTON_PIN) == LOW);
+  if (pressed && !wasPressed) {        // fire once per press
+    Keyboard.print("I need a break");  // <- change this phrase
+    Keyboard.write(KEY_RETURN);
+    Serial.println("Sent phrase");
+  }
+  wasPressed = pressed;
+  delay(20);
+}
+` },
+    { id: 'joystick-mouse', name: 'Joystick → mouse', code:
+`// KY-023 joystick -> moves the mouse; press the stick to left-click.
+// Wire: VRx -> A0, VRy -> A1, SW -> pin 2, VCC -> 5V, GND -> GND.
+#include <Mouse.h>
+
+const int VRX = A0;
+const int VRY = A1;
+const int SW  = 2;
+bool clickWas = false;
+
+void setup() {
+  pinMode(SW, INPUT_PULLUP);
+  Mouse.begin();
+  Serial.begin(9600);
+}
+
+int readAxis(int pin) {
+  int v = analogRead(pin);     // 0..1023, centered near 512
+  return (v - 512) / 80;       // small dead zone + gentle speed
+}
+
+void loop() {
+  Mouse.move(readAxis(VRX), readAxis(VRY), 0);
+  bool down = (digitalRead(SW) == LOW);
+  if (down && !clickWas) Mouse.press(MOUSE_LEFT);
+  if (!down && clickWas) Mouse.release(MOUSE_LEFT);
+  clickWas = down;
+  delay(15);
+}
+` },
+    { id: 'touch-key', name: 'Capacitive touch → key', code:
+`// TTP223 capacitive touch pad -> presses a key on a light touch (no force).
+// Wire: SIG -> pin 4, VCC -> 5V, GND -> GND. SIG goes HIGH when touched.
+#include <Keyboard.h>
+
+const int TOUCH_PIN = 4;
+bool wasTouched = false;
+
+void setup() {
+  pinMode(TOUCH_PIN, INPUT);
+  Keyboard.begin();
+  Serial.begin(9600);
+}
+
+void loop() {
+  bool touched = (digitalRead(TOUCH_PIN) == HIGH);
+  if (touched && !wasTouched) {
+    Keyboard.press('a');
+    Serial.println("touch");
+  }
+  if (!touched && wasTouched) {
+    Keyboard.release('a');
+  }
+  wasTouched = touched;
+  delay(15);
+}
+` },
+    { id: 'distance-key', name: 'Distance sensor → key', code:
+`// VL53L0X distance sensor -> presses SPACE when your hand is within 100 mm.
+// Wire (I2C): VIN -> 5V, GND -> GND, SDA -> pin 2, SCL -> pin 3.
+// Needs the "Adafruit_VL53L0X" library (already installed for this class).
+#include <Keyboard.h>
+#include "Adafruit_VL53L0X.h"
+
+Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+const int TRIGGER_MM = 100;   // trigger when something is closer than this
+bool wasNear = false;
+
+void setup() {
+  Serial.begin(9600);
+  Keyboard.begin();
+  if (!lox.begin()) {
+    Serial.println("VL53L0X not found - check wiring");
+  }
+}
+
+void loop() {
+  VL53L0X_RangingMeasurementData_t measure;
+  lox.rangingTest(&measure, false);
+  bool near = (measure.RangeStatus != 4) && (measure.RangeMilliMeter < TRIGGER_MM);
+  if (near && !wasNear) { Keyboard.press(' '); Serial.println("near"); }
+  if (!near && wasNear) { Keyboard.release(' '); }
+  wasNear = near;
+  delay(40);
+}
+` },
+  ];
+
   let _vibeEditor = null;     // Monaco editor instance (or null if fallback textarea used)
   let _vibeChat = [];         // [{ role: 'user'|'assistant'|'error', content: string }]
   let _vibeBusy = false;
@@ -14082,6 +14268,11 @@
                 </button>
               </div>
               <div class="vibe-toolbar-group">
+                <select class="vibe-example-select" id="vibeExamples" title="Load a known-good example sketch" aria-label="Load an example sketch">
+                  <option value="" selected disabled>Examples…</option>
+                </select>
+              </div>
+              <div class="vibe-toolbar-group">
                 <button class="vibe-tool-btn" id="vibeSaveTo" title="Save to a benchmark or Portfolio" aria-label="Save to a benchmark or Portfolio">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
                 </button>
@@ -14181,6 +14372,31 @@
       vibeSaveEditorText(VIBE_DEFAULT_CODE);
       vibeUpdateLibraries();
     });
+
+    // Curated example sketches — a guaranteed-good fallback that works even if
+    // the AI or the compile server is down, so a class is never dead-ended.
+    const vibeExamplesSel = document.getElementById('vibeExamples');
+    if (vibeExamplesSel) {
+      VIBE_EXAMPLES.forEach((ex) => {
+        const opt = document.createElement('option');
+        opt.value = ex.id;
+        opt.textContent = ex.name;
+        vibeExamplesSel.appendChild(opt);
+      });
+      vibeExamplesSel.addEventListener('change', () => {
+        const ex = VIBE_EXAMPLES.find(e => e.id === vibeExamplesSel.value);
+        vibeExamplesSel.value = ''; // snap back to the "Examples…" label
+        if (!ex) return;
+        const cur = vibeGetEditorText();
+        if (cur && cur.trim() && cur.trim() !== VIBE_DEFAULT_CODE.trim()) {
+          if (!confirm('Replace the code in the editor with the "' + ex.name + '" example?')) return;
+        }
+        vibeSetEditorText(ex.code);
+        vibeSaveEditorText(ex.code);
+        vibeUpdateLibraries();
+        schemToast('Loaded example: ' + ex.name);
+      });
+    }
 
     document.getElementById('vibeVerify').addEventListener('click', () => vibeVerifyCode());
     document.getElementById('vibeUpload').addEventListener('click', () => vibeUploadToArduino());
@@ -14858,6 +15074,21 @@
 
   // Arduino USB vendor ID (used for picker filters and getPorts matching).
   const ARDUINO_USB_VID = 0x2341;
+  // Some students have clone / non-Arduino-branded 32u4 boards (SparkFun Pro
+  // Micro, generic clones) that enumerate under a different USB vendor ID.
+  // Match any of these for picker filters and port matching; if a board still
+  // isn't seen, the flasher falls back to a filterless manual pick.
+  const ARDUINO_USB_VIDS = new Set([
+    0x2341, // Arduino
+    0x2A03, // Arduino (.org)
+    0x1B4F, // SparkFun (Pro Micro 32u4)
+    0x16C0, // PJRC/Teensy + some 32u4 clones
+    0x1A86, // QinHeng (CH34x) clones
+    0x239A, // Adafruit (32u4 boards)
+  ]);
+  const isArduinoVid = (info) => !!(info && ARDUINO_USB_VIDS.has(info.usbVendorId));
+  // Picker filters for requestPort — one entry per known vendor.
+  const ARDUINO_PORT_FILTERS = Array.from(ARDUINO_USB_VIDS, (v) => ({ usbVendorId: v }));
   // Tracks whether the user had the monitor open before we started flashing,
   // so we can auto-reconnect after the upload finishes.
   let _vibeWasMonitoring = false;
@@ -14943,7 +15174,7 @@
         if (err && err.isRateLimit) {
           vibeMonitorLine("That's a daily compile limit, not a problem with your code. Try again later.", 'info');
         } else {
-          vibeMonitorLine("The compile server is offline or waking up right now. This is NOT a problem with your code. Wait about a minute and click Verify again, or use the Arduino IDE for now.", 'info');
+          vibeMonitorLine("The compile server is offline or waking up right now. This is NOT a problem with your code. Wait about a minute and click Verify again, or load an example from the Examples menu while you wait.", 'info');
         }
       }
     } finally {
@@ -15052,7 +15283,7 @@
     } catch (err) {
       vibeMonitorLine('[ Compile error: ' + (err.message || err) + ' ]', 'err');
       if (!err || err.isInfra) {
-        vibeMonitorLine("The compile server is offline or waking up right now. This is NOT a problem with your code. Wait about a minute and try again, or use the Arduino IDE for now.", 'info');
+        vibeMonitorLine("The compile server is offline or waking up right now. This is NOT a problem with your code. Wait about a minute and try again, or load an example from the Examples menu while you wait.", 'info');
       }
       return;
     } finally {
@@ -15078,7 +15309,7 @@
       }, 1500);
     } catch (err) {
       vibeMonitorLine('[ Upload error: ' + (err.message || err) + ' ]', 'err');
-      vibeMonitorLine('Tip: unplug + replug the board and try again. Make sure no other app (like Arduino IDE) has the port open.', 'dim');
+      vibeMonitorLine('Tip: unplug + replug the board and try again. Make sure no other program or browser tab has the port open.', 'dim');
     } finally {
       btn.disabled = false;
       btn.classList.remove('is-active');
@@ -15147,13 +15378,13 @@
     if (!knockedPort) {
       // No active connection. Try a previously-granted Arduino port; if none,
       // ask the user to pick one (so we can knock it).
-      const prior = beforePorts.find(p => (p.getInfo() || {}).usbVendorId === ARDUINO_USB_VID);
+      const prior = beforePorts.find(p => isArduinoVid(p.getInfo() || {}));
       if (prior) {
         knockedPort = prior;
       } else {
         try {
           knockedPort = await navigator.serial.requestPort({
-            filters: [{ usbVendorId: ARDUINO_USB_VID }]
+            filters: ARDUINO_PORT_FILTERS
           });
         } catch (_) {
           throw new Error('No Arduino selected.');
@@ -15167,6 +15398,10 @@
     // Open at 1200 then close — that's the magic reset signal.
     try {
       await knockedPort.open({ baudRate: 1200 });
+      // Toggle DTR low to make the reset more reliable on clone boards — the
+      // 1200-baud open/close alone is flaky on some 32u4 clones. Harmless and
+      // ignored if the platform doesn't support setSignals.
+      try { await knockedPort.setSignals({ dataTerminalReady: false }); } catch (_) {}
       // Tiny delay so the host sees the open before we close.
       await new Promise(r => setTimeout(r, 50));
       await knockedPort.close();
@@ -15191,7 +15426,7 @@
         const p = ev.target || ev.port;
         if (!p) return;
         const info = p.getInfo() || {};
-        if (info.usbVendorId !== ARDUINO_USB_VID) return;
+        if (!isArduinoVid(info)) return;
         resolved = true;
         cleanup();
         resolve(p);
@@ -15200,6 +15435,7 @@
         navigator.serial.removeEventListener('connect', onConnect);
         clearInterval(poll);
         clearTimeout(coach);
+        clearTimeout(coach2);
         clearTimeout(timeout);
       };
       // Poll getPorts() in parallel — 'connect' only fires for ports the
@@ -15208,15 +15444,19 @@
       const poll = setInterval(async () => {
         if (resolved) return;
         const ports = await navigator.serial.getPorts();
+        // Prefer a newly-appeared Arduino-family port; if the board is a clone
+        // with an unknown VID, accept ANY new port that showed up after the
+        // knock (it's almost certainly the bootloader that just enumerated).
+        let fallback = null;
         for (const p of ports) {
-          const info = p.getInfo() || {};
-          if (info.usbVendorId !== ARDUINO_USB_VID) continue;
-          if (!beforeKeys.has(beforeKey(p))) {
-            resolved = true;
-            cleanup();
-            resolve(p);
-            return;
+          if (beforeKeys.has(beforeKey(p))) continue; // not new since the knock
+          if (isArduinoVid(p.getInfo() || {})) {
+            resolved = true; cleanup(); resolve(p); return;
           }
+          fallback = fallback || p;
+        }
+        if (fallback) {
+          resolved = true; cleanup(); resolve(fallback); return;
         }
       }, 250);
       navigator.serial.addEventListener('connect', onConnect);
@@ -15230,20 +15470,28 @@
         vibeMonitorLine('Almost there - if nothing happens, press the RESET button on your Arduino once now, then wait.', 'info');
         vibeSetStatus('connecting', 'Waiting for the board… tap RESET on the Arduino if it does not appear.');
       }, 2200);
+      // Soft-brick recovery: a bad sketch (e.g. one that floods HID keystrokes)
+      // can kill the board's USB so the 1200-baud knock never fires and a single
+      // tap isn't enough. A DOUBLE-tap of RESET forces the bootloader open for
+      // ~8 seconds. This is THE recovery move for a board that "won't take code".
+      const coach2 = setTimeout(() => {
+        if (resolved) return;
+        vibeMonitorLine('Still nothing? Your board may be stuck on a bad sketch. Press RESET TWICE quickly (a fast double-tap), then wait - that forces it to accept new code.', 'info');
+        vibeSetStatus('connecting', 'Double-tap RESET on the board now, then wait a few seconds.');
+      }, 7000);
       const timeout = setTimeout(async () => {
         if (resolved) return;
         cleanup();
-        // Last resort: ask the user to pick the bootloader port by hand.
+        // Last resort: ask the user to pick the bootloader port by hand. No VID
+        // filter here so clone boards (and the bootloader's own VID/PID) show up.
         try {
-          vibeMonitorLine('Still waiting. Tap RESET on the board, then pick the port that shows up (often "Arduino Leonardo bootloader").', 'info');
-          const p = await navigator.serial.requestPort({
-            filters: [{ usbVendorId: ARDUINO_USB_VID }]
-          });
+          vibeMonitorLine('Still waiting. Double-tap RESET on the board, then pick the port that appears (often "Arduino Leonardo bootloader").', 'info');
+          const p = await navigator.serial.requestPort({});
           resolve(p);
         } catch (e) {
-          reject(new Error('Board did not enter upload mode. Tap the RESET button on the Arduino and press Upload again.'));
+          reject(new Error('Board did not enter upload mode. Double-tap the RESET button on the Arduino, then press Upload again.'));
         }
-      }, 15000);
+      }, 22000);
     });
 
     // Caterina runs USB CDC; baud rate is ignored. 57600 is conventional.
@@ -15437,7 +15685,7 @@
       vibeSetTooltip(btn, 'Disconnect Arduino');
       monitor.innerHTML = '';
       vibeAppendMonitor('[ connected at ' + baud + ' baud ]\n');
-      vibeSetStatus('connected', `Connected at ${baud} baud. Upload your sketch in the desktop Arduino IDE; output streams here.`);
+      vibeSetStatus('connected', `Connected at ${baud} baud. Click Upload above to flash your sketch; output streams here.`);
       vibeMonitorSetSendEnabled(true);
       vibeReadLoop();
     } catch (err) {
