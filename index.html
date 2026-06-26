@@ -501,12 +501,15 @@
     box-shadow:
       0 40px 80px rgba(0, 0, 0, 0.55),
       0 0 0 1px rgba(0, 0, 0, 0.05);
-    animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: modalIn 0.12s ease-out;
     overflow: hidden;
   }
+  /* Plain fade only. The old scale(0.94)->1 + translateY(8px)->0 made the
+     panel grow and slide on open, which read as the card "shaking / changing
+     position" before the content appeared. Now it just appears in place. */
   @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.94) translateY(8px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .modal-header {
@@ -19929,11 +19932,13 @@ module.exports = { main }`
   // Deep link to a benchmark: ?b=<id> opens it straight into the modal. This is
   // what the "open in a dedicated work tab" flow points at — each benchmark now
   // has its own URL, so the home tab can stay put while work happens in one
-  // reused tab. Deferred slightly so the project list renders underneath first.
+  // reused tab. Open SYNCHRONOUSLY (no setTimeout) so the modal is already on
+  // screen at first paint — the old 50ms defer flashed the home project list
+  // first, which read as "it opens the home page, then opens the benchmark."
   const benchDeepLink = urlParams.get('b');
   if (benchDeepLink) {
     const bench = PROJECTS.flatMap(p => p.benchmarks || []).find(x => x.id === benchDeepLink);
-    if (bench) setTimeout(() => openModal(bench), 50);
+    if (bench) openModal(bench);
   }
 
   // Deep link to an archive: ?admin=ramsey-d4sg&archive=2026-04-15T12-34-56
