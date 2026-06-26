@@ -138,7 +138,6 @@
     transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   }
   .capstone-card:hover {
-    transform: translateY(-2px);
     border-color: rgba(99, 102, 241, 0.50);
     box-shadow: 0 12px 30px rgba(99, 102, 241, 0.16);
   }
@@ -395,16 +394,13 @@
     user-select: none;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
+  /* No positional movement on hover/press. The card used to lift on hover and
+     bob on click, which read as a "shake" right before the benchmark opened.
+     Feedback is now border + shadow only: the card never moves, so a click is
+     just click-and-go. */
   .benchmark:hover {
     border-color: var(--accent);
-    transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  }
-  /* Hold the hover lift through the press instead of dropping to 0. The old
-     reset bobbed the card down-then-up on every click, which read as a
-     "shake" right before the benchmark opened in its work tab. */
-  .benchmark:active {
-    transform: translateY(-2px);
   }
 
   .checkbox {
