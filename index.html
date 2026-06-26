@@ -400,8 +400,11 @@
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   }
+  /* Hold the hover lift through the press instead of dropping to 0. The old
+     reset bobbed the card down-then-up on every click, which read as a
+     "shake" right before the benchmark opened in its work tab. */
   .benchmark:active {
-    transform: translateY(0);
+    transform: translateY(-2px);
   }
 
   .checkbox {
