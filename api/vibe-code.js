@@ -18,7 +18,14 @@
 // when the same system prefix is repeated; no special headers required.
 
 // Hard input caps. These bound the tokens a single request can spend.
-const MAX_PROMPT_CHARS = 4000;        // reject prompts longer than this
+// The student's typed message and the editor sketch it is asked about arrive
+// as SEPARATE fields so we can cap each without breaking the iterative flow:
+// a one-sentence question ("add two LEDs") legitimately ships a multi-behavior
+// sketch as context, which grows well past a message-sized cap by later
+// benchmarks. We reject an oversized typed message but only TRUNCATE oversized
+// editor context, so the workflow never stalls.
+const MAX_MESSAGE_CHARS = 4000;       // reject the student's typed message past this
+const MAX_EDITOR_CHARS = 20000;       // truncate the injected editor sketch to this
 const MAX_HISTORY_MESSAGES = 8;       // keep only the last N turns
 const MAX_HISTORY_MSG_CHARS = 8000;   // truncate each history message to this
 const MAX_TOTAL_INPUT_CHARS = 60000;  // defensive cap on assembled user+history
@@ -192,14 +199,31 @@ export default async function handler(req, res) {
   }
 
   const body = await readJson(req);
-  const prompt = (body.prompt || '').toString().trim();
   const history = Array.isArray(body.history) ? body.history : [];
 
-  if (!prompt) {
+  // The client sends the student's typed message and the editor sketch as
+  // separate fields. Older callers (or the class-code probe) may still send a
+  // single pre-assembled `prompt`; fall back to that so nothing breaks.
+  const message = (body.message || body.prompt || '').toString().trim();
+  const editorCode = (body.editorCode || '').toString();
+
+  if (!message) {
     return res.status(400).json({ error: 'Empty prompt' });
   }
-  if (prompt.length > MAX_PROMPT_CHARS) {
-    return res.status(400).json({ error: `Prompt too long. Keep it under ${MAX_PROMPT_CHARS} characters.` });
+  // Reject an oversized TYPED message (a real message is a sentence or two).
+  // The editor sketch is capped by truncation below, not rejected, so the
+  // iterative "add to my code" flow never stalls on a large accumulated sketch.
+  if (message.length > MAX_MESSAGE_CHARS) {
+    return res.status(400).json({ error: `Message too long. Keep it under ${MAX_MESSAGE_CHARS} characters.` });
+  }
+
+  // Assemble the final user prompt: the typed message, plus the editor sketch
+  // as context when present (truncated to a generous cap). This mirrors the
+  // template the client used to build inline, but caps the sketch server-side.
+  let prompt = message;
+  if (editorCode.trim()) {
+    const cappedEditor = editorCode.slice(0, MAX_EDITOR_CHARS);
+    prompt = `${message}\n\n---\nFor context, here is the current code in my editor:\n\`\`\`cpp\n${cappedEditor}\n\`\`\``;
   }
 
   const ip = getClientIp(req);

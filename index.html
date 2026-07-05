@@ -14912,12 +14912,13 @@ void loop() {
 
     // Give the model the student's current sketch as context (like an IDE
     // companion) so "debug / explain / clean up my code" works — but only
-    // when there's real code, and never show this context in the chat.
+    // when there's real code, and never show this context in the chat. The
+    // sketch travels as its own field so the server can cap it without
+    // rejecting the student's short message (the accumulated multi-behavior
+    // sketch grows past a message-sized cap by later benchmarks).
     const editorCode = vibeGetEditorText();
     const editorIsDefault = !editorCode || !editorCode.trim() || editorCode.trim() === VIBE_DEFAULT_CODE.trim();
-    const promptForApi = editorIsDefault
-      ? txt
-      : `${txt}\n\n---\nFor context, here is the current code in my editor:\n\`\`\`cpp\n${editorCode}\n\`\`\``;
+    const editorForApi = editorIsDefault ? '' : editorCode;
 
     // Short history (last few turns, excluding errors and the new message).
     const history = _vibeChat
@@ -14936,7 +14937,7 @@ void loop() {
     fetch('/api/vibe-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-D4SG-Client': 'd4sg-at-sa' },
-      body: JSON.stringify({ prompt: promptForApi, history })
+      body: JSON.stringify({ message: txt, editorCode: editorForApi, history })
     }).then(async (r) => {
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {

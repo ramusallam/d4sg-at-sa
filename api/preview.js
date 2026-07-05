@@ -88,6 +88,31 @@ async function assertSafeHost(hostname) {
   }
 }
 
+// Fetch that follows redirects MANUALLY, re-validating the host on every hop.
+// A public host can 302 to an internal address (e.g. 169.254.169.254); with
+// redirect: 'follow' that hop would never be re-checked, defeating the SSRF
+// guard. We cap the hop count and assertSafeHost each Location before moving on.
+const MAX_REDIRECTS = 5;
+async function safeFetch(startUrl, options) {
+  let current = startUrl;
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const response = await fetch(current, { ...options, redirect: 'manual' });
+    const status = response.status;
+    if (status >= 300 && status < 400 && response.headers.get('location')) {
+      let next = '';
+      try { next = new URL(response.headers.get('location'), current).toString(); }
+      catch (_) { throw new Error('bad redirect'); }
+      if (!/^https?:\/\//i.test(next)) throw new Error('blocked redirect scheme');
+      try { await assertSafeHost(new URL(next).hostname); }
+      catch (_) { throw new Error('blocked address'); }
+      current = next;
+      continue;
+    }
+    return response;
+  }
+  throw new Error('too many redirects');
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -116,13 +141,12 @@ export default async function handler(req, res) {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    const response = await fetch(url, {
+    const response = await safeFetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; D4SGPreviewBot/1.0; +https://d4sg-at-sa.vercel.app)',
         'Accept': 'text/html,application/xhtml+xml'
       },
-      signal: controller.signal,
-      redirect: 'follow'
+      signal: controller.signal
     });
 
     // Only parse HTML; skip binary/large responses so this never becomes a
