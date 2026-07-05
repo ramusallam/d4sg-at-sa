@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "firebase": "^10.13.2"
+    "firebase": "^10.13.2",
+    "firebase-admin": "^12.7.0"
   }
 }

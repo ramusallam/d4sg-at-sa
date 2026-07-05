@@ -7677,7 +7677,7 @@
             try {
               const snap = await getDocs(query(collection(db, 'portfolios'), where('benchmarkId', '==', b.id)));
               const items = [];
-              snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+              snap.forEach(d => { const data = d.data(); if (data.deleted) return; items.push({ id: d.id, ...data }); });
               items.sort((a, z) => (a.studentName || '').localeCompare(z.studentName || '', undefined, { sensitivity: 'base' }));
               renderSummaryBoard(galleryEl, items, b);
             } catch (e) {
@@ -10407,6 +10407,7 @@
       _progressData = {};
       snap.forEach(d => {
         const data = d.data();
+        if (data.deleted) return;
         const name = (data.studentName || '').trim();
         if (!name || !data.benchmarkId) return;
         if (!_progressData[name]) _progressData[name] = new Set();
@@ -10424,6 +10425,7 @@
       _progressHomework = {};
       snap.forEach(d => {
         const data = d.data();
+        if (data.deleted) return;
         const name = (data.studentName || '').trim();
         const bid = data.benchmarkId || '';
         // Only homework artifacts use the hw-w{n} id pattern.
@@ -10947,7 +10949,7 @@
     );
     unsubscribeGallery = onSnapshot(q, (snap) => {
       const items = [];
-      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      snap.forEach(d => { const data = d.data(); if (data.deleted) return; items.push({ id: d.id, ...data }); });
       // newest first
       items.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       // Update the count badge from the live snapshot for free (no extra read).
@@ -11369,10 +11371,9 @@
 
   async function deleteArtifact(item) {
     try {
-      if (item.filePath) {
-        try { await deleteObject(storageRef(storage, item.filePath)); } catch (e) { /* file may already be gone */ }
-      }
-      await deleteDoc(doc(db, 'artifacts', item.id));
+      // Soft delete: never destroy student work. Mark the doc deleted (blob is
+      // left in Storage, recoverable); render/query paths filter out deleted docs.
+      await setDoc(doc(db, 'artifacts', item.id), { deleted: true, deletedAt: serverTimestamp() }, { merge: true });
       // Open-snapshot listener will update the count for this benchmark live;
       // belt-and-braces refresh the badge in case nothing else closes the loop.
       if (item.benchmarkId) refreshCountBadge(item.benchmarkId);
@@ -12228,6 +12229,7 @@
         submittedByName.clear();
         snap.forEach(d => {
           const data = d.data() || {};
+          if (data.deleted) return;
           const nm = (data.studentName || '').trim();
           if (nm) submittedByName.set(norm(nm), { studentName: nm, slots: data.slots || {} });
         });
@@ -12435,11 +12437,9 @@
       if (p._localObjUrl) {
         try { URL.revokeObjectURL(p.url); } catch (_) {}
       }
-      if (p.filePath) {
-        // Async delete: catch on the promise so a failed cleanup never becomes
-        // an unhandled rejection (a sync try/catch can't catch it).
-        deleteObject(storageRef(storage, p.filePath)).catch(() => {});
-      }
+      // Do not delete the uploaded blob: client Storage deletes are denied by rules
+      // now, and leaving an orphaned draft file is harmless (a lifecycle rule sweeps
+      // stale drafts/ objects later). Just drop it from the pending list.
       pendingFiles.splice(idx, 1);
       renderPreviews();
       persistDraftFiles();
@@ -12827,6 +12827,7 @@
         submittedByName.clear();
         snap.forEach(d => {
           const data = d.data() || {};
+          if (data.deleted) return;
           const nm = (data.studentName || '').trim();
           if (!nm) return;
           const iu = data.instructableUrl || (data.slots && data.slots.code && data.slots.code.url) || '';
@@ -12983,6 +12984,7 @@
         submittedByName.clear();
         snap.forEach(d => {
           const data = d.data() || {};
+          if (data.deleted) return;
           const nm = (data.studentName || '').trim();
           const t = data.slots && data.slots.summary && data.slots.summary.text;
           if (nm) submittedByName.set(norm(nm), { studentName: nm, text: t || '' });
@@ -13006,7 +13008,7 @@
     const q = query(collection(db, 'portfolios'), where('benchmarkId', '==', b.id));
     unsubscribePortfolios = onSnapshot(q, (snap) => {
       const items = [];
-      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      snap.forEach(d => { const data = d.data(); if (data.deleted) return; items.push({ id: d.id, ...data }); });
       items.sort((a, z) => (a.studentName || '').localeCompare(z.studentName || '', undefined, { sensitivity: 'base' }));
       updateCountBadge(b.id, items.length);
       renderSummaryBoard(grid, items, b);
@@ -13043,7 +13045,7 @@
     const q = query(collection(db, 'portfolios'), where('benchmarkId', '==', benchmarkId));
     unsubscribePortfolios = onSnapshot(q, (snap) => {
       const items = [];
-      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      snap.forEach(d => { const data = d.data(); if (data.deleted) return; items.push({ id: d.id, ...data }); });
       // alphabetical by name
       items.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }));
       // Update the count badge live from the snapshot — no extra read.
@@ -13472,15 +13474,9 @@
 
   async function deletePortfolio(item) {
     try {
-      // Delete any uploaded files
-      const slots = item.slots || {};
-      for (const def of SLOT_DEFS) {
-        const s = slots[def.key];
-        if (s && s.mode === 'file' && s.filePath) {
-          try { await deleteObject(storageRef(storage, s.filePath)); } catch (_) {}
-        }
-      }
-      await deleteDoc(doc(db, 'portfolios', item.id));
+      // Soft delete: never destroy student work. Leave uploaded blobs in Storage
+      // (recoverable); mark the doc deleted so render/query paths filter it out.
+      await setDoc(doc(db, 'portfolios', item.id), { deleted: true, deletedAt: serverTimestamp() }, { merge: true });
       if (item.benchmarkId) refreshCountBadge(item.benchmarkId);
     } catch (err) {
       console.error('portfolio delete failed', err);
@@ -13491,10 +13487,8 @@
   async function deletePortfolioSlot(item, slotKey) {
     try {
       const slots = { ...(item.slots || {}) };
-      const cur = slots[slotKey];
-      if (cur && cur.mode === 'file' && cur.filePath) {
-        try { await deleteObject(storageRef(storage, cur.filePath)); } catch (_) {}
-      }
+      // Null the slot but keep the key (blob stays in Storage, recoverable). The
+      // key stays so the slots map never shrinks, which the rules require.
       slots[slotKey] = null;
       // Use setDoc with merge to update only slots
       await setDoc(doc(db, 'portfolios', item.id), { slots }, { merge: true });
@@ -13559,23 +13553,15 @@
         note: note || ''
       });
 
+      // Clear the live galleries via SOFT delete: the archive subcollection above
+      // is the durable snapshot, and marking the live docs deleted (leaving blobs
+      // in Storage) keeps everything recoverable. Render/query paths skip deleted docs.
       const deletes = [];
       pfSnap.forEach(d => {
-        const data = d.data();
-        const slots = data.slots || {};
-        Object.values(slots).forEach(s => {
-          if (s && s.mode === 'file' && s.filePath) {
-            deletes.push(deleteObject(storageRef(storage, s.filePath)).catch(() => {}));
-          }
-        });
-        deletes.push(deleteDoc(doc(db, 'portfolios', d.id)));
+        deletes.push(setDoc(doc(db, 'portfolios', d.id), { deleted: true, deletedAt: serverTimestamp() }, { merge: true }));
       });
       artSnap.forEach(d => {
-        const data = d.data();
-        if (data.filePath) {
-          deletes.push(deleteObject(storageRef(storage, data.filePath)).catch(() => {}));
-        }
-        deletes.push(deleteDoc(doc(db, 'artifacts', d.id)));
+        deletes.push(setDoc(doc(db, 'artifacts', d.id), { deleted: true, deletedAt: serverTimestamp() }, { merge: true }));
       });
       await Promise.all(deletes);
       // Refresh visible count badges (now zero for everything).
@@ -13796,10 +13782,8 @@
 
       // Strip the archive doc id and write a fresh doc in /portfolios with a
       // new server timestamp. We DO preserve all slot data including the
-      // existing fileUrl pointers (Storage objects were left in place since
-      // archive doesn't move blobs — they were deleted on archive though, so
-      // file-mode slots may now be broken; the read-side renders a friendly
-      // placeholder for those).
+      // existing fileUrl pointers. Archive no longer deletes Storage blobs
+      // (soft-delete only), so file-mode slots restore intact.
       const writes = [];
       portfolios.forEach(p => {
         const { id, createdAt, ...rest } = p;
@@ -13812,7 +13796,7 @@
       // Refresh count badges so admin sees the restore reflected.
       const benchIds = new Set(portfolios.map(p => p.benchmarkId).filter(Boolean));
       benchIds.forEach(bid => refreshCountBadge(bid));
-      alert(`Restored ${portfolios.length} portfolios to live. Note: archived files (storage blobs) were deleted at archive time, so file-mode slots may show "(file unavailable)".`);
+      alert(`Restored ${portfolios.length} portfolios to live. Uploaded files are preserved, so file-mode slots restore intact.`);
     } catch (err) {
       console.error('restore failed', err);
       alert('Restore failed. Check console.');
@@ -15864,7 +15848,10 @@ void loop() {
     if (!id) return null;
     try {
       const snap = await getDoc(doc(db, 'drafts', id));
-      return snap.exists() ? snap.data() : null;
+      if (!snap.exists()) return null;
+      const data = snap.data();
+      // A soft-cleared draft (deleted on Submit) must not rehydrate stale work.
+      return data.deleted ? null : data;
     } catch (e) {
       console.warn('loadDraft failed', e);
       return null;
@@ -15880,6 +15867,9 @@ void loop() {
           studentName: name,
           nameSlug: nameSlug(name),
           benchmarkId,
+          // Clear any prior soft-delete flag so restarting a benchmark after Submit
+          // saves into a live draft again.
+          deleted: false,
           ...partial,
           updatedAt: serverTimestamp(),
         },
@@ -15892,7 +15882,17 @@ void loop() {
   async function clearDraft(name, benchmarkId) {
     const id = draftDocId(name, benchmarkId);
     if (!id) return;
-    try { await deleteDoc(doc(db, 'drafts', id)); } catch (e) {}
+    // Soft clear: hard deletes are denied by rules. Mark the draft deleted so it
+    // won't rehydrate; a lifecycle rule can sweep old deleted drafts later.
+    try {
+      await setDoc(doc(db, 'drafts', id), {
+        studentName: name,
+        nameSlug: nameSlug(name),
+        benchmarkId,
+        deleted: true,
+        deletedAt: serverTimestamp(),
+      }, { merge: true });
+    } catch (e) {}
   }
   // Debounce helper for keystroke autosave.
   function debounce(fn, ms) {
@@ -19690,7 +19690,7 @@ module.exports = { main }`
       try {
         const snap = await getDocs(query(collection(db, 'exhibit'), orderBy('createdAt', 'desc')));
         const items = [];
-        snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+        snap.forEach(d => { const data = d.data(); if (data.deleted) return; items.push({ id: d.id, ...data }); });
         if (!items.length) {
           grid.innerHTML = `<div class="exhibit-empty">${isAdmin ? 'No work here yet - add the first piece above.' : 'Past student work will appear here soon.'}</div>`;
           return;
@@ -19711,7 +19711,8 @@ module.exports = { main }`
       if (!isAdmin) return;
       if (!confirm('Remove this piece from the Exhibit?')) return;
       try {
-        await deleteDoc(doc(db, 'exhibit', del.dataset.exDel));
+        // Soft delete: mark deleted (recoverable) instead of hard-deleting.
+        await setDoc(doc(db, 'exhibit', del.dataset.exDel), { deleted: true, deletedAt: serverTimestamp() }, { merge: true });
         const card = del.closest('.exhibit-card');
         if (card) card.remove();
         if (!grid.querySelector('.exhibit-card')) {

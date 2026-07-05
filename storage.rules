@@ -2,19 +2,27 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    // Client deletes are denied everywhere. Previously the `request.resource == null`
+    // branch (a delete has a null incoming resource) silently permitted deleteObject;
+    // dropping it denies client deletes while still allowing uploads, which always
+    // carry a non-null request.resource. Admin "delete" in the UI no longer touches
+    // Storage — blobs are left in place (recoverable) and a lifecycle rule can sweep
+    // trash later. The draft -> submit promotion never deletes the blob (the file URL
+    // is carried forward into the promoted /portfolios entry), so this is compatible.
+
     // Legacy artifacts path (homework uploads still write here).
     match /artifacts/{file=**} {
       allow read: if true;
       // Cap uploads at 50MB; allow image, video, and STL types.
       // STL files come in many content types (some browsers send octet-stream).
-      allow write: if request.resource == null
-                   || (request.resource.size < 50 * 1024 * 1024
-                       && (request.resource.contentType.matches('image/.*')
-                           || request.resource.contentType.matches('video/.*')
-                           || request.resource.contentType == 'model/stl'
-                           || request.resource.contentType == 'application/sla'
-                           || request.resource.contentType == 'application/vnd.ms-pki.stl'
-                           || request.resource.contentType == 'application/octet-stream'));
+      allow write: if request.resource != null
+                   && request.resource.size < 50 * 1024 * 1024
+                   && (request.resource.contentType.matches('image/.*')
+                       || request.resource.contentType.matches('video/.*')
+                       || request.resource.contentType == 'model/stl'
+                       || request.resource.contentType == 'application/sla'
+                       || request.resource.contentType == 'application/vnd.ms-pki.stl'
+                       || request.resource.contentType == 'application/octet-stream');
     }
 
     // Portfolio uploads: image (JPG/PNG), PDF, MP4 video, STL CAD files.
@@ -22,38 +30,37 @@ service firebase.storage {
     // so we accept the .stl extension via the path pattern as well.
     match /portfolios/{benchmarkId}/{file=**} {
       allow read: if true;
-      allow write: if request.resource == null
-                   || (request.resource.size < 100 * 1024 * 1024
-                       && (
-                            request.resource.contentType == 'image/jpeg'
-                         || request.resource.contentType == 'image/png'
-                         || request.resource.contentType == 'application/pdf'
-                         || request.resource.contentType == 'video/mp4'
-                         || request.resource.contentType == 'model/stl'
-                         || request.resource.contentType == 'application/sla'
-                         || request.resource.contentType == 'application/vnd.ms-pki.stl'
-                         || request.resource.contentType == 'application/octet-stream'
-                       ));
+      allow write: if request.resource != null
+                   && request.resource.size < 100 * 1024 * 1024
+                   && (
+                        request.resource.contentType == 'image/jpeg'
+                     || request.resource.contentType == 'image/png'
+                     || request.resource.contentType == 'application/pdf'
+                     || request.resource.contentType == 'video/mp4'
+                     || request.resource.contentType == 'model/stl'
+                     || request.resource.contentType == 'application/sla'
+                     || request.resource.contentType == 'application/vnd.ms-pki.stl'
+                     || request.resource.contentType == 'application/octet-stream'
+                   );
     }
 
     // Per-student per-benchmark drafts. Path: drafts/${nameSlug}__${benchmarkId}/...
-    // Same file-type allowlist + 100MB cap as portfolios. Deleted with the
-    // draft Firestore doc on Submit (well, the doc; the file URL persists in
-    // the promoted /portfolios entry).
+    // Same file-type allowlist + 100MB cap as portfolios. The Firestore draft doc is
+    // soft-cleared on Submit; the file URL persists in the promoted /portfolios entry.
     match /drafts/{draftId}/{file=**} {
       allow read: if true;
-      allow write: if request.resource == null
-                   || (request.resource.size < 100 * 1024 * 1024
-                       && (
-                            request.resource.contentType == 'image/jpeg'
-                         || request.resource.contentType == 'image/png'
-                         || request.resource.contentType == 'application/pdf'
-                         || request.resource.contentType == 'video/mp4'
-                         || request.resource.contentType == 'model/stl'
-                         || request.resource.contentType == 'application/sla'
-                         || request.resource.contentType == 'application/vnd.ms-pki.stl'
-                         || request.resource.contentType == 'application/octet-stream'
-                       ));
+      allow write: if request.resource != null
+                   && request.resource.size < 100 * 1024 * 1024
+                   && (
+                        request.resource.contentType == 'image/jpeg'
+                     || request.resource.contentType == 'image/png'
+                     || request.resource.contentType == 'application/pdf'
+                     || request.resource.contentType == 'video/mp4'
+                     || request.resource.contentType == 'model/stl'
+                     || request.resource.contentType == 'application/sla'
+                     || request.resource.contentType == 'application/vnd.ms-pki.stl'
+                     || request.resource.contentType == 'application/octet-stream'
+                   );
     }
   }
 }
