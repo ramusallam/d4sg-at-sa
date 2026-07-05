@@ -14935,7 +14935,7 @@ void loop() {
 
     fetch('/api/vibe-code', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-D4SG-Client': 'd4sg-at-sa' },
       body: JSON.stringify({ prompt: promptForApi, history })
     }).then(async (r) => {
       const data = await r.json().catch(() => ({}));
@@ -15013,7 +15013,7 @@ void loop() {
       // Verify by calling the proxy with a tiny prompt.
       fetch('/api/vibe-code', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-D4SG-Client': 'd4sg-at-sa' },
         body: JSON.stringify({ prompt: 'Say OK.', classCode: code, history: [] })
       }).then(async (r) => {
         if (r.status === 401) {

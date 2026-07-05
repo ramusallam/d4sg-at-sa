@@ -1,15 +1,61 @@
 // Vercel Node.js serverless function: OpenAI proxy for the Vibe Coding
-// Arduino Tool. Gates access by class code, applies a soft per-IP rate limit,
-// and strips markdown fences from the model output so the client receives
-// pure Arduino C/C++.
+// Arduino Tool. Gates by request origin (D4SG Vercel domain OR the app's
+// non-secret X-D4SG-Client header), hard-caps input size, applies a soft
+// per-IP rate limit, and strips markdown fences from the model output so the
+// client receives pure Arduino C/C++.
+//
+// This is a public, no-login endpoint wired to a personal OpenAI key, so the
+// input caps + origin gate are the real money door: they bound the tokens any
+// single request can spend and reject cross-origin abuse. Set a HARD MONTHLY
+// SPEND CAP on the OpenAI account as the ultimate backstop.
 //
 // Model is read from env var OPENAI_MODEL so it auto-tracks future OpenAI
-// releases without code changes. Default: gpt-4o (auto-resolves to the
-// latest GPT-4o snapshot). Update the env var in Vercel and redeploy when a
-// newer model ships (e.g. set OPENAI_MODEL=gpt-5 once it's available).
+// releases without code changes. Update the env var in Vercel and redeploy
+// when a newer model ships (e.g. set OPENAI_MODEL=gpt-5-mini). If the env
+// model is rejected, we fall back once to a current mini-tier model.
 //
 // OpenAI applies prompt caching automatically on prompts over ~1024 tokens
 // when the same system prefix is repeated; no special headers required.
+
+// Hard input caps. These bound the tokens a single request can spend.
+const MAX_PROMPT_CHARS = 4000;        // reject prompts longer than this
+const MAX_HISTORY_MESSAGES = 8;       // keep only the last N turns
+const MAX_HISTORY_MSG_CHARS = 8000;   // truncate each history message to this
+const MAX_TOTAL_INPUT_CHARS = 60000;  // defensive cap on assembled user+history
+
+// Origin gate. Requests must come from the D4SG app: either a same-site
+// Origin/Referer on an allowed host, or the app's non-secret client header.
+// The header is not a secret (it ships in page source) — it only stops naive
+// cross-origin scripts, while the Origin allowlist stops browser abuse.
+const ALLOWED_HOST_SUFFIXES = [
+  'd4sg-at-sa.vercel.app'
+];
+const CLIENT_HEADER = 'd4sg-at-sa';
+
+function hostFromUrl(value) {
+  if (!value) return '';
+  try { return new URL(value).hostname.toLowerCase(); } catch (_) { return ''; }
+}
+
+function isAllowedHost(host) {
+  if (!host) return false;
+  return ALLOWED_HOST_SUFFIXES.some(
+    (suffix) => host === suffix || host.endsWith('.' + suffix)
+  );
+}
+
+// True if the request looks like it came from the real D4SG app.
+function isAllowedRequest(req) {
+  const clientHeader = req.headers['x-d4sg-client'];
+  if (typeof clientHeader === 'string' && clientHeader.trim() === CLIENT_HEADER) {
+    return true;
+  }
+  const originHost = hostFromUrl(req.headers['origin']);
+  if (isAllowedHost(originHost)) return true;
+  const refererHost = hostFromUrl(req.headers['referer']);
+  if (isAllowedHost(refererHost)) return true;
+  return false;
+}
 
 const SYSTEM_PROMPT = [
   "You are a warm, encouraging Arduino coding tutor for a high school maker class at Sonoma Academy (\"Design for Social Good\"). Students are NEW to both coding and prompting. They use an Arduino Leonardo or Micro to build adaptive controllers for accessibility.",
@@ -123,14 +169,26 @@ async function readJson(req) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // The real app calls this same-origin, so CORS is only exercised by
+  // cross-origin callers. Reflect the origin only when it is an allowed D4SG
+  // host instead of advertising '*', and allow the app's client header on the
+  // preflight so the real fetch succeeds.
+  const originHost = hostFromUrl(req.headers['origin']);
+  if (isAllowedHost(originHost)) {
+    res.setHeader('Access-Control-Allow-Origin', req.headers['origin']);
+  }
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-D4SG-Client');
   if (req.method === 'OPTIONS') return res.status(204).end();
 
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (!isAllowedRequest(req)) {
+    return res.status(403).json({ error: 'Forbidden' });
   }
 
   const body = await readJson(req);
@@ -139,6 +197,9 @@ export default async function handler(req, res) {
 
   if (!prompt) {
     return res.status(400).json({ error: 'Empty prompt' });
+  }
+  if (prompt.length > MAX_PROMPT_CHARS) {
+    return res.status(400).json({ error: `Prompt too long. Keep it under ${MAX_PROMPT_CHARS} characters.` });
   }
 
   const ip = getClientIp(req);
@@ -153,16 +214,28 @@ export default async function handler(req, res) {
 
   // Bare model names auto-track latest snapshot. Update the env var in Vercel
   // (no code change) when a new generation ships. If the configured model is
-  // rejected (invalid id, no access on this tier), we auto-fall back to
-  // gpt-4o so a class doesn't get blocked by an env var typo.
-  const FALLBACK_MODEL = 'gpt-4o';
+  // rejected (invalid id, no access on this tier), we auto-fall back to a
+  // current mini-tier model so a class doesn't get blocked by an env var typo.
+  const FALLBACK_MODEL = 'gpt-4o-mini';
   const model = (process.env.OPENAI_MODEL || FALLBACK_MODEL).trim();
 
-  // Sanitize history: only role + string content, only user/assistant, last 10.
-  const cleanHistory = history
+  // Sanitize history: only role + string content, only user/assistant, last
+  // MAX_HISTORY_MESSAGES, each truncated to MAX_HISTORY_MSG_CHARS. Then apply
+  // a defensive cap on the total assembled input so no single request can
+  // carry an outsized token bill even if the caller crafts many long turns.
+  let cleanHistory = history
     .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
-    .slice(-10)
-    .map(m => ({ role: m.role, content: m.content }));
+    .slice(-MAX_HISTORY_MESSAGES)
+    .map(m => ({ role: m.role, content: m.content.slice(0, MAX_HISTORY_MSG_CHARS) }));
+
+  let assembled = prompt.length;
+  const capped = [];
+  for (let i = cleanHistory.length - 1; i >= 0; i--) {
+    assembled += cleanHistory[i].content.length;
+    if (assembled > MAX_TOTAL_INPUT_CHARS) break;
+    capped.unshift(cleanHistory[i]);
+  }
+  cleanHistory = capped;
 
   function buildBody(modelName) {
     return {
@@ -197,12 +270,18 @@ export default async function handler(req, res) {
     let fallback = false;
 
     // If the configured model is bad (invalid id or no access on this tier),
-    // try gpt-4o once. Saves a class from being blocked by an env var typo.
+    // try the fallback once. Saves a class from being blocked by an env var
+    // typo. Only fire on an ACTUAL model-not-found/no-access error — never on
+    // any error that merely mentions "model" (e.g. a content or rate error),
+    // so we don't double-spend on unrelated failures.
     if (!r.ok && model !== FALLBACK_MODEL) {
-      const detail = (data && data.error && data.error.message) || '';
+      const err = (data && data.error) || {};
+      const code = String(err.code || '');
+      const type = String(err.type || '');
       const looksLikeBadModel =
-        detail.toLowerCase().includes('model') ||
-        (data && data.error && (data.error.code === 'model_not_found' || data.error.code === 'invalid_model'));
+        code === 'model_not_found' ||
+        code === 'invalid_model' ||
+        (r.status === 404 && type === 'invalid_request_error');
       if (looksLikeBadModel) {
         const retry = await callOpenAI(FALLBACK_MODEL);
         r = retry.r;

@@ -88,10 +88,24 @@ async function compileViaWokwi(sketch, board) {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'Method not allowed' }); }
+
+  // Lightweight health surface. A GET reports whether the real arduino-cli
+  // service is wired up (COMPILE_URL set) without pinging it, so the client can
+  // pre-warm /tools and surface an honest "compiler is available" signal. This
+  // does NOT touch the POST compile path below.
+  if (req.method === 'GET') {
+    const cliReady = Boolean(process.env.COMPILE_URL);
+    return res.status(200).json({
+      ok: true,
+      cliReady,
+      backend: cliReady ? 'service' : 'wokwi'
+    });
+  }
+
+  if (req.method !== 'POST') { res.setHeader('Allow', 'GET, POST'); return res.status(405).json({ error: 'Method not allowed' }); }
 
   const body = await readJson(req);
   const sketch = (body.sketch || '').toString();

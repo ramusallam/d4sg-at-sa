@@ -1,3 +1,10 @@
+// RETIRED. The CAD Tool was removed from the app on 2026-05-28 and has no
+// route into it. This endpoint now returns 410 Gone BEFORE any OpenAI call so
+// it can never spend money, but the original implementation is kept below for
+// history in case the tool ever returns. If it does, restore the handler,
+// port vibe-code.js's origin gate + input caps, and re-add the /tools/cad
+// rewrite to vercel.json.
+//
 // Vercel Node.js serverless function: OpenAI proxy for the CAD Tool's
 // AI Build mode. Generates JSCAD code tuned for the assistive-technology
 // hardware students in D4SG @ SA actually print: button enclosures, joystick
@@ -121,6 +128,14 @@ async function readJson(req) {
 }
 
 export default async function handler(req, res) {
+  // RETIRED endpoint. Return 410 Gone before touching OpenAI so this forgotten
+  // door can never spend money. The implementation below is dead code kept for
+  // history; nothing past this block runs.
+  return res.status(410).json({
+    error: 'The CAD Tool has been retired and this endpoint is no longer available.'
+  });
+
+  // eslint-disable-next-line no-unreachable
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
