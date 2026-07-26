@@ -1682,6 +1682,15 @@
   /* Re-renders (every class-wide submission) skip the entrance pop — it only
      plays the first time the page paints. */
   .prog-cards.no-anim .prog-pip.is-done { animation: none; }
+  /* Partially-filled portfolio: pie wedge of dropped slots. */
+  .prog-pip.is-partial {
+    border-color: var(--success);
+    cursor: pointer;
+  }
+  .prog-pip.is-partial:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.32);
+  }
   @keyframes progPipPop {
     0%   { transform: scale(0.5); opacity: 0; }
     60%  { transform: scale(1.12); }
@@ -6753,9 +6762,9 @@
         });
         makeKeyActivatable(card, 'link');
         const cb = card.querySelector('[data-checkbox]');
-        cb.addEventListener('click', (e) => { e.stopPropagation(); toggleChecked(b.id, card, cb); });
+        cb.addEventListener('click', (e) => { e.stopPropagation(); explainDerivedCheck(); });
         cb.addEventListener('keydown', (e) => {
-          if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleChecked(b.id, card, cb); }
+          if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); explainDerivedCheck(); }
         });
         projEl.appendChild(card);
         countEls[b.id] = card.querySelector(`[data-count="${b.id}"]`);
@@ -6788,17 +6797,11 @@
           openBenchmarkTab(b);
         });
         makeKeyActivatable(row, 'link');
-        // checkbox toggle
+        // Checkmarks are derived from real submissions, not hand-toggled.
         const cb = row.querySelector('[data-checkbox]');
-        cb.addEventListener('click', (e) => {
-          e.stopPropagation();
-          toggleChecked(b.id, row, cb);
-        });
+        cb.addEventListener('click', (e) => { e.stopPropagation(); explainDerivedCheck(); });
         cb.addEventListener('keydown', (e) => {
-          if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault();
-            toggleChecked(b.id, row, cb);
-          }
+          if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); explainDerivedCheck(); }
         });
         benchEl.appendChild(row);
         countEls[b.id] = row.querySelector(`[data-count="${b.id}"]`);
@@ -6806,6 +6809,8 @@
       app.appendChild(projEl);
     });
     updateProjMeters();
+    // Reconcile the cached checks against real submissions (fire-and-forget).
+    syncCheckedFromCloud();
   }
 
   function updateCountBadge(benchmarkId, n) {
@@ -9439,6 +9444,7 @@
   // benchmarkId) marks that cell as "done" and renders a clickable green check
   // that opens the benchmark modal and auto-expands that student's row.
   let _progressUnsubscribe = null;
+  let _progressSlots = {};
   let _progFirstPaint = true;
   let _progressHomeworkUnsubscribe = null;
   let _progressData = {}; // { studentName: Set(benchmarkId) }
@@ -9488,10 +9494,24 @@
     subscribeProgress();
   }
 
+  // Portfolio benchmarks get slot-level tracking so a 3-of-7 drop renders as
+  // a partial pie (and earns only its filled slots' points), not a done pip.
+  const PORTFOLIO_IDS = new Set(PROJECTS.flatMap(p => p.benchmarks).filter(b => b.title === 'Portfolio').map(b => b.id));
+  // Per-slot point values, straight from each portfolio's rubric rows
+  // (labels match SLOT_DEFS keys case-insensitively: Sketch 6, CAD 10, ...).
+  const PORTFOLIO_SLOT_PTS = {};
+  PROJECTS.forEach(p => p.benchmarks.forEach(b => {
+    if (b.title !== 'Portfolio') return;
+    const m = {};
+    (b.rubric || []).forEach(r => { m[(r.label || '').toLowerCase()] = r.points || 0; });
+    PORTFOLIO_SLOT_PTS[b.id] = m;
+  }));
   function subscribeProgress() {
     if (_progressUnsubscribe) _progressUnsubscribe();
     _progressUnsubscribe = onSnapshot(collection(db, 'portfolios'), (snap) => {
       _progressData = {};
+      _progressSlots = {};
+      const slotKeys = SLOT_DEFS.map(def => def.key);
       snap.forEach(d => {
         const data = d.data();
         if (data.deleted) return;
@@ -9499,6 +9519,13 @@
         if (!name || !data.benchmarkId) return;
         if (!_progressData[name]) _progressData[name] = new Set();
         _progressData[name].add(data.benchmarkId);
+        if (PORTFOLIO_IDS.has(data.benchmarkId)) {
+          if (!_progressSlots[name]) _progressSlots[name] = {};
+          if (!_progressSlots[name][data.benchmarkId]) _progressSlots[name][data.benchmarkId] = new Set();
+          const fill = _progressSlots[name][data.benchmarkId];
+          const slots = data.slots || {};
+          slotKeys.forEach(k => { if (slots[k]) fill.add(k); });
+        }
       });
       renderProgressTable();
     }, (err) => {
@@ -9564,7 +9591,18 @@
     const ptsFor = (nm) => {
       const set = merged[nm] || new Set();
       let pts = 0;
-      PROJECTS.forEach(p => p.benchmarks.forEach(b => { if (set.has(b.id)) pts += (b.points || 0); }));
+      PROJECTS.forEach(p => p.benchmarks.forEach(b => {
+        if (!set.has(b.id)) return;
+        if (PORTFOLIO_IDS.has(b.id)) {
+          // Portfolios earn only their FILLED slots' points, so the meter
+          // agrees with the partial pie on the same row.
+          const fill = (_progressSlots[nm] || {})[b.id];
+          const m = PORTFOLIO_SLOT_PTS[b.id] || {};
+          if (fill) fill.forEach(k => { pts += m[k] || 0; });
+        } else {
+          pts += (b.points || 0);
+        }
+      }));
       return pts;
     };
     // Rank by points earned, alphabetical tiebreak. "You" stays highlighted
@@ -9613,7 +9651,13 @@
         p.benchmarks.forEach((b, idx) => {
           const isFinalPip = b.id === 'instructable';
           const finalCls = isFinalPip ? ' is-final-pip' : '';
-          if (done.has(b.id)) {
+          const fill = PORTFOLIO_IDS.has(b.id) ? ((_progressSlots[name] || {})[b.id] || null) : null;
+          if (done.has(b.id) && fill && fill.size < SLOT_DEFS.length) {
+            // Partially-filled portfolio: a pie wedge of the slot fraction,
+            // not a full green check.
+            const wedge = Math.round(fill.size / SLOT_DEFS.length * 100);
+            html += `<a class="prog-pip is-partial" data-bench="${escapeHtml(b.id)}" data-student="${escapeHtml(name)}" style="background: conic-gradient(var(--success) ${wedge}%, var(--bg-2) 0);" title="${escapeHtml(name)}: ${fill.size} of ${SLOT_DEFS.length} portfolio slots dropped"></a>`;
+          } else if (done.has(b.id)) {
             html += `<a class="prog-pip is-done${finalCls}" data-bench="${escapeHtml(b.id)}" data-student="${escapeHtml(name)}" title="View ${escapeHtml(name)}'s ${escapeHtml(b.title)}">${PROG_CHECK_SVG}</a>`;
           } else {
             html += `<span class="prog-pip${finalCls}" title="${escapeHtml(b.title)}">${isFinalPip ? PROG_FLAG_SVG : (idx + 1)}</span>`;
@@ -9657,7 +9701,7 @@
       _progFirstPaint = false;
     }
 
-    tbl.querySelectorAll('.prog-pip.is-done[data-bench]').forEach(a => {
+    tbl.querySelectorAll('.prog-pip[data-bench]').forEach(a => {
       a.addEventListener('click', (e) => {
         e.preventDefault();
         const benchObj = findBenchmarkById(a.dataset.bench);
@@ -9709,21 +9753,48 @@
     });
   }
 
-  function toggleChecked(id, row, cb) {
-    if (checked.has(id)) {
-      checked.delete(id);
-      row.classList.remove('done');
-      cb.classList.remove('checked');
-      cb.setAttribute('aria-checked', 'false');
-    } else {
-      checked.add(id);
-      row.classList.add('done');
-      cb.classList.add('checked');
-      cb.setAttribute('aria-checked', 'true');
-    }
-    persist();
+  // Checkmarks are DERIVED from Firestore submissions for the picked student
+  // (no more hand-toggling): a lab-computer visitor sees THEIR work, not the
+  // previous student's, and a submit from any device checks the box on every
+  // device. localStorage stays as a cache so the page paints instantly, then
+  // the cloud query (one small read per student) reconciles it.
+  function explainDerivedCheck() {
+    schemToast('Checkmarks fill in automatically when you submit work.');
+  }
+  function applyCheckedToDom() {
+    document.querySelectorAll('[data-checkbox]').forEach(cb => {
+      const id = cb.getAttribute('data-checkbox');
+      const on = checked.has(id);
+      cb.classList.toggle('checked', on);
+      cb.setAttribute('aria-checked', on ? 'true' : 'false');
+      const row = cb.closest('.benchmark, .capstone-card, .vid-card');
+      if (row) row.classList.toggle('done', on);
+    });
     renderUpNext();
     updateProjMeters();
+  }
+  let _checkSyncToken = 0;
+  async function syncCheckedFromCloud() {
+    const name = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
+    const token = ++_checkSyncToken;
+    const cloudIds = new Set();
+    if (name) {
+      try {
+        const snap = await getDocs(query(collection(db, 'portfolios'), where('studentName', '==', name)));
+        snap.forEach(d => {
+          const data = d.data();
+          if (!data.deleted && data.benchmarkId) cloudIds.add(data.benchmarkId);
+        });
+      } catch (err) {
+        console.warn('check sync failed', err);
+        return; // keep the cached checks rather than blanking them on a network blip
+      }
+    }
+    if (token !== _checkSyncToken) return; // superseded by a newer sync
+    checked.clear();
+    cloudIds.forEach(id => checked.add(id));
+    persist();
+    applyCheckedToDom();
   }
 
   // Auto-check a benchmark after a successful submission. Idempotent —
@@ -16128,9 +16199,9 @@ void loop() {
       <section class="syllabus-section">
         <h3 class="syllabus-section-title">Grading</h3>
         <dl class="syllabus-dl">
-          <div><dt>Projects</dt><dd>~ 50%</dd></div>
-          <div><dt>Homework</dt><dd>~ 25%</dd></div>
-          <div><dt>Final Project</dt><dd>~ 25%</dd></div>
+          <div><dt>Projects</dt><dd>~ 60%</dd></div>
+          <div><dt>Homework</dt><dd>~ 20%</dd></div>
+          <div><dt>Final Project</dt><dd>~ 20%</dd></div>
         </dl>
       </section>
 
@@ -16296,21 +16367,13 @@ void loop() {
   // when another tab updates the checked set, re-read it and repaint the
   // checkboxes so a completed benchmark shows up without a manual reload.
   window.addEventListener('storage', (e) => {
+    if (e.key === LAST_PICK_KEY) { syncCheckedFromCloud(); return; }
     if (e.key !== STORAGE_KEY) return;
     try {
       const next = new Set(JSON.parse(e.newValue || '[]'));
       checked.clear();
       next.forEach(id => checked.add(id));
-      document.querySelectorAll('[data-checkbox]').forEach(cb => {
-        const id = cb.getAttribute('data-checkbox');
-        const on = checked.has(id);
-        cb.classList.toggle('checked', on);
-        cb.setAttribute('aria-checked', on ? 'true' : 'false');
-        const row = cb.closest('.benchmark, .capstone-card, .vid-card');
-        if (row) row.classList.toggle('done', on);
-      });
-      renderUpNext();
-      updateProjMeters();
+      applyCheckedToDom();
     } catch (_) {}
   });
 
