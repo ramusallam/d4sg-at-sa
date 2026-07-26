@@ -226,14 +226,16 @@ export default async function handler(req, res) {
     prompt = `${message}\n\n---\nFor context, here is the current code in my editor:\n\`\`\`cpp\n${cappedEditor}\n\`\`\``;
   }
 
-  const ip = getClientIp(req);
-  if (!checkRateLimit(ip)) {
-    return res.status(429).json({ error: 'Daily request limit reached. Try again tomorrow.' });
-  }
-
+  // Check the key BEFORE consuming rate-limit quota, so a misconfigured env
+  // var doesn't silently burn the class's daily allowance on 500s.
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'API key not configured' });
+  }
+
+  const ip = getClientIp(req);
+  if (!checkRateLimit(ip)) {
+    return res.status(429).json({ error: 'Daily request limit reached. Try again tomorrow.' });
   }
 
   // Bare model names auto-track latest snapshot. Update the env var in Vercel

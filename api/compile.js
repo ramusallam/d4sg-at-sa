@@ -18,6 +18,31 @@
 
 const crypto = require('crypto');
 
+// Origin gate — same contract as vibe-code.js. Requests must come from the
+// D4SG app: a same-site Origin/Referer on an allowed host, or the app's
+// non-secret client header. Stops drive-by scripts from burning the class's
+// compile quota and Vercel function budget.
+const ALLOWED_HOST_SUFFIXES = ['d4sg-at-sa.vercel.app'];
+const CLIENT_HEADER = 'd4sg-at-sa';
+
+function hostFromUrl(value) {
+  if (!value) return '';
+  try { return new URL(value).hostname.toLowerCase(); } catch (_) { return ''; }
+}
+function isAllowedHost(host) {
+  if (!host) return false;
+  return ALLOWED_HOST_SUFFIXES.some(
+    (suffix) => host === suffix || host.endsWith('.' + suffix)
+  );
+}
+function isAllowedRequest(req) {
+  const clientHeader = req.headers['x-d4sg-client'];
+  if (typeof clientHeader === 'string' && clientHeader.trim() === CLIENT_HEADER) return true;
+  if (isAllowedHost(hostFromUrl(req.headers['origin']))) return true;
+  if (isAllowedHost(hostFromUrl(req.headers['referer']))) return true;
+  return false;
+}
+
 const PER_STUDENT_PER_DAY = 200;
 const PER_IP_PER_DAY = 600;            // abuse backstop only
 const CACHE_TTL_MS = 10 * 60 * 1000;   // 10 min, per warm instance
@@ -87,9 +112,14 @@ async function compileViaWokwi(sketch, board) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Reflect the origin only when it is an allowed D4SG host (never '*').
+  const originHost = hostFromUrl(req.headers['origin']);
+  if (isAllowedHost(originHost)) {
+    res.setHeader('Access-Control-Allow-Origin', req.headers['origin']);
+  }
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-D4SG-Client');
   if (req.method === 'OPTIONS') return res.status(204).end();
 
   // Lightweight health surface. A GET reports whether the real arduino-cli
@@ -107,11 +137,19 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') { res.setHeader('Allow', 'GET, POST'); return res.status(405).json({ error: 'Method not allowed' }); }
 
+  if (!isAllowedRequest(req)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
   const body = await readJson(req);
   const sketch = (body.sketch || '').toString();
   let board = (body.board || 'leonardo').toString().toLowerCase();
   if (!ALLOWED_BOARDS.has(board)) board = 'leonardo';
-  const student = (body.student || '').toString().slice(0, 80).toLowerCase().replace(/[^a-z0-9_-]/g, '') || null;
+  let student = (body.student || '').toString().slice(0, 80).toLowerCase().replace(/[^a-z0-9_-]/g, '') || null;
+  // '_anon' is every student who hasn't picked a name yet — that's a shared
+  // key, not a person. Fall through to the per-IP backstop instead of letting
+  // the whole room drain one 200/day bucket.
+  if (student === '_anon') student = null;
 
   if (!sketch.trim()) return res.status(400).json({ error: 'Empty sketch' });
   if (sketch.length > 200000) return res.status(413).json({ error: 'Sketch too long' });
