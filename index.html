@@ -121,6 +121,26 @@
   }
   .project:last-child { margin-bottom: 0; }
 
+  .project-title .proj-meter {
+    display: inline-block;
+    margin-left: 12px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: var(--ink-low);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 10px;
+    vertical-align: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .project-title .proj-meter.is-full {
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.35);
+  }
   .project-title {
     font-size: clamp(17px, 1.9vw, 22px);
     font-weight: 700;
@@ -5446,6 +5466,78 @@
   }
   .exhibit-topentry:hover .et-arrow { transform: translateX(3px); opacity: 1; }
 
+  /* "Up next" ribbon — the single obvious action when home loads: the first
+     unfinished benchmark, one click in. White card with an indigo left edge
+     so it reads as THE card above the project checklist. */
+  .upnext {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin: 18px 0 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .upnext:hover {
+    box-shadow: 0 8px 22px rgba(17, 17, 17, 0.07);
+    border-color: var(--border-strong);
+    border-left-color: var(--accent);
+  }
+  .upnext-kicker {
+    flex-shrink: 0;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .upnext-text {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .upnext-proj {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--ink-low);
+  }
+  .upnext-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink-hi);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .upnext-arrow {
+    flex-shrink: 0;
+    display: inline-flex;
+    color: var(--accent);
+    opacity: 0.7;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .upnext:hover .upnext-arrow { transform: translateX(3px); opacity: 1; }
+  .upnext.is-complete {
+    cursor: default;
+    border-left-color: var(--success);
+  }
+  .upnext.is-complete:hover { box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04); border-color: var(--border); }
+  .upnext.is-complete .upnext-kicker { color: var(--success); }
+  @media (max-width: 720px) {
+    .upnext { gap: 10px; padding: 13px 14px; }
+    .upnext-proj { display: none; }
+  }
+
   /* Exhibit page hero */
   .exhibit-back {
     display: inline-flex;
@@ -6539,6 +6631,58 @@
     }
   }
 
+  // ---- "Up next" ribbon ----
+  // The first benchmark (in course order) not yet checked off on this device.
+  // Same signal as the row checkmarks, so the ribbon and the list always agree.
+  function findNextBenchmark() {
+    for (const p of PROJECTS) {
+      for (const b of p.benchmarks) {
+        if (!checked.has(b.id)) return { project: p, bench: b };
+      }
+    }
+    return null;
+  }
+
+  function renderUpNext() {
+    const mount = document.getElementById('upNextMount');
+    if (!mount) return;
+    const next = findNextBenchmark();
+    if (!next) {
+      mount.innerHTML = `
+        <div class="upnext is-complete">
+          <span class="upnext-kicker">Complete</span>
+          <span class="upnext-text"><span class="upnext-title">Every benchmark is checked off. Nice work.</span></span>
+        </div>`;
+      return;
+    }
+    const { project, bench } = next;
+    mount.innerHTML = `
+      <div class="upnext" id="upNextCard" title="Open ${escapeHtml(bench.title)}">
+        <span class="upnext-kicker">Up next</span>
+        <span class="upnext-text">
+          <span class="upnext-proj">${escapeHtml(shortProjectLabel(project))}</span>
+          <span class="upnext-title">${escapeHtml(bench.title)}</span>
+        </span>
+        <span class="points">${bench.points} pts</span>
+        <span class="upnext-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>`;
+    const card = mount.querySelector('#upNextCard');
+    card.addEventListener('click', () => openBenchmarkTab(bench));
+    makeKeyActivatable(card, 'link');
+  }
+
+  // Per-project "n/m" chips beside each home section title. Same checked-set
+  // signal as the rows and the Up-next ribbon, so all three always agree.
+  function updateProjMeters() {
+    document.querySelectorAll('[data-proj-meter]').forEach(el => {
+      const p = PROJECTS.find(x => x.id === el.getAttribute('data-proj-meter'));
+      if (!p) return;
+      const done = p.benchmarks.filter(b => checked.has(b.id)).length;
+      el.textContent = `${done}/${p.benchmarks.length}`;
+      el.classList.toggle('is-full', done === p.benchmarks.length);
+    });
+  }
+
   function renderProjects() {
     app.innerHTML = '';
 
@@ -6553,6 +6697,13 @@
       <span class="et-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     `;
     app.appendChild(topEntry);
+
+    // "Up next" ribbon mount — filled by renderUpNext(), re-filled whenever
+    // the checked set changes (toggle, submit, or another tab via storage).
+    const upNextMount = document.createElement('div');
+    upNextMount.id = 'upNextMount';
+    app.appendChild(upNextMount);
+    renderUpNext();
 
     PROJECTS.forEach(project => {
       // Single-benchmark projects (like the Final/Instructable) collapse into
@@ -6613,7 +6764,7 @@
       }
 
       projEl.innerHTML = `
-        ${isStandalone ? '' : `<h2 class="project-title">${escapeHtml(project.title)}</h2>`}
+        ${isStandalone ? '' : `<h2 class="project-title">${escapeHtml(project.title)}<span class="proj-meter" data-proj-meter="${project.id}"></span></h2>`}
         ${project.goal ? `<p class="project-blurb">${formatStepMarkup(project.goal)}</p>` : ''}
         <div class="benchmarks"></div>
       `;
@@ -6654,6 +6805,7 @@
       });
       app.appendChild(projEl);
     });
+    updateProjMeters();
   }
 
   function updateCountBadge(benchmarkId, n) {
@@ -7604,10 +7756,7 @@
       if (document.getElementById('schemCanvasWrap')) renderPerfboard();
     });
 
-    document.getElementById('schemBack').addEventListener('click', () => {
-      history.pushState({}, '', '/tools');
-      applyRoute('/tools');
-    });
+    wireToolBackButton(document.getElementById('schemBack'));
 
     renderComponentPalette();
     renderColorRow();
@@ -9402,17 +9551,26 @@
     }
 
     const totalBench = PROJECTS.reduce((s, p) => s + p.benchmarks.length, 0);
+    const totalPts = PROJECTS.reduce((s, p) => s + p.benchmarks.reduce((s2, b) => s2 + (b.points || 0), 0), 0);
 
-    // Rank students by how many tasks they've completed (leaderboard order),
-    // with an alphabetical tiebreak. "You" stays highlighted wherever you land.
+    // Points engine: the meter now tracks POINTS, not a raw benchmark count,
+    // so a 50-pt portfolio moves the bar 25x more than a 2-pt checkpoint.
     const doneCountFor = (nm) => {
       const set = merged[nm] || new Set();
       let n = 0;
       PROJECTS.forEach(p => p.benchmarks.forEach(b => { if (set.has(b.id)) n++; }));
       return n;
     };
+    const ptsFor = (nm) => {
+      const set = merged[nm] || new Set();
+      let pts = 0;
+      PROJECTS.forEach(p => p.benchmarks.forEach(b => { if (set.has(b.id)) pts += (b.points || 0); }));
+      return pts;
+    };
+    // Rank by points earned, alphabetical tiebreak. "You" stays highlighted
+    // wherever you land.
     const studentNames = Array.from(allNames).sort((a, b) => {
-      const diff = doneCountFor(b) - doneCountFor(a);
+      const diff = ptsFor(b) - ptsFor(a);
       if (diff) return diff;
       return a.localeCompare(b, undefined, { sensitivity: 'base' });
     });
@@ -9422,21 +9580,22 @@
       const done = merged[name] || new Set();
       let ownDone = 0;
       PROJECTS.forEach(p => p.benchmarks.forEach(b => { if (done.has(b.id)) ownDone++; }));
+      const ownPts = ptsFor(name);
       const isMe = myName && name.toLowerCase() === myName.toLowerCase();
       // Competition rank: 1 + students strictly ahead (ties share a rank).
       // Shown as a quiet numeral once a student has any work in — no medals,
       // no color coding, just the number.
-      const rank = studentNames.filter(n => doneCountFor(n) > ownDone).length + 1;
+      const rank = studentNames.filter(n => ptsFor(n) > ownPts).length + 1;
 
-      const pct = totalBench ? Math.round(ownDone / totalBench * 100) : 0;
+      const pct = totalPts ? Math.round(ownPts / totalPts * 100) : 0;
       html += `<article class="prog-card${isMe ? ' is-you' : ''}">
         <header class="prog-card-head">
           <div class="prog-card-head-left">
             ${ownDone > 0 ? `<span class="prog-card-rank" title="Rank ${rank}">${rank}</span>` : ''}
             <h3 class="prog-card-name">${escapeHtml(name)}${isMe ? '<span class="prog-card-you">You</span>' : ''}</h3>
           </div>
-          <div class="prog-card-meter" title="${ownDone} of ${totalBench} benchmarks complete">
-            <span class="prog-card-meter-num">${ownDone}<span class="prog-card-meter-den"> / ${totalBench}</span></span>
+          <div class="prog-card-meter" title="${ownPts} of ${totalPts} points earned · ${ownDone} of ${totalBench} benchmarks submitted">
+            <span class="prog-card-meter-num">${ownPts}<span class="prog-card-meter-den"> / ${totalPts} pts</span></span>
             <span class="prog-card-meter-bar"><i style="width:${_progFirstPaint ? 0 : pct}%" data-pct="${pct}"></i></span>
           </div>
         </header>
@@ -9518,6 +9677,38 @@
     });
   }
 
+  // ---- Benchmark → tool round-trip ----
+  // When a tool is launched from inside a benchmark modal, the history entry
+  // carries the benchmark id. The tool's back button then reads
+  // "Back to <benchmark>" and returns straight into that modal; launched any
+  // other way, it stays "Back to Tools". Browser Back works too (popstate
+  // reopens ?b= deep links).
+  function toolBackTarget() {
+    try {
+      const s = history.state;
+      if (s && s.fromBench) return findBenchmarkById(s.fromBench);
+    } catch (_) {}
+    return null;
+  }
+  function wireToolBackButton(btn) {
+    if (!btn) return;
+    const bench = toolBackTarget();
+    if (bench) {
+      btn.innerHTML = `<span class="schem-back-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></span> Back to ${escapeHtml(bench.title)}`;
+      btn.setAttribute('aria-label', `Back to ${bench.title}`);
+    }
+    btn.addEventListener('click', () => {
+      if (bench) {
+        history.pushState({}, '', '/?b=' + encodeURIComponent(bench.id));
+        applyRoute('/');
+        openModal(bench);
+      } else {
+        history.pushState({}, '', '/tools');
+        applyRoute('/tools');
+      }
+    });
+  }
+
   function toggleChecked(id, row, cb) {
     if (checked.has(id)) {
       checked.delete(id);
@@ -9531,6 +9722,8 @@
       cb.setAttribute('aria-checked', 'true');
     }
     persist();
+    renderUpNext();
+    updateProjMeters();
   }
 
   // Auto-check a benchmark after a successful submission. Idempotent —
@@ -9546,6 +9739,8 @@
     }
     if (row) row.classList.add('done');
     persist();
+    renderUpNext();
+    updateProjMeters();
   }
 
   // ============== MODAL ==============
@@ -9791,13 +9986,17 @@
       a.addEventListener('click', (e) => {
         e.preventDefault();
         const tool = a.getAttribute('data-tool-link');
-        closeModal();
         const path = tool === 'vibe' ? '/tools/vibe'
           : tool === 'idea-board' ? '/tools/idea-board'
           : '/tools/schematic';
         if (typeof applyRoute === 'function') {
-          history.pushState({}, '', path);
+          // Push the tool URL BEFORE closing the modal: applyRoute closes it
+          // itself, and closing it early would strip ?b= from the history
+          // entry the browser Back button needs to return to.
+          history.pushState({ fromBench: b.id }, '', path);
           applyRoute(path);
+        } else {
+          closeModal();
         }
       });
     });
@@ -11034,12 +11233,21 @@
           );
         }
 
-        await addDoc(collection(db, 'portfolios'), {
+        // One doc per student per benchmark (same pattern as the Instructable):
+        // resubmits merge into the same doc instead of fragmenting the 50-pt
+        // portfolio across multiple gallery rows. Only filled slots are
+        // written, so a later session adds slots without nulling earlier
+        // ones; deleted:false makes a genuine resubmit visible again.
+        const filledSlots = {};
+        Object.keys(finalSlots).forEach(k => { if (finalSlots[k]) filledSlots[k] = finalSlots[k]; });
+        await setDoc(doc(db, 'portfolios', `${benchmarkId}__${nameSlug(name)}`), {
           benchmarkId,
           studentName: name,
+          nameSlug: nameSlug(name),
           createdAt: serverTimestamp(),
-          slots: finalSlots
-        });
+          deleted: false,
+          slots: filledSlots
+        }, { merge: true });
 
         // Reset state ONLY for slots that successfully uploaded. Keep failed
         // slots in state so the student can retry them.
@@ -13268,10 +13476,7 @@ void loop() {
       }));
     }
 
-    document.getElementById('vibeBack').addEventListener('click', () => {
-      history.pushState({}, '', '/tools');
-      applyRoute('/tools');
-    });
+    wireToolBackButton(document.getElementById('vibeBack'));
 
     // Pre-warm the compile function so the first Verify of the period doesn't
     // eat the serverless cold start. Fire-and-forget.
@@ -14985,12 +15190,7 @@ void loop() {
     `;
     app.appendChild(wrap);
 
-    document.getElementById('ideaBack').addEventListener('click', () => {
-      if (typeof history !== 'undefined' && typeof applyRoute === 'function') {
-        history.pushState({}, '', '/tools');
-        applyRoute('/tools');
-      }
-    });
+    wireToolBackButton(document.getElementById('ideaBack'));
 
     // Identity strip — switching students reloads their saved board.
     const idEl = wrap.querySelector('[data-idea-identity]');
@@ -16022,7 +16222,19 @@ void loop() {
     if (location.pathname + location.search !== href) history.pushState({}, '', href);
     applyRoute(href);
   });
-  window.addEventListener('popstate', () => applyRoute(location.pathname));
+  window.addEventListener('popstate', () => {
+    applyRoute(location.pathname);
+    // Re-open a benchmark/homework deep link so Back from a tool lands the
+    // student inside the modal they came from, not on a bare home list.
+    try {
+      const bid = new URLSearchParams(location.search).get('b');
+      if (!bid) return;
+      const bench = findBenchmarkById(bid);
+      const hw = !bench && HOMEWORK.find(w => w.id === bid);
+      if (bench) openModal(bench);
+      else if (hw) openHomeworkModal(hw);
+    } catch (_) {}
+  });
 
   // ---- Stale-tab guard ----
   // The app is a single-page app: navigating inside it never re-downloads
@@ -16097,6 +16309,8 @@ void loop() {
         const row = cb.closest('.benchmark, .capstone-card, .vid-card');
         if (row) row.classList.toggle('done', on);
       });
+      renderUpNext();
+      updateProjMeters();
     } catch (_) {}
   });
 
