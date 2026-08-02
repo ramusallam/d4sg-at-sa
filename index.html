@@ -1267,7 +1267,8 @@
      surface. Rendered as a ghost text link with a small doc icon, tucked
      ahead of the nav pills and separated by a thin divider so the eye
      reads it as "context, not a destination". */
-  .nav-syllabus {
+  .nav-syllabus,
+  .nav-exhibit {
     background: transparent !important;
     border: none !important;
     color: var(--ink-low);
@@ -1278,18 +1279,24 @@
     font-size: 12px;
     font-weight: 500;
     font-style: italic;
-    margin-right: 12px;
-    border-right: 1px solid var(--border) !important;
     gap: 6px;
   }
-  .nav-syllabus svg { opacity: 0.7; transition: opacity 0.15s ease; }
-  .nav-syllabus:hover {
+  .nav-syllabus {
+    margin-right: 12px;
+    border-right: 1px solid var(--border) !important;
+  }
+  .nav-exhibit { padding-right: 10px; }
+  .nav-syllabus svg,
+  .nav-exhibit svg { opacity: 0.7; transition: opacity 0.15s ease; }
+  .nav-syllabus:hover,
+  .nav-exhibit:hover {
     background: transparent !important;
     color: var(--accent) !important;
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  .nav-syllabus:hover svg { opacity: 1; }
+  .nav-syllabus:hover svg,
+  .nav-exhibit:hover svg { opacity: 1; }
   body.view-syllabus .nav-syllabus {
     color: var(--accent) !important;
     text-decoration: underline;
@@ -5402,79 +5409,6 @@
   }
   @keyframes spin360 { to { transform: rotate(360deg); } }
 
-  /* Top-of-home entry to the Exhibit — a compact, gallery-style doorway.
-     Quiet by default (hairline pill, faint indigo wash, small-caps label) so
-     it never competes with the header's syllabus link; it blooms softly on
-     hover so it stays discoverable and clearly clickable. */
-  .exhibit-topentry {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    width: fit-content;
-    max-width: 100%;
-    margin: 2px 0 30px;
-    padding: 8px 15px 8px 12px;
-    background: linear-gradient(180deg, rgba(99,102,241,0.055), rgba(99,102,241,0.02));
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    text-decoration: none;
-    text-transform: none;
-    letter-spacing: normal;
-    font-weight: 400;
-    box-shadow: 0 1px 0 rgba(15,23,42,0.02);
-    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background .2s ease;
-  }
-  .exhibit-topentry:hover {
-    background: linear-gradient(180deg, rgba(99,102,241,0.10), rgba(99,102,241,0.04));
-    border-color: rgba(99, 102, 241, 0.32);
-    box-shadow: 0 8px 20px -12px rgba(99,102,241,0.55);
-  }
-  .exhibit-topentry .et-spark {
-    color: var(--accent);
-    display: inline-flex;
-    flex: 0 0 auto;
-    filter: drop-shadow(0 0 5px rgba(99,102,241,0.28));
-    transition: transform .3s ease;
-  }
-  .exhibit-topentry .et-text {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 9px;
-    min-width: 0;
-  }
-  .exhibit-topentry .et-title {
-    font-size: 11.5px;
-    font-weight: 600;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--ink-hi);
-  }
-  .exhibit-topentry .et-sub {
-    font-size: 12.5px;
-    color: var(--ink-mid);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .exhibit-topentry .et-sub::before {
-    content: '';
-    display: inline-block;
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: var(--border);
-    vertical-align: middle;
-    margin-right: 9px;
-  }
-  .exhibit-topentry .et-arrow {
-    color: var(--accent);
-    display: inline-flex;
-    flex: 0 0 auto;
-    opacity: .7;
-    transition: transform .2s ease, opacity .2s ease;
-  }
-  .exhibit-topentry:hover .et-arrow { transform: translateX(3px); opacity: 1; }
-
 
   /* Exhibit page hero */
   .exhibit-back {
@@ -5749,6 +5683,12 @@
   <div class="header-inner">
     <h1 class="header-title"><a href="/" class="header-title-link">D4SG <span class="at">@</span> SA</a></h1>
     <div class="header-meta">
+      <a href="/exhibit" class="nav-link nav-exhibit" title="See what past students built">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        <span>Exhibit</span>
+      </a>
       <a href="/syllabus" class="nav-link nav-syllabus nav-to-syllabus" title="Course syllabus">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/>
@@ -5870,6 +5810,14 @@
       a.localeCompare(b, undefined, { sensitivity: 'base' })
     );
     _liveRoster = merged;
+    // A remembered last pick that's no longer on the roster (retired seed
+    // names, purged test students) must not resurrect through pickers.
+    try {
+      const stored = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
+      if (stored && !merged.some(n => n.toLowerCase() === stored.toLowerCase())) {
+        localStorage.removeItem(LAST_PICK_KEY);
+      }
+    } catch (_) {}
     _rosterSubs.forEach(cb => { try { cb(_liveRoster); } catch (e) {} });
   }
   onSnapshot(collection(db, 'students'), (snap) => {
@@ -5937,7 +5885,7 @@
     {
       id: 'p0',
       title: 'Project 0: Meet the Mission',
-      goal: '**Goal:** Meet five people whose lives change when a switch fits them, and reflect on each of their stories.',
+      goal: '**Goal:** Meet five people whose lives change when a switch fits them.',
       kind: 'videos',
       benchmarks: [
         {
@@ -5995,7 +5943,7 @@
     {
       id: 'p1',
       title: 'Project 1: Basic Adaptive Switches',
-      goal: '**Goal:** Build your first adaptive switches, ones anyone can press, lift, or trigger, wired to an Arduino on a breadboard.',
+      goal: '**Goal:** Build your first switches and wire them to an Arduino on a breadboard.',
       benchmarks: [
         {
           id: 'p1b1',
@@ -6098,7 +6046,7 @@
     {
       id: 'p2',
       title: 'Project 2: No-Force Sensors',
-      goal: '**Goal:** Add no-force sensors to your controller, inputs that answer a light touch or a nearby motion instead of a press.',
+      goal: '**Goal:** Add no-force sensors that answer a light touch or a nearby motion.',
       benchmarks: [
         {
           id: 'p2b1',
@@ -6203,7 +6151,7 @@
     {
       id: 'p3',
       title: 'Project 3: Hands-Free Controls',
-      goal: '**Goal:** Add hands-free inputs to your controller, ones an end user steers with their mouth, chin, and breath.',
+      goal: '**Goal:** Add hands-free inputs steered by mouth, chin, and breath.',
       benchmarks: [
         {
           id: 'p3b1',
@@ -6307,7 +6255,7 @@
     {
       id: 'p4',
       title: 'Project 4: Adaptive Controller Hub',
-      goal: '**Goal:** Combine everything into one 3D-printed adaptive hub with plug-in ports and a remap app, ready for any end user.',
+      goal: '**Goal:** Combine everything into one 3D-printed hub any end user can plug into.',
       benchmarks: [
         {
           id: 'p4b1',
@@ -6400,7 +6348,7 @@
     {
       id: 'final',
       title: 'Final Project: Instructable',
-      goal: '**Goal:** Publish your finished controller to Instructables so anyone in the world can build one from your work.',
+      goal: '**Goal:** Publish your finished controller to Instructables for the world to build.',
       benchmarks: [
         {
           id: 'instructable',
@@ -6588,18 +6536,6 @@
 
   function renderProjects() {
     app.innerHTML = '';
-
-    // Quiet top-of-home doorway to the Exhibit — one slim accent band above the
-    // projects so the wall of past work is reachable up top, not just below.
-    const topEntry = document.createElement('a');
-    topEntry.href = '/exhibit';
-    topEntry.className = 'exhibit-topentry nav-link';
-    topEntry.innerHTML = `
-      <span class="et-spark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
-      <span class="et-text"><span class="et-title">Exhibit</span><span class="et-sub">See what past students built</span></span>
-      <span class="et-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-    `;
-    app.appendChild(topEntry);
 
     PROJECTS.forEach(project => {
       // Single-benchmark projects (like the Final/Instructable) collapse into
