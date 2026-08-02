@@ -5831,16 +5831,25 @@
   // through the "+ I'm new — add me" flow (stored in the `students` Firestore
   // collection). Tell Claude "add Carla F." to grow this list.
   const ROSTER = [
-    'Maya R.',
-    'James T.',
-    'Aisha K.',
-    'Diego M.',
-    'Sophia L.',
-    'Noah W.',
-    'Priya S.',
-    'Ethan H.',
-    'Zara B.',
-    'Liam C.',
+    'Aidan A.',
+    'Atticus M.',
+    'Calvin S.',
+    'Charlotte P.',
+    'Clara H.',
+    'Derek D.',
+    'Jacob M.',
+    'Josephine H.',
+    'Kenny H.',
+    'Liam D.',
+    'Lucca M.',
+    'Lukas L.',
+    'Luke B.',
+    'Lulu K.',
+    'Marie W.',
+    'Miles C.',
+    'Oliver B.',
+    'Theo S.',
+    'Troy P.',
   ];
   const LAST_PICK_KEY = 'd4sg-last-pick-v1';
   // "Maya R." → "maya-r", used as a stable id in Firestore doc paths.
@@ -5871,7 +5880,7 @@
     const fromFirestore = [];
     snap.forEach(d => {
       const v = d.data();
-      if (v && typeof v.name === 'string' && v.name.trim()) fromFirestore.push(v.name.trim());
+      if (v && !v.deleted && typeof v.name === 'string' && v.name.trim()) fromFirestore.push(v.name.trim());
     });
     _setLiveRoster(fromFirestore);
   });
@@ -5932,7 +5941,7 @@
     {
       id: 'p0',
       title: 'Project 0: Meet the Mission',
-      goal: 'Meet five people whose lives change when a switch fits them.',
+      goal: '**Goal:** Meet five people whose lives change when a switch fits them, and reflect on each of their stories.',
       kind: 'videos',
       benchmarks: [
         {
@@ -5990,7 +5999,7 @@
     {
       id: 'p1',
       title: 'Project 1: Basic Adaptive Switches',
-      goal: 'Build your first switches - ones anyone can press, lift, or trigger. You will wire them to an Arduino (a small programmable circuit board) on a breadboard (a plug-in board for building circuits without solder), and you will keep adding to this same setup through Projects 2-4.',
+      goal: '**Goal:** Build your first adaptive switches, ones anyone can press, lift, or trigger, wired to an Arduino on a breadboard.',
       benchmarks: [
         {
           id: 'p1b1',
@@ -6093,7 +6102,7 @@
     {
       id: 'p2',
       title: 'Project 2: No-Force Sensors',
-      goal: 'Extend the controller you started in Project 1 to people with the smallest, lowest-force movements - sensors that answer a light touch or a nearby motion instead of a press. Same Arduino, same growing breadboard, new no-force inputs added alongside what you already built.',
+      goal: '**Goal:** Add no-force sensors to your controller, inputs that answer a light touch or a nearby motion instead of a press.',
       benchmarks: [
         {
           id: 'p2b1',
@@ -6198,7 +6207,7 @@
     {
       id: 'p3',
       title: 'Project 3: Hands-Free Controls',
-      goal: 'Extend your controller again, this time for people with no use of their hands - inputs they steer with their mouth, chin, and breath. Still the same Arduino, still the same growing breadboard, now ready to be integrated as one adaptive hub in Project 4.',
+      goal: '**Goal:** Add hands-free inputs to your controller, ones an end user steers with their mouth, chin, and breath.',
       benchmarks: [
         {
           id: 'p3b1',
@@ -6302,7 +6311,7 @@
     {
       id: 'p4',
       title: 'Project 4: Adaptive Controller Hub',
-      goal: 'Build a universal adaptive controller hub. A 3D-printed enclosure holds the Arduino and a soldered perfboard (a board you solder onto - a permanent breadboard), with a row of **3.5mm jacks** (headphone-style plugs for switches) and a row of **JST-XH connectors** (small keyed plugs for sensors). The hub is built once, but it serves every end-user you designed for across Projects 1-3. Each person\'s setup plugs into the ports that fit their inputs. A remap app, opened from a QR code on the hub, lets each end-user test and remap their own ports.',
+      goal: '**Goal:** Combine everything into one 3D-printed adaptive hub with plug-in ports and a remap app, ready for any end user.',
       benchmarks: [
         {
           id: 'p4b1',
@@ -6395,7 +6404,7 @@
     {
       id: 'final',
       title: 'Final Project: Instructable',
-      goal: 'Publish your finished controller to Instructables so the world can build from your work.',
+      goal: '**Goal:** Publish your finished controller to Instructables so anyone in the world can build one from your work.',
       benchmarks: [
         {
           id: 'instructable',
