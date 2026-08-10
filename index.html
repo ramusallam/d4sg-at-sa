@@ -415,18 +415,33 @@
     gap: 10px;
   }
 
-  .benchmark {
-    display: flex;
-    align-items: center;
+  /* Home page: benchmarks render as a 5-across card grid (same card language
+     as the Homework week cards and Tools cards). The archive view still uses
+     the plain .benchmarks column stack above. */
+  .benchmark-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 16px;
-    padding: 14px 18px;
+  }
+  @media (max-width: 760px) {
+    .benchmark-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  }
+
+  .benchmark {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 26px 14px 18px;
     background: var(--bg-1);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 16px;
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.2s ease;
     user-select: none;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
   }
   /* No positional movement on hover/press. The card used to lift on hover and
      bob on click, which read as a "shake" right before the benchmark opened.
@@ -434,7 +449,16 @@
      just click-and-go. */
   .benchmark:hover {
     border-color: var(--accent);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  }
+  .benchmark.done {
+    background: rgba(16, 185, 129, 0.06);
+    border-color: rgba(16, 185, 129, 0.35);
+  }
+  .benchmark .checkbox {
+    position: absolute;
+    top: 10px;
+    right: 10px;
   }
 
   .checkbox {
@@ -467,28 +491,31 @@
   }
 
   .benchmark-num {
-    flex-shrink: 0;
-    width: 22px;
-    text-align: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-low);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0.5px;
   }
-  .benchmark.done .benchmark-num { color: var(--ink-low); opacity: 0.5; }
+  .benchmark.done .benchmark-num { color: var(--success); }
 
   .benchmark-label {
-    flex: 1;
-    font-size: clamp(15px, 1.6vw, 17px);
-    font-weight: 500;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     color: var(--ink-hi);
-    line-height: 1.45;
+    line-height: 1.3;
   }
   .benchmark.done .benchmark-label {
-    color: var(--ink-low);
-    text-decoration: line-through;
-    text-decoration-color: rgba(107, 114, 128, 0.5);
+    color: var(--ink-mid);
+  }
+
+  .benchmark-foot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
   }
 
   .points {
@@ -6636,9 +6663,9 @@
       projEl.innerHTML = `
         ${isStandalone ? '' : `<h2 class="project-title">${escapeHtml(project.title)}<span class="proj-meter" data-proj-meter="${project.id}"></span></h2>`}
         ${project.goal ? `<p class="project-blurb">${formatStepMarkup(project.goal)}</p>` : ''}
-        <div class="benchmarks"></div>
+        <div class="benchmark-grid"></div>
       `;
-      const benchEl = projEl.querySelector('.benchmarks');
+      const benchEl = projEl.querySelector('.benchmark-grid');
       project.benchmarks.forEach((b, idx) => {
         const isChecked = checked.has(b.id);
         const labelText = isStandalone ? project.title : b.title;
@@ -6649,8 +6676,10 @@
           <div class="checkbox ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" tabindex="0"></div>
           ${isStandalone ? '' : `<div class="benchmark-num">${idx + 1}</div>`}
           <div class="benchmark-label">${escapeHtml(labelText)}</div>
-          <span class="artifact-count" data-count="${b.id}" style="display:none;">${PAPERCLIP_SVG}<span data-count-num>0</span></span>
-          <div class="points">${b.points} pts</div>
+          <div class="benchmark-foot">
+            <div class="points">${b.points} pts</div>
+            <span class="artifact-count" data-count="${b.id}" style="display:none;">${PAPERCLIP_SVG}<span data-count-num>0</span></span>
+          </div>
         `;
         // open modal on click of row (not checkbox)
         row.addEventListener('click', (e) => {
