@@ -431,10 +431,11 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
     gap: 6px;
-    padding: 26px 14px 18px;
+    padding: 18px 18px 16px;
+    min-height: 128px;
     background: var(--bg-1);
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -457,8 +458,20 @@
   }
   .benchmark .checkbox {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 14px;
+    right: 14px;
+    width: 20px;
+    height: 20px;
+    border-width: 1.5px;
+    border-color: var(--border);
+    border-radius: 7px;
+  }
+  .benchmark .checkbox:hover { border-color: var(--accent-hover); }
+  .benchmark .checkbox.checked { border-color: var(--success); }
+  .benchmark .checkbox.checked::after {
+    width: 5px;
+    height: 9px;
+    transform: rotate(45deg) translate(-1px, -1px);
   }
 
   .checkbox {
@@ -500,7 +513,7 @@
   .benchmark.done .benchmark-num { color: var(--success); }
 
   .benchmark-label {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--ink-hi);
@@ -513,9 +526,20 @@
   .benchmark-foot {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 8px;
-    margin-top: 4px;
+    margin-top: auto;
+    padding-top: 10px;
+  }
+  /* Quiet footer text, not a pill — the bordered chip read as clutter at 25 cards. */
+  .benchmark .points {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-low);
   }
 
   .points {
@@ -6674,7 +6698,7 @@
         row.dataset.id = b.id;
         row.innerHTML = `
           <div class="checkbox ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" tabindex="0"></div>
-          ${isStandalone ? '' : `<div class="benchmark-num">${idx + 1}</div>`}
+          ${isStandalone ? '' : `<div class="benchmark-num">${String(idx + 1).padStart(2, '0')}</div>`}
           <div class="benchmark-label">${escapeHtml(labelText)}</div>
           <div class="benchmark-foot">
             <div class="points">${b.points} pts</div>
