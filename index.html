@@ -179,14 +179,6 @@
     border-color: rgba(99, 102, 241, 0.55);
     background: rgba(99, 102, 241, 0.05);
   }
-  .capstone-eyebrow {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 5px;
-  }
   .capstone-check {
     position: absolute;
     top: 22px;
@@ -233,19 +225,12 @@
     background: var(--accent-soft);
   }
   .capstone-title {
-    margin: 2px 0 6px;
+    margin: 0;
     font-size: clamp(20px, 2.4vw, 26px);
     font-weight: 800;
     letter-spacing: -0.02em;
     color: var(--ink-hi);
     line-height: 1.15;
-  }
-  .capstone-goal {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.55;
-    color: var(--ink-mid);
-    white-space: nowrap;
   }
   .capstone-footer {
     display: flex;
@@ -275,9 +260,6 @@
   }
   .capstone-arrow { transition: transform 0.18s ease; }
   .capstone-card:hover .capstone-arrow { transform: translateX(4px); }
-  @media (max-width: 900px) {
-    .capstone-goal { white-space: normal; }
-  }
   @media (max-width: 640px) {
     .capstone-card { padding: 22px 20px; }
     .capstone-footer { flex-wrap: wrap; }
@@ -435,7 +417,7 @@
     text-align: left;
     gap: 6px;
     padding: 18px 18px 16px;
-    min-height: 128px;
+    min-height: 100px;
     background: var(--bg-1);
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -523,23 +505,14 @@
     color: var(--ink-mid);
   }
 
+  /* Footer holds only the paperclip submission count (hidden until work
+     exists). Points live in the benchmark modal — repeating "2 pts" across
+     25 cards was noise. */
   .benchmark-foot {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-top: auto;
-    padding-top: 10px;
-  }
-  /* Quiet footer text, not a pill — the bordered chip read as clutter at 25 cards. */
-  .benchmark .points {
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--ink-low);
   }
 
   .points {
@@ -6645,6 +6618,14 @@
         const b = project.benchmarks[0];
         const isChecked = checked.has(b.id);
         const card = document.createElement('div');
+        // Section header + goal sit ABOVE the card, mirroring every other
+        // project section, so the Final reads as its own chapter instead of
+        // hanging off Project 4's grid. "Final Project" comes from the part
+        // of the title before the colon; the card itself carries the name.
+        projEl.innerHTML = `
+          <h2 class="project-title">${escapeHtml(project.title.split(':')[0].trim())}</h2>
+          ${project.goal ? `<p class="project-blurb">${formatStepMarkup(project.goal)}</p>` : ''}
+        `;
         card.className = 'capstone-card' + (isChecked ? ' done' : '');
         card.dataset.id = b.id;
         card.innerHTML = `
@@ -6657,9 +6638,7 @@
               </svg>
             </div>
             <div class="capstone-text">
-              <div class="capstone-eyebrow">Final Project</div>
-              <h2 class="capstone-title">${escapeHtml(b.title)}</h2>
-              ${project.goal ? `<p class="capstone-goal">${formatStepMarkup(project.goal)}</p>` : ''}
+              <h3 class="capstone-title">${escapeHtml(b.title)}</h3>
             </div>
           </div>
           <div class="capstone-footer">
@@ -6701,7 +6680,6 @@
           ${isStandalone ? '' : `<div class="benchmark-num">${String(idx + 1).padStart(2, '0')}</div>`}
           <div class="benchmark-label">${escapeHtml(labelText)}</div>
           <div class="benchmark-foot">
-            <div class="points">${b.points} pts</div>
             <span class="artifact-count" data-count="${b.id}" style="display:none;">${PAPERCLIP_SVG}<span data-count-num>0</span></span>
           </div>
         `;
