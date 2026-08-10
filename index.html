@@ -1867,10 +1867,12 @@
   /* ============== HOMEWORK page ============== */
   /* Week cards mirror the Tools-page card language (same bg/border/hover)
      so the hub reads as one system; the week number is the visual anchor. */
+  /* Week cards share the benchmark-card anatomy exactly: left-aligned,
+     accent eyebrow + bold value, same padding/height/hover chrome. */
   .hw-week-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 20px;
+    gap: 16px;
     margin-bottom: 36px;
   }
   @media (max-width: 760px) {
@@ -1881,13 +1883,15 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
-    padding: 30px 16px 26px;
+    padding: 18px 18px 16px;
+    min-height: 100px;
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 8px;
+    align-items: flex-start;
+    text-align: left;
+    gap: 6px;
   }
   .hw-card:hover {
     border-color: var(--accent);
@@ -1901,9 +1905,9 @@
     color: var(--accent);
   }
   .hw-card-num {
-    font-size: 42px;
+    font-size: 24px;
     font-weight: 800;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
     line-height: 1;
     color: var(--ink-hi);
   }
