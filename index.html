@@ -156,8 +156,7 @@
   }
 
   /* Final Project — the "Final Project: Instructable" capstone hero.
-     Shares the indigo accent palette and finish-flag glyph with the Progress
-     page's final pip so the two read as the same milestone across the app. */
+     Indigo accent + finish-flag glyph mark it as the course milestone. */
   .project.is-standalone {
     margin-top: 40px;
   }
@@ -513,18 +512,6 @@
     align-items: center;
     gap: 8px;
     margin-top: auto;
-  }
-
-  .points {
-    flex-shrink: 0;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-mid);
-    background: var(--bg-2);
-    padding: 6px 12px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    font-variant-numeric: tabular-nums;
   }
 
   /* ============== MODAL ============== */
@@ -3504,7 +3491,6 @@
     .header-inner { padding: 14px 18px; gap: 8px; flex-wrap: wrap; }
     main { padding: 28px 20px 80px; }
     .benchmark { padding: 14px 16px; gap: 12px; }
-    .points { font-size: 12px; padding: 4px 10px; }
     .artifact-count { font-size: 11px; padding: 4px 8px; }
     .modal {
       width: 100vw;
@@ -6447,17 +6433,17 @@
       <div class="tools-grid">
         <div class="tool-card" id="toolCardVibe">
           <h3 class="tool-card-title">Vibe Coding</h3>
-          <p class="tool-card-blurb">Talk to AI to draft Arduino code, then push it into a built-in editor. Connect your Leonardo or Micro and watch live serial output as your sketch runs.</p>
+          <p class="tool-card-blurb">Describe what your controller should do, and AI writes the Arduino code you can test on your board.</p>
           <div class="tool-card-footer">Open</div>
         </div>
         <div class="tool-card" id="toolCardSchematic">
           <h3 class="tool-card-title">Wiring Schematic</h3>
-          <p class="tool-card-blurb">Map your breadboard or perfboard wiring before you build. Drop in your Arduino, switches, joystick, LEDs, then click pin to pin to draw color-coded wires. Save a clean schematic for your portfolio.</p>
+          <p class="tool-card-blurb">Draw your Arduino wiring pin to pin, then save the diagram to a benchmark or your Portfolio.</p>
           <div class="tool-card-footer">Open</div>
         </div>
         <div class="tool-card" id="toolCardIdea">
           <h3 class="tool-card-title">Idea Board</h3>
-          <p class="tool-card-blurb">Sketch your prototype before you build it. Draw freely, then stamp in real components - switches, sensors, jacks, LEDs - and save the sketch straight to a benchmark or your Portfolio.</p>
+          <p class="tool-card-blurb">Sketch your prototype with real components - switches, sensors, jacks, LEDs - and save it to a benchmark or your Portfolio.</p>
           <div class="tool-card-footer">Open</div>
         </div>
       </div>
@@ -7120,6 +7106,10 @@
   // Called when the student switches names in the identity strip. Reloads the
   // canvas from whichever slot now matches.
   async function schemSwitchStudent() {
+    // The undo stack holds the PREVIOUS student's snapshots — an undo after
+    // the switch would restore their board and save it into the new student's
+    // slot (localStorage + cloud draft). Never carry history across students.
+    _schemHistory.length = 0;
     await schemHydrateFromCloud();
     try {
       _schemState = schemLoad();
@@ -7232,6 +7222,7 @@
 
   function initSchematicTool() {
     _schemState = schemLoad();
+    _schemHistory.length = 0;
     _schemPendingPin = null;
     _schemDrag = null;
     _schemSelected = null;
@@ -7335,6 +7326,10 @@
       const tag = (e.target && e.target.tagName) || '';
       if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
       if (!document.getElementById('schemCanvasWrap')) return;
+      // The Save-to flow opens the benchmark modal OVER the still-mounted
+      // canvas. A Backspace/R pressed in the modal must never edit (and
+      // silently save) the board hidden behind it.
+      if (modal && modal.classList.contains('open')) return;
 
       if (e.key === 'Escape') {
         // Cancel an in-progress wire and drop any selection.
@@ -7360,7 +7355,7 @@
       const key = e.key;
       if ((key === 'r' || key === 'R') && _schemSelected) {
         const c = _schemState.components.find(x => x.id === _schemSelected);
-        if (!c || c.type === 'perfboard') return;
+        if (!c || _isResizableBoard(c)) return; // boards (perfboard, breadboard) don't rotate
         e.preventDefault();
         pushSchemHistory();
         c.rotation = ((c.rotation || 0) + 90) % 360;
@@ -7416,7 +7411,7 @@
         schemToast('Already empty.');
         return;
       }
-      if (!confirm('Clear the whole canvas? You can undo this with Cmd+Z.')) return;
+      if (!confirm('Clear the whole canvas? Undo brings it back.')) return;
       clearCanvas();
     });
 
@@ -8055,8 +8050,8 @@
       if (e.target.classList && e.target.classList.contains('schem-pin')) return;
       if (e.target.closest && (e.target.closest('.schem-resize-handle') || e.target.closest('.schem-move-handle') || e.target.closest('.schem-rotate-handle'))) return;
       if (e.button !== 0) return;
-      // Shift+click rotates 90 degrees clockwise (skip perfboard).
-      if (e.shiftKey && c.type !== 'perfboard') {
+      // Shift+click rotates 90 degrees clockwise (boards don't rotate).
+      if (e.shiftKey && !_isResizableBoard(c)) {
         e.preventDefault();
         e.stopPropagation();
         pushSchemHistory();
@@ -8588,6 +8583,11 @@
       if (snap) targetPinId = snap.pinId;
     }
     _schemSuppressNextPinClick = true;
+    // The flag exists only to swallow the synthetic click from THIS mouseup.
+    // That click often lands on an ancestor (or nowhere) instead of a pin —
+    // the pin handlers would then never consume the flag and the student's
+    // next real pin click would be silently eaten. Clear it after this tick.
+    setTimeout(() => { _schemSuppressNextPinClick = false; }, 0);
     if (targetPinId && targetPinId !== drag.fromPinId) {
       completeWire(drag.fromPinId, targetPinId);
     }
@@ -9098,8 +9098,8 @@
   // _focusStudent: when set, the next portfolio gallery render auto-expands the
   // row for that student name and scrolls it into view.
   let _focusStudent = null;
-  function openModal(b, opts = {}) {
-    _focusStudent = opts.focusStudent || null;
+  function openModal(b) {
+    _focusStudent = null; // reset per open; set only by the gallery's student-jump dropdown
     currentBenchmark = b;
     modalEyebrow.textContent = b.id === 'instructable' ? 'Final Project'
       : b.title === 'Portfolio' ? 'Portfolio'
@@ -11767,7 +11767,7 @@
 
     grid._pfKnownIds = newKnownIds;
 
-    // Deep-link from Progress page: auto-expand the targeted student's row
+    // Student jump (gallery dropdown): auto-expand the targeted student's row
     // and scroll the gallery into view. Consumes _focusStudent on success.
     if (!readOnly && _focusStudent) {
       const target = _focusStudent;
@@ -12789,7 +12789,7 @@ void loop() {
                 <button class="vibe-mini-btn" id="vibeMonitorClear">Clear</button>
               </div>
             </div>
-            <div class="vibe-monitor" id="vibeMonitor"><span class="vibe-monitor-empty">Click "Connect Arduino" above. Web Serial works in Chrome and Edge.</span></div>
+            <div class="vibe-monitor" id="vibeMonitor"><span class="vibe-monitor-empty">Serial output shows here once your board is connected.</span></div>
             <div class="vibe-monitor-send">
               <input type="text" id="vibeMonitorInput" class="vibe-monitor-input" placeholder="Send a line to the Arduino (e.g. set port 0 to space)" autocomplete="off" />
               <select id="vibeMonitorLineEnding" class="vibe-monitor-ending" title="Line ending">
@@ -12803,7 +12803,7 @@ void loop() {
           </div>
           <div class="vibe-status" id="vibeStatus">
             <span class="vibe-status-dot"></span>
-            <span class="vibe-status-text">Disconnected. Choose your Leonardo or Micro after clicking Connect Arduino.</span>
+            <span class="vibe-status-text">Disconnected. Click Connect Arduino and pick your Leonardo or Micro.</span>
           </div>
         </div>
       </div>
@@ -12896,7 +12896,7 @@ void loop() {
     document.getElementById('vibeDownloadPdf').addEventListener('click', async () => {
       const txt = vibeGetEditorText();
       if (!txt || !txt.trim()) {
-        schemToast('Editor is empty. Generate or paste code first.');
+        schemToast('Editor is empty. Click Build in the AI Assistant, or paste code, first.');
         return;
       }
       try {
@@ -12943,7 +12943,7 @@ void loop() {
       }
       const txt = vibeGetEditorText();
       if (!txt || !txt.trim()) {
-        schemToast('Editor is empty. Generate or paste code first.');
+        schemToast('Editor is empty. Click Build in the AI Assistant, or paste code, first.');
         return;
       }
       const buildBlob = () => vibeBuildPdfBlob();
@@ -13600,7 +13600,7 @@ void loop() {
   async function vibeVerifyCode(fromAutoFix) {
     const sketch = vibeGetEditorText();
     if (!sketch || !sketch.trim()) {
-      schemToast('Editor is empty. Generate or paste code first.', 2400);
+      schemToast('Editor is empty. Click Build in the AI Assistant, or paste code, first.', 2400);
       return;
     }
     const btn = document.getElementById('vibeVerify');
@@ -13723,7 +13723,7 @@ void loop() {
   async function vibeUploadToArduino() {
     const sketch = vibeGetEditorText();
     if (!sketch || !sketch.trim()) {
-      schemToast('Editor is empty. Generate or paste code first.', 2400);
+      schemToast('Editor is empty. Click Build in the AI Assistant, or paste code, first.', 2400);
       return;
     }
     if (!('serial' in navigator)) {
@@ -13743,12 +13743,15 @@ void loop() {
       if (!data.hex) {
         if (data.stderr) vibeMonitorLine(data.stderr.trimEnd(), 'err');
         vibeMonitorLine('[ ✗ Compile failed - fix errors above and try again ]', 'err');
+        vibeOfferFixButton(data.stderr || '');
         return;
       }
       hexText = data.hex;
     } catch (err) {
       vibeMonitorLine('[ Compile error: ' + (err.message || err) + ' ]', 'err');
-      if (!err || err.isInfra) {
+      if (err && err.isRateLimit) {
+        vibeMonitorLine("That's a daily compile limit, not a problem with your code. Try again later.", 'info');
+      } else if (!err || err.isInfra) {
         vibeMonitorLine("The compile server is offline or waking up right now. This is NOT a problem with your code. Wait about a minute and try again, or load an example from the Examples menu while you wait.", 'info');
       }
       return;
@@ -13867,7 +13870,7 @@ void loop() {
     }
 
     // Open at 1200 then close — that's the magic reset signal.
-    try {
+    const knock = async () => {
       await knockedPort.open({ baudRate: 1200 });
       // Toggle DTR low to make the reset more reliable on clone boards — the
       // 1200-baud open/close alone is flaky on some 32u4 clones. Harmless and
@@ -13876,9 +13879,21 @@ void loop() {
       // Tiny delay so the host sees the open before we close.
       await new Promise(r => setTimeout(r, 50));
       await knockedPort.close();
+    };
+    try {
+      await knock();
     } catch (err) {
-      // If the port was already closed by the disconnect above, that's fine.
-      if (!String(err).includes('closed')) {
+      const msg = String(err);
+      if (msg.includes('already open')) {
+        // A monitor teardown race can leave the port open — close and retry once.
+        try {
+          await knockedPort.close().catch(() => {});
+          await knock();
+        } catch (err2) {
+          throw new Error('Could not reset board: ' + (err2.message || err2));
+        }
+      } else if (!msg.includes('closed')) {
+        // If the port was already closed by the disconnect above, that's fine.
         throw new Error('Could not reset board: ' + (err.message || err));
       }
     }
@@ -13902,12 +13917,36 @@ void loop() {
         cleanup();
         resolve(p);
       };
+      let pickBtn = null;
       const cleanup = () => {
         navigator.serial.removeEventListener('connect', onConnect);
         clearInterval(poll);
         clearTimeout(coach);
         clearTimeout(coach2);
-        clearTimeout(timeout);
+        clearTimeout(giveUp);
+        if (pickBtn) { pickBtn.remove(); pickBtn = null; }
+      };
+      // Chrome only shows the serial-port picker during a real click (transient
+      // user activation). Calling requestPort() from a timer throws instantly —
+      // no picker ever appears — so the manual fallback must be a button.
+      const offerPicker = () => {
+        if (resolved || pickBtn) return;
+        const monitor = document.getElementById('vibeMonitor');
+        if (!monitor) return;
+        pickBtn = document.createElement('button');
+        pickBtn.type = 'button';
+        pickBtn.className = 'vibe-monitor-fix-btn';
+        pickBtn.textContent = "Choose the board's port";
+        pickBtn.addEventListener('click', async () => {
+          try {
+            const p = await navigator.serial.requestPort({});
+            if (!resolved) { resolved = true; cleanup(); resolve(p); }
+          } catch (_) { /* picker cancelled — keep waiting */ }
+        });
+        monitor.appendChild(document.createTextNode('\n'));
+        monitor.appendChild(pickBtn);
+        monitor.appendChild(document.createTextNode('\n'));
+        if (_vibeMonitorAutoScroll) monitor.scrollTop = monitor.scrollHeight;
       };
       // Poll getPorts() in parallel — 'connect' only fires for ports the
       // user previously authorized. On first upload the new bootloader VID/PID
@@ -13947,22 +13986,15 @@ void loop() {
       // ~8 seconds. This is THE recovery move for a board that "won't take code".
       const coach2 = setTimeout(() => {
         if (resolved) return;
-        vibeMonitorLine('Still nothing? Your board may be stuck on a bad sketch. Press RESET TWICE quickly (a fast double-tap), then wait - that forces it to accept new code.', 'info');
-        vibeSetStatus('connecting', 'Double-tap RESET on the board now, then wait a few seconds.');
+        vibeMonitorLine('Still nothing? Press RESET TWICE quickly (a fast double-tap), then click "Choose the board\'s port" below and pick the one named "bootloader".', 'info');
+        vibeSetStatus('connecting', 'Double-tap RESET, then use the port button below.');
+        offerPicker();
       }, 7000);
-      const timeout = setTimeout(async () => {
+      const giveUp = setTimeout(() => {
         if (resolved) return;
         cleanup();
-        // Last resort: ask the user to pick the bootloader port by hand. No VID
-        // filter here so clone boards (and the bootloader's own VID/PID) show up.
-        try {
-          vibeMonitorLine('Still waiting. Double-tap RESET on the board, then pick the port that appears (often "Arduino Leonardo bootloader").', 'info');
-          const p = await navigator.serial.requestPort({});
-          resolve(p);
-        } catch (e) {
-          reject(new Error('Board did not enter upload mode. Double-tap the RESET button on the Arduino, then press Upload again.'));
-        }
-      }, 22000);
+        reject(new Error('Board did not enter upload mode. Double-tap the RESET button on the Arduino, then press Upload again.'));
+      }, 60000);
     });
 
     // Caterina runs USB CDC; baud rate is ignored. 57600 is conventional.
@@ -14116,8 +14148,12 @@ void loop() {
         // VID/PID. Caterina's bootloader uses 0x0036/0x0037; sketches usually
         // use 0x8036/0x8037 or higher.
         return info.usbVendorId === ARDUINO_USB_VID && (info.usbProductId & 0x8000);
-      }) || ports.find(p => (p.getInfo() || {}).usbVendorId === ARDUINO_USB_VID);
-      if (!sketchPort) return;
+      }) || ports.find(p => isArduinoVid(p.getInfo() || {}));
+      if (!sketchPort) {
+        // Clone boards can re-enumerate with an unknown VID — never bail silently.
+        vibeMonitorLine('Click "Connect Arduino" above to watch Serial output.', 'dim');
+        return;
+      }
       const baud = parseInt(document.getElementById('vibeBaudRate').value, 10) || 9600;
       await sketchPort.open({ baudRate: baud });
       _vibeSerialPort = sketchPort;
@@ -14141,6 +14177,7 @@ void loop() {
 
   // ---- Web Serial ----
   let _vibeConnecting = false;
+  let _vibeSerialPipeDone = null;
   async function vibeConnectSerial() {
     const monitor = document.getElementById('vibeMonitor');
     if (!('serial' in navigator)) {
@@ -14164,7 +14201,7 @@ void loop() {
       vibeSetTooltip(btn, 'Disconnect Arduino');
       monitor.innerHTML = '';
       vibeAppendMonitor('[ connected at ' + baud + ' baud ]\n');
-      vibeSetStatus('connected', `Connected at ${baud} baud. Click Upload above to flash your sketch; output streams here.`);
+      vibeSetStatus('connected', `Connected. Click Upload to send your code to the board.`);
       vibeMonitorSetSendEnabled(true);
       vibeReadLoop();
     } catch (err) {
@@ -14180,7 +14217,7 @@ void loop() {
   async function vibeReadLoop() {
     if (!_vibeSerialPort) return;
     const decoder = new TextDecoderStream();
-    const inputDone = _vibeSerialPort.readable.pipeTo(decoder.writable).catch(() => {});
+    _vibeSerialPipeDone = _vibeSerialPort.readable.pipeTo(decoder.writable).catch(() => {});
     const reader = decoder.readable.getReader();
     _vibeSerialReader = reader;
     try {
@@ -14192,6 +14229,13 @@ void loop() {
     } catch (err) {
       vibeAppendMonitor('[ read error: ' + (err.message || err) + ' ]\n');
     }
+    // Loop ended while we still wanted to read = the board was unplugged or
+    // the cable got bumped. Reset the UI so "Connected" never lies, and say
+    // what to do next.
+    if (_vibeSerialKeepReading) {
+      await vibeDisconnectSerial();
+      vibeAppendMonitor('[ board disconnected - plug it back in and click Connect Arduino ]\n');
+    }
   }
 
   async function vibeDisconnectSerial() {
@@ -14200,6 +14244,14 @@ void loop() {
       if (_vibeSerialReader) {
         await _vibeSerialReader.cancel().catch(() => {});
         _vibeSerialReader = null;
+      }
+      // Wait for the readable→decoder pipe to fully release the port before
+      // closing. Closing while the stream is still locked rejects (silently,
+      // because of the catch) and leaves the port wedged open — which then
+      // breaks the next Upload's 1200-baud knock with "Could not reset board".
+      if (_vibeSerialPipeDone) {
+        await _vibeSerialPipeDone;
+        _vibeSerialPipeDone = null;
       }
       if (_vibeSerialPort) {
         await _vibeSerialPort.close().catch(() => {});
@@ -14213,7 +14265,7 @@ void loop() {
       vibeSetTooltip(btn, 'Connect Arduino');
     }
     vibeAppendMonitor('[ disconnected ]\n');
-    vibeSetStatus('disconnected', 'Disconnected. Choose your Leonardo or Micro after clicking Connect Arduino.');
+    vibeSetStatus('disconnected', 'Disconnected. Click Connect Arduino and pick your Leonardo or Micro.');
     vibeMonitorSetSendEnabled(false);
   }
 
@@ -14470,10 +14522,17 @@ void loop() {
       delete cleanAppState.resizingElement;
       delete cleanAppState.selectedElementIds;
       delete cleanAppState.activeEmbeddable;
+      // Never persist the pan: a wheel-scroll over the canvas pans the board,
+      // and a saved pan makes the next visit open on blank space — the student
+      // thinks their sketch is gone.
+      delete cleanAppState.scrollX;
+      delete cleanAppState.scrollY;
       const payload = JSON.stringify({ elements: elements || [], appState: cleanAppState });
       localStorage.setItem(ideaStorageKey(), payload);
       // Mirror to Firestore so the board follows the student to other laptops.
-      ideaMirrorDraftDebounced(payload);
+      // Capture the author NOW: a pending mirror that fires after a student
+      // switch must write to the board's author, not whoever is picked then.
+      ideaMirrorDraftDebounced(payload, (localStorage.getItem(LAST_PICK_KEY) || '').trim());
     } catch (err) {
       console.warn('Idea Board save failed', err);
     }
@@ -14481,8 +14540,7 @@ void loop() {
 
   // Debounced cloud mirror (matches the Vibe Coding pattern). Only runs if a
   // student name is picked; anonymous work stays local.
-  const ideaMirrorDraftDebounced = debounce((payload) => {
-    const name = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
+  const ideaMirrorDraftDebounced = debounce((payload, name) => {
     if (!name) return;
     try { saveDraft(name, 'idea-board', { ideaBoard: payload }); } catch (_) {}
   }, 1200);
@@ -14594,6 +14652,17 @@ void loop() {
     });
   }
 
+  // Pan is never persisted (see ideaSaveState), so always open a saved board
+  // with the sketch in view instead of wherever scroll 0,0 happens to land.
+  function ideaFitOnOpen(api) {
+    setTimeout(() => {
+      try {
+        const els = api.getSceneElements();
+        if (els && els.length) api.scrollToContent(els, { fitToContent: true });
+      } catch (_) {}
+    }, 60);
+  }
+
   function mountIdeaProBoard() {
     const container = document.getElementById('excalidrawRoot');
     if (!container) return;
@@ -14616,7 +14685,7 @@ void loop() {
       onChange: ideaOnChange,
       theme: 'light',
       name: 'D4SG Idea Board',
-      excalidrawAPI: (api) => { _ideaExcalApi = api; },
+      excalidrawAPI: (api) => { _ideaExcalApi = api; ideaFitOnOpen(api); },
       UIOptions: ideaUIOptions()
     };
 
@@ -15210,14 +15279,21 @@ void loop() {
     // World coordinates of the current viewport center.
     const centerWorldX = (vw / 2 - (appState.scrollX || 0) * zoom) / zoom;
     const centerWorldY = (vh / 2 - (appState.scrollY || 0) * zoom) / zoom;
-    // 5-wide grid, ~150px cells (stamps run 50-120px wide, so this leaves a gap).
-    const STEP = 150, PER_ROW = 5;
-    const i = _ideaDropCount % (PER_ROW * 4);   // wrap after a 5x4 block so the cascade stays near view
+    // Grid of ~150px cells (stamps run 50-120px wide, so this leaves a gap).
+    // Columns adapt to the visible width — on a half-screen window a fixed
+    // 5-wide grid would start off-canvas and clicks would "do nothing".
+    const STEP = 150;
+    const worldW = vw / zoom, worldH = vh / zoom;
+    const PER_ROW = Math.max(1, Math.min(5, Math.floor((worldW - 40) / STEP)));
+    const i = _ideaDropCount % (PER_ROW * 4);   // wrap so the cascade stays near view
     const col = i % PER_ROW;
     const row = Math.floor(i / PER_ROW);
-    // Start the block up-and-left of center so the grid fans out into view.
-    const baseX = centerWorldX - (PER_ROW * STEP) / 2 + 30;
-    const baseY = centerWorldY - 1.5 * STEP;
+    // Start the block up-and-left of center, clamped inside the visible world
+    // rect so every drop lands on-screen.
+    let baseX = centerWorldX - (PER_ROW * STEP) / 2 + 30;
+    let baseY = centerWorldY - 1.5 * STEP;
+    baseX = Math.max(baseX, centerWorldX - worldW / 2 + 20);
+    baseY = Math.max(baseY, centerWorldY - worldH / 2 + 20);
     const worldX = baseX + col * STEP + (Math.random() * 14 - 7);
     const worldY = baseY + row * STEP + (Math.random() * 14 - 7);
     _ideaDropCount++;
@@ -15231,6 +15307,11 @@ void loop() {
   // Re-mount with the new student's saved board when the identity strip changes.
   async function ideaProSwitchStudent() {
     if (!_ideaExcalRoot || !_ideaExcalReact || !_ideaExcalComp) return;
+    // A save scheduled by the PREVIOUS student's last edit would fire after
+    // the identity strip already points at the new student and misfile the old
+    // board into their slot. Drop it — the cloud mirror captures its author at
+    // schedule time, so the old student's work is safe in their own draft.
+    if (_ideaExcalSaveTimer) { clearTimeout(_ideaExcalSaveTimer); _ideaExcalSaveTimer = null; }
     // Pull from cloud first in case this is the student's first time on this device.
     await ideaHydrateFromCloud().catch(() => null);
     const props = {
@@ -15238,7 +15319,7 @@ void loop() {
       onChange: ideaOnChange,
       theme: 'light',
       name: 'D4SG Idea Board',
-      excalidrawAPI: (api) => { _ideaExcalApi = api; },
+      excalidrawAPI: (api) => { _ideaExcalApi = api; ideaFitOnOpen(api); },
       UIOptions: ideaUIOptions(),
       // Force remount by changing the key.
       key: ideaStorageKey() + '_' + Date.now()
