@@ -542,6 +542,16 @@
     from { opacity: 0; }
     to { opacity: 1; }
   }
+  /* Work-tab loads (?b= deep links) paint the modal fully formed on the very
+     first frame — no fade. The fade-in on load let the home project list show
+     through the translucent backdrop for ~200ms on EVERY card click, which
+     read as "it flashes something else, then the benchmark appears." */
+  html.deeplink-paint .modal-backdrop,
+  html.deeplink-paint .modal { animation: none; }
+  /* While the reused work tab is navigating to the NEXT benchmark, hide the
+     stale one so the frozen frame during the load is plain cream, not the
+     previous page. */
+  html.nav-blanking body > * { visibility: hidden; }
 
   .modal {
     background: var(--paper);
@@ -6218,8 +6228,33 @@
     });
   }
 
+  // Heads-up channel between tabs: right before a card click navigates the
+  // work tab, the clicking tab broadcasts "will-navigate" so the work tab can
+  // blank itself to plain cream. Without this, the reused tab sits frozen on
+  // the PREVIOUS benchmark for the whole page load — the "flashes something
+  // else for a millisecond" feel.
+  const NAV_CHANNEL = ('BroadcastChannel' in window) ? new BroadcastChannel('d4sg-worktab-nav') : null;
+  function blankForNav() {
+    document.documentElement.classList.add('nav-blanking');
+    // Failsafe: if the navigation never lands (offline, blocked), come back.
+    setTimeout(() => document.documentElement.classList.remove('nav-blanking'), 2500);
+  }
+  if (NAV_CHANNEL) {
+    NAV_CHANNEL.onmessage = (e) => {
+      if (e.data === 'will-navigate' && window.name === WORK_TAB_NAME) blankForNav();
+    };
+  }
+  // Back/forward cache restores the page mid-blank — unhide it.
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) document.documentElement.classList.remove('nav-blanking');
+  });
+
   function openBenchmarkTab(b) {
     const url = location.origin + '/?b=' + encodeURIComponent(b.id);
+    if (NAV_CHANNEL) { try { NAV_CHANNEL.postMessage('will-navigate'); } catch (_) {} }
+    // A broadcast never echoes back to its sender — if THIS tab is the work
+    // tab (clicking a card from its own home list), blank it directly.
+    if (window.name === WORK_TAB_NAME) blankForNav();
     // A native anchor click with a fixed target name is the bulletproof way to
     // open a new tab: unlike window.open it is NEVER treated as a blockable
     // pop-up, and the shared target name makes every click reuse the same work
@@ -9360,6 +9395,7 @@
 
   function closeModal() {
     modal.classList.remove('open');
+    document.documentElement.classList.remove('deeplink-paint');
     document.body.style.overflow = '';
     currentBenchmark = null;
     _focusStudent = null;
@@ -15717,6 +15753,10 @@ void loop() {
   if (benchDeepLink) {
     const bench = PROJECTS.flatMap(p => p.benchmarks || []).find(x => x.id === benchDeepLink);
     const hw = !bench && HOMEWORK.find(w => w.id === benchDeepLink);
+    // No open animation on a work-tab load: the modal should already be there
+    // at first paint, not fade in over the home list. closeModal clears this
+    // so a later in-page open still animates.
+    if (bench || hw) document.documentElement.classList.add('deeplink-paint');
     if (bench) openModal(bench);
     else if (hw) openHomeworkModal(hw);
     else schemToast('That link points to a benchmark that no longer exists.');
