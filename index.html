@@ -94,6 +94,12 @@
     color: var(--accent);
     font-weight: 700;
   }
+  /* Roboto Serif has no lining-figure alternates; its "4" tops out below cap
+     height and dips under the baseline, so lift it to sit flush with the caps. */
+  .header-title .fig {
+    display: inline-block;
+    transform: translateY(-0.063em);
+  }
   .header-title-link {
     color: inherit;
     text-decoration: none;
@@ -5388,7 +5394,7 @@
 
 <header>
   <div class="header-inner">
-    <h1 class="header-title"><a href="/" class="header-title-link">D4SG <span class="at">@</span> SA</a></h1>
+    <h1 class="header-title"><a href="/" class="header-title-link">D<span class="fig">4</span>SG <span class="at">@</span> SA</a></h1>
     <div class="header-meta">
       <a href="/exhibit" class="nav-link nav-exhibit" title="See what past students built">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -15580,7 +15586,7 @@ void loop() {
 
       <section class="syllabus-section">
         <h3 class="syllabus-section-title">Handbook</h3>
-        <p>Attendance, phone use, and full academic integrity guidelines follow the Sonoma Academy <a href="https://drive.google.com/file/d/1-_pbED22jMGVKLCVQPnmL5oVD8YXQGCP/view" target="_blank" rel="noopener">Student Handbook ↗</a>.</p>
+        <p>Attendance, phone use, and full academic integrity guidelines follow the Sonoma Academy <a href="https://drive.google.com/file/d/1q5lIpmiZsv2W1Dd-c_st8j67pABHQHS3/view" target="_blank" rel="noopener">Student Handbook ↗</a>.</p>
       </section>
       </div>
     `;
