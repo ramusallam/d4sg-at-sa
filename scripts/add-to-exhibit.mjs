@@ -1,4 +1,4 @@
-// Add one card to the D4SG Exhibit (the wall of past student work).
+// Add one card to the T4SG Exhibit (the wall of past student work).
 // The `exhibit` collection allows `create` with light field validation and
 // `createdAt == request.time`, so the public web client SDK is enough — no
 // Admin SDK / service account required (same trick as purge-by-name.mjs).

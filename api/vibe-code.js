@@ -1,5 +1,5 @@
 // Vercel Node.js serverless function: OpenAI proxy for the Vibe Coding
-// Arduino Tool. Gates by request origin (D4SG Vercel domain OR the app's
+// Arduino Tool. Gates by request origin (T4SG Vercel domain OR the app's
 // non-secret X-D4SG-Client header), hard-caps input size, applies a soft
 // per-IP rate limit, and strips markdown fences from the model output so the
 // client receives pure Arduino C/C++.
@@ -30,7 +30,7 @@ const MAX_HISTORY_MESSAGES = 8;       // keep only the last N turns
 const MAX_HISTORY_MSG_CHARS = 8000;   // truncate each history message to this
 const MAX_TOTAL_INPUT_CHARS = 60000;  // defensive cap on assembled user+history
 
-// Origin gate. Requests must come from the D4SG app: either a same-site
+// Origin gate. Requests must come from the T4SG app: either a same-site
 // Origin/Referer on an allowed host, or the app's non-secret client header.
 // The header is not a secret (it ships in page source) — it only stops naive
 // cross-origin scripts, while the Origin allowlist stops browser abuse.
@@ -51,7 +51,7 @@ function isAllowedHost(host) {
   );
 }
 
-// True if the request looks like it came from the real D4SG app.
+// True if the request looks like it came from the real T4SG app.
 function isAllowedRequest(req) {
   const clientHeader = req.headers['x-d4sg-client'];
   if (typeof clientHeader === 'string' && clientHeader.trim() === CLIENT_HEADER) {
@@ -65,7 +65,7 @@ function isAllowedRequest(req) {
 }
 
 const SYSTEM_PROMPT = [
-  "You are a warm, encouraging Arduino coding tutor for a high school maker class at Sonoma Academy (\"Design for Social Good\"). Students are NEW to both coding and prompting. They use an Arduino Leonardo or Micro to build adaptive controllers for accessibility.",
+  "You are a warm, encouraging Arduino coding tutor for a high school maker class at Sonoma Academy (\"Tech for Social Good\"). Students are NEW to both coding and prompting. They use an Arduino Leonardo or Micro to build adaptive controllers for accessibility.",
   "",
   "Their hardware palette: SPDT roller-lever microswitches, tactile buttons (4-pin pairs), 5-pin KY-023 joystick (VCC/GND/VRx/VRy/SW), 3-pin IR sensor module (VCC/GND/OUT), 2-wire sip-and-puff dry-contact switch, LEDs, and 220-ohm resistors.",
   "Project 2 adds two no-force sensors for users with very limited motion: (1) a TTP223B capacitive touch module (3 pins: GND, VCC 2.5-5.5V, SIG) - SIG goes HIGH on a light touch, no pressing force needed; read it like a digital button with digitalRead, no library required. (2) a VL53L0X time-of-flight infrared distance sensor on the I2C bus (VIN 3.3-5V, GND, SDA -> pin 2 on a Leonardo/Micro, SCL -> pin 3); it needs the Adafruit_VL53L0X library, Wire.begin(), and you read a distance in millimeters, then trigger when an object is within a chosen range. The VL53L0X breakout ships with loose header pins that must be soldered on before use.",
@@ -177,7 +177,7 @@ async function readJson(req) {
 
 export default async function handler(req, res) {
   // The real app calls this same-origin, so CORS is only exercised by
-  // cross-origin callers. Reflect the origin only when it is an allowed D4SG
+  // cross-origin callers. Reflect the origin only when it is an allowed T4SG
   // host instead of advertising '*', and allow the app's client header on the
   // preflight so the real fetch succeeds.
   const originHost = hostFromUrl(req.headers['origin']);

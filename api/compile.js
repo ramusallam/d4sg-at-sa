@@ -19,7 +19,7 @@
 const crypto = require('crypto');
 
 // Origin gate — same contract as vibe-code.js. Requests must come from the
-// D4SG app: a same-site Origin/Referer on an allowed host, or the app's
+// T4SG app: a same-site Origin/Referer on an allowed host, or the app's
 // non-secret client header. Stops drive-by scripts from burning the class's
 // compile quota and Vercel function budget.
 const ALLOWED_HOST_SUFFIXES = ['d4sg-at-sa.vercel.app'];
@@ -112,7 +112,7 @@ async function compileViaWokwi(sketch, board) {
 }
 
 export default async function handler(req, res) {
-  // Reflect the origin only when it is an allowed D4SG host (never '*').
+  // Reflect the origin only when it is an allowed T4SG host (never '*').
   const originHost = hostFromUrl(req.headers['origin']);
   if (isAllowedHost(originHost)) {
     res.setHeader('Access-Control-Allow-Origin', req.headers['origin']);
