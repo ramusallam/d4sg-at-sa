@@ -5542,6 +5542,11 @@
     text-decoration: underline;
     text-underline-offset: 2px;
   }
+  .dayone-step-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
   .dayone-hero .tinkercad-btn,
   .dayone-timer,
   .dayone-pts {
@@ -6969,20 +6974,20 @@
         <p class="dayone-anycad">Never used CAD? Perfect. <a href="https://www.tinkercad.com/" target="_blank" rel="noopener">Tinkercad</a> is the on-ramp; Fusion 360, Onshape, whatever you know works too.</p>
       </div>
 
-      <h2 class="project-title">Pick your problem</h2>
+      <h2 class="project-title dayone-step-title"><span class="step-num">1</span>Pick your problem</h2>
       <div class="dayone-chips" id="dayoneChips" role="group" aria-label="Filter challenges"></div>
       <div class="dayone-grid" id="dayoneGrid"></div>
 
       <div class="dayone-submit" id="dayoneSubmit">
-        <h2 class="project-title" style="margin-top:0;">Turn it in</h2>
+        <h2 class="project-title dayone-step-title" style="margin-top:0;"><span class="step-num">2</span>Turn it in</h2>
         <div class="dayone-making" id="dayoneMaking"></div>
         <p class="dayone-print-promise">If I can print it, I'll print it.</p>
         <div class="step-section">
-          <h3><span class="step-num">1</span>Copy your link</h3>
+          <h3>Copy your link</h3>
           <p>In <a href="https://www.tinkercad.com/" target="_blank" rel="noopener">Tinkercad</a>: open your design, click Send, copy the link. Any public CAD link works.</p>
         </div>
         <div class="step-section" style="margin-bottom:0;">
-          <h3><span class="step-num">2</span>Drop it below</h3>
+          <h3>Drop it below</h3>
           <p>Pick your name, paste your link, finish the sentence. Homework works the same way all semester.</p>
           <div class="gallery-grid" id="galleryGrid"></div>
         </div>
