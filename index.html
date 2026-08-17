@@ -1741,6 +1741,17 @@
   .gallery-tile .tile-caption .tile-desc {
     display: none;
   }
+  /* Hovering (or keyboard-focusing) a tile reveals what the student wrote. */
+  .gallery-tile:hover .tile-caption .tile-desc,
+  .gallery-tile:focus-visible .tile-caption .tile-desc,
+  .gallery-tile:focus-within .tile-caption .tile-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-top: 2px;
+    opacity: 0.95;
+  }
   .gallery-tile .tile-delete {
     position: absolute;
     top: 4px;
