@@ -5485,10 +5485,11 @@
     overflow: hidden;
     background: linear-gradient(140deg, #4F46E5 0%, #6366F1 100%);
     border-radius: 20px;
-    padding: 32px 32px 26px;
+    padding: 34px 24px 26px;
     margin: 8px 0 30px;
     color: #fff;
     box-shadow: var(--shadow-md);
+    text-align: center;
   }
   .dayone-hero::before {
     content: '';
@@ -5519,25 +5520,20 @@
     font-size: 15px;
     line-height: 1.5;
     max-width: 640px;
-    margin: 0 0 6px;
+    margin: 0 auto 18px;
     opacity: 0.94;
-  }
-  .dayone-perfect {
-    font-size: 13.5px;
-    line-height: 1.55;
-    max-width: 640px;
-    margin: 0 0 18px;
-    opacity: 0.78;
   }
   .dayone-hero-row {
     display: flex;
     align-items: stretch;
+    justify-content: center;
     gap: 12px;
     flex-wrap: wrap;
   }
   .dayone-anycad {
     font-size: 12.5px;
-    margin: 10px 0 0;
+    max-width: 640px;
+    margin: 12px auto 0;
     opacity: 0.72;
   }
   .dayone-hero .tinkercad-btn,
@@ -6953,10 +6949,9 @@
 
     sec.innerHTML = `
       <div class="dayone-hero">
-        <p class="dayone-kicker">Day One · Your first T4SG challenge</p>
+        <p class="dayone-kicker">Day One</p>
         <h2 class="dayone-title">Make Something.</h2>
-        <p class="dayone-sub">Pick one problem below. You have 30 minutes to build a 3D-printable fix in CAD. Make, try, learn.</p>
-        <p class="dayone-perfect">Never used CAD? Perfect. No tutorial today. Click things, make shapes, cut holes, undo, figure it out.</p>
+        <p class="dayone-sub">Pick a problem below. Build a 3D-printable fix in CAD. 30 minutes.</p>
         <div class="dayone-hero-row">
           <a href="https://www.tinkercad.com/" target="_blank" rel="noopener" class="tinkercad-btn">Open Tinkercad <span class="arrow">↗</span></a>
           <div class="dayone-timer" id="dayoneTimer" role="timer" aria-label="Challenge timer">
@@ -6965,7 +6960,7 @@
           </div>
           <span class="dayone-pts">${DAY_ONE.points} pts</span>
         </div>
-        <p class="dayone-anycad">Tinkercad is the on-ramp. Fusion 360, Onshape, any CAD you know works too.</p>
+        <p class="dayone-anycad">Never used CAD? Perfect. Tinkercad is the on-ramp; Fusion 360, Onshape, whatever you know works too.</p>
       </div>
 
       <h2 class="project-title">Pick your problem</h2>
@@ -6978,11 +6973,11 @@
         <p class="dayone-print-promise">If I can print it, I'll print it.</p>
         <div class="step-section">
           <h3><span class="step-num">1</span>Copy your link</h3>
-          <p>In Tinkercad, open your design, click Send, and copy the link. Using a different CAD tool? Any public share link works. This is the same way you will turn in homework all semester.</p>
+          <p>In Tinkercad: open your design, click Send, copy the link. Any public CAD link works.</p>
         </div>
         <div class="step-section" style="margin-bottom:0;">
           <h3><span class="step-num">2</span>Drop it below</h3>
-          <p>Pick your name, paste the link, and finish this sentence in the description: "I made a ____ to help someone ____."</p>
+          <p>Pick your name, paste your link, finish the sentence. Homework works the same way all semester.</p>
           <div class="gallery-grid" id="galleryGrid"></div>
         </div>
       </div>
