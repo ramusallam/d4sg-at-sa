@@ -74,7 +74,7 @@ const db = getFirestore(app);
 try {
   const refDoc = await addDoc(collection(db, 'exhibit'), { ...card, createdAt: serverTimestamp() });
   console.log(`\nAdded to Exhibit → exhibit/${refDoc.id}`);
-  console.log('Live at https://d4sg-at-sa.vercel.app/exhibit');
+  console.log('Live at https://t4sg-at-sa.vercel.app/exhibit');
   process.exit(0);
 } catch (e) {
   console.error('\nCould not add card:', e && e.message || e);

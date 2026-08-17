@@ -1,4 +1,12 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "d4sg-at-sa.vercel.app" }],
+      "destination": "https://t4sg-at-sa.vercel.app/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/exhibit", "destination": "/index.html" },
     { "source": "/exhibit/", "destination": "/index.html" },
