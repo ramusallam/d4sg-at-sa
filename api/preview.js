@@ -143,7 +143,7 @@ export default async function handler(req, res) {
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     const response = await safeFetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; T4SGPreviewBot/1.0; +https://d4sg-at-sa.vercel.app)',
+        'User-Agent': 'Mozilla/5.0 (compatible; T4SGPreviewBot/1.0; +https://t4sg-at-sa.vercel.app)',
         'Accept': 'text/html,application/xhtml+xml'
       },
       signal: controller.signal

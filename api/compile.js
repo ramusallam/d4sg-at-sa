@@ -22,7 +22,7 @@ const crypto = require('crypto');
 // T4SG app: a same-site Origin/Referer on an allowed host, or the app's
 // non-secret client header. Stops drive-by scripts from burning the class's
 // compile quota and Vercel function budget.
-const ALLOWED_HOST_SUFFIXES = ['d4sg-at-sa.vercel.app'];
+const ALLOWED_HOST_SUFFIXES = ['t4sg-at-sa.vercel.app', 'd4sg-at-sa.vercel.app'];
 const CLIENT_HEADER = 'd4sg-at-sa';
 
 function hostFromUrl(value) {

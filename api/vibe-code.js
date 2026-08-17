@@ -35,6 +35,7 @@ const MAX_TOTAL_INPUT_CHARS = 60000;  // defensive cap on assembled user+history
 // The header is not a secret (it ships in page source) — it only stops naive
 // cross-origin scripts, while the Origin allowlist stops browser abuse.
 const ALLOWED_HOST_SUFFIXES = [
+  't4sg-at-sa.vercel.app',
   'd4sg-at-sa.vercel.app'
 ];
 const CLIENT_HEADER = 'd4sg-at-sa';
