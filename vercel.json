@@ -8,6 +8,8 @@
     }
   ],
   "rewrites": [
+    { "source": "/day-one", "destination": "/index.html" },
+    { "source": "/day-one/", "destination": "/index.html" },
     { "source": "/exhibit", "destination": "/index.html" },
     { "source": "/exhibit/", "destination": "/index.html" },
     { "source": "/hw", "destination": "/index.html" },
