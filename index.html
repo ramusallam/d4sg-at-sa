@@ -4900,18 +4900,13 @@
   /* Horizontal strip of one-click AT component stamps above the canvas. */
   .idea-pro-stamps {
     display: flex;
-    flex-wrap: nowrap;           /* stay on ONE line — never spill to a 2nd row */
+    flex-wrap: wrap;             /* every chip visible - wrap, never scroll */
     gap: 5px;
     padding: 8px 10px;
     background: var(--bg-2);
     border: 1px solid var(--border);
     border-radius: 12px;
-    overflow-x: auto;            /* if the chips don't fit, scroll sideways */
-    overflow-y: hidden;
-    scrollbar-width: thin;
   }
-  .idea-pro-stamps::-webkit-scrollbar { height: 6px; }
-  .idea-pro-stamps::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
   .idea-stamp-btn {
     flex: 0 0 auto;              /* keep natural width; don't squish */
     white-space: nowrap;
@@ -5116,20 +5111,14 @@
   .idea-toolbar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
+    gap: 6px 10px;
+    flex-wrap: wrap;             /* every tool visible - wrap, never scroll */
     padding: 8px 12px;
     background: var(--bg-1);
     border: 1px solid var(--border);
     border-radius: 12px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    scrollbar-width: thin;
   }
-  .idea-toolbar::-webkit-scrollbar { height: 6px; }
-  .idea-toolbar::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; }
-  .idea-toolbar::-webkit-scrollbar-track { background: transparent; }
   .idea-toolbar > * { flex-shrink: 0; }
   .idea-color {
     width: 20px;
