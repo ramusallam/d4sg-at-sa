@@ -14654,6 +14654,7 @@ void loop() {
       const cleanup = () => {
         navigator.serial.removeEventListener('connect', onConnect);
         clearInterval(poll);
+        clearTimeout(firstCoach);
         clearTimeout(coach);
         clearTimeout(coach2);
         clearTimeout(giveUp);
@@ -14708,8 +14709,21 @@ void loop() {
       // of a session it often doesn't fire — so after ~2s with no bootloader,
       // coach the student to tap the physical RESET button (the canonical
       // Leonardo/Micro move) and keep listening for the full window.
-      const coach = setTimeout(() => {
+      // First-ever upload on this machine: Chrome has never been granted
+      // permission for the bootloader's port, so auto-detect CANNOT see it
+      // (the 'connect' event and getPorts() only cover authorized ports).
+      // Historically this made every student's first upload time out. Surface
+      // the picker immediately instead; the flag is set after the first
+      // successful flash, so every later upload uses the silent fast path.
+      const firstUpload = !localStorage.getItem('d4sg-vibe-bootloader-ok-v1');
+      const firstCoach = firstUpload ? setTimeout(() => {
         if (resolved) return;
+        vibeMonitorLine("First upload on this laptop: click the button below, then pick the port named 'bootloader' (it appears a moment after the board resets).", 'info');
+        vibeSetStatus('connecting', "First upload: choose the board's port below.");
+        offerPicker();
+      }, 1200) : null;
+      const coach = setTimeout(() => {
+        if (resolved || firstUpload) return;
         vibeMonitorLine('Almost there - if nothing happens, press the RESET button on your Arduino once now, then wait.', 'info');
         vibeSetStatus('connecting', 'Waiting for the board… tap RESET on the Arduino if it does not appear.');
       }, 2200);
@@ -14734,6 +14748,8 @@ void loop() {
     await bootloaderPort.open({ baudRate: 57600 });
     try {
       await avr109WriteFlash(bootloaderPort, hexBytes, (msg, kind) => vibeMonitorLine(msg, kind));
+      // Chrome now remembers the bootloader port - later uploads auto-detect.
+      try { localStorage.setItem('d4sg-vibe-bootloader-ok-v1', '1'); } catch (_) {}
     } finally {
       try { await bootloaderPort.close(); } catch (_) {}
     }
