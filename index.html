@@ -5485,7 +5485,7 @@
     overflow: hidden;
     background: linear-gradient(140deg, #4F46E5 0%, #6366F1 100%);
     border-radius: 20px;
-    padding: 44px 36px 38px;
+    padding: 32px 32px 26px;
     margin: 8px 0 30px;
     color: #fff;
     box-shadow: var(--shadow-md);
@@ -5509,42 +5509,52 @@
   }
   .dayone-title {
     font-family: "Roboto Serif", Georgia, serif;
-    font-size: clamp(34px, 5.4vw, 54px);
+    font-size: clamp(30px, 4.6vw, 44px);
     font-weight: 700;
     letter-spacing: -0.028em;
     line-height: 1.04;
-    margin: 0 0 12px;
+    margin: 0 0 10px;
   }
   .dayone-sub {
-    font-size: 15.5px;
-    line-height: 1.55;
-    max-width: 560px;
-    margin: 0 0 8px;
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 640px;
+    margin: 0 0 6px;
     opacity: 0.94;
   }
   .dayone-perfect {
     font-size: 13.5px;
-    line-height: 1.6;
-    max-width: 560px;
-    margin: 0 0 22px;
+    line-height: 1.55;
+    max-width: 640px;
+    margin: 0 0 18px;
     opacity: 0.78;
   }
   .dayone-hero-row {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 12px;
     flex-wrap: wrap;
   }
   .dayone-anycad {
     font-size: 12.5px;
-    margin: 12px 0 0;
+    margin: 10px 0 0;
     opacity: 0.72;
+  }
+  .dayone-hero .tinkercad-btn,
+  .dayone-timer,
+  .dayone-pts {
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    margin: 0;
   }
   .dayone-hero .tinkercad-btn {
     background: #fff;
     color: var(--accent-hover);
     border: none;
     font-weight: 700;
+    padding: 0 18px;
   }
   .dayone-hero .tinkercad-btn:hover { background: #EEF2FF; }
   .dayone-pts {
@@ -5553,28 +5563,26 @@
     letter-spacing: 1.6px;
     text-transform: uppercase;
     background: rgba(255,255,255,0.16);
-    border-radius: 20px;
-    padding: 8px 14px;
+    border-radius: 21px;
+    padding: 0 15px;
     white-space: nowrap;
   }
 
   /* Timer pill */
   .dayone-timer {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
+    gap: 9px;
     background: rgba(255,255,255,0.14);
     border: 1px solid rgba(255,255,255,0.35);
     border-radius: 12px;
-    padding: 7px 8px 7px 14px;
+    padding: 0 6px 0 13px;
     font-variant-numeric: tabular-nums;
   }
   .dayone-timer-readout {
     font-family: "SF Mono", ui-monospace, "Roboto Mono", Menlo, monospace;
-    font-size: 19px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.04em;
-    min-width: 64px;
+    min-width: 50px;
   }
   .dayone-timer.is-low .dayone-timer-readout { color: #FDE68A; }
   .dayone-timer.is-critical .dayone-timer-readout { color: #FCA5A5; animation: dayonePulse 0.9s ease-in-out infinite; }
@@ -5778,20 +5786,6 @@
     border-left: 4px solid var(--accent);
     padding: 4px 0 4px 16px;
     margin: 0 0 22px;
-  }
-  .dayone-outro {
-    text-align: center;
-    font-size: 14px;
-    color: var(--ink-mid);
-    margin: 34px 0 10px;
-  }
-  .dayone-outro strong {
-    display: block;
-    font-family: "Roboto Serif", Georgia, serif;
-    font-size: 21px;
-    letter-spacing: -0.01em;
-    color: var(--ink-hi);
-    margin-top: 6px;
   }
   @media (max-width: 700px) {
     .dayone-hero { padding: 30px 22px 26px; }
@@ -6961,8 +6955,8 @@
       <div class="dayone-hero">
         <p class="dayone-kicker">Day One · Your first T4SG challenge</p>
         <h2 class="dayone-title">Make Something.</h2>
-        <p class="dayone-sub">Pick one problem below. Build a 3D-printable fix in CAD. You have 30 minutes, and the goal is not a polished product. Make, try, learn.</p>
-        <p class="dayone-perfect">Never used CAD before? Perfect. There is no tutorial today. Click things. Make shapes. Cut holes. Undo. Ask someone. Look something up. Figure out enough to make something.</p>
+        <p class="dayone-sub">Pick one problem below. You have 30 minutes to build a 3D-printable fix in CAD. Make, try, learn.</p>
+        <p class="dayone-perfect">Never used CAD? Perfect. No tutorial today. Click things, make shapes, cut holes, undo, figure it out.</p>
         <div class="dayone-hero-row">
           <a href="https://www.tinkercad.com/" target="_blank" rel="noopener" class="tinkercad-btn">Open Tinkercad <span class="arrow">↗</span></a>
           <div class="dayone-timer" id="dayoneTimer" role="timer" aria-label="Challenge timer">
@@ -6971,7 +6965,7 @@
           </div>
           <span class="dayone-pts">${DAY_ONE.points} pts</span>
         </div>
-        <p class="dayone-anycad">Tinkercad is the easy on-ramp, but any CAD works. Fusion 360, Onshape, whatever you know.</p>
+        <p class="dayone-anycad">Tinkercad is the on-ramp. Fusion 360, Onshape, any CAD you know works too.</p>
       </div>
 
       <h2 class="project-title">Pick your problem</h2>
@@ -6993,7 +6987,6 @@
         </div>
       </div>
 
-      <p class="dayone-outro">Don't wait for the perfect idea. Ugly is fine. Unfinished is fine.<strong>Pick something. Start making shapes. Go.</strong></p>
     `;
     app.appendChild(sec);
 
