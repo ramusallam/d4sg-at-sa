@@ -192,8 +192,8 @@
     position: absolute;
     top: 22px;
     right: 24px;
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     border: 2px solid rgba(99, 102, 241, 0.5);
     background: rgba(255, 255, 255, 0.6);
@@ -210,8 +210,8 @@
   .capstone-check.checked::after {
     content: "";
     position: absolute;
-    left: 8px;
-    top: 4px;
+    left: 10px;
+    top: 6px;
     width: 6px;
     height: 11px;
     border: solid #fff;
@@ -449,10 +449,10 @@
   }
   .benchmark .checkbox {
     position: absolute;
-    top: 14px;
-    right: 14px;
-    width: 20px;
-    height: 20px;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
     border-width: 1.5px;
     border-color: var(--border);
     border-radius: 7px;
@@ -460,15 +460,15 @@
   .benchmark .checkbox:hover { border-color: var(--accent-hover); }
   .benchmark .checkbox.checked { border-color: var(--success); }
   .benchmark .checkbox.checked::after {
-    width: 5px;
-    height: 9px;
+    width: 6px;
+    height: 11px;
     transform: rotate(45deg) translate(-1px, -1px);
   }
 
   .checkbox {
     flex-shrink: 0;
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     border: 2px solid var(--border-strong);
     border-radius: 6px;
     display: flex;
@@ -5898,17 +5898,17 @@
     'Aurora',
     'Carina',
     'Carter',
+    'Dana',
     'Elijah',
     'Franchesca',
     'Gabe',
     'Henry',
     'Iris',
     'Isabella',
-    'Lukas',
+    'Katie',
     'Oona',
     'Peter',
     'Riley',
-    'Teo',
     'Weston',
   ];
   const LAST_PICK_KEY = 'd4sg-last-pick-v1';
@@ -6670,6 +6670,8 @@
   const ICON_WIRING  = `<svg ${_SVG_ATTRS}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
   const ICON_SKETCH  = `<svg ${_SVG_ATTRS}><path d="M12 19l7-7 3 3-7 7H12z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18"/><path d="M2 2l7.586 7.586"/></svg>`;
   const ICON_DOC     = `<svg ${_SVG_ATTRS}><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/></svg>`;
+  const ICON_X       = `<svg ${_SVG_ATTRS} aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
+  const ICON_SPARKLE = `<svg ${_SVG_ATTRS} aria-hidden="true"><path d="M12 3l1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4z"/><path d="M18.5 15l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7z"/></svg>`;
 
   // Benchmarks open in ONE dedicated "work" tab so the home list never has to
   // be backed out of. The first benchmark click spawns the tab; every click
@@ -6802,7 +6804,7 @@
         card.className = 'capstone-card' + (isChecked ? ' done' : '');
         card.dataset.id = b.id;
         card.innerHTML = `
-          <button class="capstone-check ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" aria-label="Mark complete" tabindex="0"></button>
+          <button class="capstone-check ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" aria-readonly="true" aria-label="${escapeHtml(b.title)} completion" tabindex="0"></button>
           <div class="capstone-main">
             <div class="capstone-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -6849,7 +6851,7 @@
         row.className = 'benchmark' + (isChecked ? ' done' : '');
         row.dataset.id = b.id;
         row.innerHTML = `
-          <div class="checkbox ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" tabindex="0"></div>
+          <div class="checkbox ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" aria-readonly="true" aria-label="${escapeHtml(labelText)} completion" tabindex="0"></div>
           ${isStandalone ? '' : `<div class="benchmark-num">${String(idx + 1).padStart(2, '0')}</div>`}
           <div class="benchmark-label">${escapeHtml(labelText)}</div>
           <div class="benchmark-foot">
@@ -10297,7 +10299,7 @@
         ${fileBlock}
         <div class="attach-link-entry">
           <input type="url" data-link-input placeholder="${linkOnly ? 'Paste your link' : 'Paste a URL'}" />
-          ${linkOnly ? '' : '<button type="button" class="icon-btn" data-link-cancel aria-label="Cancel">×</button>'}
+          ${linkOnly ? '' : `<button type="button" class="icon-btn" data-link-cancel aria-label="Cancel">${ICON_X}</button>`}
         </div>
         <div class="attach-preview" data-preview></div>
       </div>
@@ -10373,7 +10375,7 @@
           <div class="preview-title">${escapeHtml(file.name)}</div>
           <div class="preview-meta">${sizeStr} · ${isStl ? 'STL' : (isVideo ? 'Video' : 'Image')}</div>
         </div>
-        <button type="button" class="preview-remove" data-preview-remove aria-label="Remove">×</button>
+        <button type="button" class="preview-remove" data-preview-remove aria-label="Remove">${ICON_X}</button>
       `;
       attach.classList.add('has-content');
       attach.classList.remove('is-link-entry');
@@ -10394,7 +10396,7 @@
           <div class="preview-title">${escapeHtml(url)}</div>
           <div class="preview-meta preview-loading">Pulling preview…</div>
         </div>
-        <button type="button" class="preview-remove" data-preview-remove aria-label="Remove">×</button>
+        <button type="button" class="preview-remove" data-preview-remove aria-label="Remove">${ICON_X}</button>
       `;
       previewEl.querySelector('[data-preview-remove]').addEventListener('click', clearAttachment);
       clearStatus();
@@ -10411,7 +10413,7 @@
             <div class="preview-title">${escapeHtml(preview.title || preview.domain || url)}</div>
             <div class="preview-meta">${escapeHtml(preview.domain || url)}</div>
           </div>
-          <button type="button" class="preview-remove" data-preview-remove aria-label="Remove">×</button>
+          <button type="button" class="preview-remove" data-preview-remove aria-label="Remove">${ICON_X}</button>
         `;
         previewEl.querySelector('[data-preview-remove]').addEventListener('click', clearAttachment);
       } catch (err) {
@@ -10812,7 +10814,7 @@
           <div class="pf-slot-status">+ Add</div>
           <div class="pf-slot-mini-actions">
             <button type="button" data-pf-mini-edit aria-label="Edit"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button>
-            <button type="button" data-pf-mini-remove aria-label="Remove">×</button>
+            <button type="button" data-pf-mini-remove aria-label="Remove">${ICON_X}</button>
           </div>
         </div>
         <div class="pf-slot-body">
@@ -10821,7 +10823,7 @@
               <span class="pf-slot-icon">${def.icon}</span>
               ${def.label}
             </div>
-            <button type="button" class="pf-slot-collapse" data-pf-collapse aria-label="Collapse">×</button>
+            <button type="button" class="pf-slot-collapse" data-pf-collapse aria-label="Collapse">${ICON_X}</button>
           </div>
           <div class="pf-slot-body-inner" data-pf-body-inner></div>
         </div>
@@ -10939,7 +10941,7 @@
               </div>
               <div class="pf-fp-actions">
                 ${isFileMode ? `<button type="button" class="pf-fp-btn" data-pf-rename aria-label="Rename"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button>` : ''}
-                <button type="button" class="pf-fp-btn pf-fp-remove" data-pf-clear aria-label="Remove" title="Remove">×</button>
+                <button type="button" class="pf-fp-btn pf-fp-remove" data-pf-clear aria-label="Remove" title="Remove">${ICON_X}</button>
               </div>
             </div>
           `;
@@ -11582,7 +11584,7 @@
             ${thumb}
             <div class="cp-preview-meta">
               <div class="cp-preview-name">${escapeHtml(p.fileName)}</div>
-              <button type="button" class="cp-preview-remove" data-cp-remove="${i}" aria-label="Remove">×</button>
+              <button type="button" class="cp-preview-remove" data-cp-remove="${i}" aria-label="Remove">${ICON_X}</button>
             </div>
             ${overlay}
           </div>
@@ -11931,7 +11933,7 @@
         proofEl.innerHTML = `
           <div class="inst-proof-card">
             <img src="${proofData.url}" alt="contest proof" />
-            <button type="button" class="inst-proof-remove" data-inst-proofremove aria-label="Remove">×</button>
+            <button type="button" class="inst-proof-remove" data-inst-proofremove aria-label="Remove">${ICON_X}</button>
           </div>`;
         dropZone.style.display = 'none';
         const rm = proofEl.querySelector('[data-inst-proofremove]');
@@ -12424,7 +12426,7 @@
 
       const deleteBtnHtml = readOnly
         ? ''
-        : `<button class="pf-row-delete" data-pf-row-delete aria-label="Delete portfolio">×</button>`;
+        : `<button class="pf-row-delete" data-pf-row-delete aria-label="Delete portfolio">${ICON_X}</button>`;
       row.innerHTML = `
         <div class="pf-row-head" data-pf-row-head>
           <span class="pf-row-name">${escapeHtml(item.studentName || 'Unnamed')}</span>
@@ -12602,7 +12604,7 @@
     const readOnly = !!opts.readOnly;
     const slotDeleteBtn = readOnly
       ? ''
-      : `<button class="pf-view-slot-delete" data-pf-slot-delete aria-label="Delete slot">×</button>`;
+      : `<button class="pf-view-slot-delete" data-pf-slot-delete aria-label="Delete slot">${ICON_X}</button>`;
     const headHtml = `
       <div class="pf-view-head">
         <span class="pf-view-icon">${def.icon}</span>
@@ -14050,7 +14052,7 @@ void loop() {
       const btn = document.createElement('button');
       btn.className = 'vibe-stem' + (stem.primary ? ' vibe-stem--primary' : '');
       btn.type = 'button';
-      btn.innerHTML = `<span class="vibe-stem-icon">✦</span><span>${stem.label}</span>`;
+      btn.innerHTML = `<span class="vibe-stem-icon">${ICON_SPARKLE}</span><span>${stem.label}</span>`;
       btn.title = stem.text.length > 80 ? stem.text.slice(0, 77) + '...' : stem.text;
       btn.addEventListener('click', () => vibeApplyStem(stem));
       wrap.appendChild(btn);
@@ -15245,6 +15247,7 @@ void loop() {
   let _ideaExcalComp = null;
   let _ideaExcalApi = null;
   let _ideaExcalSaveTimer = null;
+  let _ideaA11yObserver = null;
   let _ideaDropCount = 0;   // cascades each new stamp into a fresh grid cell so drops never pile up
 
   function ideaStorageKey() {
@@ -15356,6 +15359,8 @@ void loop() {
       if (_ideaExcalRoot) { try { _ideaExcalRoot.unmount(); } catch (_) {} }
       _ideaExcalRoot = null;
       _ideaExcalApi = null;
+      if (_ideaA11yObserver) _ideaA11yObserver.disconnect();
+      _ideaA11yObserver = null;
       cleanupIdentityStrip(idEl);
     });
 
@@ -15440,6 +15445,13 @@ void loop() {
 
     _ideaExcalRoot = ReactDOM.createRoot(container);
     _ideaExcalRoot.render(React.createElement(Excalidraw, props));
+    const labelEmbeddedControls = () => {
+      const menu = container.querySelector('[data-testid="main-menu-trigger"]');
+      if (menu && !menu.getAttribute('aria-label')) menu.setAttribute('aria-label', 'Open drawing menu');
+    };
+    _ideaA11yObserver = new MutationObserver(labelEmbeddedControls);
+    _ideaA11yObserver.observe(container, { childList: true, subtree: true });
+    requestAnimationFrame(labelEmbeddedControls);
     renderIdeaToolbar();
     renderIdeaProStamps();
   }
@@ -16166,7 +16178,7 @@ void loop() {
       const href = escapeHtml(item.url || '#');
       return `
         <a class="exhibit-card" href="${href}" target="_blank" rel="noopener noreferrer" data-ex-id="${escapeHtml(id)}">
-          <button class="exhibit-del" type="button" data-ex-del="${escapeHtml(id)}" aria-label="Delete">×</button>
+          <button class="exhibit-del" type="button" data-ex-del="${escapeHtml(id)}" aria-label="Delete">${ICON_X}</button>
           <div class="exhibit-thumb">
             <div class="ex-fallback">${initial}</div>
             ${img}
