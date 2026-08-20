@@ -5814,7 +5814,7 @@
         </svg>
         <span>Exhibit</span>
       </a>
-      <a href="/syllabus" class="nav-link nav-syllabus nav-to-syllabus" title="Course syllabus">
+      <a href="https://ramsey-syllabi.vercel.app/" target="_blank" rel="noopener" class="nav-link nav-syllabus" title="Course syllabus (opens in a new tab)">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/>
           <path d="M14 3v6h6"/>
@@ -16271,35 +16271,6 @@ void loop() {
     load();
   }
 
-  function renderSyllabus() {
-    app.innerHTML = '';
-    const sec = document.createElement('section');
-    sec.className = 'syllabus';
-    sec.innerHTML = `
-      <header class="syllabus-head">
-        <div class="syllabus-head-row">
-          <p class="syllabus-eyebrow">Syllabus</p>
-        </div>
-        <h2 class="syllabus-title">Technology for Social Good (T4SG)</h2>
-      </header>
-
-      <div class="syllabus-instructor">
-        <span class="si-eyebrow">Instructor</span>
-        <span class="si-name">Ramsey Musallam, EdD</span>
-        <span class="si-meta">
-          <a href="mailto:ramsey.musallam@sonomaacademy.org">ramsey.musallam@sonomaacademy.org</a>
-          <span class="si-dot">·</span>
-          <span>Office hours: every Coyote Block, Room B220</span>
-        </span>
-      </div>
-
-      <section class="syllabus-section">
-        <p>The full T4SG syllabus lives with all of Ramsey's course syllabi: <a href="https://ramsey-syllabi.vercel.app" target="_blank" rel="noopener">Open the T4SG syllabus ↗</a></p>
-      </section>
-    `;
-    app.appendChild(sec);
-  }
-
   function applyRoute(path) {
     // Close any open modal first so Back/nav never leaves one stacked over a
     // new view with body scroll locked and stale gallery listeners live.
@@ -16317,8 +16288,10 @@ void loop() {
       document.body.classList.add('view-exhibit');
       renderExhibit();
     } else if (r === '/syllabus') {
-      document.body.classList.add('view-syllabus');
-      renderSyllabus();
+      // Legacy route: the syllabus lives in the syllabi app now, so send old
+      // bookmarks and QR codes straight there instead of showing a stub.
+      location.replace('https://ramsey-syllabi.vercel.app/');
+      return;
     } else if (r === '/hw') {
       document.body.classList.add('view-hw');
       renderHomework();
