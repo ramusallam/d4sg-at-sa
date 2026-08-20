@@ -5824,7 +5824,7 @@
       </a>
       <a href="/" class="nav-link nav-to-home">Home</a>
       <a href="/tools" class="nav-link nav-to-tools">Tools</a>
-      <a href="/hw" class="nav-link nav-to-hw">Homework</a>
+      <a href="/hw" class="nav-link nav-to-hw">Weekly CAD HW</a>
       <span class="admin-bar">
         <span class="admin-tag">Admin</span>
         <button class="archive-btn" id="archivesViewBtn">Archives</button>
@@ -6934,7 +6934,7 @@
     const sec = document.createElement('section');
     sec.className = 'project';
     sec.innerHTML = `
-      <h2 class="project-title">Homework</h2>
+      <h2 class="project-title">Weekly CAD HW</h2>
       <div class="hw-week-grid" id="weekList"></div>
     `;
     const list = sec.querySelector('#weekList');
@@ -10114,7 +10114,7 @@
 
   function openHomeworkModal(w) {
     currentBenchmark = w;
-    modalEyebrow.textContent = 'Homework';
+    modalEyebrow.textContent = 'Weekly CAD HW';
     modalTitle.textContent = w.title;
     modalPoints.textContent = `${w.points} pts`;
     modalPoints.style.display = '';
