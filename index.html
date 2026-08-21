@@ -13368,15 +13368,43 @@ void loop() {
   }
 
   // Lazy-load jsPDF on first export.
+  //
+  // Monaco installs a global AMD `define`, and jsPDF ships a UMD bundle that
+  // prefers AMD whenever it sees one: it would register an anonymous module
+  // that nobody ever requires, the script's onload would still fire, and
+  // window.jspdf would silently stay undefined - so every PDF export failed
+  // once the editor had booted. Hide `define` for the duration of this one
+  // script so the UMD wrapper takes its plain-global branch instead, then put
+  // Monaco's back. Also assert the global actually appeared, so a future
+  // regression surfaces here instead of as a confusing destructuring error.
   function vibeLoadJsPdf() {
     if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve();
-    return new Promise((resolve, reject) => {
+    if (window._vibeJsPdfLoading) return window._vibeJsPdfLoading;
+    window._vibeJsPdfLoading = new Promise((resolve, reject) => {
+      const prevDefine = window.define;
+      const hidDefine = typeof prevDefine === 'function' && prevDefine.amd;
+      const restoreDefine = () => { if (hidDefine) window.define = prevDefine; };
+      if (hidDefine) window.define = undefined;
+
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error('Failed to load jsPDF'));
+      s.onload = () => {
+        restoreDefine();
+        if (window.jspdf && window.jspdf.jsPDF) {
+          resolve();
+        } else {
+          window._vibeJsPdfLoading = null;
+          reject(new Error('jsPDF loaded but did not register window.jspdf'));
+        }
+      };
+      s.onerror = () => {
+        restoreDefine();
+        window._vibeJsPdfLoading = null;
+        reject(new Error('Failed to load jsPDF'));
+      };
       document.head.appendChild(s);
     });
+    return window._vibeJsPdfLoading;
   }
 
   // Build the jsPDF doc from current editor text. Throws if editor is empty.
