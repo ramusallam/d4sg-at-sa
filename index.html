@@ -444,9 +444,24 @@
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
   }
   .benchmark.done {
-    background: rgba(16, 185, 129, 0.06);
-    border-color: rgba(16, 185, 129, 0.35);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.11), rgba(16, 185, 129, 0.045));
+    border-color: rgba(16, 185, 129, 0.55);
   }
+  /* Completion moment: the check pops and the card pulses once, so a submit
+     reads as an unmistakable "done" — not a quiet border change. The classes
+     are added only at the moment of submission (markChecked), never on load. */
+  @keyframes checkPop {
+    0% { transform: scale(0.5); }
+    55% { transform: scale(1.22); }
+    100% { transform: scale(1); }
+  }
+  @keyframes donePulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+    100% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); }
+  }
+  .just-done { animation: donePulse 0.9s ease-out; }
+  .just-done .checkbox.checked,
+  .just-done .capstone-check.checked { animation: checkPop 0.4s ease-out; }
   .benchmark .checkbox {
     position: absolute;
     top: 10px;
@@ -9819,7 +9834,10 @@
       cb.classList.add('checked');
       cb.setAttribute('aria-checked', 'true');
     }
-    if (row) row.classList.add('done');
+    if (row) {
+      row.classList.add('done', 'just-done');
+      setTimeout(() => row.classList.remove('just-done'), 1200);
+    }
     persist();
     updateProjMeters();
   }
@@ -10360,10 +10378,14 @@
       clearStatus();
     }
 
-    function attachFile(file) {
+    async function attachFile(file) {
       const isStl = isStlFile(file);
       if (!file.type.match(/^(image|video)\//) && !isStl) { setErr('File must be an image, video, or STL.'); return; }
       if (file.size > 50 * 1024 * 1024) { setErr('File too large (50MB max).'); return; }
+      if ((file.type || '').toLowerCase().startsWith('image/')) {
+        try { file = await normalizeImageFile(file); }
+        catch (err) { setErr(err.message); return; }
+      }
       attachedFile = file;
       attachedLink = null;
       const isVideo = file.type.startsWith('video/');
@@ -10618,12 +10640,12 @@
 
   // ============== PORTFOLIO SYSTEM ==============
   const SLOT_DEFS = [
-    { key: 'sketch',  label: 'Sketch',  icon: ICON_SKETCH,  accept: 'image/png,image/jpeg',                                          exts: 'PNG, JPG',  fileTypes: 'image', allowFile: true,  allowLink: false },
+    { key: 'sketch',  label: 'Sketch',  icon: ICON_SKETCH,  accept: 'image/*',                                                       exts: 'JPG, PNG, HEIC', fileTypes: 'image', allowFile: true,  allowLink: false },
     { key: 'cad',     label: 'CAD',     icon: ICON_CAD,     accept: '.stl,model/stl,application/sla,application/vnd.ms-pki.stl',    exts: 'STL',       fileTypes: 'cad',   allowFile: true,  allowLink: true  },
     { key: 'code',    label: 'Code',    icon: ICON_CODE,    accept: 'application/pdf',                                               exts: 'PDF',       fileTypes: 'pdf',  allowFile: true,  allowLink: false },
-    { key: 'wiring',  label: 'Wiring',  icon: ICON_WIRING,  accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
-    { key: 'image',   label: 'Image',   icon: ICON_IMAGE,   accept: 'image/jpeg,image/png',                                          exts: 'JPG, PNG',  fileTypes: 'image', allowFile: true,  allowLink: false },
-    { key: 'video',   label: 'Video',   icon: ICON_VIDEO,   accept: 'video/mp4',                                                     exts: 'MP4',       fileTypes: 'video', allowFile: true,  allowLink: true  },
+    { key: 'wiring',  label: 'Wiring',  icon: ICON_WIRING,  accept: 'image/*',                                                       exts: 'JPG, PNG, HEIC', fileTypes: 'image', allowFile: true,  allowLink: false },
+    { key: 'image',   label: 'Image',   icon: ICON_IMAGE,   accept: 'image/*',                                                       exts: 'JPG, PNG, HEIC', fileTypes: 'image', allowFile: true,  allowLink: false },
+    { key: 'video',   label: 'Video',   icon: ICON_VIDEO,   accept: 'video/*',                                                       exts: 'MP4, MOV',  fileTypes: 'video', allowFile: true,  allowLink: true  },
     { key: 'summary', label: 'Summary', icon: ICON_SUMMARY, accept: '',                                                              exts: 'Text only', fileTypes: 'text', allowFile: false, allowLink: false }
   ];
 
@@ -10679,15 +10701,41 @@
     return ct === 'model/stl' || ct === 'application/sla' || ct === 'application/vnd.ms-pki.stl';
   }
 
+  // Convert any image the browser can decode (WebP, GIF, AVIF, HEIC-on-Safari)
+  // into a JPEG so it passes Storage rules AND renders in every classmate's
+  // browser. JPEG/PNG pass through untouched. Throws a plain-English Error when
+  // the browser cannot decode the format — HEIC in Chrome is the big one.
+  async function normalizeImageFile(file) {
+    const ct = (file.type || '').toLowerCase();
+    if (ct === 'image/jpeg' || ct === 'image/png') return file;
+    const looksHeic = /heic|heif/.test(ct) || /\.(heic|heif)$/i.test(file.name || '');
+    let bitmap = null;
+    try { bitmap = await createImageBitmap(file); } catch (_) {}
+    if (!bitmap) {
+      throw new Error(looksHeic
+        ? `"${file.name}" is an iPhone HEIC photo, which this browser can't read. In Photos, export it as JPEG (or take a screenshot of it) and upload that instead.`
+        : `"${file.name}" is an image format this browser can't read. Save it as JPG or PNG and try again.`);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0);
+    if (bitmap.close) bitmap.close();
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
+    if (!blob) throw new Error(`Could not convert "${file.name}". Save it as JPG or PNG and try again.`);
+    const base = (file.name || 'photo').replace(/\.[a-z0-9]+$/i, '');
+    return new File([blob], base + '.jpg', { type: 'image/jpeg' });
+  }
+
   function isAcceptedForSlot(slotKey, file) {
     if (!file) return false;
     if (file.size > PORTFOLIO_MAX_FILE) return false;
     const ct = (file.type || '').toLowerCase();
     if (slotKey === 'image' || slotKey === 'wiring' || slotKey === 'sketch') {
-      return ct === 'image/jpeg' || ct === 'image/png';
+      return ct.startsWith('image/');
     }
     if (slotKey === 'video') {
-      return ct === 'video/mp4';
+      return ct.startsWith('video/');
     }
     if (slotKey === 'cad') {
       return isStlFile(file);
@@ -11096,7 +11144,7 @@
         });
       }
 
-      function handleFileForSlot(def, file) {
+      async function handleFileForSlot(def, file) {
         if (!isAcceptedForSlot(def.key, file)) {
           setStatus(`That file type is not accepted for ${def.label}. Allowed: ${def.exts}.`, true);
           return;
@@ -11104,6 +11152,10 @@
         if (file.size > PORTFOLIO_MAX_FILE) {
           setStatus('File too large (100MB max).', true);
           return;
+        }
+        if ((file.type || '').toLowerCase().startsWith('image/')) {
+          try { file = await normalizeImageFile(file); }
+          catch (err) { setStatus(err.message, true); return; }
         }
         pendingFiles[def.key] = file;
         // Use a local object URL for preview until upload at submit time
@@ -11508,15 +11560,16 @@
         <div class="cp-section-label">Evidence</div>
         <div class="pf-drop" data-cp-drop>
           <div class="pf-drop-text">Drag files here or click to upload - photos, code PDF, wiring schematic, or STL</div>
-          <div class="pf-drop-sub">JPG, PNG, PDF, STL · up to 100MB each</div>
-          <input type="file" data-cp-file accept="image/jpeg,image/png,application/pdf,.stl,model/stl,application/sla,application/vnd.ms-pki.stl" multiple style="display:none;" />
+          <div class="pf-drop-sub">JPG, PNG, HEIC, PDF, STL · up to 100MB each</div>
+          <input type="file" data-cp-file accept="image/*,application/pdf,.stl,model/stl,application/sla,application/vnd.ms-pki.stl" multiple style="display:none;" />
         </div>
         <div class="cp-preview" data-cp-preview hidden></div>
       </div>
       <div class="cp-section">
         <div class="cp-section-label">Reflection</div>
+        <div class="pf-drop-sub" style="margin-bottom:6px;">1. Summarize what you made.<br>2. Describe any problems you ran into and how you worked through them.<br>3. List at least three new things you learned.</div>
         <textarea class="cp-reflection" data-cp-text rows="6" maxlength="1500"
-          placeholder="1. Summarize what you made.&#10;2. Describe any problems you ran into and how you worked through them.&#10;3. List at least three new things you learned."></textarea>
+          placeholder="Answer all three questions here."></textarea>
       </div>
       <div class="pf-actions">
         <span class="pf-saved-pill" data-cp-saved>Saved</span>
@@ -11637,20 +11690,32 @@
       const url = await getDownloadURL(task.snapshot.ref);
       return { url, fileName: file.name, kind, contentType: ct, filePath: path };
     }
-    function handleFiles(files) {
+    async function handleFiles(files) {
       const name = getCurrentName();
       if (!name) {
         setStatus('Pick your name first.', true);
         return;
       }
       const arr = Array.from(files || []);
-      for (const f of arr) {
+      for (let f of arr) {
         const ct = (f.type || '').toLowerCase();
-        const isImage = ct === 'image/jpeg' || ct === 'image/png';
+        const isImage = ct.startsWith('image/');
         const isPdf = ct === 'application/pdf';
         const isStl = isStlFile(f);
-        if (!isImage && !isPdf && !isStl) continue;
-        if (f.size > PORTFOLIO_MAX_FILE) continue;
+        // Never skip a file silently — a student who watches nothing happen
+        // assumes it worked. Say exactly what was wrong.
+        if (!isImage && !isPdf && !isStl) {
+          setStatus(`"${f.name}" is not a supported type. Upload a photo, PDF, or STL.`, true);
+          continue;
+        }
+        if (f.size > PORTFOLIO_MAX_FILE) {
+          setStatus(`"${f.name}" is too large (100MB max).`, true);
+          continue;
+        }
+        if (isImage) {
+          try { f = await normalizeImageFile(f); }
+          catch (err) { setStatus(err.message, true); continue; }
+        }
         const kind = isPdf ? 'pdf' : isStl ? 'stl' : 'image';
         const entry = {
           url: URL.createObjectURL(f),
@@ -11884,8 +11949,8 @@
         <div class="inst-box-head"><span class="inst-box-icon">${ICON_IMAGE}</span><span class="inst-box-label">Proof you entered the contest</span></div>
         <div class="inst-drop" data-inst-drop role="button" tabindex="0">
           <div class="inst-drop-text">Tap to add a screenshot of your contest entry</div>
-          <div class="inst-drop-sub">JPG or PNG</div>
-          <input type="file" accept="image/jpeg,image/png" data-inst-file hidden />
+          <div class="inst-drop-sub">JPG, PNG, or HEIC</div>
+          <input type="file" accept="image/*" data-inst-file hidden />
         </div>
         <div class="inst-proof" data-inst-proof hidden></div>
       </div>
@@ -11953,6 +12018,8 @@
       const name = nameInput.value.trim();
       if (!name) { setStatus('Pick your name first.', true); return; }
       if (norm(name) !== norm(ownerName)) return;
+      try { file = await normalizeImageFile(file); }
+      catch (err) { setStatus(err.message, true); return; }
       setStatus('Uploading screenshot…');
       try {
         const slug = nameSlug(name);

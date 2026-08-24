@@ -25,18 +25,18 @@ service firebase.storage {
                        || request.resource.contentType == 'application/octet-stream');
     }
 
-    // Portfolio uploads: image (JPG/PNG), PDF, MP4 video, STL CAD files.
-    // STL files come in many content types (some browsers send octet-stream),
-    // so we accept the .stl extension via the path pattern as well.
+    // Portfolio uploads: any image (the client converts exotic formats like
+    // HEIC to JPEG before upload, but the rule stays broad so a slow-to-update
+    // cached client never hits a silent wall again), any video (iPhone .mov is
+    // video/quicktime), PDF, STL CAD files.
     match /portfolios/{benchmarkId}/{file=**} {
       allow read: if true;
       allow write: if request.resource != null
                    && request.resource.size < 100 * 1024 * 1024
                    && (
-                        request.resource.contentType == 'image/jpeg'
-                     || request.resource.contentType == 'image/png'
+                        request.resource.contentType.matches('image/.*')
+                     || request.resource.contentType.matches('video/.*')
                      || request.resource.contentType == 'application/pdf'
-                     || request.resource.contentType == 'video/mp4'
                      || request.resource.contentType == 'model/stl'
                      || request.resource.contentType == 'application/sla'
                      || request.resource.contentType == 'application/vnd.ms-pki.stl'
@@ -52,10 +52,9 @@ service firebase.storage {
       allow write: if request.resource != null
                    && request.resource.size < 100 * 1024 * 1024
                    && (
-                        request.resource.contentType == 'image/jpeg'
-                     || request.resource.contentType == 'image/png'
+                        request.resource.contentType.matches('image/.*')
+                     || request.resource.contentType.matches('video/.*')
                      || request.resource.contentType == 'application/pdf'
-                     || request.resource.contentType == 'video/mp4'
                      || request.resource.contentType == 'model/stl'
                      || request.resource.contentType == 'application/sla'
                      || request.resource.contentType == 'application/vnd.ms-pki.stl'
