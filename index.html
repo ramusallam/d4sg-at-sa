@@ -901,15 +901,36 @@
   .cp-persona-row strong { color: var(--ink-hi); font-weight: 600; }
 
   /* ===== Benchmark step instructions — gorgeous, simple, scannable ===== */
+  /* Each step carries a numbered circle joined by a vertical rail, so the
+     order and direction of the work reads at a glance. */
   .cp-steps {
     display: flex;
     flex-direction: column;
   }
   .cp-step {
+    display: flex;
+    gap: 14px;
     padding: 14px 0;
+    position: relative;
   }
   .cp-step + .cp-step {
     border-top: 1px solid rgba(17, 17, 17, 0.06);
+  }
+  .cp-step-num {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 1px;
   }
   .cp-step-eyebrow {
     font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -921,6 +942,8 @@
     margin-bottom: 6px;
   }
   .cp-step-body {
+    flex: 1;
+    min-width: 0;
     font-size: 15.5px;
     line-height: 1.65;
     color: var(--paper-ink);
@@ -2658,6 +2681,88 @@
     color: var(--accent);
     font-size: 18px;
   }
+  /* Evidence flow: the numbered gather-it-in-order path. Circles are joined
+     by a vertical rail; a completed step's circle flips to a green check. */
+  .cp-evflow {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .cp-evstep {
+    position: relative;
+    display: flex;
+    gap: 14px;
+    padding: 9px 0;
+  }
+  .cp-evstep::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 0;
+    width: 1.5px;
+    background: var(--border-strong);
+  }
+  .cp-evstep:first-child::before { top: 9px; }
+  .cp-evstep:last-child::before { bottom: auto; height: 9px; }
+  .cp-evstep-num {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    background: var(--bg-1);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+  .cp-evstep-num .cp-evstep-check { display: none; }
+  .cp-evstep-num .cp-evstep-check svg { display: block; }
+  .cp-evstep.is-done .cp-evstep-num {
+    border-color: var(--success);
+    background: var(--success);
+    color: #fff;
+  }
+  .cp-evstep.is-done .cp-evstep-num .cp-evstep-n { display: none; }
+  .cp-evstep.is-done .cp-evstep-num .cp-evstep-check { display: inline-flex; }
+  .cp-evstep-main {
+    flex: 1;
+    min-width: 0;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--paper-ink);
+    padding-top: 2px;
+  }
+  .cp-evstep-main strong { font-weight: 700; }
+  .cp-evstep-main a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1.5px;
+    cursor: pointer;
+  }
+  .cp-evstep-main a:hover { color: var(--accent-hover); }
+  .cp-evstep.is-done .cp-evstep-main { color: var(--ink-low); }
+  .cp-evstep-done-tag {
+    display: none;
+    margin-left: 8px;
+    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--success);
+  }
+  .cp-evstep.is-done .cp-evstep-done-tag { display: inline; }
   .checkpoint-panel .cp-reflection {
     width: 100%;
     border: 1px solid var(--border-strong);
@@ -3875,9 +3980,138 @@
     display: grid;
     grid-template-columns: 220px 1fr;
     gap: 16px;
+    position: relative;
   }
   @media (max-width: 820px) {
     .schem-stage { grid-template-columns: 1fr; }
+  }
+
+  /* Wiring guide: the **Wiring** section of the newest Vibe Coding reply,
+     carried into the schematic so students wire and read on one page.
+     Floats over the canvas on wide screens; stacks above it on small ones. */
+  .schem-wiring-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 340px;
+    max-height: min(560px, 100%);
+    display: none;
+    flex-direction: column;
+    background: var(--bg-1);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
+    z-index: 30;
+    overflow: hidden;
+  }
+  .schem-wiring-panel.is-open { display: flex; }
+  .schem-wiring-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .schem-wiring-icon {
+    display: inline-flex;
+    color: var(--accent);
+    font-size: 17px;
+  }
+  .schem-wiring-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink-hi);
+    line-height: 1.2;
+  }
+  .schem-wiring-sub {
+    font-size: 11px;
+    color: var(--ink-low);
+  }
+  .schem-wiring-close {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink-low);
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .schem-wiring-close:hover { background: var(--bg-2); color: var(--ink-hi); }
+  .schem-wiring-body {
+    padding: 12px 14px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-hi);
+  }
+  .schem-wiring-body p { margin: 6px 0; }
+  .schem-wiring-body p:first-child { margin-top: 0; }
+  .schem-wiring-body ul {
+    margin: 6px 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .schem-wiring-body strong { font-weight: 700; }
+  .schem-wiring-body code {
+    background: var(--bg-2);
+    border-radius: 5px;
+    padding: 1px 5px;
+    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11.5px;
+  }
+  .schem-wiring-empty {
+    font-size: 12.5px;
+    color: var(--ink-low);
+    line-height: 1.6;
+  }
+  .schem-wiring-empty a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .schem-wiring-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: var(--bg-1);
+    color: var(--ink-hi);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .schem-wiring-btn:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .schem-wiring-btn .schem-wiring-btn-ic {
+    display: inline-flex;
+    color: var(--accent);
+    font-size: 15px;
+  }
+  @media (max-width: 820px) {
+    .schem-wiring-panel {
+      position: static;
+      width: auto;
+      max-height: 340px;
+      order: -1;
+      box-shadow: none;
+    }
   }
 
   .schem-palette {
@@ -7377,9 +7611,6 @@
             <button class="vibe-tool-btn" id="camSaveTo" title="Save to a benchmark or Portfolio" aria-label="Save to a benchmark or Portfolio" disabled>
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
             </button>
-            <button class="vibe-tool-btn" id="camDownload" title="Download photo" aria-label="Download photo" disabled>
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><circle cx="12" cy="12" r="1.6"/><path d="M9 17l3 3 3-3"/><path d="M12 14v6"/></svg>
-            </button>
           </div>
         </div>
         <div class="cam-stage" id="camStage">
@@ -7409,7 +7640,6 @@
     const retakeBtn = document.getElementById('camRetake');
     const flipBtn = document.getElementById('camFlip');
     const saveBtn = document.getElementById('camSaveTo');
-    const downloadBtn = document.getElementById('camDownload');
 
     let _shotBlob = null;
     let _deviceIds = [];
@@ -7420,7 +7650,6 @@
       captureBtn.hidden = frozen;
       retakeBtn.hidden = !frozen;
       saveBtn.disabled = !frozen || !_shotBlob;
-      downloadBtn.disabled = !frozen || !_shotBlob;
     }
 
     async function listCameras() {
@@ -7514,16 +7743,6 @@
       }
       openSaveToPop(saveBtn, 'photo', () => Promise.resolve(_shotBlob));
     });
-    downloadBtn.addEventListener('click', () => {
-      if (!_shotBlob) return;
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(_shotBlob);
-      a.download = `circuit-photo-${new Date().toISOString().slice(0, 10)}.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
-    });
-
     // Stop the camera on ANY route change (back button, top nav, tool links)
     // so the camera light never stays on after leaving the tool.
     setViewTeardown(() => { _camStopStream(); });
@@ -8182,6 +8401,13 @@
       _schemState = schemLoad();
       if (document.getElementById('schemCanvasWrap')) renderPerfboard();
     } catch (e) { console.warn('schemSwitchStudent failed', e); }
+    // Wiring guide follows the newly-picked student's chat too.
+    if (document.getElementById('schemWiringPanel')) {
+      schemRenderWiringGuide(false);
+      vibeHydrateFromCloud().catch(() => null).then(() => {
+        if (document.getElementById('schemWiringPanel')) schemRenderWiringGuide(true);
+      });
+    }
   }
 
   function schemNewId(prefix) {
@@ -8203,6 +8429,65 @@
     el._timer = setTimeout(() => {
       el.classList.remove('is-visible');
     }, ms || 2400);
+  }
+
+  // ============== Wiring guide (Vibe Coding → Schematic handoff) ==============
+  // The AI's reply ends with a **Wiring** section, but students draw their
+  // schematic on a different page and had to remember it. This panel carries
+  // the newest wiring instructions into the Schematic tool. It auto-opens
+  // when there are instructions the student hasn't dismissed yet; the
+  // toolbar's Wiring guide button reopens it any time.
+  function schemWiringSeenKey() { return `d4sg-schem-wiring-seen::${vibeSlug()}`; }
+
+  // Newest assistant message containing a **Wiring** heading, sliced from
+  // that heading to the end (code fences stripped first). Same-student chat:
+  // both tools key off LAST_PICK_KEY.
+  function schemLatestWiring() {
+    const chat = vibeLoadChat();
+    for (let i = chat.length - 1; i >= 0; i--) {
+      const m = chat[i];
+      if (!m || m.role !== 'assistant' || !m.content) continue;
+      const noCode = String(m.content).replace(/```[\s\S]*?```/g, '').trim();
+      const match = /\*\*wiring[^*]*\*\*/i.exec(noCode);
+      if (match) return noCode.slice(match.index);
+    }
+    return null;
+  }
+
+  function schemWiringHash(text) {
+    let h = 0;
+    const s = String(text || '');
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return String(h);
+  }
+
+  // Repaint the panel body from the current student's chat. autoOpen: open
+  // the panel if these instructions haven't been dismissed before.
+  function schemRenderWiringGuide(autoOpen) {
+    const panelEl = document.getElementById('schemWiringPanel');
+    const bodyEl = document.getElementById('schemWiringBody');
+    if (!panelEl || !bodyEl) return;
+    const text = schemLatestWiring();
+    bodyEl.innerHTML = '';
+    if (text) {
+      const frag = document.createDocumentFragment();
+      vibeRenderProse(text, frag);
+      bodyEl.appendChild(frag);
+    } else {
+      bodyEl.innerHTML = '<div class="schem-wiring-empty">No wiring instructions yet. Build your code in the <a data-wiring-vibe-link>Vibe Coding Tool</a> first - the wiring section of the AI\'s reply will appear here.</div>';
+      const link = bodyEl.querySelector('[data-wiring-vibe-link]');
+      if (link) link.addEventListener('click', () => {
+        if (typeof applyRoute === 'function') {
+          history.pushState({}, '', '/tools/vibe');
+          applyRoute('/tools/vibe');
+        }
+      });
+    }
+    if (autoOpen && text) {
+      let seen = '';
+      try { seen = localStorage.getItem(schemWiringSeenKey()) || ''; } catch (_) {}
+      if (schemWiringHash(text) !== seen) panelEl.classList.add('is-open');
+    }
   }
 
   // ============== Hover tooltips for tool icons ==============
@@ -8325,6 +8610,11 @@
             </div>
           </div>
           <div class="vibe-toolbar-group" style="margin-left: auto;">
+            <button class="schem-wiring-btn" id="schemWiringBtn" title="Show the wiring instructions from your latest Vibe Coding reply">
+              <span class="schem-wiring-btn-ic">${ICON_WIRING}</span>Wiring guide
+            </button>
+          </div>
+          <div class="vibe-toolbar-group">
             <button class="vibe-tool-btn" id="schemUndo" title="Undo (Cmd+Z / Ctrl+Z)" aria-label="Undo">
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
             </button>
@@ -8336,15 +8626,23 @@
             <button class="vibe-tool-btn" id="schemSaveTo" title="Save to a benchmark or Portfolio" aria-label="Save to a benchmark or Portfolio">
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
             </button>
-            <button class="vibe-tool-btn" id="schemDownload" title="Download image" aria-label="Download image">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><circle cx="12" cy="12" r="1.6"/><path d="M9 17l3 3 3-3"/><path d="M12 14v6"/></svg>
-            </button>
           </div>
         </div>
 
         <div class="schem-stage">
           <div class="schem-palette" id="schemPalette"></div>
           <div class="schem-canvas-wrap" id="schemCanvasWrap"></div>
+          <aside class="schem-wiring-panel" id="schemWiringPanel" aria-label="Wiring instructions from your Vibe Coding chat">
+            <div class="schem-wiring-head">
+              <span class="schem-wiring-icon">${ICON_WIRING}</span>
+              <div>
+                <div class="schem-wiring-title">Wiring guide</div>
+                <div class="schem-wiring-sub">From your Vibe Coding chat</div>
+              </div>
+              <button class="schem-wiring-close" id="schemWiringClose" aria-label="Hide wiring guide">${ICON_X}</button>
+            </div>
+            <div class="schem-wiring-body" id="schemWiringBody"></div>
+          </aside>
         </div>
 
       </div>
@@ -8372,6 +8670,29 @@
     renderComponentPalette();
     renderColorRow();
     renderPerfboard();
+
+    // Wiring guide: fill from this student's Vibe Coding chat (pulling the
+    // chat from the cloud first if this device has none) and auto-open when
+    // there are instructions they haven't dismissed.
+    schemRenderWiringGuide(false);
+    vibeHydrateFromCloud().catch(() => null).then(() => {
+      if (document.getElementById('schemWiringPanel')) schemRenderWiringGuide(true);
+    });
+    document.getElementById('schemWiringBtn').addEventListener('click', () => {
+      const p = document.getElementById('schemWiringPanel');
+      if (!p) return;
+      schemRenderWiringGuide(false);
+      p.classList.toggle('is-open');
+    });
+    document.getElementById('schemWiringClose').addEventListener('click', () => {
+      const p = document.getElementById('schemWiringPanel');
+      if (!p) return;
+      p.classList.remove('is-open');
+      // Remember this exact set of instructions as seen, so the panel only
+      // auto-opens again when a NEWER wiring section arrives.
+      const text = schemLatestWiring();
+      if (text) { try { localStorage.setItem(schemWiringSeenKey(), schemWiringHash(text)); } catch (_) {} }
+    });
 
     document.getElementById('schemUndo').addEventListener('click', schemUndo);
     document.getElementById('schemZoomOut').addEventListener('click', () => schemSetZoom(_schemZoom - 0.15));
@@ -8497,10 +8818,6 @@
         });
       });
       openSaveToPop(schemSaveBtn, 'schematic', buildBlob);
-    });
-
-    document.getElementById('schemDownload').addEventListener('click', () => {
-      exportPNG();
     });
   }
 
@@ -9995,8 +10312,8 @@
   }
 
   // Build a PNG Blob from the current schematic SVG. Calls cb(blob) on success,
-  // or cb(null, err) on failure. Shared by exportPNG() (download) and the
-  // "+ Save to..." flow (drops the Blob into a benchmark/Portfolio slot).
+  // or cb(null, err) on failure. Used by the "+ Save to..." flow (drops the
+  // Blob into a benchmark/Portfolio slot).
   function buildSchemPngBlob(cb) {
     if (!_schemSvg) { cb(null, new Error('no svg')); return; }
     try {
@@ -10043,25 +10360,6 @@
     } catch (err) {
       cb(null, err);
     }
-  }
-
-  function exportPNG() {
-    buildSchemPngBlob((pngBlob, err) => {
-      if (!pngBlob) {
-        console.error('export PNG failed', err);
-        schemToast('Could not generate image. Try again.');
-        return;
-      }
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(pngBlob);
-      const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
-      a.download = `wiring-schematic-${stamp}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-      schemToast('Image saved.');
-    });
   }
 
   function findBenchmarkById(id) {
@@ -10229,8 +10527,9 @@
       const sec = document.createElement('div');
       sec.className = 'modal-section';
       if (Array.isArray(b.instructions)) {
-        const stepsHtml = b.instructions.map((stepText) => `
+        const stepsHtml = b.instructions.map((stepText, stepIdx) => `
           <div class="cp-step">
+            <span class="cp-step-num" aria-hidden="true">${stepIdx + 1}</span>
             <div class="cp-step-body">${formatStepMarkup(stepText)}</div>
           </div>
         `).join('');
@@ -11890,6 +12189,64 @@
     return { nameWrap, gridWrap: panel };
   }
 
+  // ----- Evidence flow steps (checkpoint benchmarks) -----
+  // Derives the numbered gather-your-evidence path from the benchmark's
+  // gradeNote "Evidence (...)" clause, in build order: code from the Vibe
+  // Coding Tool, schematic from the Wiring Schematic Tool, photo from the
+  // Image Capture Tool, then the reflection. Each step carries a done()
+  // predicate checked live against the draft's files and reflection text.
+  function cpEvidenceStepSpec(bench) {
+    const m = /Evidence \(([^)]+)\)/.exec((bench && bench.gradeNote) || '');
+    const evid = m ? m[1] : '';
+    const hasCode = /code pdf/i.test(evid);
+    const hasSchem = /wiring schematic/i.test(evid);
+    const isPhotoish = (p) => p.status === 'uploaded' && p.kind !== 'pdf' && !/schem/i.test(p.fileName || '');
+    const steps = [];
+    if (hasCode) steps.push({
+      key: 'code',
+      text: '**Code PDF.** Go back to the [Vibe Coding Tool](tools#vibe) and press **Save to benchmark**.',
+      done: (files) => files.some(p => p.status === 'uploaded' && p.kind === 'pdf')
+    });
+    if (hasSchem) steps.push({
+      key: 'schematic',
+      text: '**Wiring schematic.** Go back to the [Wiring Schematic Tool](tools#schematic) and press **Save to benchmark**.',
+      done: (files) => files.some(p => p.status === 'uploaded' && p.kind === 'image' && /schem/i.test(p.fileName || ''))
+    });
+    if (hasCode && hasSchem) {
+      const device = /device/i.test(evid);
+      steps.push({
+        key: 'photo',
+        text: device
+          ? '**Device photo.** Open the [Image Capture Tool](tools#camera), photograph the finished device on its printed mount, and press **Save to benchmark**.'
+          : '**Circuit photo.** Open the [Image Capture Tool](tools#camera), photograph your working circuit, and press **Save to benchmark**.',
+        done: (files) => files.some(isPhotoish)
+      });
+    } else if (evid) {
+      // Drop the code PDF from the gather list when it already has its own step.
+      const gather = evid.replace(/\s*\+\s*code pdf/i, '').replace(/code pdf\s*\+\s*/i, '');
+      steps.push({
+        key: 'photo',
+        text: `**Evidence files.** Gather: ${gather}. Take photos with the [Image Capture Tool](tools#camera) and press **Save to benchmark**.`,
+        done: (files) => files.some(isPhotoish)
+      });
+    }
+    steps.push({
+      key: 'reflection',
+      text: '**Reflection.** Answer the three questions below, then press **Submit**.',
+      done: (files, reflectionText) => !!(reflectionText || '').trim()
+    });
+    return steps;
+  }
+  function cpEvidenceStepsHtml(steps) {
+    const check = '<span class="cp-evstep-check" aria-hidden="true"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"/></svg></span>';
+    return steps.map((s, i) => `
+      <li class="cp-evstep" data-ev-key="${s.key}">
+        <span class="cp-evstep-num"><span class="cp-evstep-n">${i + 1}</span>${check}</span>
+        <div class="cp-evstep-main">${formatStepMarkup(s.text)}<span class="cp-evstep-done-tag">Done</span></div>
+      </li>
+    `).join('');
+  }
+
   // ----- Checkpoint panel (benchmarks 1-4): name picker + photos/PDF + reflection -----
   // Now writes drafts to Firestore continuously so a student can leave and come
   // back later (any device) and find their stuff. Files upload to Storage at a
@@ -11899,13 +12256,18 @@
     const panel = document.createElement('div');
     panel.className = 'portfolio-panel checkpoint-panel';
     const cpBench = findBenchmarkById(benchmarkId);
+    const evSteps = cpEvidenceStepSpec(cpBench);
     panel.innerHTML = `
       <div data-cp-namepicker></div>
       ${cpBench && cpBench.gradeNote ? `<p class="grade-note"><span class="grade-note__label">Grading</span><span>${escapeHtml(cpBench.gradeNote)}</span></p>` : ''}
       <div class="cp-section">
+        <div class="cp-section-label">Do these in order</div>
+        <ol class="cp-evflow" data-cp-evflow>${cpEvidenceStepsHtml(evSteps)}</ol>
+      </div>
+      <div class="cp-section">
         <div class="cp-section-label" id="cp-evidence-${benchmarkId}">Evidence</div>
         <div class="pf-drop" data-cp-drop role="button" tabindex="0" aria-labelledby="cp-evidence-${benchmarkId}" aria-describedby="cp-upload-help-${benchmarkId}">
-          <div class="pf-drop-text">Drag files here or click to upload - photos, code PDF, wiring schematic, or STL</div>
+          <div class="pf-drop-text">Files from Save to benchmark land here - or drag files in / click to upload</div>
           <div class="pf-drop-sub" id="cp-upload-help-${benchmarkId}">JPG, PNG, HEIC, PDF, or STL. Up to 8 files, 100MB each. New uploads add on - nothing gets replaced. Autosaves to your draft.</div>
           <input type="file" data-cp-file aria-label="Choose evidence files" accept="image/*,.heic,.heif,application/pdf,.stl,model/stl,application/sla,application/vnd.ms-pki.stl" multiple style="display:none;" />
         </div>
@@ -11981,6 +12343,17 @@
         textarea.value.trim()
       );
       submitBtn.disabled = !ok;
+      refreshEvidenceSteps();
+    }
+    // Flip each evidence-flow step to its green check as that piece of the
+    // draft lands. Runs on every state change via refreshSubmit.
+    function refreshEvidenceSteps() {
+      const list = panel.querySelector('[data-cp-evflow]');
+      if (!list) return;
+      evSteps.forEach(s => {
+        const li = list.querySelector(`[data-ev-key="${s.key}"]`);
+        if (li) li.classList.toggle('is-done', !!s.done(pendingFiles, textarea.value));
+      });
     }
     function renderPreviews() {
       preview.innerHTML = pendingFiles.map((p, i) => {
@@ -13551,7 +13924,7 @@
 
   // Curated, known-good example sketches. These are a guaranteed-compile
   // fallback so a class is never dead-ended when the AI or compile server is
-  // down — a student can always load one of these, Verify, and Upload. Every
+  // down — a student can always load one of these and Upload. Every
   // sketch uses only libraries installed on the compile service (Keyboard,
   // Mouse, Adafruit_VL53L0X) and the project's standard hardware/pin wiring.
   const VIBE_EXAMPLES = [
@@ -14032,10 +14405,6 @@ void loop() {
             <p class="vibe-panel-title">Arduino Code Editor</p>
             <div class="vibe-panel-actions">
               <div class="vibe-toolbar-group">
-                <button class="vibe-tool-btn is-labeled" id="vibeVerify" title="Verify (compile only)" aria-label="Verify">
-                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
-                  <span class="vibe-tool-label">Verify</span>
-                </button>
                 <button class="vibe-tool-btn is-labeled" id="vibeUpload" title="Upload to Arduino" aria-label="Upload to Arduino">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h12"/><path d="M13 6l6 6-6 6"/></svg>
                   <span class="vibe-tool-label">Upload</span>
@@ -14063,9 +14432,6 @@ void loop() {
               <div class="vibe-toolbar-group">
                 <button class="vibe-tool-btn" id="vibeSaveTo" title="Save to a benchmark or Portfolio" aria-label="Save to a benchmark or Portfolio">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
-                </button>
-                <button class="vibe-tool-btn" id="vibeDownloadPdf" title="Download as PDF" aria-label="Download as PDF">
-                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M9 14l3 3 3-3"/><path d="M12 11v6"/></svg>
                 </button>
               </div>
               <input type="file" id="vibeLoadCodeFile" accept=".ino,.txt,.cpp,.c,.h,.pde,text/plain" style="display:none;" />
@@ -14125,7 +14491,7 @@ void loop() {
 
     wireToolBackButton(document.getElementById('vibeBack'));
 
-    // Pre-warm the compile function so the first Verify of the period doesn't
+    // Pre-warm the compile function so the first Upload of the period doesn't
     // eat the serverless cold start. Fire-and-forget.
     try { fetch('/api/compile', { method: 'GET' }).catch(() => {}); } catch (_) {}
 
@@ -14198,23 +14564,7 @@ void loop() {
       });
     }
 
-    document.getElementById('vibeVerify').addEventListener('click', () => vibeVerifyCode());
     document.getElementById('vibeUpload').addEventListener('click', () => vibeUploadToArduino());
-    document.getElementById('vibeDownloadPdf').addEventListener('click', async () => {
-      const txt = vibeGetEditorText();
-      if (!txt || !txt.trim()) {
-        schemToast('Editor is empty. Click Build in the AI Assistant, or paste code, first.');
-        return;
-      }
-      try {
-        const doc = await vibeBuildPdfDoc();
-        doc.save(`arduino-sketch-${new Date().toISOString().slice(0, 10)}.pdf`);
-        schemToast('PDF saved.');
-      } catch (err) {
-        console.warn('PDF export failed', err);
-        schemToast('Could not build PDF. Try again.');
-      }
-    });
 
     // Load Code from disk — accepts .ino / .txt / .cpp / .c / .h / .pde
     const vibeLoadFileInput = document.getElementById('vibeLoadCodeFile');
@@ -14790,7 +15140,7 @@ void loop() {
         // Surface the server's own message honestly — a rate limit or
         // too-long prompt is NOT a "try again" situation.
         if (r.status === 429) {
-          _vibeChat.push({ role: 'error', content: errMsg + ' Verify and Upload still work while you wait.' });
+          _vibeChat.push({ role: 'error', content: errMsg + ' Upload still works while you wait.' });
         } else if (r.status === 400 || r.status === 403) {
           _vibeChat.push({ role: 'error', content: errMsg });
         } else {
@@ -14841,9 +15191,10 @@ void loop() {
   }
 
 
-  // ============== Verify + Upload (Arduino IDE-style) ==============
-  // Verify: POST sketch to /api/compile (Wokwi hexi proxy) — show stdout/stderr
-  //   in the serial monitor, like Arduino IDE's bottom pane.
+  // ============== Compile + Upload (Arduino IDE-style) ==============
+  // vibeVerifyCode: POST sketch to /api/compile (Wokwi hexi proxy) — show
+  //   stdout/stderr in the serial monitor. No toolbar button; only the AI
+  //   auto-fix loop calls it after loading corrected code.
   // Upload: compile the same way, parse the resulting Intel HEX, then flash
   //   it to a connected Leonardo / Micro using AVR109 (Caterina bootloader)
   //   over Web Serial. The 1200-baud "knock" reboots the board into the
@@ -14921,9 +15272,6 @@ void loop() {
       schemToast('Editor is empty. Click Build in the AI Assistant, or paste code, first.', 2400);
       return;
     }
-    const btn = document.getElementById('vibeVerify');
-    btn.disabled = true;
-    btn.classList.add('is-active');
     vibeMonitorLine('[ Verifying… ]', 'info');
     let lastStderr = '';
     try {
@@ -14958,12 +15306,9 @@ void loop() {
         if (err && err.isRateLimit) {
           vibeMonitorLine("That's a daily compile limit, not a problem with your code. Try again later.", 'info');
         } else {
-          vibeMonitorLine("The compile server is offline or waking up right now. This is NOT a problem with your code. Wait about a minute and click Verify again, or load an example from the Examples menu while you wait.", 'info');
+          vibeMonitorLine("The compile server is offline or waking up right now. This is NOT a problem with your code. Wait about a minute and click Upload again, or load an example from the Examples menu while you wait.", 'info');
         }
       }
-    } finally {
-      btn.disabled = false;
-      btn.classList.remove('is-active');
     }
   }
 
@@ -15049,7 +15394,7 @@ void loop() {
     if (usesHid && !hasArmSafety) {
       const proceed = confirm('Safety check: this code can control the computer, but no arm/disarm switch was detected. Add a physical safety switch before uploading. Upload this version anyway?');
       if (!proceed) {
-        vibeMonitorLine('[ Upload paused - add an arm/disarm switch, then Verify again. ]', 'info');
+        vibeMonitorLine('[ Upload paused - add an arm/disarm switch, then Upload again. ]', 'info');
         return;
       }
     }
