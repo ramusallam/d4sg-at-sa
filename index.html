@@ -6276,6 +6276,7 @@
     'Gabe',
     'Henry',
     'Isabella',
+    'Kai',
     'Katie',
     'Oona',
     'Peter',
@@ -6303,7 +6304,12 @@
     return () => _rosterSubs.delete(cb);
   }
   function _setLiveRoster(names) {
-    const merged = Array.from(new Set([...ROSTER, ...names])).sort((a, b) =>
+    const byKey = new Map();
+    [...ROSTER, ...names].forEach(n => {
+      const k = String(n).trim().toLowerCase();
+      if (k && !byKey.has(k)) byKey.set(k, String(n).trim());
+    });
+    const merged = Array.from(byKey.values()).sort((a, b) =>
       a.localeCompare(b, undefined, { sensitivity: 'base' })
     );
     _liveRoster = merged;
