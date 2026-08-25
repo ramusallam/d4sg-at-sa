@@ -44,6 +44,15 @@ service firebase.storage {
                    );
     }
 
+    // Chem Images Wall uploads (Chemistry class app, not D4SG). The client
+    // re-encodes every photo to an upright, downscaled JPEG before upload.
+    match /chemWall/{file=**} {
+      allow read: if true;
+      allow write: if request.resource != null
+                   && request.resource.size < 15 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
     // Per-student per-benchmark drafts. Path: drafts/${nameSlug}__${benchmarkId}/...
     // Same file-type allowlist + 100MB cap as portfolios. The Firestore draft doc is
     // soft-cleared on Submit; the file URL persists in the promoted /portfolios entry.
