@@ -1,11 +1,10 @@
 // Vercel Node.js serverless function: OpenAI proxy for the Vibe Coding
-// Arduino Tool. Gates by request origin (T4SG Vercel domain OR the app's
-// non-secret X-D4SG-Client header), hard-caps input size, applies a soft
+// Arduino Tool. Gates by deployed T4SG origin, hard-caps input size, applies a soft
 // per-IP rate limit, and strips markdown fences from the model output so the
 // client receives pure Arduino C/C++.
 //
 // This is a public, no-login endpoint wired to a personal OpenAI key, so the
-// input caps + origin gate are the real money door: they bound the tokens any
+// input caps + origin gate reduce casual abuse: they bound the tokens any
 // single request can spend and reject cross-origin abuse. Set a HARD MONTHLY
 // SPEND CAP on the OpenAI account as the ultimate backstop.
 //
@@ -30,16 +29,13 @@ const MAX_HISTORY_MESSAGES = 8;       // keep only the last N turns
 const MAX_HISTORY_MSG_CHARS = 8000;   // truncate each history message to this
 const MAX_TOTAL_INPUT_CHARS = 60000;  // defensive cap on assembled user+history
 
-// Origin gate. Requests must come from the T4SG app: either a same-site
-// Origin/Referer on an allowed host, or the app's non-secret client header.
-// The header is not a secret (it ships in page source) — it only stops naive
-// cross-origin scripts, while the Origin allowlist stops browser abuse.
+// Origin gate. Requests must carry a same-site Origin or Referer from the
+// deployed T4SG app. Authentication and durable rate limiting remain the
+// stronger long-term boundary.
 const ALLOWED_HOST_SUFFIXES = [
   't4sg-at-sa.vercel.app',
   'd4sg-at-sa.vercel.app'
 ];
-const CLIENT_HEADER = 'd4sg-at-sa';
-
 function hostFromUrl(value) {
   if (!value) return '';
   try { return new URL(value).hostname.toLowerCase(); } catch (_) { return ''; }
@@ -52,12 +48,9 @@ function isAllowedHost(host) {
   );
 }
 
-// True if the request looks like it came from the real T4SG app.
+// True if the request came from the deployed T4SG app. Do not accept the
+// public client header as authorization because anyone can copy it.
 function isAllowedRequest(req) {
-  const clientHeader = req.headers['x-d4sg-client'];
-  if (typeof clientHeader === 'string' && clientHeader.trim() === CLIENT_HEADER) {
-    return true;
-  }
   const originHost = hostFromUrl(req.headers['origin']);
   if (isAllowedHost(originHost)) return true;
   const refererHost = hostFromUrl(req.headers['referer']);
@@ -81,6 +74,7 @@ const SYSTEM_PROMPT = [
   "CODE RULES:",
   "- Clean, well-commented Arduino C/C++. Pin constants at the top, a setup(), a loop().",
   "- Use Keyboard.h / Mouse.h / Joystick.h when the controller should act as a USB HID device (Leonardo/Micro support this).",
+  "- SAFETY: every sketch that uses Keyboard.h, Mouse.h, or Joystick.h must include a physical arm/disarm switch on a clearly named ARM_PIN using INPUT_PULLUP. HID output must stop immediately and release all keys/buttons when disarmed. Include the exact arm-switch wiring in the response.",
   "- Add Serial.println() debug output so values show in the Serial Monitor at 9600 baud.",
   "- Include simple debouncing for buttons/switches. Keep sketches under ~120 lines unless truly necessary.",
   "- Comment generously so a beginner understands what each part does.",
@@ -187,7 +181,7 @@ export default async function handler(req, res) {
   }
   res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-D4SG-Client');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
 
   if (req.method !== 'POST') {

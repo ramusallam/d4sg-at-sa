@@ -3944,6 +3944,11 @@
     height: calc(100vh - 150px);
     min-height: 640px;
   }
+  .vibe-privacy-note {
+    margin: 7px 0 0;
+    color: var(--ink-low);
+    font-size: 12px;
+  }
   @media (max-width: 900px) {
     .vibe-wrap {
       grid-template-columns: 1fr;
@@ -4633,6 +4638,11 @@
     transition: background 0.14s ease, color 0.14s ease, transform 0.12s ease;
     line-height: 1;
     font-family: inherit;
+  }
+  .vibe-tool-btn.is-labeled { width: auto; padding: 0 10px; gap: 6px; font-size: 11.5px; font-weight: 700; }
+  @media (max-width: 720px) {
+    .vibe-tool-btn.is-labeled { width: 36px; padding: 0; }
+    .vibe-tool-btn.is-labeled .vibe-tool-label { display: none; }
   }
   .vibe-tool-btn + .vibe-tool-btn { border-left: 1px solid var(--border); }
   .vibe-tool-btn svg {
@@ -10248,7 +10258,7 @@
       } else if (isStl) {
         media = `<div class="link-fallback"><div class="link-icon link-icon--stl">STL</div><div class="link-domain">3D model · click to download</div></div>`;
       } else {
-        media = `<img src="${item.fileUrl}" alt="${escapeHtml(item.studentName || '')}" loading="lazy" decoding="async" onerror="window._fileBrokenFallback(this)" />`;
+        media = `<img src="${item.fileUrl}" alt="${escapeHtml(item.description || ((item.studentName || 'Student') + ' project evidence'))}" loading="lazy" decoding="async" onerror="window._fileBrokenFallback(this)" />`;
       }
 
       tile.innerHTML = `
@@ -10280,6 +10290,9 @@
     // Add tile (always last)
     const addTile = document.createElement('div');
     addTile.className = 'add-tile';
+    addTile.setAttribute('role', 'button');
+    addTile.setAttribute('tabindex', '0');
+    addTile.setAttribute('aria-label', opts.linkOnly ? 'Submit a link' : 'Add your work');
     addTile.innerHTML = `<div class="plus">+</div><div>${opts.linkOnly ? 'Submit link' : 'Add your work'}</div>`;
     addTile.addEventListener('click', () => {
       let formRef;
@@ -10291,6 +10304,12 @@
         renderGallery(grid, benchmarkId, items, opts);
       }, opts);
       grid.replaceChild(formRef, addTile);
+    });
+    addTile.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        addTile.click();
+      }
     });
     grid.appendChild(addTile);
   }
@@ -10304,13 +10323,13 @@
     const LINK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.5-1.5"/></svg>';
 
     const fileBlock = linkOnly ? '' : `
-      <div class="attach-empty" data-attach-empty>
+      <div class="attach-empty" data-attach-empty role="button" tabindex="0" aria-label="Choose a file to upload">
         <div class="attach-icon">${UPLOAD_ICON}</div>
         <div class="attach-text">Drop a file or click to upload</div>
         <div class="attach-sub">Image, video, or STL, up to 50MB</div>
         <button type="button" class="attach-link-toggle" data-link-toggle>${LINK_ICON} Or paste a link</button>
       </div>
-      <input type="file" data-file accept="image/*,video/*,.stl,model/stl,application/sla,application/vnd.ms-pki.stl" />
+      <input type="file" data-file aria-label="Choose a file to upload" accept="image/*,.heic,.heif,video/*,.stl,model/stl,application/sla,application/vnd.ms-pki.stl" />
     `;
 
     form.innerHTML = `
@@ -10320,13 +10339,13 @@
       <div class="attach ${linkOnly ? 'is-link-entry' : ''}" data-attach>
         ${fileBlock}
         <div class="attach-link-entry">
-          <input type="url" data-link-input placeholder="${linkOnly ? 'Paste your link' : 'Paste a URL'}" />
+          <input type="url" data-link-input aria-label="Paste a URL" placeholder="${linkOnly ? 'Paste your link' : 'Paste a URL'}" />
           ${linkOnly ? '' : `<button type="button" class="icon-btn" data-link-cancel aria-label="Cancel">${ICON_X}</button>`}
         </div>
         <div class="attach-preview" data-preview></div>
       </div>
 
-      <div class="upload-status" data-status></div>
+      <div class="upload-status" data-status role="status" aria-live="polite"></div>
       <div class="actions">
         <button class="btn-cancel" data-cancel type="button">Cancel</button>
         <button class="btn-submit" data-submit type="button">Submit</button>
@@ -10456,6 +10475,12 @@
       attachEmpty.addEventListener('click', (e) => {
         if (e.target.closest('[data-link-toggle]')) return;
         fileInput.click();
+      });
+      attachEmpty.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          fileInput.click();
+        }
       });
       fileInput.addEventListener('change', () => {
         if (fileInput.files[0]) attachFile(fileInput.files[0]);
@@ -10702,24 +10727,29 @@
   }
 
   // Convert any image the browser can decode (WebP, GIF, AVIF, HEIC-on-Safari)
-  // into a JPEG so it passes Storage rules AND renders in every classmate's
-  // browser. JPEG/PNG pass through untouched. Throws a plain-English Error when
+  // into a reasonably-sized JPEG so it renders in every classmate's browser.
+  // Normal JPEG/PNG files under 20MB pass through untouched. Throws a plain-English Error when
   // the browser cannot decode the format — HEIC in Chrome is the big one.
   async function normalizeImageFile(file) {
     const ct = (file.type || '').toLowerCase();
-    if (ct === 'image/jpeg' || ct === 'image/png') return file;
+    if ((ct === 'image/jpeg' || ct === 'image/png') && file.size <= 20 * 1024 * 1024) return file;
     const looksHeic = /heic|heif/.test(ct) || /\.(heic|heif)$/i.test(file.name || '');
     let bitmap = null;
-    try { bitmap = await createImageBitmap(file); } catch (_) {}
+    try { bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch (_) {}
     if (!bitmap) {
       throw new Error(looksHeic
         ? `"${file.name}" is an iPhone HEIC photo, which this browser can't read. In Photos, export it as JPEG (or take a screenshot of it) and upload that instead.`
         : `"${file.name}" is an image format this browser can't read. Save it as JPG or PNG and try again.`);
     }
+    const maxSide = 4096;
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
     const canvas = document.createElement('canvas');
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
-    canvas.getContext('2d').drawImage(bitmap, 0, 0);
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const imageCtx = canvas.getContext('2d');
+    imageCtx.fillStyle = '#ffffff';
+    imageCtx.fillRect(0, 0, canvas.width, canvas.height);
+    imageCtx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     if (bitmap.close) bitmap.close();
     const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
     if (!blob) throw new Error(`Could not convert "${file.name}". Save it as JPG or PNG and try again.`);
@@ -11557,23 +11587,23 @@
       <div data-cp-namepicker></div>
       ${cpBench && cpBench.gradeNote ? `<p class="grade-note"><span class="grade-note__label">Grading</span><span>${escapeHtml(cpBench.gradeNote)}</span></p>` : ''}
       <div class="cp-section">
-        <div class="cp-section-label">Evidence</div>
-        <div class="pf-drop" data-cp-drop>
+        <div class="cp-section-label" id="cp-evidence-${benchmarkId}">Evidence</div>
+        <div class="pf-drop" data-cp-drop role="button" tabindex="0" aria-labelledby="cp-evidence-${benchmarkId}" aria-describedby="cp-upload-help-${benchmarkId}">
           <div class="pf-drop-text">Drag files here or click to upload - photos, code PDF, wiring schematic, or STL</div>
-          <div class="pf-drop-sub">JPG, PNG, HEIC, PDF, STL · up to 100MB each</div>
-          <input type="file" data-cp-file accept="image/*,application/pdf,.stl,model/stl,application/sla,application/vnd.ms-pki.stl" multiple style="display:none;" />
+          <div class="pf-drop-sub" id="cp-upload-help-${benchmarkId}">JPG, PNG, HEIC, PDF, or STL. Up to 8 files, 100MB each. Files autosave to your draft.</div>
+          <input type="file" data-cp-file aria-label="Choose evidence files" accept="image/*,.heic,.heif,application/pdf,.stl,model/stl,application/sla,application/vnd.ms-pki.stl" multiple style="display:none;" />
         </div>
         <div class="cp-preview" data-cp-preview hidden></div>
       </div>
       <div class="cp-section">
-        <div class="cp-section-label">Reflection</div>
+        <label class="cp-section-label" for="cp-reflection-${benchmarkId}">Reflection</label>
         <div class="pf-drop-sub" style="margin-bottom:6px;">1. Summarize what you made.<br>2. Describe any problems you ran into and how you worked through them.<br>3. List at least three new things you learned.</div>
-        <textarea class="cp-reflection" data-cp-text rows="6" maxlength="1500"
+        <textarea class="cp-reflection" id="cp-reflection-${benchmarkId}" data-cp-text rows="6" maxlength="1500"
           placeholder="Answer all three questions here."></textarea>
       </div>
       <div class="pf-actions">
-        <span class="pf-saved-pill" data-cp-saved>Saved</span>
-        <div class="pf-status" data-cp-status></div>
+        <span class="pf-saved-pill" data-cp-saved aria-live="polite">Saved</span>
+        <div class="pf-status" data-cp-status role="status" aria-live="polite"></div>
         <button class="pf-submit" data-cp-submit type="button" disabled>Submit</button>
       </div>
     `;
@@ -11589,18 +11619,28 @@
     // Entry shape: { url, fileName, kind, contentType, filePath, status, _localObjUrl }
     let pendingFiles = [];
     let _hydrating = false;
+    let _hydrateRequest = 0;
 
     const namePickerMount = panel.querySelector('[data-cp-namepicker]');
     const picker = renderNamePicker({
       initial: localStorage.getItem(LAST_PICK_KEY) || '',
       onChange: (newName) => {
-        if (!newName) return;
+        if (!newName) {
+          _hydrateRequest++;
+          _hydrating = false;
+          pendingFiles = [];
+          textarea.value = '';
+          renderPreviews();
+          setStatus('Pick your name to load or save a draft.');
+          return;
+        }
         ensureRosterEntry(newName);
         hydrateFromDraft(newName);
         flushPendingArtifactIfQueued();
       }
     });
     namePickerMount.appendChild(picker.element);
+    const nameSelect = panel.querySelector('[data-name-select]');
 
     function getCurrentName() { return picker.getName(); }
 
@@ -11632,7 +11672,7 @@
           ? `<div class="cp-preview-pdf" aria-hidden="true">PDF</div>`
           : p.kind === 'stl'
             ? `<div class="cp-preview-pdf" aria-hidden="true">STL</div>`
-            : `<img src="${p.url}" alt="" />`;
+            : `<img src="${p.url}" alt="Preview of ${escapeHtml(p.fileName || 'uploaded evidence')}" />`;
         const overlay = p.status === 'uploading'
           ? `<div class="cp-preview-uploading">Uploading…</div>`
           : (p.status === 'failed' ? `<div class="cp-preview-failed">Failed</div>` : '');
@@ -11651,6 +11691,7 @@
         b.addEventListener('click', () => removeOne(parseInt(b.getAttribute('data-cp-remove'), 10)));
       });
       preview.hidden = pendingFiles.length === 0;
+      if (nameSelect) nameSelect.disabled = pendingFiles.some(p => p.status === 'uploading');
       refreshSubmit();
     }
 
@@ -11667,13 +11708,25 @@
           filePath: p.filePath
         }));
       showSaved('Saving…', 'saving');
-      saveDraft(name, benchmarkId, { files }).then(() => showSaved('Saved'));
+      saveDraft(name, benchmarkId, { files }).then((ok) => {
+        if (ok) showSaved('Saved');
+        else {
+          savedPill.classList.remove('is-visible');
+          setStatus('Draft not saved. Check your connection and try again.', true);
+        }
+      });
     }
     const persistDraftReflection = debounce(() => {
       const name = getCurrentName();
       if (!name || _hydrating) return;
       showSaved('Saving…', 'saving');
-      saveDraft(name, benchmarkId, { reflection: textarea.value }).then(() => showSaved('Saved'));
+      saveDraft(name, benchmarkId, { reflection: textarea.value }).then((ok) => {
+        if (ok) showSaved('Saved');
+        else {
+          savedPill.classList.remove('is-visible');
+          setStatus('Reflection not saved. Check your connection and keep this window open.', true);
+        }
+      });
     }, 600);
 
     async function uploadOne(file, kind, entry) {
@@ -11697,9 +11750,18 @@
         return;
       }
       const arr = Array.from(files || []);
+      if (pendingFiles.length + arr.length > 8) {
+        setStatus('Upload up to 8 evidence files at a time.', true);
+        return;
+      }
+      const batchBytes = arr.reduce((sum, f) => sum + (f.size || 0), 0);
+      if (batchBytes > 250 * 1024 * 1024) {
+        setStatus('This batch is over 250MB. Upload fewer files at a time.', true);
+        return;
+      }
       for (let f of arr) {
         const ct = (f.type || '').toLowerCase();
-        const isImage = ct.startsWith('image/');
+        const isImage = ct.startsWith('image/') || /\.(heic|heif|jpe?g|png|webp|gif|avif)$/i.test(f.name || '');
         const isPdf = ct === 'application/pdf';
         const isStl = isStlFile(f);
         // Never skip a file silently — a student who watches nothing happen
@@ -11757,6 +11819,7 @@
     }
 
     async function hydrateFromDraft(name) {
+      const requestId = ++_hydrateRequest;
       _hydrating = true;
       pendingFiles.forEach(p => { if (p._localObjUrl) { try { URL.revokeObjectURL(p.url); } catch (_) {} } });
       pendingFiles = [];
@@ -11764,6 +11827,7 @@
       renderPreviews();
       setStatus('Loading your saved work…');
       const draft = await loadDraft(name, benchmarkId);
+      if (requestId !== _hydrateRequest || name !== getCurrentName()) return;
       if (draft) {
         if (Array.isArray(draft.files)) {
           for (const f of draft.files) {
@@ -11789,6 +11853,12 @@
     }
 
     drop.addEventListener('click', () => fileInput.click());
+    drop.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
     fileInput.addEventListener('change', () => {
       handleFiles(fileInput.files);
       fileInput.value = '';
@@ -11908,7 +11978,7 @@
         renderPreviews();
         refreshCountBadge(benchmarkId);
         markChecked(benchmarkId);
-        submitBtn.textContent = '✓ Submitted!';
+        submitBtn.textContent = 'Submitted';
         submitBtn.classList.add('is-success');
         setStatus('Submitted. Your work is in Class submissions below.');
         setTimeout(() => {
@@ -13327,8 +13397,10 @@ void loop() {
   }
   function vibeChatKey() { return `d4sg-vibe-chat::${vibeSlug()}`; }
   function vibeEditorKey() { return `d4sg-vibe-editor::${vibeSlug()}`; }
+  function vibeVersionsKey() { return `d4sg-vibe-versions::${vibeSlug()}`; }
 
   function vibeLoadChat() {
+    if (!vibeStudentName()) return [];
     try {
       const raw = localStorage.getItem(vibeChatKey());
       if (!raw) return [];
@@ -13347,15 +13419,55 @@ void loop() {
     } catch (_) {}
   }, 1200);
   function vibeSaveChat() {
+    if (!vibeStudentName()) return;
     try { localStorage.setItem(vibeChatKey(), JSON.stringify(_vibeChat)); } catch (_) {}
     _vibeMirrorDraft();
   }
   function vibeLoadEditorText() {
+    if (!vibeStudentName()) return VIBE_DEFAULT_CODE;
     try { return localStorage.getItem(vibeEditorKey()) || VIBE_DEFAULT_CODE; } catch (_) { return VIBE_DEFAULT_CODE; }
   }
   function vibeSaveEditorText(txt) {
+    if (!vibeStudentName()) return;
     try { localStorage.setItem(vibeEditorKey(), txt); } catch (_) {}
     _vibeMirrorDraft();
+  }
+
+  function vibeLoadVersions() {
+    if (!vibeStudentName()) return [];
+    try {
+      const versions = JSON.parse(localStorage.getItem(vibeVersionsKey()) || '[]');
+      return Array.isArray(versions) ? versions : [];
+    } catch (_) { return []; }
+  }
+  function vibeSnapshotEditor(reason) {
+    if (!vibeStudentName()) return;
+    const code = vibeGetEditorText();
+    if (!code || !code.trim()) return;
+    const versions = vibeLoadVersions();
+    if (versions[0] && versions[0].code === code) return;
+    versions.unshift({ code, reason: reason || 'Previous version', savedAt: Date.now() });
+    try { localStorage.setItem(vibeVersionsKey(), JSON.stringify(versions.slice(0, 10))); } catch (_) {}
+    vibeUpdateRestoreButton();
+  }
+  function vibeUpdateRestoreButton() {
+    const btn = document.getElementById('vibeRestoreEditor');
+    if (btn) btn.disabled = !vibeStudentName() || !vibeLoadVersions().length;
+  }
+  function vibeRestorePreviousVersion() {
+    const versions = vibeLoadVersions();
+    const previous = versions.shift();
+    if (!previous) { schemToast('No earlier code version is saved.'); return; }
+    const current = vibeGetEditorText();
+    if (current && current.trim() && current !== previous.code) {
+      versions.unshift({ code: current, reason: 'Before restore', savedAt: Date.now() });
+    }
+    try { localStorage.setItem(vibeVersionsKey(), JSON.stringify(versions.slice(0, 10))); } catch (_) {}
+    vibeSetEditorText(previous.code);
+    vibeSaveEditorText(previous.code);
+    vibeUpdateLibraries();
+    vibeUpdateRestoreButton();
+    schemToast('Restored the previous code version.');
   }
 
   // Pull this student's saved chat + editor from Firestore when nothing is
@@ -13401,6 +13513,7 @@ void loop() {
     if (inp) { inp.value = ''; vibeAutoGrow(inp); vibeUpdateSendEnabled(); }
     vibeRenderChat();
     vibeHydrateFromCloud();
+    vibeUpdateRestoreButton();
   }
 
   // Load the Monaco editor (the engine behind VS Code) from a CDN. Monaco
@@ -13535,6 +13648,7 @@ void loop() {
       <button class="schem-back" id="vibeBack" aria-label="Back to Tools"><span class="schem-back-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></span> Back to Tools</button>
       <h2 class="project-title">Vibe Coding</h2>
       <div data-vibe-identity></div>
+      <p class="vibe-privacy-note">Pick your own name. AI requests send your prompt and current sketch to the coding assistant and save them to your named draft.</p>
 
       <div class="vibe-wrap">
         <div class="vibe-left">
@@ -13567,11 +13681,13 @@ void loop() {
             <p class="vibe-panel-title">Arduino Code Editor</p>
             <div class="vibe-panel-actions">
               <div class="vibe-toolbar-group">
-                <button class="vibe-tool-btn" id="vibeVerify" title="Verify (compile only)" aria-label="Verify">
+                <button class="vibe-tool-btn is-labeled" id="vibeVerify" title="Verify (compile only)" aria-label="Verify">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>
+                  <span class="vibe-tool-label">Verify</span>
                 </button>
-                <button class="vibe-tool-btn" id="vibeUpload" title="Upload to Arduino" aria-label="Upload to Arduino">
+                <button class="vibe-tool-btn is-labeled" id="vibeUpload" title="Upload to Arduino" aria-label="Upload to Arduino">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h12"/><path d="M13 6l6 6-6 6"/></svg>
+                  <span class="vibe-tool-label">Upload</span>
                 </button>
               </div>
               <div class="vibe-toolbar-group">
@@ -13583,6 +13699,9 @@ void loop() {
                 </button>
                 <button class="vibe-tool-btn" id="vibeClearEditor" title="Clear editor" aria-label="Clear editor">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg>
+                </button>
+                <button class="vibe-tool-btn" id="vibeRestoreEditor" title="Restore previous code" aria-label="Restore previous code" disabled>
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v6h6"/><path d="M12 7v5l3 2"/></svg>
                 </button>
               </div>
               <div class="vibe-toolbar-group">
@@ -13695,10 +13814,12 @@ void loop() {
 
     document.getElementById('vibeClearEditor').addEventListener('click', () => {
       if (!confirm('Clear the editor?')) return;
+      vibeSnapshotEditor('Before clearing');
       vibeSetEditorText(VIBE_DEFAULT_CODE);
       vibeSaveEditorText(VIBE_DEFAULT_CODE);
       vibeUpdateLibraries();
     });
+    document.getElementById('vibeRestoreEditor').addEventListener('click', () => vibeRestorePreviousVersion());
 
     // Curated example sketches — a guaranteed-good fallback that works even if
     // the AI or the compile server is down, so a class is never dead-ended.
@@ -13718,6 +13839,7 @@ void loop() {
         if (cur && cur.trim() && cur.trim() !== VIBE_DEFAULT_CODE.trim()) {
           if (!confirm('Replace the code in the editor with the "' + ex.name + '" example?')) return;
         }
+        vibeSnapshotEditor('Before loading example');
         vibeSetEditorText(ex.code);
         vibeSaveEditorText(ex.code);
         vibeUpdateLibraries();
@@ -13759,6 +13881,7 @@ void loop() {
       const reader = new FileReader();
       reader.onload = () => {
         const text = String(reader.result || '');
+        vibeSnapshotEditor('Before loading file');
         vibeSetEditorText(text);
         vibeSaveEditorText(text);
         vibeUpdateLibraries();
@@ -13886,6 +14009,7 @@ void loop() {
     });
 
     vibeUpdateLibraries();
+    vibeUpdateRestoreButton();
     vibeRenderChat();
     // Pull this student's saved work from the cloud if this device has none.
     vibeHydrateFromCloud();
@@ -13939,7 +14063,7 @@ void loop() {
     const inp = document.getElementById('vibeInput');
     const btn = document.getElementById('vibeSend');
     if (!inp || !btn) return;
-    btn.disabled = _vibeBusy || !inp.value.trim();
+    btn.disabled = _vibeBusy || !vibeStudentName() || !inp.value.trim();
   }
 
   // ----- Suggested prompts (empty-state chips) -----
@@ -14024,7 +14148,7 @@ void loop() {
 
     const icon = document.createElement('span');
     icon.className = 'vibe-codeloaded-icon';
-    icon.textContent = '✓';
+    icon.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg>';
 
     const text = document.createElement('span');
     text.className = 'vibe-codeloaded-text';
@@ -14038,6 +14162,7 @@ void loop() {
     loadBtn.textContent = 'Reload';
     loadBtn.title = 'Replace the editor with this version';
     loadBtn.addEventListener('click', () => {
+      vibeSnapshotEditor('Before reloading AI code');
       vibeSetEditorText(code);
       vibeSaveEditorText(code);
       vibeUpdateLibraries();
@@ -14232,6 +14357,7 @@ void loop() {
       lines.unshift(`#include <${lib}>`);
     }
     const next = lines.join('\n');
+    vibeSnapshotEditor('Before adding library');
     vibeSetEditorText(next);
     vibeSaveEditorText(next);
     vibeUpdateLibraries();
@@ -14246,6 +14372,12 @@ void loop() {
 
   function vibeSend() {
     if (_vibeBusy) return;
+    if (!vibeStudentName()) {
+      schemToast('Pick your name before using the AI Assistant.');
+      const picker = document.querySelector('[data-vibe-identity] [data-name-select]');
+      if (picker) picker.focus();
+      return;
+    }
     const inputEl = document.getElementById('vibeInput');
     const txt = (inputEl.value || '').trim();
     if (!txt) return;
@@ -14296,7 +14428,7 @@ void loop() {
 
     fetch('/api/vibe-code', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-D4SG-Client': 'd4sg-at-sa' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: txt, editorCode: editorForApi, history }),
       signal: aborter.signal
     }).then(async (r) => {
@@ -14329,6 +14461,7 @@ void loop() {
           // there. Any fenced block in the reply renders as a small "loaded"
           // chip (see vibeBuildCodeBlock), not a duplicate black code box.
           if (code) {
+            vibeSnapshotEditor('Before AI update');
             vibeSetEditorText(code);
             vibeSaveEditorText(code);
             vibeUpdateLibraries();
@@ -14559,6 +14692,15 @@ void loop() {
     if (!sketch || !sketch.trim()) {
       schemToast('Editor is empty. Click Build in the AI Assistant, or paste code, first.', 2400);
       return;
+    }
+    const usesHid = /#include\s*[<\"](?:Keyboard|Mouse|Joystick)\.h[>\"]/i.test(sketch);
+    const hasArmSafety = /\b(?:ARM|ENABLE|DISARM|SAFETY)[A-Z0-9_]*_?PIN\b/i.test(sketch) && /digitalRead\s*\(/.test(sketch);
+    if (usesHid && !hasArmSafety) {
+      const proceed = confirm('Safety check: this code can control the computer, but no arm/disarm switch was detected. Add a physical safety switch before uploading. Upload this version anyway?');
+      if (!proceed) {
+        vibeMonitorLine('[ Upload paused - add an arm/disarm switch, then Verify again. ]', 'info');
+        return;
+      }
     }
     if (!('serial' in navigator)) {
       vibeMonitorLine('Web Serial not supported. Use Chrome or Edge on a desktop.', 'err');
@@ -15263,7 +15405,7 @@ void loop() {
   }
   async function saveDraft(name, benchmarkId, partial) {
     const id = draftDocId(name, benchmarkId);
-    if (!id) return;
+    if (!id) return false;
     try {
       await setDoc(
         doc(db, 'drafts', id),
@@ -15279,8 +15421,10 @@ void loop() {
         },
         { merge: true }
       );
+      return true;
     } catch (e) {
       console.warn('saveDraft failed', e);
+      return false;
     }
   }
   async function clearDraft(name, benchmarkId) {
