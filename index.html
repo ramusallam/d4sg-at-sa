@@ -3627,6 +3627,116 @@
     color: var(--ink-low);
   }
 
+  /* ============== IMAGE CAPTURE TOOL ============== */
+  .cam-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .cam-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .cam-stage {
+    position: relative;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    max-height: 68vh;
+  }
+  .cam-stage video,
+  .cam-stage canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #111;
+  }
+  .cam-stage canvas { display: none; }
+  .cam-stage.is-frozen video { visibility: hidden; }
+  .cam-stage.is-frozen canvas { display: block; }
+  .cam-flash {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .cam-flash.is-firing { animation: camFlash 0.35s ease-out; }
+  @keyframes camFlash {
+    0% { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+  .cam-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    text-align: center;
+    padding: 24px;
+    color: #E8E0D2;
+    background: #1C1917;
+  }
+  .cam-empty-icon { color: #A0937B; }
+  .cam-empty-text { font-size: 15px; max-width: 420px; line-height: 1.5; }
+  .cam-empty .cam-start-btn {
+    appearance: none;
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 22px;
+    background: var(--accent);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .cam-empty .cam-start-btn:hover { background: var(--accent-hover); }
+  .cam-shot-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    appearance: none;
+    border: 0;
+    border-radius: 10px;
+    padding: 10px 20px;
+    background: var(--accent);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+  .cam-shot-btn:hover { background: var(--accent-hover); }
+  .cam-shot-btn:active { transform: translateY(1px); }
+  .cam-shot-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .cam-shot-btn[hidden] { display: none; }
+  .cam-shot-btn svg { width: 17px; height: 17px; }
+  .cam-hint {
+    font-size: 13px;
+    color: var(--ink-mid);
+    line-height: 1.5;
+  }
+  @media (max-width: 640px) {
+    .cam-stage { aspect-ratio: 4 / 3; }
+  }
+
   /* ============== SCHEMATIC TOOL ============== */
   .schem-wrap {
     display: flex;
@@ -6104,11 +6214,11 @@
           points: 2,
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
-            'Open the [Vibe Coding Tool](tools#vibe), click **Build**, and describe this behavior in the input: *"Activate the W key each time a simple tactile button is pressed. Avoid pins 2 and 3 - I need them free for a later sensor."*',
+            'Open the [Vibe Coding Tool](tools#vibe), click **Build**, and describe this behavior in the input: *"Activate the W key each time a simple tactile button is pressed. Avoid pins 2 and 3 - I need them free for a later sensor. Use only the Arduino Leonardo and the button - no other parts, no resistors. Simplest possible code and simplest wiring instructions."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to lay out a digital schematic of your circuit using a **breadboard**.',
             'Wire your physical Arduino to match your schematic, then load the code from the Vibe Coding editor.',
             'Test it: click into any text field and press your button - a w should appear on every press. Modify the code until it works exactly as described.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. **Save to benchmark** in each tool files the schematic and code PDF automatically.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. **Save to benchmark** in each tool files the schematic and code PDF automatically. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and save it to this benchmark the same way.'
           ],
           videoUrl: '',
           links: [],
@@ -6121,11 +6231,11 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Button wiring exactly where it is.** Add the lever switch beside it on the same breadboard.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: activate the A key each time a simple lever switch is triggered. Keep the W-key button behavior I already have."*',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: activate the A key each time a simple lever switch is triggered. Keep the W-key button behavior I already have and do not change my existing wiring. Use only the lever switch - no other new parts, no resistors. Simplest possible code and simplest wiring instructions."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the lever switch to your existing schematic on the **breadboard**.',
             'Wire the lever switch into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
             'Test it: the A key should hold while the lever is lifted. Modify the code until it works exactly as described.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
           videoUrl: '',
           links: [],
@@ -6138,11 +6248,11 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Button and Lever wiring exactly where it is.** Add two different-color LEDs beside them on the same breadboard. **Each LED needs a 220 ohm resistor in series** (wired in line between the LED and its Arduino pin) **or the LED can burn out.**',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button and Lever code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the button is pressed, and a different-color LED while the lever is triggered. Keep the W-key and A-key behaviors I already have."*',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button and Lever code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the button is pressed, and a different-color LED while the lever is triggered. Keep the W-key and A-key behaviors I already have and do not change my existing wiring. Use only the two LEDs and their 220 ohm resistors - no other new parts. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
             'Wire the two LEDs into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
             'Test it: one LED should light while the button is pressed and the other while the lever is triggered. Modify the code until it works exactly as described.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
           videoUrl: '',
           links: [],
@@ -6166,12 +6276,12 @@
           instructions: [
             'Before you start: download or copy your cumulative code from the Vibe Coding editor and take a clear photo of your full breadboard. You will restore both at the start of the next project.',
             'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one switch and one LED. Maximum: both switches and both LEDs.** (The arm/disarm switch in the next step is a safety control - it does not count toward the maximum.) Pick what your user\'s motion and goal actually need - function first, looks later. Your sketch must answer two questions: where does their reliable motion hit the switch, and where do the LEDs sit so they can see them? Sketch your 3D-printed mount now too - you will build it in a later step. Prefer paper? Sketch it in your notebook instead - upload a photo of the page when you turn it in.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Button, Lever, and LED benchmarks. Include an **arm/disarm switch** - a way to turn the device\'s typing on and off, so it does not fire keystrokes while it is being moved or adjusted. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends (a key can also type a whole preset phrase - just describe it), (3) what happens on press, release, and hold, (4) when each LED is on or off, (5) your arm/disarm safety. Example of a precise line: *"While the button is held, hold the W key down, and release it the moment the button is released."* Click **Build** with your prompt.',
+            'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Button, Lever, and LED benchmarks. Include an **arm/disarm switch** - a way to turn the device\'s typing on and off, so it does not fire keystrokes while it is being moved or adjusted. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends (a key can also type a whole preset phrase - just describe it), (3) what happens on press, release, and hold, (4) when each LED is on or off, (5) your arm/disarm safety. Then end your prompt with the guardrail line: *"Use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions."* Example of a precise line: *"While the button is held, hold the W key down, and release it the moment the button is released."* Click **Build** with your prompt.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
             'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in [Tinkercad](https://www.tinkercad.com) that holds the switch where your user\'s motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL (the file format 3D printers read - in Tinkercad: Export, then .STL).',
             '3D print your mount and assemble the final product - switch, mount, LEDs, Arduino. Then **test it like your user would** - use only the motion they actually have. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Portfolio video.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, photo of the finished device on its printed mount. Your sketch and STL are submitted in the Portfolio.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, photo of the finished device on its printed mount. Take the photo with the [Image Capture Tool](tools#camera) and save it to this benchmark. Your sketch and STL are submitted in the Portfolio.'
           ],
           videoUrl: '',
           links: [],
@@ -6208,11 +6318,11 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'Restore your Project 1 setup: load your saved cumulative code back into the Vibe Coding editor and check your breadboard against your photo - button, lever, and LEDs exactly where they were. Add the capacitive touch sensor beside them.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Project 1 code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: activate the S key each time I lightly touch a capacitive touch sensor. No force or pressing should be needed. Keep the button, lever, and LED behaviors I already have."*',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Project 1 code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: activate the S key each time I lightly touch a capacitive touch sensor. No force or pressing should be needed. Keep the button, lever, and LED behaviors I already have and do not change my existing wiring. Use only the touch sensor - no other new parts, no resistors. Simplest possible code and simplest wiring instructions."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the touch sensor to your existing schematic on the **breadboard**.',
             'Wire your physical Arduino to match your schematic, then load the code from the Vibe Coding editor.',
             'Test it: an s should type on every light touch, with no pressing needed. Modify the code until it works exactly as described.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
           videoUrl: '',
           links: [],
@@ -6225,12 +6335,12 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Touch wiring exactly where it is.** Add the VL53L0X distance sensor beside it on the same breadboard.',
-            'The VL53L0X is a distance sensor on a small breakout board that talks to the Arduino over I2C (a two-wire data connection), and its header pins ship unsoldered. Open the [Vibe Coding Tool](tools#vibe). **Keep your Touch code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: activate the D key each time a hand or object comes within a set distance of a VL53L0X infrared distance sensor. Keep the S-key touch behavior I already have. Explain how to wire the sensor over I2C, including soldering its header pins onto the breakout board."*',
+            'The VL53L0X is a distance sensor on a small breakout board that talks to the Arduino over I2C (a two-wire data connection), and its header pins ship unsoldered. Open the [Vibe Coding Tool](tools#vibe). **Keep your Touch code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: activate the D key each time a hand or object comes within a set distance of a VL53L0X infrared distance sensor. Keep the S-key touch behavior I already have and do not change my existing wiring. Explain how to wire the sensor over I2C, including soldering its header pins onto the breakout board. Use only the distance sensor - no other new parts. Simplest possible code and simplest wiring instructions."*',
             'Before you wire anything: **solder the header pins onto the breakout board** so it seats firmly in the breadboard - a loose sensor gives unreliable distance readings. Check in with an instructor before using the soldering iron.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the distance sensor to your existing schematic on the **breadboard**.',
             'Wire the distance sensor into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. If anything from Project 1 is wired to pin 2 or 3, move it now and update your code and schematic - the sensor needs those two pins for I2C.',
             'Test it: a d should type each time a hand comes close to the sensor. Modify the code until it works exactly as described.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
           videoUrl: '',
           links: [],
@@ -6243,11 +6353,11 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Touch and Distance wiring exactly where it is.** Add two different-color LEDs beside them on the same breadboard. **Each LED needs a 220 ohm resistor in series.**',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Touch and Distance code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the touch sensor is active, and a different-color LED while the distance sensor is triggered. Keep the S-key and D-key behaviors I already have."*',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Touch and Distance code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the touch sensor is active, and a different-color LED while the distance sensor is triggered. Keep the S-key and D-key behaviors I already have and do not change my existing wiring. Use only the two LEDs and their 220 ohm resistors - no other new parts. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
             'Wire the two LEDs into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
             'Test it: one LED should light while the touch sensor is active and the other while the distance sensor is triggered. Modify the code until it works exactly as described.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
           videoUrl: '',
           links: [],
@@ -6271,12 +6381,12 @@
           instructions: [
             'Before you start: download or copy your cumulative code from the Vibe Coding editor and take a clear photo of your full breadboard. You will restore both at the start of the next project.',
             'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one sensor and one LED. Maximum: both sensors and both LEDs.** (The arm/disarm safety from Project 1 does not count toward the maximum.) Pick what your user\'s motion and goal actually need - function first, looks later. Your sketch must answer two questions: where does their smallest reliable movement meet the sensor, and where do the LEDs sit so they can see them? Sketch your 3D-printed mount now too - you will build it in a later step. Prefer paper? Sketch it in your notebook instead - upload a photo of the page when you turn it in.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Touch, Distance, and LED benchmarks. Include the arm/disarm safety you used in Project 1. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends, (3) what happens on touch or approach, on release, and on hold, (4) when each LED is on or off, (5) your arm/disarm safety. Example of a precise line: *"When a hand comes within 10 cm of the distance sensor, type the D key once, and do not repeat until the hand leaves and returns."* Click **Build** with your prompt.',
+            'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Touch, Distance, and LED benchmarks. Include the arm/disarm safety you used in Project 1. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends, (3) what happens on touch or approach, on release, and on hold, (4) when each LED is on or off, (5) your arm/disarm safety. Then end your prompt with the guardrail line: *"Use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions."* Example of a precise line: *"When a hand comes within 10 cm of the distance sensor, type the D key once, and do not repeat until the hand leaves and returns."* Click **Build** with your prompt.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
             'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in [Tinkercad](https://www.tinkercad.com) that holds the sensor where your user\'s smallest motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL.',
             '3D print your mount and assemble the final product - sensor, mount, LEDs, Arduino. Then **test it like your user would** - use only the motion they actually have, with no force. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Portfolio video.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, photo of the finished device on its printed mount. Your sketch and STL are submitted in the Portfolio.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, photo of the finished device on its printed mount. Take the photo with the [Image Capture Tool](tools#camera) and save it to this benchmark. Your sketch and STL are submitted in the Portfolio.'
           ],
           videoUrl: '',
           links: [],
@@ -6313,11 +6423,11 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'Restore your Projects 1 and 2 setup: load your saved cumulative code back into the Vibe Coding editor and check your breadboard against your photo - button, lever, touch and distance sensors, and LEDs exactly where they were. Add the joystick module (KY-023 - it has 5 pins: power, ground, X, Y, and a press-down button) beside it all.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Projects 1 and 2 code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: move the mouse cursor with a 5-pin joystick, and send a left mouse click each time I press the joystick down. Keep everything I already have."*',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Projects 1 and 2 code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: move the mouse cursor with a 5-pin joystick, and send a left mouse click each time I press the joystick down. Keep everything I already have and do not change my existing wiring. Use only the joystick - no other new parts, no resistors. Simplest possible code and simplest wiring instructions."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the joystick to your existing schematic on the **breadboard**.',
             'Wire your physical Arduino to match your schematic, then load the code from the Vibe Coding editor.',
             'Test it: the cursor should follow the stick, and pressing the stick down should left-click. Modify the code until it works exactly as described.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
           videoUrl: '',
           links: [],
@@ -6330,11 +6440,11 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Joystick wiring exactly where it is.** Add the sip-and-puff switch beside it on the same breadboard.',
-            'A sip-and-puff switch is a tube you breathe through - a puff of air closes the switch, like pressing a button with your breath. Open the [Vibe Coding Tool](tools#vibe). **Keep your Joystick code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: press the X key each time I puff into a sip-and-puff switch, which acts like a digital button with a ground pin and a signal pin. Keep the joystick mouse and click behaviors I already have."*',
+            'A sip-and-puff switch is a tube you breathe through - a puff of air closes the switch, like pressing a button with your breath. Open the [Vibe Coding Tool](tools#vibe). **Keep your Joystick code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: press the X key each time I puff into a sip-and-puff switch, which acts like a digital button with a ground pin and a signal pin. Keep the joystick mouse and click behaviors I already have and do not change my existing wiring. Use only the sip-and-puff switch - no other new parts, no resistors. Simplest possible code and simplest wiring instructions."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the sip-and-puff switch to your existing schematic on the **breadboard**.',
             'Wire the sip-and-puff switch into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
             'Test it: an x should type on every puff. Modify the code until it works exactly as described.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
           videoUrl: '',
           links: [],
@@ -6347,11 +6457,11 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Joystick and Sip-and-Puff wiring exactly where it is.** Add two different-color LEDs beside it all on the same breadboard. **Each LED needs a 220 ohm resistor in series.**',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Joystick and Sip-and-Puff code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the joystick button is pressed, and a different-color LED while the sip-and-puff switch is triggered. Keep the mouse, click, and X-key behaviors I already have."*',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Joystick and Sip-and-Puff code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the joystick button is pressed, and a different-color LED while the sip-and-puff switch is triggered. Keep the mouse, click, and X-key behaviors I already have and do not change my existing wiring. Use only the two LEDs and their 220 ohm resistors - no other new parts. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
             'Wire the two LEDs into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
             'Test it: one LED should light while the joystick is pressed and the other while the sip-and-puff switch is triggered. Modify the code until it works exactly as described.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
           videoUrl: '',
           links: [],
@@ -6375,12 +6485,12 @@
           instructions: [
             'Before you start: download or copy your cumulative code from the Vibe Coding editor and take a clear photo of your full breadboard. You will need both when you build the hub in Project 4.',
             'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one input and one LED. Maximum: both inputs and both LEDs.** (The arm/disarm safety from Project 1 does not count toward the maximum.) Pick what your user\'s motion and goal actually need - function first, looks later. Your sketch must answer two questions: where does their mouth, chin, or breath meet the joystick and the sip-and-puff tube, and where do the LEDs sit so they can see them? Sketch your 3D-printed mount now too - you will build it in a later step. Prefer paper? Sketch it in your notebook instead - upload a photo of the page when you turn it in.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Joystick, Sip-and-Puff, and LED benchmarks. Include the arm/disarm safety you used in Project 1. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends, (3) what happens on joystick move, on press, on puff, and on release, (4) when each LED is on or off, (5) your arm/disarm safety. Example of a precise line: *"While I puff, hold the X key down, and release it the moment the puff ends."* Click **Build** with your prompt.',
+            'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Joystick, Sip-and-Puff, and LED benchmarks. Include the arm/disarm safety you used in Project 1. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends, (3) what happens on joystick move, on press, on puff, and on release, (4) when each LED is on or off, (5) your arm/disarm safety. Then end your prompt with the guardrail line: *"Use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions."* Example of a precise line: *"While I puff, hold the X key down, and release it the moment the puff ends."* Click **Build** with your prompt.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
             'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in [Tinkercad](https://www.tinkercad.com) that holds the joystick and the sip-and-puff tube where your user\'s mouth and chin actually reach them. **It must clamp or bolt to a table, wheelchair tray, or mount arm so it cannot shift while your user drives it with their face.** Export the STL.',
             '3D print your mount and assemble the final product - joystick, sip-and-puff, mount, LEDs, Arduino. Then **test it like your user would** - use only your mouth, chin, and breath, with your device secured in place, and use a fresh mouthpiece or your own tube when testing the sip-and-puff. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Portfolio video.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, photo of the finished device on its printed mount. Your sketch and STL are submitted in the Portfolio.'
+            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, photo of the finished device on its printed mount. Take the photo with the [Image Capture Tool](tools#camera) and save it to this benchmark. Your sketch and STL are submitted in the Portfolio.'
           ],
           videoUrl: '',
           links: [],
@@ -6420,7 +6530,7 @@
             'Plan the bridge cables and adaptor plugs. Inside the hub, short jumper wires and pre-crimped JST-XH pigtails (a pigtail is a short cable with a connector on one end and bare wires on the other) run from the Arduino out to each panel connector\'s solder lugs (the metal tabs on a connector that you solder wires to). Outside the hub, each switch ends in a **3.5mm male plug** and each sensor in a **JST-XH male plug** (3-pin for the touch sensor, 4-pin for the VL53L0X distance sensor, 5-pin for the KY-023 joystick). Anything that does not already terminate that way gets a small adaptor cable.',
             'Sketch the **port layout** on the [Idea Board](tools#idea-board): which face of the hub holds the row of 3.5mm jacks, which face holds the row of JST headers, where the USB cable enters, and where the QR code label sits. Label each port with the action it will fire by default. Prefer paper? Sketch it in your notebook instead - upload a photo of the page when you turn it in.',
             'Write a **Bill of Materials** as a list - one line per part with a count: Arduino, perfboard, 3.5mm panel-mount jacks, JST-XH panel-mount headers (with the right pin count for each sensor), indicator LEDs, internal bridge wire and pigtails, external adaptor cables, screws, and 3D-print filament. **Get instructor sign-off** before you cut a single wire.',
-            'Complete **Evidence + Reflection** below. *Evidence* = port-layout sketch, bill of materials photo showing instructor initials.'
+            'Complete **Evidence + Reflection** below. *Evidence* = port-layout sketch, bill of materials photo showing instructor initials. Take photos with the [Image Capture Tool](tools#camera) and save them to this benchmark.'
           ],
           videoUrl: '',
           links: [],
@@ -6438,7 +6548,7 @@
             'Pick your connector strategy. The cleanest is **panel-mount female 3.5mm jacks** and **panel-mount female JST-XH headers** soldered directly onto the perfboard with short pigtails to the panel cutouts. The simpler alternative is **board-edge connectors** soldered along the perfboard\'s perimeter so the perfboard itself becomes the back wall of the connector panel. **If you are not sure, use panel-mount jacks with pigtails - the forgiving option.**',
             'Solder it. Check in with an instructor before using the soldering iron. Components first: Arduino headers, then the row of 3.5mm jacks, then the row of JST headers, then the indicator LEDs. Bridge the signal traces on the back of the perfboard. Check every joint: with the Arduino on USB and your code running, trigger each input and confirm its action fires.',
             'Test on USB with everything plugged in externally. Connect a switch into each 3.5mm jack and a sensor pigtail into each JST header. Every input should still do what it did on the breadboard. If something misbehaves, the bug is almost always a cold joint (a dull, cracked solder blob that does not conduct) or a missed bridge. Reflow (re-melt the joint with the iron) until it works.',
-            'Complete **Evidence + Reflection** below. *Evidence* = perfboard photo (front/back), code PDF, powered-board photo.'
+            'Complete **Evidence + Reflection** below. *Evidence* = perfboard photo (front/back), code PDF, powered-board photo. Take photos with the [Image Capture Tool](tools#camera) and save them to this benchmark.'
           ],
           videoUrl: '',
           links: [],
@@ -6455,7 +6565,7 @@
             'Iterate. Print a first version with thin walls to dry-fit your perfboard, jacks, and JST headers. The first print is always slightly off. Adjust the CAD, reprint, and check again until the perfboard drops in cleanly and every connector sits flush in its cutout.',
             'Final print. Use 2mm walls minimum. Label each 3.5mm jack and each JST header on the printed panel so a user knows which physical port maps to which port in the remap app.',
             '**Stretch (optional, XBAC-style):** add a few **built-in inputs** on the lid or front face the way the Xbox Adaptive Controller does. A couple of large tactile buttons, a built-in directional pad, a small joystick, or a fixed capacitive touch pad, all wired straight to spare Arduino pins. The external 3.5mm jacks and JST headers stay as your universal expansion. Built-in inputs just give your end-user a few defaults that work with nothing plugged in.',
-            'Complete **Evidence + Reflection** below. *Evidence* = final STL, mid-print photo, installed-board photo.'
+            'Complete **Evidence + Reflection** below. *Evidence* = final STL, mid-print photo, installed-board photo. Take photos with the [Image Capture Tool](tools#camera) and save them to this benchmark.'
           ],
           videoUrl: '',
           links: [],
@@ -6468,12 +6578,12 @@
           gradeNote: 'Evidence (remap-app screenshot + QR-on-hub photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'What you are making: a simple web page that opens from a **QR code on the front of the hub** and lets anyone change what each switch does - live, no coding. It runs on a laptop in **Chrome or Edge** with the hub plugged in over USB.',
-            'Teach the hub to listen. Open the [Vibe Coding Tool](tools#vibe), click **Build**, and paste: *"Add remap support to my Arduino Leonardo code over Serial at 9600 baud. Each port has a number (0, 1, 2...). On startup print `ready`. When a port is pressed print `port <n> pressed`, and on release `port <n> released`. When a line `set port <n> to <action>` arrives (action = a key A-Z, or space, enter, up, down, left, right, mouse left, mouse right), update that port and print `port <n> is now <action>`. Always release the key after each press."* Load the new code onto your hub.',
+            'Teach the hub to listen. Open the [Vibe Coding Tool](tools#vibe), click **Build**, and paste: *"Add remap support to my Arduino Leonardo code over Serial at 9600 baud. Each port has a number (0, 1, 2...). On startup print `ready`. When a port is pressed print `port <n> pressed`, and on release `port <n> released`. When a line `set port <n> to <action>` arrives (action = a key A-Z, or space, enter, up, down, left, right, mouse left, mouse right), update that port and print `port <n> is now <action>`. Always release the key after each press. Do not add any new hardware - use only what my code already has. Keep the code as simple as possible."* Load the new code onto your hub.',
             'Build the remap app. Open [Gemini](https://gemini.google.com) and paste: *"Build one index.html file (HTML, CSS, vanilla JS, no frameworks) that talks to an Arduino over Web Serial. A big Connect button opens the chosen port at 9600 baud. Show one card per port with a light that turns on while the port is pressed, the current action, and a dropdown to pick a new action (A-Z, space, enter, up, down, left, right, mouse left, mouse right). When a dropdown changes, send `set port <n> to <action>` + a newline. Make it big, high-contrast, with large hit targets and a short 3-step how-to at the top."* Paste the code into a plain-text editor (Mac: TextEdit, Format, Make Plain Text; or VS Code) and save it as exactly **index.html** - not index.txt, not index.html.txt.',
             'Put it online. Go to [Netlify Drop](https://app.netlify.com/drop), drag your **index.html** onto the page, and in about 30 seconds you get a public URL - copy it. **Then claim the site with a free Netlify account - unclaimed drops expire and your QR code would die.**',
             'Tape it to the hub. Make a QR code for your URL at [a QR generator](https://www.qr-code-generator.com), print it, and tape it to the **front of the hub** with the URL written underneath.',
             'Test as the end-user. On a laptop in **Chrome or Edge**, open your URL (or scan the QR), plug in the hub, click **Connect**, and choose the **Arduino Leonardo**. Press a switch - it lights up on the page. Change its dropdown - that switch now fires the new action. If something is off: web page problems go back to [Gemini](https://gemini.google.com) with your **index.html** code; Arduino problems go to the [Vibe Coding Tool](tools#vibe) with the Serial output.',
-            'Complete **Evidence + Reflection** below. *Evidence* = remap-app screenshot, QR-on-hub photo. Save your **index.html** into your class Drive folder now - you will need it and your QR code for your Instructable.'
+            'Complete **Evidence + Reflection** below. *Evidence* = remap-app screenshot, QR-on-hub photo. Take the photo with the [Image Capture Tool](tools#camera) and save it to this benchmark. Save your **index.html** into your class Drive folder now - you will need it and your QR code for your Instructable.'
           ],
           videoUrl: '',
           links: [],
@@ -7209,6 +7319,11 @@
           <p class="tool-card-blurb">Sketch your prototype with real components - switches, sensors, jacks, LEDs - and save it to a benchmark or your Portfolio.</p>
           <div class="tool-card-footer">Open</div>
         </div>
+        <div class="tool-card" id="toolCardCamera">
+          <h3 class="tool-card-title">Image Capture</h3>
+          <p class="tool-card-blurb">Hold your circuit up to the webcam, snap a photo, and save it straight to a benchmark or your Portfolio.</p>
+          <div class="tool-card-footer">Open</div>
+        </div>
       </div>
     `;
     app.appendChild(sec);
@@ -7225,6 +7340,195 @@
       history.pushState({}, '', '/tools/idea-board');
       applyRoute('/tools/idea-board');
     });
+    sec.querySelector('#toolCardCamera').addEventListener('click', () => {
+      history.pushState({}, '', '/tools/camera');
+      applyRoute('/tools/camera');
+    });
+  }
+
+  // ============== IMAGE CAPTURE TOOL ==============
+  // Webcam photo booth for evidence: live preview, capture a still, then
+  // "+ Save to..." drops the JPEG into a benchmark's Evidence drop or the
+  // Portfolio's Image slot (same popover the Schematic and Vibe tools use).
+  let _camStream = null;
+  function _camStopStream() {
+    if (_camStream) {
+      try { _camStream.getTracks().forEach(t => t.stop()); } catch (_) {}
+      _camStream = null;
+    }
+  }
+
+  function initImageCaptureTool() {
+    app.innerHTML = '';
+    const wrap = document.createElement('section');
+    wrap.className = 'project';
+    const ICON_CAM = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
+    wrap.innerHTML = `
+      <button class="schem-back" id="camBack" aria-label="Back to Tools"><span class="schem-back-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></span> Back to Tools</button>
+      <h2 class="project-title">Image Capture</h2>
+      <div class="cam-wrap">
+        <div class="cam-toolbar">
+          <button class="cam-shot-btn" id="camCapture" disabled>${ICON_CAM} Capture</button>
+          <button class="cam-shot-btn" id="camRetake" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/></svg> Retake</button>
+          <div class="vibe-toolbar-group" style="margin-left:auto;">
+            <button class="vibe-tool-btn" id="camFlip" title="Switch camera" aria-label="Switch camera" hidden>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/><path d="M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/><circle cx="12" cy="12" r="3"/><path d="M18 22l3-3-3-3"/></svg>
+            </button>
+            <button class="vibe-tool-btn" id="camSaveTo" title="Save to a benchmark or Portfolio" aria-label="Save to a benchmark or Portfolio" disabled>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
+            </button>
+            <button class="vibe-tool-btn" id="camDownload" title="Download photo" aria-label="Download photo" disabled>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><circle cx="12" cy="12" r="1.6"/><path d="M9 17l3 3 3-3"/><path d="M12 14v6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="cam-stage" id="camStage">
+          <video id="camVideo" autoplay playsinline muted></video>
+          <canvas id="camCanvas"></canvas>
+          <div class="cam-empty" id="camEmpty">
+            <span class="cam-empty-icon"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+            <div class="cam-empty-text" id="camEmptyText">Starting your camera…</div>
+            <button class="cam-start-btn" id="camStart" hidden>Turn on camera</button>
+          </div>
+          <div class="cam-flash" id="camFlash"></div>
+        </div>
+        <p class="cam-hint">Hold your working circuit up to the camera (or point your laptop at it), click <strong>Capture</strong>, then use <strong>Save to</strong> to drop the photo straight into your benchmark's Evidence.</p>
+      </div>
+    `;
+    app.appendChild(wrap);
+
+    wireToolBackButton(document.getElementById('camBack'));
+
+    const video = document.getElementById('camVideo');
+    const canvas = document.getElementById('camCanvas');
+    const stage = document.getElementById('camStage');
+    const emptyEl = document.getElementById('camEmpty');
+    const emptyText = document.getElementById('camEmptyText');
+    const startBtn = document.getElementById('camStart');
+    const captureBtn = document.getElementById('camCapture');
+    const retakeBtn = document.getElementById('camRetake');
+    const flipBtn = document.getElementById('camFlip');
+    const saveBtn = document.getElementById('camSaveTo');
+    const downloadBtn = document.getElementById('camDownload');
+
+    let _shotBlob = null;
+    let _deviceIds = [];
+    let _deviceIdx = 0;
+
+    function setFrozen(frozen) {
+      stage.classList.toggle('is-frozen', frozen);
+      captureBtn.hidden = frozen;
+      retakeBtn.hidden = !frozen;
+      saveBtn.disabled = !frozen || !_shotBlob;
+      downloadBtn.disabled = !frozen || !_shotBlob;
+    }
+
+    async function listCameras() {
+      try {
+        const devs = await navigator.mediaDevices.enumerateDevices();
+        _deviceIds = devs.filter(d => d.kind === 'videoinput').map(d => d.deviceId).filter(Boolean);
+        flipBtn.hidden = _deviceIds.length < 2;
+      } catch (_) { flipBtn.hidden = true; }
+    }
+
+    async function startCamera(deviceId) {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        emptyText.textContent = 'This browser cannot open a camera. Use Chrome or Edge, or upload a photo from your phone in the benchmark instead.';
+        startBtn.hidden = true;
+        return;
+      }
+      _camStopStream();
+      _shotBlob = null;
+      setFrozen(false);
+      captureBtn.disabled = true;
+      emptyEl.style.display = '';
+      emptyText.textContent = 'Starting your camera…';
+      startBtn.hidden = true;
+      const constraints = {
+        video: deviceId
+          ? { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+          : { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
+      };
+      try {
+        _camStream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (err) {
+        // Retry once with the loosest possible ask before giving up — an exact
+        // deviceId or environment-facing request can fail on laptops.
+        try {
+          _camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        } catch (err2) {
+          const denied = err2 && (err2.name === 'NotAllowedError' || err2.name === 'SecurityError');
+          emptyText.textContent = denied
+            ? 'Camera access was blocked. Click the camera icon in your browser\'s address bar, allow access, then try again.'
+            : 'No camera found. Plug one in or use another device, then try again.';
+          startBtn.hidden = false;
+          return;
+        }
+      }
+      // The route may have changed while permission was pending — never leave
+      // an orphaned stream (and its camera light) running.
+      if (!document.getElementById('camVideo')) { _camStopStream(); return; }
+      video.srcObject = _camStream;
+      try { await video.play(); } catch (_) {}
+      emptyEl.style.display = 'none';
+      captureBtn.disabled = false;
+      listCameras();
+    }
+
+    function capture() {
+      if (!_camStream || !video.videoWidth) return;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      const flash = document.getElementById('camFlash');
+      if (flash) {
+        flash.classList.remove('is-firing');
+        void flash.offsetWidth;
+        flash.classList.add('is-firing');
+      }
+      canvas.toBlob((blob) => {
+        _shotBlob = blob || null;
+        setFrozen(true);
+        if (!blob) schemToast('Could not capture that frame. Try again.');
+      }, 'image/jpeg', 0.92);
+    }
+
+    captureBtn.addEventListener('click', capture);
+    retakeBtn.addEventListener('click', () => {
+      _shotBlob = null;
+      setFrozen(false);
+    });
+    startBtn.addEventListener('click', () => startCamera());
+    flipBtn.addEventListener('click', () => {
+      if (_deviceIds.length < 2) return;
+      _deviceIdx = (_deviceIdx + 1) % _deviceIds.length;
+      startCamera(_deviceIds[_deviceIdx]);
+    });
+    saveBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!_shotBlob) return;
+      if (_saveToPopOpen && _saveToPopOpen.anchorEl === saveBtn) {
+        closeSaveToPop();
+        return;
+      }
+      openSaveToPop(saveBtn, 'photo', () => Promise.resolve(_shotBlob));
+    });
+    downloadBtn.addEventListener('click', () => {
+      if (!_shotBlob) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(_shotBlob);
+      a.download = `circuit-photo-${new Date().toISOString().slice(0, 10)}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    });
+
+    // Stop the camera on ANY route change (back button, top nav, tool links)
+    // so the camera light never stays on after leaving the tool.
+    setViewTeardown(() => { _camStopStream(); });
+
+    startCamera();
   }
 
   // ============== SCHEMATIC TOOL ==============
@@ -9577,6 +9881,7 @@
         item.className = 'save-to-item is-portfolio';
         const slotLabel = kind === 'vibe' ? 'Code slot'
                         : kind === 'idea-board' ? 'Sketch slot'
+                        : kind === 'photo' ? 'Image slot'
                         : 'Wiring slot';
         item.innerHTML = `<span class="save-to-arrow"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg></span>Portfolio (${slotLabel})`;
         item.addEventListener('click', async () => {
@@ -9652,6 +9957,16 @@
         fileName: `idea-board-${stamp}.png`,
         contentType: 'image/png',
         slotKey,
+        benchmarkId: benchmark.id,
+        panelType,
+        kind
+      };
+    } else if (kind === 'photo') {
+      window._pendingArtifact = {
+        blob,
+        fileName: `circuit-photo-${stamp}.jpg`,
+        contentType: 'image/jpeg',
+        slotKey: 'image',
         benchmarkId: benchmark.id,
         panelType,
         kind
@@ -10097,6 +10412,7 @@
         const tool = a.getAttribute('data-tool-link');
         const path = tool === 'vibe' ? '/tools/vibe'
           : tool === 'idea-board' ? '/tools/idea-board'
+          : tool === 'camera' ? '/tools/camera'
           : '/tools/schematic';
         if (typeof applyRoute === 'function') {
           // Push the tool URL BEFORE closing the modal: applyRoute closes it
@@ -11510,7 +11826,7 @@
           // Scroll the Summary slot into view inside the modal.
           summarySlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        const verb = pa.kind === 'vibe' ? 'Code' : pa.kind === 'idea-board' ? 'Sketch' : 'Wiring';
+        const verb = pa.kind === 'vibe' ? 'Code' : pa.kind === 'idea-board' ? 'Sketch' : pa.kind === 'photo' ? 'Photo' : 'Wiring';
         schemToast(`${verb} loaded. Write your summary and hit Submit.`, 3200);
       }, 60);
     }
@@ -11590,7 +11906,7 @@
         <div class="cp-section-label" id="cp-evidence-${benchmarkId}">Evidence</div>
         <div class="pf-drop" data-cp-drop role="button" tabindex="0" aria-labelledby="cp-evidence-${benchmarkId}" aria-describedby="cp-upload-help-${benchmarkId}">
           <div class="pf-drop-text">Drag files here or click to upload - photos, code PDF, wiring schematic, or STL</div>
-          <div class="pf-drop-sub" id="cp-upload-help-${benchmarkId}">JPG, PNG, HEIC, PDF, or STL. Up to 8 files, 100MB each. Files autosave to your draft.</div>
+          <div class="pf-drop-sub" id="cp-upload-help-${benchmarkId}">JPG, PNG, HEIC, PDF, or STL. Up to 8 files, 100MB each. New uploads add on - nothing gets replaced. Autosaves to your draft.</div>
           <input type="file" data-cp-file aria-label="Choose evidence files" accept="image/*,.heic,.heif,application/pdf,.stl,model/stl,application/sla,application/vnd.ms-pki.stl" multiple style="display:none;" />
         </div>
         <div class="cp-preview" data-cp-preview hidden></div>
@@ -11695,9 +12011,14 @@
       refreshSubmit();
     }
 
+    let _persistQueued = false;
     function persistDraftFiles() {
       const name = getCurrentName();
-      if (!name || _hydrating) return;
+      if (!name) return;
+      // An upload can finish while the saved draft is still loading. Don't drop
+      // that save on the floor — queue it and flush when hydration ends, or the
+      // new file would silently vanish from the draft on the next visit.
+      if (_hydrating) { _persistQueued = true; return; }
       const files = pendingFiles
         .filter(p => p.status === 'uploaded')
         .map(p => ({
@@ -11850,6 +12171,10 @@
       setStatus('');
       renderPreviews();
       _hydrating = false;
+      if (_persistQueued) {
+        _persistQueued = false;
+        persistDraftFiles();
+      }
     }
 
     drop.addEventListener('click', () => fileInput.click());
@@ -11907,7 +12232,7 @@
         if (getCurrentName()) {
           setTimeout(() => {
             handleFiles([synth]);
-            const verb = pa.kind === 'vibe' ? 'Code PDF' : pa.kind === 'idea-board' ? 'Sketch' : 'Wiring schematic';
+            const verb = pa.kind === 'vibe' ? 'Code PDF' : pa.kind === 'idea-board' ? 'Sketch' : pa.kind === 'photo' ? 'Circuit photo' : 'Wiring schematic';
             schemToast(`${verb} added to ${getCurrentName()}'s draft. Reflection still needed.`, 3200);
             // Drop the student straight into the reflection so they can type
             // without hunting for the textarea.
@@ -12669,14 +12994,29 @@
     const readOnly = !!opts.readOnly;
     body.innerHTML = '';
     const slots = item.slots || {};
+    // Checkpoint submissions carry EVERY image in slots.images and every STL in
+    // slots.cads; slots.image / slots.cad hold only the first (legacy readers).
+    // Render the full arrays so no upload is ever invisible — a student's
+    // schematic, code image, and circuit photo must all show.
+    const imageList = (Array.isArray(slots.images) && slots.images.length)
+      ? slots.images
+      : (slots.image ? [slots.image] : []);
+    const cadList = (Array.isArray(slots.cads) && slots.cads.length)
+      ? slots.cads
+      : (slots.cad ? [slots.cad] : []);
     SLOT_DEFS.forEach(def => {
-      const data = slots[def.key];
-      if (!data) return;
-      const tile = document.createElement('div');
-      tile.className = 'pf-view-tile';
-      tile.dataset.slotKey = def.key;
-      body.appendChild(tile);
-      paintTile(tile, def, data, item, false, { readOnly });
+      let entries;
+      if (def.key === 'image') entries = imageList;
+      else if (def.key === 'cad') entries = cadList;
+      else entries = slots[def.key] ? [slots[def.key]] : [];
+      entries.forEach((data, idx) => {
+        const tile = document.createElement('div');
+        tile.className = 'pf-view-tile';
+        tile.dataset.slotKey = def.key;
+        body.appendChild(tile);
+        const tileDef = entries.length > 1 ? { ...def, label: `${def.label} ${idx + 1}` } : def;
+        paintTile(tile, tileDef, data, item, false, { readOnly, slotIndex: idx });
+      });
     });
     if (!body.children.length) {
       body.innerHTML = `<div class="pf-gallery-empty" style="grid-column:1/-1;">No slots filled.</div>`;
@@ -12693,7 +13033,7 @@
       if (e.target.closest('a, .pf-view-readmore, .pf-view-slot-delete, [data-pf-lightbox]')) return;
       // For text slots, don't toggle — Read more / less handles that
       if (data.mode === 'text' && tile.querySelector('.pf-view-readmore')) return;
-      paintTile(tile, def, data, item, !isExpanded, { readOnly });
+      paintTile(tile, def, data, item, !isExpanded, opts);
     };
     tile.onclick = onTileClick;
 
@@ -12714,7 +13054,7 @@
       slotDelete.addEventListener('click', async (e) => {
         e.stopPropagation();
         if (!confirm(`Delete ${item.studentName}'s ${def.label} slot?`)) return;
-        await deletePortfolioSlot(item, def.key);
+        await deletePortfolioSlot(item, def.key, opts.slotIndex);
       });
     }
     const lightboxTrigger = tile.querySelector('[data-pf-lightbox]');
@@ -12867,12 +13207,23 @@
     }
   }
 
-  async function deletePortfolioSlot(item, slotKey) {
+  async function deletePortfolioSlot(item, slotKey, slotIndex) {
     try {
       const slots = { ...(item.slots || {}) };
-      // Null the slot but keep the key (blob stays in Storage, recoverable). The
-      // key stays so the slots map never shrinks, which the rules require.
-      slots[slotKey] = null;
+      // Multi-entry slots (checkpoint image/cad arrays): remove ONLY the one
+      // entry the teacher clicked, and keep the legacy single-value key in
+      // sync with whatever remains.
+      const arrKey = slotKey === 'image' ? 'images' : slotKey === 'cad' ? 'cads' : null;
+      if (arrKey && Array.isArray(slots[arrKey]) && slots[arrKey].length) {
+        const arr = slots[arrKey].slice();
+        arr.splice(typeof slotIndex === 'number' ? slotIndex : 0, 1);
+        slots[arrKey] = arr;
+        slots[slotKey] = arr[0] || null;
+      } else {
+        // Null the slot but keep the key (blob stays in Storage, recoverable).
+        // The key stays so the slots map never shrinks, which the rules require.
+        slots[slotKey] = null;
+      }
       // Use setDoc with merge to update only slots
       await setDoc(doc(db, 'portfolios', item.id), { slots }, { merge: true });
     } catch (err) {
@@ -14664,7 +15015,7 @@ void loop() {
     const inp = document.getElementById('vibeInput');
     if (!inp) return;
     _vibeAwaitingFix = true;   // arm the auto-verify loop for the next code block loaded
-    const prompt = 'My sketch in the editor does not compile. Please fix it and return the full corrected sketch in one ```cpp code block. Here is the compiler output:\n\n' + vibeErrTail(stderr);
+    const prompt = 'My sketch in the editor does not compile. Please fix it and return the full corrected sketch in one ```cpp code block. Do not add any new components, features, or behaviors - just fix the error. Here is the compiler output:\n\n' + vibeErrTail(stderr);
     inp.value = prompt;
     if (typeof vibeAutoGrow === 'function') vibeAutoGrow(inp);
     if (typeof vibeUpdateSendEnabled === 'function') vibeUpdateSendEnabled();
@@ -15457,7 +15808,7 @@ void loop() {
     let s = escapeHtml(text);
     // [label](href) — internal tool links resolve to data-tool-link, others to <a target=_blank>.
     s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, label, href) => {
-      const internal = href.match(/^tools#(vibe|schematic|idea-board)$/);
+      const internal = href.match(/^tools#(vibe|schematic|idea-board|camera)$/);
       if (internal) {
         return `<a href="#" class="cp-step-tool" data-tool-link="${internal[1]}">${label}</a>`;
       }
@@ -16548,6 +16899,9 @@ void loop() {
     } else if (r === '/tools/idea-board') {
       document.body.classList.add('view-tools');
       initIdeaBoardTool();
+    } else if (r === '/tools/camera') {
+      document.body.classList.add('view-tools');
+      initImageCaptureTool();
     } else if (r === '/tools') {
       document.body.classList.add('view-tools');
       renderTools();
