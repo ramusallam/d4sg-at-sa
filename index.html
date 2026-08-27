@@ -4615,6 +4615,70 @@
   }
   .vibe-left.is-empty .vibe-send-btn { align-self: flex-end; }
 
+  .vibe-photo-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+  }
+  .vibe-photo-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .vibe-photo-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 0 2px 8px;
+  }
+  .vibe-photo-chip {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    flex: 0 0 auto;
+  }
+  .vibe-photo-chip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .vibe-photo-chip-x {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0,0,0,.55);
+    color: #fff;
+    font-size: 12px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .vibe-msg-photos {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .vibe-msg-photos img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,.35);
+  }
+
   .vibe-send-btn {
     background: var(--accent);
     color: white;
@@ -7738,7 +7802,12 @@
     startBtn.addEventListener('click', () => startCamera());
     flipBtn.addEventListener('click', () => {
       if (_deviceIds.length < 2) return;
-      _deviceIdx = (_deviceIdx + 1) % _deviceIds.length;
+      // Cycle relative to the camera that is actually live, not a stale index —
+      // otherwise the first click can restart the same camera and look dead.
+      let liveId = '';
+      try { liveId = _camStream.getVideoTracks()[0].getSettings().deviceId || ''; } catch (_) {}
+      const liveIdx = _deviceIds.indexOf(liveId);
+      _deviceIdx = ((liveIdx >= 0 ? liveIdx : _deviceIdx) + 1) % _deviceIds.length;
       startCamera(_deviceIds[_deviceIdx]);
     });
     saveBtn.addEventListener('click', (e) => {
@@ -14113,6 +14182,9 @@ void loop() {
   let _vibeAwaitingFix = false;   // set when the student clicks "Ask AI to fix" so the
                                   // next code block they load auto-re-verifies (closes the loop)
   let _vibeFixAttempts = 0;       // consecutive failed auto-fix rounds; after 2 we nudge "Explain"
+  let _vibeImages = [];           // photos attached to the NEXT message: [{ data, thumb }]
+                                  // data = full-size JPEG data URL sent to the API,
+                                  // thumb = small data URL kept in chat history for display
 
   // ----- Per-student persistence -----
   // Chat + editor are keyed to the picked student so two kids on one machine
@@ -14392,11 +14464,19 @@ void loop() {
             <div class="vibe-stems" id="vibeStems"></div>
           </div>
           <div class="vibe-input-row">
+            <div class="vibe-photo-chips" id="vibePhotoChips" hidden></div>
             <div class="vibe-composer">
               <div class="vibe-input-wrap">
                 <div class="vibe-input-mirror" id="vibeInputMirror" aria-hidden="true"></div>
                 <textarea class="vibe-input" id="vibeInput" rows="3" spellcheck="true" aria-label="Describe what your controller should do" placeholder="Describe what your controller should do - e.g. 'press W when the big button is held'"></textarea>
               </div>
+              <button class="vibe-photo-btn" id="vibePhotoBtn" title="Add a photo" aria-label="Add a photo of your part or wiring for the AI to look at">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                  <circle cx="12" cy="13" r="3"/>
+                </svg>
+              </button>
+              <input type="file" id="vibePhotoFile" accept="image/*" multiple hidden>
               <button class="vibe-send-btn" id="vibeSend" aria-label="Send" disabled>
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 2 L11 13"/>
@@ -14520,6 +14600,27 @@ void loop() {
     });
 
     document.getElementById('vibeSend').addEventListener('click', () => vibeSend());
+    // ----- Photo attachments: pick, compress in-browser, chip preview -----
+    const photoBtn = document.getElementById('vibePhotoBtn');
+    const photoFile = document.getElementById('vibePhotoFile');
+    photoBtn.addEventListener('click', () => {
+      if (_vibeImages.length >= 2) { schemToast('2 photos max per message. Remove one first.'); return; }
+      photoFile.click();
+    });
+    photoFile.addEventListener('change', async () => {
+      const files = Array.from(photoFile.files || []);
+      photoFile.value = '';
+      for (const f of files) {
+        if (_vibeImages.length >= 2) { schemToast('2 photos max per message.'); break; }
+        try {
+          _vibeImages.push(await vibeShrinkPhoto(f));
+        } catch (_) {
+          schemToast('Could not read that image. Try a different photo.');
+        }
+      }
+      vibeRenderPhotoChips();
+      vibeUpdateSendEnabled();
+    });
     const inputEl = document.getElementById('vibeInput');
     inputEl.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -14771,7 +14872,62 @@ void loop() {
     const inp = document.getElementById('vibeInput');
     const btn = document.getElementById('vibeSend');
     if (!inp || !btn) return;
-    btn.disabled = _vibeBusy || !vibeStudentName() || !inp.value.trim();
+    btn.disabled = _vibeBusy || !vibeStudentName() || (!inp.value.trim() && !_vibeImages.length);
+  }
+
+  // Downscale a photo in the browser before it travels: long edge capped at
+  // 1024px, JPEG. Keeps uploads fast on school wifi and bounds what the API
+  // bills. Also produces a small thumb that lives in the chat transcript.
+  function vibeShrinkPhoto(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        try {
+          const scale = Math.min(1, 1024 / Math.max(img.naturalWidth, img.naturalHeight));
+          const c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(img.naturalWidth * scale));
+          c.height = Math.max(1, Math.round(img.naturalHeight * scale));
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const data = c.toDataURL('image/jpeg', 0.82);
+          const tScale = Math.min(1, 120 / Math.max(c.width, c.height));
+          const t = document.createElement('canvas');
+          t.width = Math.max(1, Math.round(c.width * tScale));
+          t.height = Math.max(1, Math.round(c.height * tScale));
+          t.getContext('2d').drawImage(img, 0, 0, t.width, t.height);
+          resolve({ data, thumb: t.toDataURL('image/jpeg', 0.7) });
+        } catch (err) { reject(err); }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('unreadable image')); };
+      img.src = url;
+    });
+  }
+
+  function vibeRenderPhotoChips() {
+    const wrap = document.getElementById('vibePhotoChips');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    wrap.hidden = !_vibeImages.length;
+    _vibeImages.forEach((ph, i) => {
+      const chip = document.createElement('div');
+      chip.className = 'vibe-photo-chip';
+      const img = document.createElement('img');
+      img.src = ph.thumb;
+      img.alt = 'Attached photo';
+      const x = document.createElement('button');
+      x.className = 'vibe-photo-chip-x';
+      x.setAttribute('aria-label', 'Remove photo');
+      x.textContent = '×';
+      x.addEventListener('click', () => {
+        _vibeImages.splice(i, 1);
+        vibeRenderPhotoChips();
+        vibeUpdateSendEnabled();
+      });
+      chip.appendChild(img);
+      chip.appendChild(x);
+      wrap.appendChild(chip);
+    });
   }
 
   // ----- Suggested prompts (empty-state chips) -----
@@ -14933,7 +15089,24 @@ void loop() {
     _vibeChat.forEach((msg) => {
       if (msg.role === 'user') {
         const { row, msg: el } = _row('user', 'vibe-msg-user');
-        el.textContent = msg.content;
+        if (Array.isArray(msg.images) && msg.images.length) {
+          const ph = document.createElement('div');
+          ph.className = 'vibe-msg-photos';
+          msg.images.forEach(src => {
+            if (typeof src === 'string' && src.startsWith('data:image/')) {
+              const im = document.createElement('img');
+              im.src = src;
+              im.alt = 'Photo you attached';
+              ph.appendChild(im);
+            }
+          });
+          el.appendChild(ph);
+          const t = document.createElement('div');
+          t.textContent = msg.content;
+          el.appendChild(t);
+        } else {
+          el.textContent = msg.content;
+        }
         scroll.appendChild(row);
       } else if (msg.role === 'assistant') {
         const { row, msg: el } = _row('ai', 'vibe-msg-ai');
@@ -15087,10 +15260,18 @@ void loop() {
       return;
     }
     const inputEl = document.getElementById('vibeInput');
-    const txt = (inputEl.value || '').trim();
-    if (!txt) return;
+    let txt = (inputEl.value || '').trim();
+    // Photos attach to THIS message only. Grab and clear them up front so a
+    // slow request can't double-send the same photos.
+    const photos = _vibeImages.slice();
+    _vibeImages = [];
+    vibeRenderPhotoChips();
+    if (!txt && !photos.length) return;
+    if (!txt) txt = 'Look at the attached photo.';
 
-    _vibeChat.push({ role: 'user', content: txt });
+    const userMsg = { role: 'user', content: txt };
+    if (photos.length) userMsg.images = photos.map(p => p.thumb);
+    _vibeChat.push(userMsg);
     vibeSaveChat();
     inputEl.value = '';
     vibeAutoGrow(inputEl);
@@ -15137,7 +15318,7 @@ void loop() {
     fetch('/api/vibe-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: txt, editorCode: editorForApi, history }),
+      body: JSON.stringify({ message: txt, editorCode: editorForApi, history, images: photos.map(p => p.data) }),
       signal: aborter.signal
     }).then(async (r) => {
       clearTimeout(abortTimer);

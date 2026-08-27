@@ -29,6 +29,13 @@ const MAX_HISTORY_MESSAGES = 8;       // keep only the last N turns
 const MAX_HISTORY_MSG_CHARS = 8000;   // truncate each history message to this
 const MAX_TOTAL_INPUT_CHARS = 60000;  // defensive cap on assembled user+history
 
+// Optional photos from the Vibe tool's Add photo button. Each arrives as a
+// browser-compressed JPEG data URL (the client downscales to ~1024px before
+// sending). Photos never enter history, so each one bills only on the turn
+// it is sent. The caps bound the spend of a single request.
+const MAX_IMAGES = 2;                 // photos per request
+const MAX_IMAGE_CHARS = 1500000;      // per-photo data-URL cap (~1MB of JPEG)
+
 // Origin gate. Requests must carry a same-site Origin or Referer from the
 // deployed T4SG app. Authentication and durable rate limiting remain the
 // stronger long-term boundary.
@@ -214,6 +221,20 @@ export default async function handler(req, res) {
   const message = (body.message || body.prompt || '').toString().trim();
   const editorCode = (body.editorCode || '').toString();
 
+  // Optional photos: validate shape strictly (image data URL only) and cap
+  // count + size. An oversized photo is rejected with a clear message rather
+  // than silently dropped, so the student knows their photo did not go through.
+  const rawImages = Array.isArray(body.images) ? body.images : [];
+  const images = [];
+  for (const img of rawImages.slice(0, MAX_IMAGES)) {
+    if (typeof img !== 'string') continue;
+    if (!/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(img)) continue;
+    if (img.length > MAX_IMAGE_CHARS) {
+      return res.status(400).json({ error: 'That photo is too large. Re-attach it and try again.' });
+    }
+    images.push(img);
+  }
+
   if (!message) {
     return res.status(400).json({ error: 'Empty prompt' });
   }
@@ -270,13 +291,23 @@ export default async function handler(req, res) {
   }
   cleanHistory = capped;
 
+  // With photos attached, the user turn becomes a multi-part message so the
+  // model can look at the pictures (part photos, wiring photos) next to the
+  // student's words. Text-only requests keep the plain-string shape.
+  const userContent = images.length
+    ? [
+        { type: 'text', text: prompt },
+        ...images.map(u => ({ type: 'image_url', image_url: { url: u, detail: 'auto' } }))
+      ]
+    : prompt;
+
   function buildBody(modelName) {
     return {
       model: modelName,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         ...cleanHistory,
-        { role: 'user', content: prompt }
+        { role: 'user', content: userContent }
       ],
       // gpt-5 spends tokens on internal reasoning; bigger budget so the
       // visible response isn't truncated to empty.
