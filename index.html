@@ -1311,11 +1311,12 @@
     color: var(--accent);
     background: var(--accent-soft);
   }
-  /* All three nav pills always visible: Home / Tools / Homework.
+  /* All four nav pills always visible: Home / Warm Ups / Tools / Homework.
      The pill for the current view fills indigo so the student sees where
      they are. No layout jumps as they navigate. */
-  .nav-to-home, .nav-to-hw, .nav-to-tools { display: inline-flex; }
+  .nav-to-home, .nav-to-warmups, .nav-to-hw, .nav-to-tools { display: inline-flex; }
   body.view-home .nav-to-home,
+  body.view-warmups .nav-to-warmups,
   body.view-hw .nav-to-hw,
   body.view-tools .nav-to-tools {
     background: var(--accent);
@@ -1323,6 +1324,7 @@
     color: white;
   }
   body.view-home .nav-to-home:hover,
+  body.view-warmups .nav-to-warmups:hover,
   body.view-hw .nav-to-hw:hover,
   body.view-tools .nav-to-tools:hover {
     background: var(--accent-hover);
@@ -1610,6 +1612,116 @@
     letter-spacing: -0.02em;
     line-height: 1;
     color: var(--ink-hi);
+  }
+
+  /* ============== WARM UPS page ============== */
+  /* Mirrors the Inquiry Studio Companion's Warm Ups: newest first, a date
+     chip on every entry, questions only — students answer in their written
+     notebooks. Card language matches the rest of the hub (white card, warm
+     border, indigo accent). */
+  .warmup-col { max-width: 760px; }
+  .warmup-card {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--accent);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    padding: 20px 24px 22px;
+    margin-bottom: 16px;
+  }
+  .warmup-date-chip {
+    display: inline-block;
+    font-family: "Roboto Mono", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid rgba(99, 102, 241, 0.30);
+    border-radius: 8px;
+    padding: 4px 10px;
+    margin-bottom: 12px;
+  }
+  .warmup-question {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--ink-hi);
+  }
+  .warmup-question p { margin: 0 0 10px; }
+  .warmup-question p:last-child { margin-bottom: 0; }
+  .warmup-question ol, .warmup-question ul { margin: 0 0 10px; padding-left: 20px; }
+  .warmup-question li { margin-bottom: 6px; }
+  .warmup-question a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+  .warmup-question img { max-width: 100%; border-radius: 10px; }
+  .warmup-options {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .warmup-options li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--ink-hi);
+  }
+  .warmup-opt-letter {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid rgba(99, 102, 241, 0.30);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Earlier warm-ups collapse into one dropdown card, same details pattern
+     as the Companion. */
+  .warmup-earlier {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .warmup-earlier summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-radius: 16px;
+  }
+  .warmup-earlier summary::-webkit-details-marker { display: none; }
+  .warmup-earlier-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+  }
+  .warmup-earlier summary svg {
+    color: var(--ink-low);
+    transition: transform 0.25s ease;
+  }
+  .warmup-earlier[open] summary svg { transform: rotate(180deg); }
+  .warmup-earlier-item {
+    padding: 18px 24px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .warmup-empty {
+    font-size: 13px;
+    color: var(--ink-low);
+    font-style: italic;
   }
   .step-section {
     margin-bottom: 28px;
@@ -5837,76 +5949,63 @@
   }
 
   /* ============== DAY ONE: MAKE SOMETHING ============== */
-  /* Home-page doorway. Gradient banner so opening day reads as its own
-     moment, not another project section. */
+  /* Home-page doorway. Deliberately quiet — a slim one-line strip so the
+     projects own the page; the Day One page itself carries the drama. */
   .dayone-banner {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
-    border-radius: 18px;
-    padding: 22px 26px;
-    margin: 6px 0 34px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 16px;
+    margin: 6px 0 26px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
+    align-items: baseline;
+    gap: 12px;
     flex-wrap: wrap;
     cursor: pointer;
-    color: #fff;
-    box-shadow: var(--shadow-md);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  .dayone-banner::before {
-    content: '';
-    position: absolute;
-    inset: -50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 2px);
-    background-size: 34px 34px;
-    pointer-events: none;
+    color: var(--ink-hi);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
   .dayone-banner:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-sm);
   }
   .dayone-banner:focus-visible {
     outline: 3px solid var(--accent);
     outline-offset: 3px;
   }
   .dayone-banner-kicker {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    letter-spacing: 2.6px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    opacity: 0.85;
-    margin-bottom: 4px;
+    color: var(--accent);
   }
   .dayone-banner-title {
     font-family: "Roboto Serif", Georgia, serif;
-    font-size: clamp(21px, 2.6vw, 28px);
+    font-size: 14px;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     margin: 0;
-    line-height: 1.1;
+    line-height: 1.2;
   }
   .dayone-banner-side {
     display: flex;
-    align-items: center;
-    gap: 14px;
-    position: relative;
+    align-items: baseline;
+    gap: 12px;
+    margin-left: auto;
   }
   .dayone-banner-meta {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: 1.4px;
+    letter-spacing: 1px;
     text-transform: uppercase;
-    background: rgba(255,255,255,0.16);
-    border-radius: 20px;
-    padding: 6px 13px;
+    color: var(--ink-low);
     white-space: nowrap;
   }
   .dayone-banner-cta {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
+    color: var(--accent);
     white-space: nowrap;
   }
   .dayone-banner-cta .arrow { transition: transform 0.15s ease; display: inline-block; }
@@ -6229,7 +6328,7 @@
   }
   @media (max-width: 700px) {
     .dayone-hero { padding: 30px 22px 26px; }
-    .dayone-banner { padding: 18px 20px; }
+    .dayone-banner { padding: 10px 14px; }
     .dayone-surprise { margin-left: 0; }
     .dayone-submit { padding: 20px 18px 22px; }
   }
@@ -6256,6 +6355,7 @@
         <span>Syllabus</span>
       </a>
       <a href="/" class="nav-link nav-to-home">Home</a>
+      <a href="/warm-ups" class="nav-link nav-to-warmups">Warm Ups</a>
       <a href="/tools" class="nav-link nav-to-tools">Tools</a>
       <a href="/hw" class="nav-link nav-to-hw">Weekly CAD HW</a>
       <span class="admin-bar">
@@ -7018,6 +7118,16 @@
     };
   });
 
+  // ============== WARM UPS ==============
+  // Daily warm-ups, answered in written notebooks. Questions only — solved
+  // together in class, so no answers live here. Entries are added directly
+  // to this array (via Claude); the page sorts by date, newest first.
+  // Shape: { id: 'wu-YYYY-MM-DD', date: 'YYYY-MM-DD', question: '<p>…HTML…</p>',
+  //          options: ['choice A', 'choice B', …] }  ← options only for
+  // multiple-choice; omit for short answer. The question field is trusted
+  // HTML (teacher-authored), so links/lists/images all work.
+  const WARM_UPS = [];
+
   // ============== DAY ONE: MAKE SOMETHING ==============
   // Opening-day CAD challenge. Submissions ride the exact same artifacts
   // pipeline as homework (link-only gallery drop) so day one doubles as
@@ -7197,15 +7307,13 @@
   function renderProjects() {
     app.innerHTML = '';
 
-    // Day One doorway. A gradient banner, deliberately unlike the project
-    // sections below it, so opening day reads as its own moment.
+    // Day One doorway. A slim one-line strip — quiet on purpose so the
+    // projects below stay the focus of the page.
     const dayoneBanner = document.createElement('div');
     dayoneBanner.className = 'dayone-banner';
     dayoneBanner.innerHTML = `
-      <div>
-        <div class="dayone-banner-kicker">Day One</div>
-        <h2 class="dayone-banner-title">Make Something.</h2>
-      </div>
+      <span class="dayone-banner-kicker">Day One</span>
+      <h2 class="dayone-banner-title">Make Something.</h2>
       <div class="dayone-banner-side">
         <span class="dayone-banner-meta">20 min · ${DAY_ONE.points} pts</span>
         <span class="dayone-banner-cta">Start <span class="arrow">→</span></span>
@@ -7395,6 +7503,69 @@
       makeKeyActivatable(card);
       list.appendChild(card);
     });
+    app.appendChild(sec);
+  }
+
+  // ============== WARM UPS page render ==============
+  // Same functionality and labeling as the Inquiry Studio Companion's Warm
+  // Ups section: newest first, a date chip on every entry, questions only.
+  // The most recent warm-up sits open at the top; everything older collapses
+  // into one "Earlier warm ups" dropdown.
+  const WARMUP_MC_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+  function formatWarmUpDate(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    if (isNaN(d)) return dateStr;
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  function warmUpBodyHTML(w) {
+    let html = `<div class="warmup-question">${w.question}</div>`;
+    if (Array.isArray(w.options) && w.options.length > 0) {
+      html += '<ol class="warmup-options">' + w.options.map((opt, i) =>
+        `<li><span class="warmup-opt-letter" aria-hidden="true">${WARMUP_MC_LETTERS[i] || i + 1}</span><span>${opt}</span></li>`
+      ).join('') + '</ol>';
+    }
+    return html;
+  }
+
+  function renderWarmUps() {
+    app.innerHTML = '';
+    const sec = document.createElement('section');
+    sec.className = 'project';
+    const visible = [...WARM_UPS].sort((a, b) => b.date.localeCompare(a.date));
+
+    let body;
+    if (visible.length === 0) {
+      body = '<p class="warmup-empty">No warm ups yet.</p>';
+    } else {
+      const [latest, ...earlier] = visible;
+      body = `
+        <div class="warmup-card">
+          <span class="warmup-date-chip">${formatWarmUpDate(latest.date)}</span>
+          ${warmUpBodyHTML(latest)}
+        </div>`;
+      if (earlier.length > 0) {
+        body += `
+          <details class="warmup-earlier">
+            <summary>
+              <span class="warmup-earlier-label">Earlier warm ups</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            ${earlier.map(w => `
+              <div class="warmup-earlier-item">
+                <span class="warmup-date-chip">${formatWarmUpDate(w.date)}</span>
+                ${warmUpBodyHTML(w)}
+              </div>`).join('')}
+          </details>`;
+      }
+    }
+
+    sec.innerHTML = `
+      <h2 class="project-title">Warm Ups</h2>
+      <p class="project-blurb">Answer in your written notebook. We solve them together in class.</p>
+      <div class="warmup-col">${body}</div>
+    `;
     app.appendChild(sec);
   }
 
@@ -17399,8 +17570,11 @@ void loop() {
     // left: Back button, top nav, or an in-modal tool link.
     if (_viewTeardown) { try { _viewTeardown(); } catch (_) {} _viewTeardown = null; }
     const r = (path || '').replace(/\/+$/, '');
-    document.body.classList.remove('view-home', 'view-hw', 'view-tools', 'view-syllabus', 'view-exhibit', 'view-dayone');
-    if (r === '/day-one') {
+    document.body.classList.remove('view-home', 'view-hw', 'view-tools', 'view-syllabus', 'view-exhibit', 'view-dayone', 'view-warmups');
+    if (r === '/warm-ups') {
+      document.body.classList.add('view-warmups');
+      renderWarmUps();
+    } else if (r === '/day-one') {
       document.body.classList.add('view-dayone');
       renderDayOne();
     } else if (r === '/exhibit') {

@@ -14,6 +14,8 @@
     { "source": "/exhibit/", "destination": "/index.html" },
     { "source": "/hw", "destination": "/index.html" },
     { "source": "/hw/", "destination": "/index.html" },
+    { "source": "/warm-ups", "destination": "/index.html" },
+    { "source": "/warm-ups/", "destination": "/index.html" },
     { "source": "/progress", "destination": "/index.html" },
     { "source": "/progress/", "destination": "/index.html" },
     { "source": "/syllabus", "destination": "/index.html" },
