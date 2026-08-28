@@ -411,7 +411,10 @@
      the plain .benchmarks column stack above. */
   .benchmark-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    /* Column count = the project's checkpoint count (3 or 4), set per grid by
+       renderProjects via --bench-cols. The rubric-drop capstone spans the full
+       width below them (.benchmark.is-drop). */
+    grid-template-columns: repeat(var(--bench-cols, 4), 1fr);
     gap: 16px;
   }
   @media (max-width: 760px) {
@@ -537,6 +540,73 @@
     align-items: center;
     gap: 8px;
     margin-top: auto;
+  }
+
+  /* Capstone row: the rubric-drop Product spans the full grid width below the
+     checkpoints. It borrows the Final capstone's card language — indigo-tinted
+     border, icon tile, the only points pill on the page — because it's the
+     submission moment: the checkpoints teach it, the Product is where it gets
+     turned in. */
+  .benchmark.is-drop {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    min-height: 0;
+    padding: 18px 20px;
+    border-color: rgba(99, 102, 241, 0.30);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.08);
+  }
+  .benchmark.is-drop:hover {
+    border-color: rgba(99, 102, 241, 0.50);
+    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.16);
+  }
+  .benchmark.is-drop.done {
+    border-color: rgba(16, 185, 129, 0.55);
+    box-shadow: none;
+  }
+  .benchmark.is-drop .checkbox { top: calc(50% - 16px); }
+  .drop-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .benchmark.done .drop-icon {
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.12);
+  }
+  .drop-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .benchmark.is-drop .benchmark-label { font-size: 18px; }
+  .drop-sub {
+    font-size: 13.5px;
+    color: var(--ink-mid);
+    line-height: 1.4;
+  }
+  .benchmark.is-drop .benchmark-foot { margin: 0 48px 0 auto; flex-shrink: 0; }
+  .bench-pts {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    border-radius: 999px;
+    padding: 4px 11px;
+    white-space: nowrap;
+    background: var(--bg-1);
+  }
+  .benchmark.done .bench-pts {
+    color: var(--success);
+    border-color: rgba(16, 185, 129, 0.45);
   }
 
   /* ============== MODAL ============== */
@@ -6666,8 +6736,8 @@
         {
           id: 'p1b4',
           title: 'Product',
-          points: 2,
-          gradeNote: 'Evidence (wiring schematic + code PDF + photo of the finished device on its printed mount) = 1 pt · Reflection (all 3 questions) = 1 pt',
+          points: 50,
+          drop: true,
           brief: {
             hook: "A switch worth $15 can unlock a one-button rhythm game for an individual who can only move one wrist. The most important assistive technology in the world is sometimes the simplest. Now it is your turn.",
             challenge: "How might we give one specific person a way to do something they want to do but can't? Your available materials: a button, a lever, two LEDs, and an Arduino Leonardo. The minimum build is one switch and one LED - use more of the kit whenever your user's motion and goal need it. The wiring is only half the build. The other half is 3D design: you will model and print a custom mount - the housing that holds the switch itself - shaped and placed so the device fits your user's body and motion, not the other way around.",
@@ -6685,18 +6755,9 @@
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
             'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in [Tinkercad](https://www.tinkercad.com) that holds the switch where your user\'s motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL (the file format 3D printers read - in Tinkercad: Export, then .STL).',
-            '3D print your mount and assemble the final product - switch, mount, LEDs, Arduino. Then **test it like your user would** - use only the motion they actually have. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Portfolio video.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, photo of the finished device on its printed mount. Take the photo with the [Image Capture Tool](tools#camera) and save it to this benchmark. Your sketch and STL are submitted in the Portfolio.'
+            '3D print your mount and assemble the final product - switch, mount, LEDs, Arduino. Then **test it like your user would** - use only the motion they actually have. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Video slot below.',
+            'Submit your work in the **Rubric & Drop** section below - the rubric is your checklist. The [Idea Board](tools#idea-board), [Vibe Coding Tool](tools#vibe), [Wiring Schematic Tool](tools#schematic), and [Image Capture Tool](tools#camera) each save straight into the right slot with their **Save to** button.'
           ],
-          videoUrl: '',
-          links: [],
-          rubric: []
-        },
-        {
-          id: 'p1b5',
-          title: 'Portfolio',
-          points: 50,
-          instructions: 'Submit your full portfolio for Project 1 by following the rubric below.',
           videoUrl: '',
           links: [],
           rubric: [
@@ -6771,8 +6832,8 @@
         {
           id: 'p2b4',
           title: 'Product',
-          points: 2,
-          gradeNote: 'Evidence (wiring schematic + code PDF + photo of the finished device on its printed mount) = 1 pt · Reflection (all 3 questions) = 1 pt',
+          points: 50,
+          drop: true,
           brief: {
             hook: "An individual who can only graze a pad with one fingertip can still turn the page, send a message, or call for help, as long as the sensor needs no force at all. The right sensor does not wait for a push - it answers the smallest movement a body can make. Now it is your turn.",
             challenge: "How might we give one specific person a way to do something they want to do but can't - using only the smallest movement they have, and no force at all? Your available materials: a capacitive touch sensor, an IR distance sensor, two LEDs, and an Arduino Leonardo. The minimum build is one sensor and one LED - use more of the kit whenever your user's motion and goal need it. Like Project 1, you will 3D-model and print a custom mount - the housing that holds the sensor itself - so the device meets their smallest movement exactly where their body makes it.",
@@ -6790,18 +6851,9 @@
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
             'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in [Tinkercad](https://www.tinkercad.com) that holds the sensor where your user\'s smallest motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL.',
-            '3D print your mount and assemble the final product - sensor, mount, LEDs, Arduino. Then **test it like your user would** - use only the motion they actually have, with no force. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Portfolio video.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, photo of the finished device on its printed mount. Take the photo with the [Image Capture Tool](tools#camera) and save it to this benchmark. Your sketch and STL are submitted in the Portfolio.'
+            '3D print your mount and assemble the final product - sensor, mount, LEDs, Arduino. Then **test it like your user would** - use only the motion they actually have, with no force. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Video slot below.',
+            'Submit your work in the **Rubric & Drop** section below - the rubric is your checklist. The [Idea Board](tools#idea-board), [Vibe Coding Tool](tools#vibe), [Wiring Schematic Tool](tools#schematic), and [Image Capture Tool](tools#camera) each save straight into the right slot with their **Save to** button.'
           ],
-          videoUrl: '',
-          links: [],
-          rubric: []
-        },
-        {
-          id: 'p2b5',
-          title: 'Portfolio',
-          points: 50,
-          instructions: 'Submit your full portfolio for Project 2 by following the rubric below.',
           videoUrl: '',
           links: [],
           rubric: [
@@ -6875,8 +6927,8 @@
         {
           id: 'p3b4',
           title: 'Product',
-          points: 2,
-          gradeNote: 'Evidence (wiring schematic + code PDF + photo of the finished device on its printed mount) = 1 pt · Reflection (all 3 questions) = 1 pt',
+          points: 50,
+          drop: true,
           brief: {
             hook: "An individual who cannot move their hands can still aim, click, and play, if the controls meet their mouth instead of their fingers. A joystick they steer with their lips and a switch they trigger with a breath can open a whole screen back up. Now it is your turn.",
             challenge: "How might we give one specific person a way to do something they want to do but can't - using only their mouth, chin, and breath? Your available materials: a joystick, a sip-and-puff switch, two LEDs, and an Arduino Leonardo. The minimum build is one input and one LED - use more of the kit whenever your user's motion and goal need it. You will 3D-model and print the mount that makes it possible - the housing that holds the joystick and tube themselves, secured exactly where their mouth and chin can reach.",
@@ -6894,18 +6946,9 @@
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
             'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in [Tinkercad](https://www.tinkercad.com) that holds the joystick and the sip-and-puff tube where your user\'s mouth and chin actually reach them. **It must clamp or bolt to a table, wheelchair tray, or mount arm so it cannot shift while your user drives it with their face.** Export the STL.',
-            '3D print your mount and assemble the final product - joystick, sip-and-puff, mount, LEDs, Arduino. Then **test it like your user would** - use only your mouth, chin, and breath, with your device secured in place, and use a fresh mouthpiece or your own tube when testing the sip-and-puff. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Portfolio video.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, photo of the finished device on its printed mount. Take the photo with the [Image Capture Tool](tools#camera) and save it to this benchmark. Your sketch and STL are submitted in the Portfolio.'
+            '3D print your mount and assemble the final product - joystick, sip-and-puff, mount, LEDs, Arduino. Then **test it like your user would** - use only your mouth, chin, and breath, with your device secured in place, and use a fresh mouthpiece or your own tube when testing the sip-and-puff. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Video slot below.',
+            'Submit your work in the **Rubric & Drop** section below - the rubric is your checklist. The [Idea Board](tools#idea-board), [Vibe Coding Tool](tools#vibe), [Wiring Schematic Tool](tools#schematic), and [Image Capture Tool](tools#camera) each save straight into the right slot with their **Save to** button.'
           ],
-          videoUrl: '',
-          links: [],
-          rubric: []
-        },
-        {
-          id: 'p3b5',
-          title: 'Portfolio',
-          points: 50,
-          instructions: 'Submit your full portfolio for Project 3 by following the rubric below.',
           videoUrl: '',
           links: [],
           rubric: [
@@ -6996,9 +7039,10 @@
         },
         {
           id: 'p4b5',
-          title: 'Portfolio',
+          title: 'Product',
           points: 50,
-          instructions: 'Submit your full portfolio for Project 4 by following the rubric below. This is the integrated hub you grew across all four projects - sketch, perfboard, enclosure, remap app, and a testing session with your end-user (or a peer simulating their motion) - adopt one persona from Projects 1-3 as the hub\'s end-user.',
+          drop: true,
+          instructions: 'Submit your final product for Project 4 by following the rubric below. This is the integrated hub you grew across all four projects - sketch, perfboard, enclosure, remap app, and a testing session with your end-user (or a peer simulating their motion) - adopt one persona from Projects 1-3 as the hub\'s end-user.',
           videoUrl: '',
           links: [],
           rubric: [
@@ -7407,13 +7451,27 @@
         <div class="benchmark-grid"></div>
       `;
       const benchEl = projEl.querySelector('.benchmark-grid');
+      benchEl.style.setProperty('--bench-cols', project.benchmarks.filter(x => !x.drop).length);
       project.benchmarks.forEach((b, idx) => {
         const isChecked = checked.has(b.id);
         const labelText = isStandalone ? project.title : b.title;
         const row = document.createElement('div');
-        row.className = 'benchmark' + (isChecked ? ' done' : '');
+        row.className = 'benchmark' + (b.drop ? ' is-drop' : '') + (isChecked ? ' done' : '');
         row.dataset.id = b.id;
-        row.innerHTML = `
+        row.innerHTML = b.drop ? `
+          <div class="checkbox ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" aria-readonly="true" aria-label="${escapeHtml(labelText)} completion" tabindex="0"></div>
+          <div class="drop-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>
+          </div>
+          <div class="drop-text">
+            <div class="benchmark-label">${escapeHtml(labelText)}</div>
+            <div class="drop-sub">Build for your user, then submit against the rubric.</div>
+          </div>
+          <div class="benchmark-foot">
+            <span class="bench-pts">${b.points} pts</span>
+            <span class="artifact-count" data-count="${b.id}" style="display:none;">${PAPERCLIP_SVG}<span data-count-num>0</span></span>
+          </div>
+        ` : `
           <div class="checkbox ${isChecked ? 'checked' : ''}" data-checkbox="${b.id}" role="checkbox" aria-checked="${isChecked}" aria-readonly="true" aria-label="${escapeHtml(labelText)} completion" tabindex="0"></div>
           ${isStandalone ? '' : `<div class="benchmark-num">${String(idx + 1).padStart(2, '0')}</div>`}
           <div class="benchmark-label">${escapeHtml(labelText)}</div>
@@ -7798,17 +7856,17 @@
         </div>
         <div class="tool-card" id="toolCardSchematic">
           <h3 class="tool-card-title">Wiring Schematic</h3>
-          <p class="tool-card-blurb">Draw your Arduino wiring pin to pin, then save the diagram to a benchmark or your Portfolio.</p>
+          <p class="tool-card-blurb">Draw your Arduino wiring pin to pin, then save the diagram straight to a benchmark.</p>
           <div class="tool-card-footer">Open</div>
         </div>
         <div class="tool-card" id="toolCardIdea">
           <h3 class="tool-card-title">Idea Board</h3>
-          <p class="tool-card-blurb">Sketch your prototype with real components - switches, sensors, jacks, LEDs - and save it to a benchmark or your Portfolio.</p>
+          <p class="tool-card-blurb">Sketch your prototype with real components - switches, sensors, jacks, LEDs - and save it straight to a benchmark.</p>
           <div class="tool-card-footer">Open</div>
         </div>
         <div class="tool-card" id="toolCardCamera">
           <h3 class="tool-card-title">Image Capture</h3>
-          <p class="tool-card-blurb">Hold your circuit up to the webcam, snap a photo, and save it straight to a benchmark or your Portfolio.</p>
+          <p class="tool-card-blurb">Hold your circuit up to the webcam, snap a photo, and save it straight to a benchmark.</p>
           <div class="tool-card-footer">Open</div>
         </div>
       </div>
@@ -7861,7 +7919,7 @@
             <button class="vibe-tool-btn" id="camFlip" title="Switch camera" aria-label="Switch camera" hidden>
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/><path d="M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/><circle cx="12" cy="12" r="3"/><path d="M18 22l3-3-3-3"/></svg>
             </button>
-            <button class="vibe-tool-btn" id="camSaveTo" title="Save to a benchmark or Portfolio" aria-label="Save to a benchmark or Portfolio" disabled>
+            <button class="vibe-tool-btn" id="camSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark" disabled>
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
             </button>
           </div>
@@ -8881,7 +8939,7 @@
             </button>
           </div>
           <div class="vibe-toolbar-group">
-            <button class="vibe-tool-btn" id="schemSaveTo" title="Save to a benchmark or Portfolio" aria-label="Save to a benchmark or Portfolio">
+            <button class="vibe-tool-btn" id="schemSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark">
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
             </button>
           </div>
@@ -10378,7 +10436,7 @@
   // Pending artifact handed off to the next openModal() call. Consumed by
   // buildCheckpointPanel / buildPortfolioPanel and then cleared.
   // Shape: { blob, fileName, contentType, slotKey, benchmarkId, panelType, kind }
-  //   panelType: 'checkpoint' (benchmarks 1-4) | 'portfolio' (Portfolio Drop)
+  //   panelType: 'checkpoint' (2-pt benchmarks) | 'portfolio' (rubric-drop Product)
   //   kind: 'schematic' | 'vibe' (for toast wording)
   window._pendingArtifact = null;
 
@@ -10435,7 +10493,7 @@
       sec.appendChild(eye);
 
       project.benchmarks.forEach(b => {
-        if (b.title === 'Portfolio') return; // handled below
+        if (b.drop) return; // handled below
         const item = document.createElement('button');
         item.type = 'button';
         item.className = 'save-to-item';
@@ -10448,8 +10506,8 @@
         sec.appendChild(item);
       });
 
-      // Portfolio Drop sub-row
-      const drop = project.benchmarks.find(x => x.title === 'Portfolio');
+      // Rubric-drop capstone (Product) sub-row — saves land in a typed slot.
+      const drop = project.benchmarks.find(x => x.drop);
       if (drop) {
         const item = document.createElement('button');
         item.type = 'button';
@@ -10458,7 +10516,7 @@
                         : kind === 'idea-board' ? 'Sketch slot'
                         : kind === 'photo' ? 'Image slot'
                         : 'Wiring slot';
-        item.innerHTML = `<span class="save-to-arrow"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg></span>Portfolio (${slotLabel})`;
+        item.innerHTML = `<span class="save-to-arrow"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg></span>${escapeHtml(drop.title)} (${slotLabel})`;
         item.addEventListener('click', async () => {
           closeSaveToPop();
           await handleSaveToPick({ kind, buildBlob, project, benchmark: drop, panelType: 'portfolio' });
@@ -10739,7 +10797,6 @@
     _focusStudent = null; // reset per open; set only by the gallery's student-jump dropdown
     currentBenchmark = b;
     modalEyebrow.textContent = b.id === 'instructable' ? 'Final Project'
-      : b.title === 'Portfolio' ? 'Portfolio'
       : b.summaryPrompt ? 'Video'
       : 'Benchmark';
     modalTitle.textContent = b.title;
@@ -10822,10 +10879,11 @@
       modalBody.appendChild(sec);
     }
     // Rubric
-    // Portfolios render their rubric inside the drop panel (one upload box per
-    // criterion row), so the standalone rubric section is skipped for them.
-    // Everything else (e.g. the Instructable) keeps the simple list here.
-    if (b.rubric && b.rubric.length && b.title !== 'Portfolio') {
+    // Rubric-drop benchmarks (Product capstones) render their rubric inside the
+    // drop panel (one upload box per criterion row), so the standalone rubric
+    // section is skipped for them. Everything else (e.g. the Instructable)
+    // keeps the simple list here.
+    if (b.rubric && b.rubric.length && !b.drop) {
       const sec = document.createElement('div');
       sec.className = 'modal-section';
       const maxPts = (r) => (r.levels && r.levels.length) ? r.levels[r.levels.length - 1].points : (r.points || 0);
@@ -10901,9 +10959,9 @@
     // Submission panel branches by benchmark shape:
     //   summaryPrompt → grounding-video summary writer (Project 0)
     //   id === 'instructable' → public-link drop (final capstone)
-    //   title === 'Portfolio' → multi-slot portfolio
+    //   drop → rubric-drop capstone (Product): multi-slot panel
     //   otherwise → standard evidence + reflection checkpoint
-    const isPortfolioDrop = b.title === 'Portfolio';
+    const isPortfolioDrop = !!b.drop;
     const isInstructable = b.id === 'instructable';
     const isVideoSummary = !!b.summaryPrompt;
     if (isPortfolioDrop) {
@@ -10940,9 +10998,9 @@
       );
     }
 
-    // No public "class" pile on the Portfolio or Video panels — you see one
-    // person at a time by picking their name (read-only when it isn't you).
-    // Checkpoint/product benchmarks still use the standard gallery for now.
+    // No public "class" pile on the rubric-drop (Product) or Video panels — you
+    // see one person at a time by picking their name (read-only when it isn't
+    // you). Checkpoint benchmarks still use the standard gallery for now.
     if (!isPortfolioDrop && !isVideoSummary && !isInstructable) {
       const gallerySec = document.createElement('div');
       gallerySec.className = 'modal-section';
@@ -11695,7 +11753,7 @@
       <div class="pf-viewonly" data-pf-viewonly></div>
       <div class="pf-actions">
         <div class="pf-status" data-pf-status></div>
-        <button class="pf-submit" data-pf-submit type="button" disabled>Submit Portfolio</button>
+        <button class="pf-submit" data-pf-submit type="button" disabled>Submit</button>
       </div>
     `;
 
@@ -11721,7 +11779,7 @@
     const nameInput = { get value() { return picker.getName(); }, set value(v) { picker.setName(v); } };
 
     // In-memory slot state: { image: {...}, video: {...}, ... } or null
-    const state = { image: null, video: null, code: null, cad: null, summary: null };
+    const state = { sketch: null, cad: null, code: null, wiring: null, image: null, video: null, summary: null };
     // Pending file objects, before submit (so we can upload at submit time)
     const pendingFiles = {}; // { slotKey: File }
     let openSlotKey = null;
@@ -12315,18 +12373,18 @@
         if (failedSlots.length) {
           setStatus(`Saved ${Object.values(finalSlots).filter(Boolean).length}. ${failedSlots.map(d => d.label).join(', ')} failed. Click Retry failed uploads.`, true);
         } else {
-          setStatus('Your portfolio is in the gallery below.');
+          setStatus('Submitted. You can update a slot and resubmit anytime.');
         }
         setTimeout(() => {
           submitBtn.classList.remove('is-success');
-          submitBtn.textContent = 'Submit Portfolio';
+          submitBtn.textContent = 'Submit';
           if (!failedSlots.length) setStatus('');
           _isSubmitting = false;
           refreshSubmit();
         }, 1800);
       } catch (err) {
         console.error('portfolio submit failed', err);
-        submitBtn.textContent = 'Submit Portfolio';
+        submitBtn.textContent = 'Submit';
         const msg = err?.code === 'unavailable' || /network|offline/i.test(err?.message || '')
           ? 'Connection failed. Check wifi and retry.'
           : (err.message || 'Submit failed. Try again.');
@@ -14699,7 +14757,7 @@ void loop() {
                 </select>
               </div>
               <div class="vibe-toolbar-group">
-                <button class="vibe-tool-btn" id="vibeSaveTo" title="Save to a benchmark or Portfolio" aria-label="Save to a benchmark or Portfolio">
+                <button class="vibe-tool-btn" id="vibeSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
                 </button>
               </div>
@@ -16869,7 +16927,7 @@ void loop() {
       </div>
       <span class="idea-tb-div" aria-hidden="true"></span>
       <div class="idea-tb-group">
-        <button type="button" class="idea-tool-btn" id="ideaSaveTo" title="Save to a benchmark or Portfolio" aria-label="Save to a benchmark or Portfolio"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg></button>
+        <button type="button" class="idea-tool-btn" id="ideaSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg></button>
         <button type="button" class="idea-tool-btn" id="ideaDownload" title="Download image (PNG)" aria-label="Download image (PNG)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><circle cx="12" cy="12" r="1.6"/><path d="M9 17l3 3 3-3"/><path d="M12 14v6"/></svg></button>
       </div>
     `;
