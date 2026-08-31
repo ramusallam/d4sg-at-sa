@@ -1384,9 +1384,10 @@
   /* All four nav pills always visible: Home / Warm Ups / Tools / Homework.
      The pill for the current view fills indigo so the student sees where
      they are. No layout jumps as they navigate. */
-  .nav-to-home, .nav-to-warmups, .nav-to-hw, .nav-to-tools { display: inline-flex; }
+  .nav-to-home, .nav-to-warmups, .nav-to-cad, .nav-to-hw, .nav-to-tools { display: inline-flex; }
   body.view-home .nav-to-home,
   body.view-warmups .nav-to-warmups,
+  body.view-cad .nav-to-cad,
   body.view-hw .nav-to-hw,
   body.view-tools .nav-to-tools {
     background: var(--accent);
@@ -1395,6 +1396,7 @@
   }
   body.view-home .nav-to-home:hover,
   body.view-warmups .nav-to-warmups:hover,
+  body.view-cad .nav-to-cad:hover,
   body.view-hw .nav-to-hw:hover,
   body.view-tools .nav-to-tools:hover {
     background: var(--accent-hover);
@@ -2305,6 +2307,32 @@
   }
   .upload-form .upload-status.error { color: #ef4444; }
   /* Link tile chrome */
+  /* STL download chip: only on CAD tiles that carry an uploaded STL. Sits
+     opposite the Link chip; real button (teacher downloads without opening
+     Tinkercad), so it keeps pointer events. */
+  .gallery-tile .tile-stl {
+    position: absolute;
+    top: 4px;
+    right: 28px; /* leaves the corner for the hover delete button */
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 3px 6px;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .gallery-tile .tile-stl:hover { background: var(--accent-hover); }
+
+  .cad-link-field { display: flex; flex-direction: column; gap: 4px; }
+  .cad-link-field span { font-size: 11px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--ink-low); }
+
   .gallery-tile.link-tile .link-chip {
     position: absolute;
     top: 4px;
@@ -6427,7 +6455,8 @@
       <a href="/" class="nav-link nav-to-home">Home</a>
       <a href="/warm-ups" class="nav-link nav-to-warmups">Warm Ups</a>
       <a href="/tools" class="nav-link nav-to-tools">Tools</a>
-      <a href="/hw" class="nav-link nav-to-hw">Weekly CAD HW</a>
+      <a href="/cad" class="nav-link nav-to-cad">CAD</a>
+      <a href="/hw" class="nav-link nav-to-hw">Weekly Homework</a>
       <span class="admin-bar">
         <span class="admin-tag">Admin</span>
         <button class="archive-btn" id="archivesViewBtn">Archives</button>
@@ -7561,7 +7590,7 @@
     const sec = document.createElement('section');
     sec.className = 'project';
     sec.innerHTML = `
-      <h2 class="project-title">Weekly CAD HW</h2>
+      <h2 class="project-title">Weekly Homework</h2>
       <div class="hw-week-grid" id="weekList"></div>
     `;
     const list = sec.querySelector('#weekList');
@@ -7578,6 +7607,31 @@
       list.appendChild(card);
     });
     app.appendChild(sec);
+  }
+
+
+  // ============== CAD SUBMISSIONS page ==============
+  // One flat drop for every Tinkercad design students submit outside the
+  // homework flow (Product mounts, hub enclosures, extra prints). Same
+  // artifacts pipeline as homework, one shared benchmarkId. The form takes
+  // a name, the PUBLIC Tinkercad link, and (optional but asked for) the
+  // exported STL so Ramsey can download and print without opening Tinkercad.
+  const CAD_DROP_ID = 'cad-drop';
+
+  function renderCadPage() {
+    app.innerHTML = '';
+    const sec = document.createElement('section');
+    sec.className = 'project';
+    sec.innerHTML = `
+      <h2 class="project-title">CAD</h2>
+      <p class="project-blurb">Submit any design here: pick your name, paste your <strong>public Tinkercad link</strong>, and attach the exported STL so Ramsey can print it.</p>
+      <div class="gallery-grid" id="galleryGrid"></div>
+    `;
+    app.appendChild(sec);
+    subscribeGallery(CAD_DROP_ID, { cadMode: true });
+    setViewTeardown(() => {
+      if (unsubscribeGallery) { try { unsubscribeGallery(); } catch (_) {} unsubscribeGallery = null; }
+    });
   }
 
   // ============== WARM UPS page render ==============
@@ -11083,7 +11137,7 @@
 
   function openHomeworkModal(w) {
     currentBenchmark = w;
-    modalEyebrow.textContent = 'Weekly CAD HW';
+    modalEyebrow.textContent = 'Weekly Homework';
     modalTitle.textContent = w.title;
     modalPoints.textContent = `${w.points} pts`;
     modalPoints.style.display = '';
@@ -11200,6 +11254,7 @@
       tile.innerHTML = `
         ${media}
         ${isLink ? `<span class="link-chip">Link</span>` : ''}
+        ${isLink && item.fileUrl ? `<button class="tile-stl" type="button" title="Download the STL">STL <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg></button>` : ''}
         <div class="tile-caption">
           <span class="tile-name">${escapeHtml(item.studentName || 'Unnamed')}</span>
           <span class="tile-desc">${escapeHtml(item.description || '')}</span>
@@ -11208,6 +11263,7 @@
       `;
       tile.addEventListener('click', (e) => {
         if (e.target.closest('.tile-delete')) return;
+        if (e.target.closest('.tile-stl')) { window.open(item.fileUrl, '_blank', 'noopener'); return; }
         if (isLink) {
           window.open(item.linkUrl, '_blank', 'noopener');
         } else if (isStl) {
@@ -11228,11 +11284,12 @@
     addTile.className = 'add-tile';
     addTile.setAttribute('role', 'button');
     addTile.setAttribute('tabindex', '0');
-    addTile.setAttribute('aria-label', opts.linkOnly ? 'Submit a link' : 'Add your work');
-    addTile.innerHTML = `<div class="plus">+</div><div>${opts.linkOnly ? 'Submit link' : 'Add your work'}</div>`;
+    const addLabel = opts.cadMode ? 'Submit CAD' : (opts.linkOnly ? 'Submit link' : 'Add your work');
+    addTile.setAttribute('aria-label', addLabel);
+    addTile.innerHTML = `<div class="plus">+</div><div>${addLabel}</div>`;
     addTile.addEventListener('click', () => {
       let formRef;
-      formRef = buildUploadForm(benchmarkId, () => {
+      formRef = (opts.cadMode ? buildCadForm : buildUploadForm)(benchmarkId, () => {
         // re-render handled by snapshot; cleanup picker subscription.
         if (formRef && typeof formRef._cleanup === 'function') formRef._cleanup();
       }, () => {
@@ -11516,6 +11573,145 @@
           const preview = attachedLink.preview || await fetchLinkPreview(attachedLink.url);
           await addLinkArtifact({ benchmarkId, name, desc, link: attachedLink.url, preview });
         }
+        statusEl.textContent = 'Done.';
+        onSuccess();
+      } catch (err) {
+        console.error(err);
+        setErr(err.message || 'Submit failed. Try again.');
+        submitBtn.disabled = false;
+      }
+    });
+
+    return form;
+  }
+
+  // CAD submission form: name + public Tinkercad link (required) + the
+  // exported STL (optional, but the blurb asks for it). One artifact doc
+  // carries BOTH the link fields and the file fields, so the gallery tile
+  // shows the Tinkercad preview with a one-click STL download chip.
+  // Tinkercad has no public export API, so the student's own exported STL
+  // is what makes the "download STL" moment possible.
+  function buildCadForm(benchmarkId, onSuccess, onCancel) {
+    const form = document.createElement('div');
+    form.className = 'upload-form';
+    form.innerHTML = `
+      <div data-cad-namepicker></div>
+      <label class="cad-link-field"><span>Public Tinkercad link</span>
+        <input type="url" data-cad-link placeholder="https://www.tinkercad.com/things/..." aria-label="Public Tinkercad link" />
+      </label>
+      <div class="attach" data-cad-attach>
+        <div class="attach-empty" data-cad-stl-zone role="button" tabindex="0" aria-label="Attach your exported STL">
+          <div class="attach-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg></div>
+          <div class="attach-text">Attach your exported STL</div>
+          <div class="attach-sub">In Tinkercad: Export, then .STL · up to 50MB</div>
+        </div>
+        <input type="file" data-cad-file accept=".stl,model/stl,application/sla,application/vnd.ms-pki.stl" aria-label="Attach your exported STL" />
+        <div class="attach-preview" data-cad-preview></div>
+      </div>
+      <div class="upload-status" data-status role="status" aria-live="polite"></div>
+      <div class="actions">
+        <button class="btn-cancel" data-cancel type="button">Cancel</button>
+        <button class="btn-submit" data-submit type="button">Submit</button>
+      </div>
+    `;
+
+    const pickerMount = form.querySelector('[data-cad-namepicker]');
+    const picker = renderNamePicker({
+      initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      onChange: (n) => { if (n) ensureRosterEntry(n); }
+    });
+    pickerMount.appendChild(picker.element);
+    form._cleanup = () => picker.destroy();
+
+    const linkInput = form.querySelector('[data-cad-link]');
+    const attach = form.querySelector('[data-cad-attach]');
+    const stlZone = form.querySelector('[data-cad-stl-zone]');
+    const fileInput = form.querySelector('[data-cad-file]');
+    const previewEl = form.querySelector('[data-cad-preview]');
+    const statusEl = form.querySelector('[data-status]');
+    const submitBtn = form.querySelector('[data-submit]');
+    let stlFile = null;
+
+    function setErr(msg) { statusEl.classList.add('error'); statusEl.textContent = msg; }
+    function clearStatus() { statusEl.classList.remove('error'); statusEl.textContent = ''; }
+
+    function showStl(file) {
+      stlFile = file;
+      const kb = file.size / 1024;
+      const sizeStr = kb < 1024 ? `${Math.round(kb)} KB` : `${(kb / 1024).toFixed(1)} MB`;
+      previewEl.innerHTML = `
+        <div class="preview-thumb"><div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:8px;background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e;font-size:12px;font-weight:700;letter-spacing:1.1px;">STL</div></div>
+        <div class="preview-info">
+          <div class="preview-title">${escapeHtml(file.name)}</div>
+          <div class="preview-meta">${sizeStr} · STL</div>
+        </div>
+        <button type="button" class="preview-remove" data-preview-remove aria-label="Remove">${ICON_X}</button>
+      `;
+      attach.classList.add('has-content');
+      previewEl.querySelector('[data-preview-remove]').addEventListener('click', () => {
+        stlFile = null;
+        fileInput.value = '';
+        previewEl.innerHTML = '';
+        attach.classList.remove('has-content');
+      });
+      clearStatus();
+    }
+    function takeStl(file) {
+      if (!file) return;
+      if (!isStlFile(file)) { setErr('That file is not an STL. In Tinkercad: Export, then .STL.'); return; }
+      if (file.size > 50 * 1024 * 1024) { setErr('File too large (50MB max).'); return; }
+      showStl(file);
+    }
+    stlZone.addEventListener('click', () => fileInput.click());
+    stlZone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+    fileInput.addEventListener('change', () => takeStl(fileInput.files[0]));
+    ['dragenter', 'dragover'].forEach(ev => attach.addEventListener(ev, (e) => { e.preventDefault(); attach.classList.add('is-dragover'); }));
+    ['dragleave', 'drop'].forEach(ev => attach.addEventListener(ev, (e) => { if (ev === 'dragleave' && e.target !== attach) return; attach.classList.remove('is-dragover'); }));
+    attach.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files?.length) takeStl(e.dataTransfer.files[0]); });
+
+    form.querySelector('[data-cancel]').addEventListener('click', onCancel);
+    submitBtn.addEventListener('click', async () => {
+      const name = picker.getName().trim();
+      const link = linkInput.value.trim();
+      if (!name) { setErr('Pick your name first.'); return; }
+      if (!/^https?:\/\//i.test(link)) { setErr('Paste your public Tinkercad link.'); return; }
+      let host = '';
+      try { host = new URL(link).hostname; } catch (_) {}
+      if (!/tinkercad\.com$/i.test(host)) { setErr('That is not a Tinkercad link. In Tinkercad: Share, make it public, copy the link.'); return; }
+      submitBtn.disabled = true;
+      clearStatus();
+      localStorage.setItem(LAST_PICK_KEY, name);
+      try {
+        let fileFields = {};
+        if (stlFile) {
+          statusEl.textContent = 'Uploading STL…';
+          const ext = (stlFile.name.match(/\.[a-z0-9]+$/i) || ['.stl'])[0];
+          const path = `artifacts/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+          const ref = storageRef(storage, path);
+          const ct = stlFile.type || 'model/stl';
+          const task = uploadBytesResumable(ref, stlFile, { contentType: ct });
+          await new Promise((resolve, reject) => {
+            task.on('state_changed',
+              (snap) => { statusEl.textContent = `Uploading STL… ${Math.round(snap.bytesTransferred / snap.totalBytes * 100)}%`; },
+              reject, resolve);
+          });
+          fileFields = { fileUrl: await getDownloadURL(task.snapshot.ref), filePath: path, contentType: ct };
+        }
+        statusEl.textContent = 'Saving…';
+        const preview = await fetchLinkPreview(link);
+        await addDoc(collection(db, 'artifacts'), {
+          benchmarkId,
+          studentName: name,
+          description: '',
+          type: 'link',
+          linkUrl: link,
+          linkTitle: preview?.title || '',
+          linkDescription: preview?.description || '',
+          linkImage: preview?.image || '',
+          linkDomain: preview?.domain || '',
+          ...fileFields,
+          createdAt: serverTimestamp()
+        });
         statusEl.textContent = 'Done.';
         onSuccess();
       } catch (err) {
@@ -17644,7 +17840,7 @@ void loop() {
     // left: Back button, top nav, or an in-modal tool link.
     if (_viewTeardown) { try { _viewTeardown(); } catch (_) {} _viewTeardown = null; }
     const r = (path || '').replace(/\/+$/, '');
-    document.body.classList.remove('view-home', 'view-hw', 'view-tools', 'view-syllabus', 'view-exhibit', 'view-dayone', 'view-warmups');
+    document.body.classList.remove('view-home', 'view-hw', 'view-cad', 'view-tools', 'view-syllabus', 'view-exhibit', 'view-dayone', 'view-warmups');
     if (r === '/warm-ups') {
       document.body.classList.add('view-warmups');
       renderWarmUps();
@@ -17662,6 +17858,9 @@ void loop() {
     } else if (r === '/hw') {
       document.body.classList.add('view-hw');
       renderHomework();
+    } else if (r === '/cad') {
+      document.body.classList.add('view-cad');
+      renderCadPage();
     } else if (r === '/tools/vibe') {
       document.body.classList.add('view-tools');
       initVibeCodingTool();

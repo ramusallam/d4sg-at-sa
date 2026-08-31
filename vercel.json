@@ -2,31 +2,104 @@
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "d4sg-at-sa.vercel.app" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "d4sg-at-sa.vercel.app"
+        }
+      ],
       "destination": "https://t4sg-at-sa.vercel.app/:path*",
       "permanent": true
     }
   ],
   "rewrites": [
-    { "source": "/day-one", "destination": "/index.html" },
-    { "source": "/day-one/", "destination": "/index.html" },
-    { "source": "/exhibit", "destination": "/index.html" },
-    { "source": "/exhibit/", "destination": "/index.html" },
-    { "source": "/hw", "destination": "/index.html" },
-    { "source": "/hw/", "destination": "/index.html" },
-    { "source": "/warm-ups", "destination": "/index.html" },
-    { "source": "/warm-ups/", "destination": "/index.html" },
-    { "source": "/progress", "destination": "/index.html" },
-    { "source": "/progress/", "destination": "/index.html" },
-    { "source": "/syllabus", "destination": "/index.html" },
-    { "source": "/syllabus/", "destination": "/index.html" },
-    { "source": "/tools", "destination": "/index.html" },
-    { "source": "/tools/", "destination": "/index.html" },
-    { "source": "/tools/vibe", "destination": "/index.html" },
-    { "source": "/tools/vibe/", "destination": "/index.html" },
-    { "source": "/tools/schematic", "destination": "/index.html" },
-    { "source": "/tools/schematic/", "destination": "/index.html" },
-    { "source": "/tools/idea-board", "destination": "/index.html" },
-    { "source": "/tools/idea-board/", "destination": "/index.html" }
+    {
+      "source": "/day-one",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/day-one/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/exhibit",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/exhibit/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/hw",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/hw/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cad",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cad/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/warm-ups",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/warm-ups/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/progress",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/progress/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/syllabus",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/syllabus/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tools",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tools/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tools/vibe",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tools/vibe/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tools/schematic",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tools/schematic/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tools/idea-board",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tools/idea-board/",
+      "destination": "/index.html"
+    }
   ]
 }
