@@ -6458,7 +6458,7 @@
       <a href="/warm-ups" class="nav-link nav-to-warmups">Warm Ups</a>
       <a href="/tools" class="nav-link nav-to-tools">Tools</a>
       <a href="/cad" class="nav-link nav-to-cad">CAD</a>
-      <a href="/hw" class="nav-link nav-to-hw">Weekly Homework</a>
+      <a href="/hw" class="nav-link nav-to-hw">Homework</a>
       <span class="admin-bar">
         <span class="admin-tag">Admin</span>
         <button class="archive-btn" id="archivesViewBtn">Archives</button>
@@ -7592,7 +7592,7 @@
     const sec = document.createElement('section');
     sec.className = 'project';
     sec.innerHTML = `
-      <h2 class="project-title">Weekly Homework</h2>
+      <h2 class="project-title">Homework</h2>
       <div class="hw-week-grid" id="weekList"></div>
     `;
     const list = sec.querySelector('#weekList');
@@ -11139,7 +11139,7 @@
 
   function openHomeworkModal(w) {
     currentBenchmark = w;
-    modalEyebrow.textContent = 'Weekly Homework';
+    modalEyebrow.textContent = 'Homework';
     modalTitle.textContent = w.title;
     modalPoints.textContent = `${w.points} pts`;
     modalPoints.style.display = '';
@@ -11680,6 +11680,7 @@
       let host = '';
       try { host = new URL(link).hostname; } catch (_) {}
       if (!/tinkercad\.com$/i.test(host)) { setErr('That is not a Tinkercad link. In Tinkercad: Share, make it public, copy the link.'); return; }
+      if (!stlFile) { setErr('Attach your exported STL too - in Tinkercad: Export, then .STL.'); return; }
       submitBtn.disabled = true;
       clearStatus();
       localStorage.setItem(LAST_PICK_KEY, name);
