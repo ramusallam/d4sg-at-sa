@@ -7626,7 +7626,7 @@
     sec.className = 'project';
     sec.innerHTML = `
       <h2 class="project-title">CAD</h2>
-      <p class="project-blurb">Submit any design here: pick your name, paste your <strong>public Tinkercad link</strong>, and attach the exported STL so Ramsey can print it.</p>
+      <p class="project-blurb">Submit your design here, same as homework: pick your name and paste your <strong>public Tinkercad link</strong>. Built it in Fusion or another tool? Attach the STL instead.</p>
       <div class="gallery-grid" id="galleryGrid"></div>
     `;
     app.appendChild(sec);
@@ -11596,18 +11596,15 @@
   function buildCadForm(benchmarkId, onSuccess, onCancel) {
     const form = document.createElement('div');
     form.className = 'upload-form';
+    const CLIP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg>';
     form.innerHTML = `
       <div data-cad-namepicker></div>
-      <label class="cad-link-field"><span>Public Tinkercad link</span>
-        <input type="url" data-cad-link placeholder="https://www.tinkercad.com/things/..." aria-label="Public Tinkercad link" />
-      </label>
-      <div class="attach" data-cad-attach>
-        <div class="attach-empty" data-cad-stl-zone role="button" tabindex="0" aria-label="Attach your exported STL">
-          <div class="attach-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 20h16"/></svg></div>
-          <div class="attach-text">Attach your exported STL</div>
-          <div class="attach-sub">In Tinkercad: Export, then .STL · up to 50MB</div>
+      <div class="attach is-link-entry" data-cad-attach>
+        <div class="attach-link-entry">
+          <input type="url" data-cad-link aria-label="Public Tinkercad link" placeholder="Paste your public Tinkercad link" />
         </div>
-        <input type="file" data-cad-file accept=".stl,model/stl,application/sla,application/vnd.ms-pki.stl" aria-label="Attach your exported STL" />
+        <button type="button" class="attach-link-toggle" data-cad-stl-toggle>${CLIP} Or attach an STL (Fusion or another tool)</button>
+        <input type="file" data-cad-file accept=".stl,model/stl,application/sla,application/vnd.ms-pki.stl" style="display:none;" aria-label="Attach an STL" />
         <div class="attach-preview" data-cad-preview></div>
       </div>
       <div class="upload-status" data-status role="status" aria-live="polite"></div>
@@ -11627,7 +11624,7 @@
 
     const linkInput = form.querySelector('[data-cad-link]');
     const attach = form.querySelector('[data-cad-attach]');
-    const stlZone = form.querySelector('[data-cad-stl-zone]');
+    const stlToggle = form.querySelector('[data-cad-stl-toggle]');
     const fileInput = form.querySelector('[data-cad-file]');
     const previewEl = form.querySelector('[data-cad-preview]');
     const statusEl = form.querySelector('[data-status]');
@@ -11660,27 +11657,29 @@
     }
     function takeStl(file) {
       if (!file) return;
-      if (!isStlFile(file)) { setErr('That file is not an STL. In Tinkercad: Export, then .STL.'); return; }
+      if (!isStlFile(file)) { setErr('That file is not an STL. Export your design as .STL first.'); return; }
       if (file.size > 50 * 1024 * 1024) { setErr('File too large (50MB max).'); return; }
       showStl(file);
     }
-    stlZone.addEventListener('click', () => fileInput.click());
-    stlZone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+    stlToggle.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', () => takeStl(fileInput.files[0]));
     ['dragenter', 'dragover'].forEach(ev => attach.addEventListener(ev, (e) => { e.preventDefault(); attach.classList.add('is-dragover'); }));
     ['dragleave', 'drop'].forEach(ev => attach.addEventListener(ev, (e) => { if (ev === 'dragleave' && e.target !== attach) return; attach.classList.remove('is-dragover'); }));
-    attach.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files?.length) takeStl(e.dataTransfer.files[0]); });
+    attach.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const f = e.dataTransfer?.files?.[0];
+      if (f) takeStl(f);
+    });
 
-    form.querySelector('[data-cancel]').addEventListener('click', onCancel);
     submitBtn.addEventListener('click', async () => {
       const name = picker.getName().trim();
-      const link = linkInput.value.trim();
+      let link = linkInput.value.trim();
       if (!name) { setErr('Pick your name first.'); return; }
-      if (!/^https?:\/\//i.test(link)) { setErr('Paste your public Tinkercad link.'); return; }
-      let host = '';
-      try { host = new URL(link).hostname; } catch (_) {}
-      if (!/tinkercad\.com$/i.test(host)) { setErr('That is not a Tinkercad link. In Tinkercad: Share, make it public, copy the link.'); return; }
-      if (!stlFile) { setErr('Attach your exported STL too - in Tinkercad: Export, then .STL.'); return; }
+      if (link && !/^https?:\/\//i.test(link)) {
+        if (/^[\w-]+(\.[\w-]+)+([\/?#]|$)/.test(link)) { link = 'https://' + link; linkInput.value = link; }
+        else { setErr('That does not look like a link. Copy it from your browser address bar.'); return; }
+      }
+      if (!link && !stlFile) { setErr('Paste your public Tinkercad link, or attach an STL.'); return; }
       submitBtn.disabled = true;
       clearStatus();
       localStorage.setItem(LAST_PICK_KEY, name);
@@ -11698,23 +11697,34 @@
               (snap) => { statusEl.textContent = `Uploading STL… ${Math.round(snap.bytesTransferred / snap.totalBytes * 100)}%`; },
               reject, resolve);
           });
-          fileFields = { fileUrl: await getDownloadURL(task.snapshot.ref), filePath: path, contentType: ct };
+          fileFields = { fileUrl: await getDownloadURL(task.snapshot.ref), filePath: path, contentType: ct, description: stlFile.name };
         }
         statusEl.textContent = 'Saving…';
-        const preview = await fetchLinkPreview(link);
-        await addDoc(collection(db, 'artifacts'), {
-          benchmarkId,
-          studentName: name,
-          description: '',
-          type: 'link',
-          linkUrl: link,
-          linkTitle: preview?.title || '',
-          linkDescription: preview?.description || '',
-          linkImage: preview?.image || '',
-          linkDomain: preview?.domain || '',
-          ...fileFields,
-          createdAt: serverTimestamp()
-        });
+        if (link) {
+          const preview = await fetchLinkPreview(link);
+          await addDoc(collection(db, 'artifacts'), {
+            benchmarkId,
+            studentName: name,
+            description: '',
+            type: 'link',
+            linkUrl: link,
+            linkTitle: preview?.title || '',
+            linkDescription: preview?.description || '',
+            linkImage: preview?.image || '',
+            linkDomain: preview?.domain || '',
+            ...fileFields,
+            createdAt: serverTimestamp()
+          });
+        } else {
+          // STL-only (Fusion or another tool): a plain file artifact.
+          await addDoc(collection(db, 'artifacts'), {
+            benchmarkId,
+            studentName: name,
+            description: '',
+            ...fileFields,
+            createdAt: serverTimestamp()
+          });
+        }
         statusEl.textContent = 'Done.';
         onSuccess();
       } catch (err) {
@@ -11723,6 +11733,7 @@
         submitBtn.disabled = false;
       }
     });
+    form.querySelector('[data-cancel]').addEventListener('click', onCancel);
 
     return form;
   }
