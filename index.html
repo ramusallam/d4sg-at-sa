@@ -1908,6 +1908,10 @@
     grid-template-columns: repeat(5, 1fr);
     gap: 10px;
   }
+  /* CAD page tiles match the Homework submission thumbnails exactly. */
+  body.view-cad .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  }
   .gallery-tile {
     position: relative;
     aspect-ratio: 1 / 1;
