@@ -7673,10 +7673,12 @@
     const sec = document.createElement('section');
     sec.className = 'project';
     // Future-dated warm-ups stay hidden until their day, so tomorrow's can be
-    // loaded in ahead of time without bumping today's off the top.
+    // loaded in ahead of time without bumping today's off the top. Teacher
+    // check: add ?preview to the URL to see future-dated warm-ups too.
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const visible = WARM_UPS.filter(w => w.date <= todayStr).sort((a, b) => b.date.localeCompare(a.date));
+    const previewMode = new URLSearchParams(location.search).has('preview');
+    const visible = WARM_UPS.filter(w => previewMode || w.date <= todayStr).sort((a, b) => b.date.localeCompare(a.date));
 
     let body;
     if (visible.length === 0) {
