@@ -147,13 +147,18 @@ service cloud.firestore {
                        request.resource.data.deleted == true;
     }
 
-    // Digital assessments (all classes, not D4SG): password-gated unit tests.
+    // Secure assessment v2: only the server Admin SDK can access these.
+    match /assessment_sessions/{id} { allow read, write: if false; }
+    match /assessment_claims/{id} { allow read, write: if false; }
+    match /assessment_attempts/{id} { allow read, write: if false; }
+
+    // Legacy digital assessments. Unit 1 is migrated to the server API.
     // No login. Teacher-side writes (config, unblocks, result pulls) go through
     // the owner OAuth token, which bypasses rules entirely.
     // Config: the page reads title + salted password hash + open flag at start
     // AND at submit, so a password change takes effect live. Get-only.
     match /assessment_config/{assessmentId} {
-      allow get: if true;
+      allow get: if assessmentId != 'unit1-atomic-structure';
       allow list: if false;
       allow create, update, delete: if false;
     }
@@ -162,7 +167,7 @@ service cloud.firestore {
     // "already taken". Never readable, never deletable from the client.
     match /assessment_names/{claimId} {
       allow read: if false;
-      allow create: if request.resource.data.name is string &&
+      allow create: if !claimId.matches('unit1-atomic-structure__.*') && request.resource.data.name is string &&
                        request.resource.data.name.size() > 0 &&
                        request.resource.data.name.size() <= 80 &&
                        request.resource.data.at == request.time;
@@ -173,11 +178,11 @@ service cloud.firestore {
     // Updates (autosave, tab events, final submit) allowed until submitted.
     match /assessment_subs/{subId} {
       allow read: if false;
-      allow create: if request.resource.data.name is string &&
+      allow create: if !subId.matches('unit1-atomic-structure__.*') && request.resource.data.assessmentId != 'unit1-atomic-structure' && request.resource.data.name is string &&
                        request.resource.data.name.size() > 0 &&
                        request.resource.data.name.size() <= 80 &&
                        request.resource.data.submitted == false;
-      allow update: if resource.data.submitted == false;
+      allow update: if !subId.matches('unit1-atomic-structure__.*') && resource.data.assessmentId != 'unit1-atomic-structure' && resource.data.submitted == false;
       allow delete: if false;
     }
   }
