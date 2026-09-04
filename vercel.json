@@ -100,6 +100,14 @@
     {
       "source": "/tools/idea-board/",
       "destination": "/index.html"
+    },
+    {
+      "source": "/tools/camera",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tools/camera/",
+      "destination": "/index.html"
     }
   ]
 }
