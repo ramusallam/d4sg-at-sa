@@ -11963,6 +11963,17 @@
   // Keyed by benchmark; File objects ride along so submit can still upload.
   const _pfDrafts = new Map(); // benchmarkId -> { owner, state, pendingFiles }
 
+  // Warn before the tab closes while portfolio work is still local-only.
+  // pendingFiles empties as each file finishes its draft upload, so anything
+  // left in it (no name picked yet, upload in flight or failed) would be lost.
+  window.addEventListener('beforeunload', (e) => {
+    let unsaved = false;
+    _pfDrafts.forEach(d => { if (Object.keys(d.pendingFiles).length) unsaved = true; });
+    if (!unsaved) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
+
   function buildPortfolioPanel(benchmarkId) {
     const bench = findBenchmarkById(benchmarkId);
     const rubric = (bench && Array.isArray(bench.rubric)) ? bench.rubric : [];
@@ -11980,6 +11991,7 @@
     panel.className = 'portfolio-panel pf-rubric-panel';
     panel.innerHTML = `
       <div class="pf-viewbanner" data-pf-viewbanner></div>
+      <div class="pf-drop-sub" style="margin:0 0 10px;">Everything you add autosaves to your draft - leave and come back anytime to finish.</div>
       <div class="pf-rubric" data-pf-slots>
         <div class="pf-rubric-head">
           <span>Criterion</span><span>Emerging</span><span>Developing</span><span>Mastered</span><span>Your work</span>
@@ -11987,6 +11999,7 @@
       </div>
       <div class="pf-viewonly" data-pf-viewonly></div>
       <div class="pf-actions">
+        <span class="pf-saved-pill" data-pf-saved aria-live="polite">Saved</span>
         <div class="pf-status" data-pf-status></div>
         <button class="pf-submit" data-pf-submit type="button" disabled>Submit</button>
       </div>
@@ -11995,6 +12008,7 @@
     const slotsEl = panel.querySelector('[data-pf-slots]');
     const submitBtn = panel.querySelector('[data-pf-submit]');
     const statusEl = panel.querySelector('[data-pf-status]');
+    const savedPill = panel.querySelector('[data-pf-saved]');
     const viewBanner = panel.querySelector('[data-pf-viewbanner]');
     const viewMount = panel.querySelector('[data-pf-viewonly]');
 
@@ -12047,6 +12061,133 @@
       refreshSubmit();
     }
     resetDraftForOwner(ownerName);
+
+    // ----- Cloud draft autosave (mirrors the checkpoint panel) -----
+    // Files upload to Storage the moment they're added and every filled slot
+    // persists to the shared drafts doc (pfSlots field), so a student can
+    // close the tab mid-build and find their work on return, on any device.
+    let _draftHydrateReq = 0;
+    function currentSaveName() { return (nameInput.value || ownerName || '').trim(); }
+    function showSaved(text = 'Saved', st = 'saved') {
+      savedPill.textContent = text;
+      savedPill.classList.toggle('is-saving', st === 'saving');
+      savedPill.classList.add('is-visible');
+      if (st === 'saved') {
+        clearTimeout(savedPill._t);
+        savedPill._t = setTimeout(() => savedPill.classList.remove('is-visible'), 1800);
+      }
+    }
+    // The durable shape for a slot's draft entry, or null to clear it. A
+    // local-only preview (file not uploaded yet) has nothing durable to save.
+    function draftShapeOf(key) {
+      const cur = state[key];
+      if (!cur || cur._submitted) return null;
+      if (cur.mode === 'text') return { mode: 'text', text: cur.text || '' };
+      if (cur.mode === 'link') return { mode: 'link', url: cur.url || '' };
+      if (cur.mode === 'file' && !cur._localPreview) {
+        return { mode: 'file', url: cur.url, fileName: cur.fileName || '', contentType: cur.contentType || '', filePath: cur.filePath || '' };
+      }
+      return undefined; // local preview: skip, the upload completion persists it
+    }
+    function persistDraftSlot(key) {
+      const name = currentSaveName();
+      if (!name) return;
+      const shape = draftShapeOf(key);
+      if (shape === undefined) return;
+      const cur = state[key];
+      showSaved('Saving…', 'saving');
+      saveDraft(name, benchmarkId, { pfSlots: { [key]: shape } }).then(ok => {
+        if (ok) {
+          showSaved('Saved');
+          if (cur && state[key] === cur && !cur._submitted) {
+            cur._savedDraft = true;
+            refreshTile(key);
+          }
+        }
+        else {
+          savedPill.classList.remove('is-visible');
+          setStatus('Draft not saved. Check your wifi and try again.', true);
+        }
+      });
+    }
+    const persistDraftSummary = debounce(() => persistDraftSlot('summary'), 600);
+    // Upload a just-added file to the draft Storage path right away, then
+    // swap the slot's local blob preview for the durable remote copy.
+    async function uploadDraftFileForSlot(key) {
+      const file = pendingFiles[key];
+      const cur = state[key];
+      const name = currentSaveName();
+      if (!file || !cur || !cur._localPreview || cur._uploading || !name) return;
+      const def = SLOT_DEFS.find(d => d.key === key);
+      cur._uploading = true;
+      refreshTile(key);
+      showSaved('Saving…', 'saving');
+      try {
+        const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0];
+        const path = `drafts/${nameSlug(name)}__${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${key}${ext}`;
+        const ref = storageRef(storage, path);
+        const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
+        const task = uploadBytesResumable(ref, file, { contentType: ct });
+        await new Promise((resolve, reject) => { task.on('state_changed', null, reject, resolve); });
+        const url = await getDownloadURL(task.snapshot.ref);
+        // The slot may have been cleared or replaced mid-upload; only commit
+        // the remote copy if this file is still the one in the slot.
+        if (pendingFiles[key] !== file || state[key] !== cur) return;
+        const prevUrl = cur.url;
+        delete pendingFiles[key];
+        Object.assign(cur, { url, filePath: path, _localPreview: false, _uploading: false });
+        try { URL.revokeObjectURL(prevUrl); } catch (_) {}
+        refreshTile(key);
+        const openEl = slotsEl.querySelector(`.pf-slot[data-slot="${key}"].is-open`);
+        if (openEl && openEl._renderBody) openEl._renderBody();
+        persistDraftSlot(key);
+      } catch (err) {
+        console.warn('draft upload failed', err);
+        if (state[key] === cur) cur._uploading = false;
+        savedPill.classList.remove('is-visible');
+        refreshTile(key);
+        setStatus(`${def ? def.label : key} is not saved yet. It will still upload when you press Submit.`, true);
+      }
+    }
+    // Once a name is available, push any work that piled up before it was
+    // picked: upload local files, persist text and link slots.
+    function flushDraftForName() {
+      if (!currentSaveName()) return;
+      SLOT_DEFS.forEach(d => {
+        const cur = state[d.key];
+        if (!cur || cur._submitted) return;
+        if (cur._localPreview) uploadDraftFileForSlot(d.key);
+        else if (cur.mode === 'text' || cur.mode === 'link') persistDraftSlot(d.key);
+      });
+    }
+    // Load this student's saved draft and fill any slot they haven't touched
+    // this session. Draft beats submitted for a slot: the draft copy is newer
+    // unsubmitted work (promoted slots are cleared from the draft on Submit).
+    async function hydrateDraft(name) {
+      const n = (name || '').trim();
+      if (!n) return;
+      const req = ++_draftHydrateReq;
+      const draft = await loadDraft(n, benchmarkId);
+      if (req !== _draftHydrateReq || norm(currentSaveName()) !== norm(n)) return;
+      const slots = draft && draft.pfSlots;
+      if (!slots) return;
+      let any = false;
+      SLOT_DEFS.forEach(d => {
+        const saved = slots[d.key];
+        if (!saved || typeof saved !== 'object') return;
+        const cur = state[d.key];
+        if (cur && !cur._submitted) return; // in-session work wins
+        state[d.key] = { ...saved, _savedDraft: true };
+        refreshTile(d.key);
+        any = true;
+      });
+      if (any) {
+        refreshSubmit();
+        const openEl = slotsEl.querySelector('.pf-slot.is-open');
+        if (openEl && openEl._renderBody) openEl._renderBody();
+        showSaved('Draft loaded');
+      }
+    }
 
     // One rubric row per criterion: criterion + Emerging/Developing/Mastered
     // cells + an upload mount. Each slot below routes into its row by slot key
@@ -12188,6 +12329,7 @@
             state.summary = v ? { mode: 'text', text: v.slice(0, SUMMARY_MAX) } : null;
             refreshTile(def.key);
             refreshSubmit();
+            if (currentSaveName()) persistDraftSummary();
           });
           updateCount();
           setTimeout(() => txt.focus(), 50);
@@ -12297,6 +12439,7 @@
               const ext = (orig.match(/\.[a-z0-9]+$/i) || [''])[0];
               if (ext && !v.toLowerCase().endsWith(ext.toLowerCase())) v += ext;
               state[def.key].fileName = v;
+              if (!state[def.key]._submitted) persistDraftSlot(def.key);
             }
             refreshTile(def.key);
             renderBody();
@@ -12352,6 +12495,7 @@
           refreshSubmit();
           setStatus('');
           renderBody();
+          persistDraftSlot(def.key);
         };
         const updateLinkCheck = () => {
           if (!linkCheck) return;
@@ -12396,7 +12540,8 @@
           catch (err) { setStatus(err.message, true); return; }
         }
         pendingFiles[def.key] = file;
-        // Use a local object URL for preview until upload at submit time
+        // Local object URL for instant preview; the draft upload below swaps
+        // it for the durable remote copy.
         const objUrl = URL.createObjectURL(file);
         const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
         state[def.key] = {
@@ -12410,6 +12555,8 @@
         refreshSubmit();
         setStatus('');
         renderBody();
+        if (currentSaveName()) uploadDraftFileForSlot(def.key);
+        else setStatus('Pick your name above so your work saves as you go.');
         // Soft warning for files >50MB (still under the 100MB hard cap).
         if (file.size > 50 * 1024 * 1024) {
           const inner = bodyInner;
@@ -12479,6 +12626,8 @@
           }
         }
         if (filled._submitted) statusEl.textContent = 'Submitted · ' + statusEl.textContent;
+        else if (filled._uploading) statusEl.textContent = 'Uploading…';
+        else if (filled._savedDraft && !filled._localPreview) statusEl.textContent = 'Saved · ' + statusEl.textContent;
         labelEl.textContent = def.label;
       } else {
         slot.classList.remove('is-filled', 'is-submitted');
@@ -12516,6 +12665,7 @@
       state[key] = null;
       refreshTile(key);
       refreshSubmit();
+      persistDraftSlot(key);
     }
 
     function refreshSubmit() {
@@ -12683,6 +12833,14 @@
           openSlotKey = null;
         }
 
+        // Promoted slots leave the draft so a stale draft copy never shadows
+        // the submitted version on the next visit.
+        const promotedNulls = {};
+        Object.keys(filledSlots).forEach(k => { promotedNulls[k] = null; });
+        if (Object.keys(promotedNulls).length) {
+          saveDraft(writeName, benchmarkId, { pfSlots: promotedNulls });
+        }
+
         // Refresh the count badge for this benchmark in case the snapshot
         // hasn't propagated yet (it usually has, but this is belt-and-braces).
         refreshCountBadge(benchmarkId);
@@ -12753,6 +12911,8 @@
       setTimeout(() => {
         refreshTile(slotKey);
         refreshSubmit();
+        if (currentSaveName()) uploadDraftFileForSlot(slotKey);
+        else setStatus('Pick your name above so your work saves as you go.');
         // Refresh the source slot's body too if it's open (rare, but safe).
         const srcSlot = slotsEl.querySelector(`.pf-slot[data-slot="${slotKey}"]`);
         if (srcSlot && srcSlot._renderBody && srcSlot.classList.contains('is-open')) {
@@ -12806,6 +12966,8 @@
         viewBanner.innerHTML = '';
         viewMount.innerHTML = '';
         hydrateFromSubmitted();
+        hydrateDraft(n || ownerName);
+        flushDraftForName();
         refreshSubmit();
         return;
       }
