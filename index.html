@@ -11058,10 +11058,11 @@
       );
     }
 
-    // No public "class" pile on the rubric-drop (Product) or Video panels — you
-    // see one person at a time by picking their name (read-only when it isn't
-    // you). Checkpoint benchmarks still use the standard gallery for now.
-    if (!isPortfolioDrop && !isVideoSummary && !isInstructable) {
+    // Class submissions list: checkpoint benchmarks AND rubric-drop capstones
+    // (Product) show every student's submitted work below the panel — expand a
+    // row to see one person, jump bar to find a name fast. Video panels use the
+    // summary board instead; the Instructable drop stays name-picker only.
+    if (!isVideoSummary && !isInstructable) {
       const gallerySec = document.createElement('div');
       gallerySec.className = 'modal-section';
       gallerySec.innerHTML = `
