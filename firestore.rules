@@ -127,6 +127,21 @@ service cloud.firestore {
                        request.resource.data.deleted == true;
     }
 
+    // Chemistry sub-day lesson work (Predicting Ion Charges app, not D4SG).
+    // One doc per student (`${lesson}__${classSlug}__${nameSlug}`), autosaved as
+    // they work. Honor-code class model: open read powers the live teacher
+    // dashboard; no hard delete so student work is never destroyed.
+    match /subWork/{workId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.name is string &&
+                               request.resource.data.name.size() > 0 &&
+                               request.resource.data.name.size() <= 80 &&
+                               request.resource.data.lesson is string &&
+                               request.resource.data.lesson.size() > 0 &&
+                               request.resource.data.lesson.size() <= 60;
+      allow delete: if false;
+    }
+
     // Surf Check journal (personal app, not D4SG): per-beach session log.
     // Same soft-delete model as /exhibit — entries are never hard-deleted.
     match /surfJournal/{entryId} {
