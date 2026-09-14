@@ -1726,6 +1726,20 @@
   .warmup-question li { margin-bottom: 6px; }
   .warmup-question a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
   .warmup-question img { max-width: 100%; border-radius: 10px; }
+  .warmup-question pre.warmup-code {
+    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink-hi);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 0 0 12px;
+    overflow-x: auto;
+    white-space: pre;
+  }
   .warmup-options {
     list-style: none;
     padding: 0;
@@ -7205,6 +7219,11 @@
   // multiple-choice; omit for short answer. The question field is trusted
   // HTML (teacher-authored), so links/lists/images all work.
   const WARM_UPS = [
+    {
+      id: 'wu-2026-09-15',
+      date: '2026-09-15',
+      question: '<p>Read the Arduino Leonardo code below. When someone touches a TTP223B capacitive touch sensor, the computer types the letter A and an LED lights up.</p><pre class="warmup-code">#include &lt;Keyboard.h&gt;\n\nint touchPin = 7;\nint ledPin = 9;\n\nvoid setup() {\n  pinMode(touchPin, INPUT);\n  pinMode(ledPin, OUTPUT);\n  Keyboard.begin();\n}\n\nvoid loop() {\n  if (digitalRead(touchPin) == HIGH) {\n    digitalWrite(ledPin, HIGH);\n    Keyboard.write(&#39;A&#39;);\n    delay(500);\n  } else {\n    digitalWrite(ledPin, LOW);\n  }\n}</pre><p><strong>Part 1, in your notebook:</strong> Analyze the code, then draw the wiring diagram for this circuit on a breadboard. Label every part and the pin it connects to. The code only names two pins, but your circuit needs more wires than that. Think about power, ground, and what keeps the LED safe.</p><p><strong>Part 2, in your notebook:</strong> A capacitive touch sensor does not need a press. A light graze of skin is enough to trigger it. Hypothesize how a sensor that activates with a graze could be useful in a piece of assistive technology. Who would it help, where would the sensor sit, and what would it let that person do? A few sentences. Be ready to share.</p><p>Show Ramsey your wiring diagram.</p>'
+    },
     {
       id: 'wu-2026-09-14',
       date: '2026-09-14',
