@@ -6569,6 +6569,16 @@
     'Winter',
   ];
   const LAST_PICK_KEY = 'd4sg-last-pick-v1';
+  // Every write to this device's student goes through here. A same-tab write
+  // fires no storage event, so the home checkmarks are re-pointed explicitly.
+  function setLastPick(name) {
+    const n = String(name || '').trim();
+    try {
+      if (n) localStorage.setItem(LAST_PICK_KEY, n);
+      else localStorage.removeItem(LAST_PICK_KEY);
+    } catch (_) {}
+    try { syncCheckedFromCloud(); } catch (_) {}
+  }
   // "Maya R." → "maya-r", used as a stable id in Firestore doc paths.
   function nameSlug(name) {
     return String(name || '')
@@ -6601,7 +6611,7 @@
     try {
       const stored = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
       if (stored && !merged.some(n => n.toLowerCase() === stored.toLowerCase())) {
-        localStorage.removeItem(LAST_PICK_KEY);
+        setLastPick('');
       }
     } catch (_) {}
     _rosterSubs.forEach(cb => { try { cb(_liveRoster); } catch (e) {} });
@@ -7222,7 +7232,7 @@
     {
       id: 'wu-2026-09-15',
       date: '2026-09-15',
-      question: '<p>Read the Arduino Leonardo code below. The circuit uses a TTP223B capacitive touch sensor and an LED.</p><pre class="warmup-code">#include &lt;Keyboard.h&gt;\n\nint touchPin = 7;\nint ledPin = 9;\n\nvoid setup() {\n  pinMode(touchPin, INPUT);\n  pinMode(ledPin, OUTPUT);\n  Keyboard.begin();\n}\n\nvoid loop() {\n  if (digitalRead(touchPin) == HIGH) {\n    digitalWrite(ledPin, HIGH);\n    Keyboard.write(&#39;A&#39;);\n    delay(500);\n  } else {\n    digitalWrite(ledPin, LOW);\n  }\n}</pre><p><strong>Part 1, in your notebook:</strong> Explain what this code is doing, in plain language. Walk through it step by step: what happens when someone touches the sensor, and what happens when they let go?</p><p><strong>Part 2, in your notebook:</strong> Draw the wiring diagram for this circuit on a breadboard. Label every part and the pin it connects to. The code only names two pins, but your circuit needs more wires than that. Think about power, ground, and what keeps the LED safe.</p><p>Show Ramsey your explanation and your wiring diagram.</p>'
+      question: '<p>Read the Arduino Leonardo code below. The circuit uses an FC-51 IR distance sensor, a button, and an LED. One thing you need to know: the sensor&#39;s OUT pin reads <strong>LOW</strong> when something is within about an inch of it, and HIGH when nothing is close.</p><pre class="warmup-code">#include &lt;Keyboard.h&gt;\n\nint sensorPin = 7;\nint buttonPin = 2;\nint ledPin = 9;\n\nbool systemOn = true;\n\nvoid setup() {\n  pinMode(sensorPin, INPUT);\n  pinMode(buttonPin, INPUT);\n  pinMode(ledPin, OUTPUT);\n  Keyboard.begin();\n}\n\nvoid loop() {\n  if (digitalRead(buttonPin) == HIGH) {\n    systemOn = !systemOn;\n    delay(300);\n  }\n\n  if (systemOn &amp;&amp; digitalRead(sensorPin) == LOW) {\n    digitalWrite(ledPin, HIGH);\n    Keyboard.write(&#39;A&#39;);\n    delay(500);\n  } else {\n    digitalWrite(ledPin, LOW);\n  }\n}</pre><p><strong>Part 1, in your notebook:</strong> Explain what this code is doing, in plain language. Walk through it step by step: what happens when something comes within an inch of the sensor? What does pressing the button do? What does pressing it a second time do? The line <code>systemOn = !systemOn;</code> is the key to the button - figure out what the <code>!</code> does.</p><p><strong>Part 2, in your notebook:</strong> Draw the wiring diagram for this circuit on a breadboard. Label every part and the pin it connects to. The code only names three pins, but your circuit needs more wires than that. Think about power, ground, and what keeps the LED safe.</p><p>Show Ramsey your explanation and your wiring diagram.</p>'
     },
     {
       id: 'wu-2026-09-14',
@@ -10888,7 +10898,7 @@
     if (who) {
       _sessionMarks.set(id, _normName(who));
       if (_normName(who) !== _normName(current)) {
-        try { localStorage.setItem(LAST_PICK_KEY, who); } catch (_) {}
+        setLastPick(who);
       }
     }
     const wasChecked = checked.has(id);
@@ -11628,7 +11638,7 @@
       if (!attachedFile && !attachedLink) { setErr(linkOnly ? 'Paste a link to your design.' : 'Drop a file or paste a link.'); return; }
       submitBtn.disabled = true;
       clearStatus();
-      localStorage.setItem(LAST_PICK_KEY, name);
+      setLastPick(name);
       try {
         if (attachedFile) {
           statusEl.textContent = 'Uploading…';
@@ -11747,7 +11757,7 @@
       if (!link && !stlFile) { setErr('Paste your public Tinkercad link, or attach an STL.'); return; }
       submitBtn.disabled = true;
       clearStatus();
-      localStorage.setItem(LAST_PICK_KEY, name);
+      setLastPick(name);
       try {
         let fileFields = {};
         if (stlFile) {
@@ -12761,7 +12771,7 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting…';
       setStatus('Submitting…');
-      localStorage.setItem(LAST_PICK_KEY, name);
+      setLastPick(name);
 
       // Track per-slot upload outcome so a single failure doesn't wipe the
       // student's other filled slots. Failed slots stay in state with a
@@ -13011,7 +13021,7 @@
     function applyMode(name) {
       const n = (name || '').trim();
       // First name actively chosen on this device claims edit ownership.
-      if (!ownerName && n) { ownerName = n; try { localStorage.setItem(LAST_PICK_KEY, n); } catch (_) {} }
+      if (!ownerName && n) { ownerName = n; setLastPick(n); }
       const isOwner = !n || norm(n) === norm(ownerName);
       if (isOwner) {
         panel.classList.remove('is-viewonly');
@@ -13037,7 +13047,7 @@
           Object.values(state).some(v => v && !v._submitted);
         if (dirty && !confirm('This device has unsubmitted work from another name. Switch to ' + n + ' and clear it?')) return;
         ownerName = n;
-        try { localStorage.setItem(LAST_PICK_KEY, n); } catch (_) {}
+        setLastPick(n);
         resetDraftForOwner(n);
         applyMode(n);
       });
@@ -13725,7 +13735,7 @@
 
     function applyMode(n) {
       const name = (n || '').trim();
-      if (!ownerName && name) { ownerName = name; try { localStorage.setItem(LAST_PICK_KEY, name); } catch (_) {} }
+      if (!ownerName && name) { ownerName = name; setLastPick(name); }
       const isOwner = !name || norm(name) === norm(ownerName);
       if (isOwner) {
         panel.classList.remove('is-viewonly');
@@ -13736,7 +13746,7 @@
           <span class="pf-viewbanner-text">Viewing <strong>${escapeHtml(name)}</strong>&rsquo;s submission (read only).</span>
           <button type="button" class="pf-viewbanner-btn" data-inst-claim>This is me - switch to editing</button>`;
         const c = viewBanner.querySelector('[data-inst-claim]');
-        if (c) c.addEventListener('click', () => { ownerName = name; try { localStorage.setItem(LAST_PICK_KEY, name); } catch (_) {} applyMode(name); });
+        if (c) c.addEventListener('click', () => { ownerName = name; setLastPick(name); applyMode(name); });
       }
       renderSubmitted(name);
       refresh();
@@ -13754,7 +13764,7 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting…';
       setStatus('');
-      localStorage.setItem(LAST_PICK_KEY, name);
+      setLastPick(name);
 
       try {
         await setDoc(doc(db, 'portfolios', `${benchmarkId}__${nameSlug(name)}`), {
@@ -13891,7 +13901,7 @@
 
     function applyMode(n) {
       const name = (n || '').trim();
-      if (!ownerName && name) { ownerName = name; try { localStorage.setItem(LAST_PICK_KEY, name); } catch (_) {} }
+      if (!ownerName && name) { ownerName = name; setLastPick(name); }
       const isOwner = !name || norm(name) === norm(ownerName);
       if (isOwner) {
         panel.classList.remove('is-viewonly');
@@ -13904,7 +13914,7 @@
           <button type="button" class="pf-viewbanner-btn" data-vs-claim>This is me - switch to editing</button>
         `;
         const c = viewBanner.querySelector('[data-vs-claim]');
-        if (c) c.addEventListener('click', () => { ownerName = name; try { localStorage.setItem(LAST_PICK_KEY, name); } catch (_) {} applyMode(name); });
+        if (c) c.addEventListener('click', () => { ownerName = name; setLastPick(name); applyMode(name); });
       }
       renderSubmitted(name);
     }
@@ -17046,7 +17056,7 @@ void loop() {
 
     select.addEventListener('change', () => {
       currentName = select.value;
-      if (currentName && remember) localStorage.setItem(LAST_PICK_KEY, currentName);
+      if (currentName && remember) setLastPick(currentName);
       if (typeof opts.onChange === 'function') opts.onChange(currentName);
     });
 
@@ -17055,7 +17065,7 @@ void loop() {
       getName: () => currentName,
       setName: (n) => {
         currentName = n || '';
-        if (currentName && remember) localStorage.setItem(LAST_PICK_KEY, currentName);
+        if (currentName && remember) setLastPick(currentName);
         // Trigger rebuild so the new selection actually shows in the <select>.
         rebuildOptions(_liveRoster);
       },
