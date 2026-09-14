@@ -7222,7 +7222,7 @@
     {
       id: 'wu-2026-09-15',
       date: '2026-09-15',
-      question: '<p>Read the Arduino Leonardo code below. When someone touches a TTP223B capacitive touch sensor, the computer types the letter A and an LED lights up.</p><pre class="warmup-code">#include &lt;Keyboard.h&gt;\n\nint touchPin = 7;\nint ledPin = 9;\n\nvoid setup() {\n  pinMode(touchPin, INPUT);\n  pinMode(ledPin, OUTPUT);\n  Keyboard.begin();\n}\n\nvoid loop() {\n  if (digitalRead(touchPin) == HIGH) {\n    digitalWrite(ledPin, HIGH);\n    Keyboard.write(&#39;A&#39;);\n    delay(500);\n  } else {\n    digitalWrite(ledPin, LOW);\n  }\n}</pre><p><strong>Part 1, in your notebook:</strong> Analyze the code, then draw the wiring diagram for this circuit on a breadboard. Label every part and the pin it connects to. The code only names two pins, but your circuit needs more wires than that. Think about power, ground, and what keeps the LED safe.</p><p><strong>Part 2, in your notebook:</strong> A capacitive touch sensor does not need a press. A light graze of skin is enough to trigger it. Hypothesize how a sensor that activates with a graze could be useful in a piece of assistive technology. Who would it help, where would the sensor sit, and what would it let that person do? A few sentences. Be ready to share.</p><p>Show Ramsey your wiring diagram.</p>'
+      question: '<p>Read the Arduino Leonardo code below. The circuit uses a TTP223B capacitive touch sensor and an LED.</p><pre class="warmup-code">#include &lt;Keyboard.h&gt;\n\nint touchPin = 7;\nint ledPin = 9;\n\nvoid setup() {\n  pinMode(touchPin, INPUT);\n  pinMode(ledPin, OUTPUT);\n  Keyboard.begin();\n}\n\nvoid loop() {\n  if (digitalRead(touchPin) == HIGH) {\n    digitalWrite(ledPin, HIGH);\n    Keyboard.write(&#39;A&#39;);\n    delay(500);\n  } else {\n    digitalWrite(ledPin, LOW);\n  }\n}</pre><p><strong>Part 1, in your notebook:</strong> Explain what this code is doing, in plain language. Walk through it step by step: what happens when someone touches the sensor, and what happens when they let go?</p><p><strong>Part 2, in your notebook:</strong> Draw the wiring diagram for this circuit on a breadboard. Label every part and the pin it connects to. The code only names two pins, but your circuit needs more wires than that. Think about power, ground, and what keeps the LED safe.</p><p>Show Ramsey your explanation and your wiring diagram.</p>'
     },
     {
       id: 'wu-2026-09-14',
@@ -10825,47 +10825,85 @@
     });
     updateProjMeters();
   }
-  let _checkSyncToken = 0;
-  async function syncCheckedFromCloud() {
+  // Live, not one-shot: two small listeners (exact studentName + nameSlug, so
+  // a case or spacing variant still counts) keep the checks current from any
+  // tab or device the moment a submission lands. A benchmark marked done in
+  // this session can never be un-greened by a slower read.
+  const _normName = (s) => String(s || '').trim().toLowerCase();
+  const _sessionMarks = new Map(); // benchmarkId -> normalized submitter name
+  let _checkUnsubs = [];
+  let _checkWatchName = null;
+  let _checkCloudLive = false; // true once this tab's listeners have reported
+  function syncCheckedFromCloud() {
     const name = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
-    const token = ++_checkSyncToken;
-    const cloudIds = new Set();
-    if (name) {
-      try {
-        const snap = await getDocs(query(collection(db, 'portfolios'), where('studentName', '==', name)));
-        snap.forEach(d => {
-          const data = d.data();
-          if (!data.deleted && data.benchmarkId) cloudIds.add(data.benchmarkId);
-        });
-      } catch (err) {
-        console.warn('check sync failed', err);
-        return; // keep the cached checks rather than blanking them on a network blip
-      }
+    if (name === _checkWatchName && (_checkUnsubs.length || !name)) {
+      applyCheckedToDom(); // same student, freshly rendered cards: just repaint
+      return;
     }
-    if (token !== _checkSyncToken) return; // superseded by a newer sync
-    checked.clear();
-    cloudIds.forEach(id => checked.add(id));
-    persist();
-    applyCheckedToDom();
+    _checkUnsubs.forEach(u => { try { u(); } catch (_) {} });
+    _checkUnsubs = [];
+    _checkWatchName = name;
+    _checkCloudLive = false;
+    if (!name) {
+      checked.clear();
+      persist();
+      applyCheckedToDom();
+      return;
+    }
+    const results = { byName: null, bySlug: null };
+    const reconcile = () => {
+      if (_checkWatchName !== name) return; // superseded by a newer pick
+      if (!results.byName && !results.bySlug) return;
+      const next = new Set([...(results.byName || []), ...(results.bySlug || [])]);
+      _sessionMarks.forEach((who, id) => { if (who === _normName(name)) next.add(id); });
+      _checkCloudLive = true;
+      checked.clear();
+      next.forEach(id => checked.add(id));
+      persist();
+      applyCheckedToDom();
+    };
+    const watch = (key, q) => onSnapshot(q, (snap) => {
+      const ids = new Set();
+      snap.forEach(d => {
+        const data = d.data();
+        if (!data.deleted && data.benchmarkId) ids.add(data.benchmarkId);
+      });
+      results[key] = ids;
+      reconcile();
+    }, (err) => {
+      // Keep the cached checks rather than blanking them on a network blip.
+      console.warn('check sync failed', err);
+    });
+    _checkUnsubs.push(watch('byName', query(collection(db, 'portfolios'), where('studentName', '==', name))));
+    const slug = nameSlug(name);
+    if (slug) _checkUnsubs.push(watch('bySlug', query(collection(db, 'portfolios'), where('nameSlug', '==', slug))));
   }
 
-  // Auto-check a benchmark after a successful submission. Idempotent —
-  // re-submitting won't toggle it back off.
-  function markChecked(id) {
-    if (checked.has(id)) return;
+  // Auto-check a benchmark after a successful submission. Idempotent -
+  // re-submitting won't toggle it back off. The submitter IS this device's
+  // student, so their name becomes the one the checks follow.
+  function markChecked(id, submitter) {
+    const who = String(submitter || '').trim();
+    const current = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
+    if (who) {
+      _sessionMarks.set(id, _normName(who));
+      if (_normName(who) !== _normName(current)) {
+        try { localStorage.setItem(LAST_PICK_KEY, who); } catch (_) {}
+      }
+    }
+    const wasChecked = checked.has(id);
     checked.add(id);
-    const cb = document.querySelector(`[data-checkbox="${id}"]`);
-    const row = cb ? cb.closest('.benchmark, .capstone-card, .vid-card') : null;
-    if (cb) {
-      cb.classList.add('checked');
-      cb.setAttribute('aria-checked', 'true');
-    }
-    if (row) {
-      row.classList.add('done', 'just-done');
-      setTimeout(() => row.classList.remove('just-done'), 1200);
-    }
     persist();
-    updateProjMeters();
+    applyCheckedToDom();
+    if (!wasChecked) {
+      document.querySelectorAll(`[data-checkbox="${id}"]`).forEach(cb => {
+        const row = cb.closest('.benchmark, .capstone-card, .vid-card');
+        if (!row) return;
+        row.classList.add('just-done');
+        setTimeout(() => row.classList.remove('just-done'), 1200);
+      });
+    }
+    syncCheckedFromCloud(); // no-op repaint unless the identity just changed
   }
 
   // ============== MODAL ==============
@@ -12035,6 +12073,7 @@
 
     const picker = renderNamePicker({
       initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      remember: false, // view-only picks must not change this device's student; applyMode/claim/submit set it
       onChange: (n) => { if (n) ensureRosterEntry(n); applyMode(n); }
     });
     nameWrap.appendChild(picker.element);
@@ -12857,7 +12896,7 @@
         // Refresh the count badge for this benchmark in case the snapshot
         // hasn't propagated yet (it usually has, but this is belt-and-braces).
         refreshCountBadge(benchmarkId);
-        if (!failedSlots.length) markChecked(benchmarkId);
+        if (!failedSlots.length) markChecked(benchmarkId, writeName);
 
         // Success pulse: green flash on the button, status briefly, then clear.
         submitBtn.textContent = failedSlots.length ? 'Retry failed uploads' : '✓ Submitted!';
@@ -13524,7 +13563,7 @@
         textarea.value = '';
         renderPreviews();
         refreshCountBadge(benchmarkId);
-        markChecked(benchmarkId);
+        markChecked(benchmarkId, name);
         submitBtn.textContent = 'Submitted';
         submitBtn.classList.add('is-success');
         setStatus('Submitted. Your work is in Class submissions below.');
@@ -13595,6 +13634,7 @@
 
     const picker = renderNamePicker({
       initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      remember: false, // view-only picks must not change this device's student; applyMode/claim/submit set it
       onChange: (n) => { if (n) ensureRosterEntry(n); applyMode(n); }
     });
     panel.querySelector('[data-inst-namepicker]').appendChild(picker.element);
@@ -13727,7 +13767,7 @@
           contestProof: proofData || null
         }, { merge: true });
         refreshCountBadge(benchmarkId);
-        markChecked(benchmarkId);
+        markChecked(benchmarkId, name);
 
         submitBtn.textContent = '✓ Submitted!';
         submitBtn.classList.add('is-success');
@@ -13816,6 +13856,7 @@
 
     const picker = renderNamePicker({
       initial: localStorage.getItem(LAST_PICK_KEY) || '',
+      remember: false, // view-only picks must not change this device's student; applyMode/claim/submit set it
       onChange: (n) => { if (n) ensureRosterEntry(n); applyMode(n); }
     });
     panel.querySelector('[data-vs-namepicker]').appendChild(picker.element);
@@ -13895,7 +13936,7 @@
           slots: { ...Object.fromEntries(SLOT_DEFS.map(d => [d.key, null])), images: [], summary: { mode: 'text', text: text.slice(0, 1500) } }
         }, { merge: true });
         await clearDraft(n, b.id);
-        markChecked(b.id);
+        markChecked(b.id, n);
         refreshCountBadge(b.id);
         schemToast('Summary saved.');
         renderSubmitted(n);
@@ -16982,6 +17023,7 @@ void loop() {
     const select = wrap.querySelector('[data-name-select]');
 
     let currentName = opts.initial || localStorage.getItem(LAST_PICK_KEY) || '';
+    const remember = opts.remember !== false;
 
     function rebuildOptions(names) {
       const seen = new Set(names.map(n => n.toLowerCase()));
@@ -17004,7 +17046,7 @@ void loop() {
 
     select.addEventListener('change', () => {
       currentName = select.value;
-      if (currentName) localStorage.setItem(LAST_PICK_KEY, currentName);
+      if (currentName && remember) localStorage.setItem(LAST_PICK_KEY, currentName);
       if (typeof opts.onChange === 'function') opts.onChange(currentName);
     });
 
@@ -17013,7 +17055,7 @@ void loop() {
       getName: () => currentName,
       setName: (n) => {
         currentName = n || '';
-        if (currentName) localStorage.setItem(LAST_PICK_KEY, currentName);
+        if (currentName && remember) localStorage.setItem(LAST_PICK_KEY, currentName);
         // Trigger rebuild so the new selection actually shows in the <select>.
         rebuildOptions(_liveRoster);
       },
@@ -18254,6 +18296,9 @@ void loop() {
   window.addEventListener('storage', (e) => {
     if (e.key === LAST_PICK_KEY) { syncCheckedFromCloud(); return; }
     if (e.key !== STORAGE_KEY) return;
+    // This tab's own live listeners are authoritative; don't let a stale tab
+    // (old code left open all day) overwrite them.
+    if (_checkCloudLive) return;
     try {
       const next = new Set(JSON.parse(e.newValue || '[]'));
       checked.clear();
