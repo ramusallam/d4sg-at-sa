@@ -6835,12 +6835,11 @@
           points: 2,
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
-            '**Leave your Touch wiring exactly where it is.** Add the VL53L0X distance sensor beside it on the same breadboard.',
-            'The VL53L0X is a distance sensor on a small breakout board that talks to the Arduino over I2C (a two-wire data connection), and its header pins ship unsoldered. Open the [Vibe Coding Tool](tools#vibe). **Keep your Touch code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: activate the D key each time a hand or object comes within a set distance of a VL53L0X infrared distance sensor. Keep the S-key touch behavior I already have and do not change my existing wiring. Explain how to wire the sensor over I2C, including soldering its header pins onto the breakout board. Use only the distance sensor - no other new parts. Simplest possible code and simplest wiring instructions."*',
-            'Before you wire anything: **solder the header pins onto the breakout board** so it seats firmly in the breadboard - a loose sensor gives unreliable distance readings. Check in with an instructor before using the soldering iron.',
-            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the distance sensor to your existing schematic on the **breadboard**.',
-            'Wire the distance sensor into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. If anything from Project 1 is wired to pin 2 or 3, move it now and update your code and schematic - the sensor needs those two pins for I2C.',
-            'Test it: a d should type each time a hand comes close to the sensor. Modify the code until it works exactly as described.',
+            '**Leave your Touch wiring exactly where it is.** Add the IR sensor beside it on the same breadboard - the small blue **FC-51** board with two bulbs on one end (one clear, one black), a small blue dial, and three pins labeled **VCC, GND, OUT**. Its pins come already soldered on, so it plugs straight into the breadboard.',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Touch code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: type the letter d each time a hand or object comes close to an FC-51 IR sensor module. The sensor has three pins: VCC, GND, and OUT, and OUT goes LOW when something is in front of it. Tell me which free digital pin to put OUT on and use that exact pin number in the code. Keep the button, lever, LED, and S-key touch behaviors I already have and do not change my existing wiring. Use only the IR sensor - no other new parts, no resistors, no libraries. Simplest possible code and simplest wiring instructions."*',
+            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the IR sensor to your existing schematic on the **breadboard**.',
+            'Wire the sensor to match your schematic: **VCC to 5V, GND to GND, OUT to the digital pin your code reads** - the pin number in the code and the socket OUT sits in must match exactly. One continuous wire per connection - never chain two jumpers end to end. Then load the code from the Vibe Coding editor.',
+            'Test it: the little LED on the sensor lights when your hand is in front of the bulbs, and a d should type each time your hand comes close. If it triggers from too far away, or only when your hand is almost touching it, turn the blue dial a little with a small screwdriver to set the distance. If the sensor LED stays on with nothing in front of it, turn the dial the other way and point the sensor away from windows and bright lights. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
           videoUrl: '',
@@ -6854,10 +6853,10 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Touch and Distance wiring exactly where it is.** Add two different-color LEDs beside them on the same breadboard. **Each LED needs a 220 ohm resistor in series.**',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Touch and Distance code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the touch sensor is active, and a different-color LED while the distance sensor is triggered. Keep the S-key and D-key behaviors I already have and do not change my existing wiring. Use only the two LEDs and their 220 ohm resistors - no other new parts. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go."*',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Touch and Distance code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the touch sensor is active, and a different-color LED while the IR sensor is triggered. Keep the S-key and D-key behaviors I already have and do not change my existing wiring. Use only the two LEDs and their 220 ohm resistors - no other new parts. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
             'Wire the two LEDs into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
-            'Test it: one LED should light while the touch sensor is active and the other while the distance sensor is triggered. If an LED will not light, the most common cause is a resistor or LED leg sitting in the wrong breadboard row - check that before removing anything. Modify the code until it works exactly as described.',
+            'Test it: one LED should light while the touch sensor is active and the other while the IR sensor is triggered. If an LED will not light, the most common cause is a resistor or LED leg sitting in the wrong breadboard row - check that before removing anything. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
           videoUrl: '',
@@ -6871,7 +6870,7 @@
           drop: true,
           brief: {
             hook: "An individual who can only graze a pad with one fingertip can still turn the page, send a message, or call for help, as long as the sensor needs no force at all. The right sensor does not wait for a push - it answers the smallest movement a body can make. Now it is your turn.",
-            challenge: "How might we give one specific person a way to do something they want to do but can't - using only the smallest movement they have, and no force at all? Your available materials: a capacitive touch sensor, an IR distance sensor, two LEDs, and an Arduino Leonardo. The minimum build is one sensor and one LED - use more of the kit whenever your user's motion and goal need it. Like Project 1, you will 3D-model and print a custom mount - the housing that holds the sensor itself - so the device meets their smallest movement exactly where their body makes it. One standing rule: the build is cumulative. Your Project 1 button and lever stay wired in - in your code, your schematic, and on your breadboard - even when your product does not feature them.",
+            challenge: "How might we give one specific person a way to do something they want to do but can't - using only the smallest movement they have, and no force at all? Your available materials: a capacitive touch sensor, an FC-51 IR sensor, two LEDs, and an Arduino Leonardo. The minimum build is one sensor and one LED - use more of the kit whenever your user's motion and goal need it. Like Project 1, you will 3D-model and print a custom mount - the housing that holds the sensor itself - so the device meets their smallest movement exactly where their body makes it. One standing rule: the build is cumulative. Your Project 1 button and lever stay wired in - in your code, your schematic, and on your breadboard - even when your product does not feature them.",
             personas: [
               { name: 'Noa, 12',  condition: 'Spinal muscular atrophy',             motion: 'Rests and lifts a single fingertip, no force',  goal: 'Turn pages in a digital comic with a fingertip touch (1 key, next page).' },
               { name: 'Kai, 17',  condition: 'High cervical spinal cord injury (C1-C4)', motion: 'Slow, reliable head and cheek movement',     goal: 'Call a caregiver hands-free by moving toward a sensor (1 key - the key types a message into an open chat window with his caregiver).' },
@@ -6882,7 +6881,7 @@
           instructions: [
             'Before you start: download or copy your cumulative code from the Vibe Coding editor and take a clear photo of your full breadboard. You will restore both at the start of the next project.',
             'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one sensor and one LED. Maximum: both sensors and both LEDs. Your Project 1 button and lever stay wired in either way - part of the build, not the star.** Pick what your user\'s motion and goal actually need - function first, looks later. Your sketch must answer two questions: where does their smallest reliable movement meet the sensor, and where do the LEDs sit so they can see them? Sketch your mount now too - the mount is the 3D-printed housing that holds the sensor itself and positions it right where their smallest movement lands. You will design and print it in a later step. Prefer paper? Sketch it in your notebook instead - upload a photo of the page when you turn it in.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your cumulative code in the editor - your product rides on top of it.** Write your own prompt for the new behavior, applying everything you learned about prompting in the Touch, Distance, and LED benchmarks. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends, (3) what happens on touch or approach, on release, and on hold, (4) when each LED is on or off. Then end your prompt with the guardrail line: *"Keep every behavior and pin I already have and do not change my existing wiring. For the new behavior, use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions."* Example of a precise line: *"When a hand comes within 10 cm of the distance sensor, type the D key once, and do not repeat until the hand leaves and returns."* Click **Build** with your prompt.',
+            'Open the [Vibe Coding Tool](tools#vibe). **Keep your cumulative code in the editor - your product rides on top of it.** Write your own prompt for the new behavior, applying everything you learned about prompting in the Touch, Distance, and LED benchmarks. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends, (3) what happens on touch or approach, on release, and on hold, (4) when each LED is on or off. Then end your prompt with the guardrail line: *"Keep every behavior and pin I already have and do not change my existing wiring. For the new behavior, use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions."* Example of a precise line: *"When a hand comes close enough to trigger the IR sensor, type the D key once, and do not repeat until the hand moves away and comes back."* Click **Build** with your prompt.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
             'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in [Tinkercad](https://www.tinkercad.com) that holds the sensor where your user\'s smallest motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL.',
@@ -6914,7 +6913,7 @@
           points: 2,
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
-            'Restore your Projects 1 and 2 setup: load your saved cumulative code back into the Vibe Coding editor and check your breadboard against your photo - button, lever, touch and distance sensors, and LEDs exactly where they were. Add the joystick module (KY-023 - it has 5 pins: power, ground, X, Y, and a press-down button) beside it all. **The build stays cumulative:** power and ground come from the breadboard rails, every new part gets its own free pins, and nothing already wired ever comes out.',
+            'Restore your Projects 1 and 2 setup: load your saved cumulative code back into the Vibe Coding editor and check your breadboard against your photo - button, lever, touch and IR sensors, and LEDs exactly where they were. Add the joystick module (KY-023 - it has 5 pins: power, ground, X, Y, and a press-down button) beside it all. **The build stays cumulative:** power and ground come from the breadboard rails, every new part gets its own free pins, and nothing already wired ever comes out.',
             'Open the [Vibe Coding Tool](tools#vibe). **Keep your Projects 1 and 2 code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: move the mouse cursor with a 5-pin joystick, and send a left mouse click each time I press the joystick down. Keep everything I already have and do not change my existing wiring. Use only the joystick - no other new parts, no resistors. Simplest possible code and simplest wiring instructions."*',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the joystick to your existing schematic on the **breadboard**.',
             'Wire your physical Arduino to match your schematic, then load the code from the Vibe Coding editor.',
@@ -6975,7 +6974,7 @@
             ]
           },
           instructions: [
-            'Before you start: download or copy your cumulative code from the Vibe Coding editor and take a clear photo of your full breadboard. By the end of this project your full switch bank - button, lever, touch, distance, joystick, and sip-and-puff - is wired, coded, and working on one board. That board is exactly what you will plug into the hub in Project 4.',
+            'Before you start: download or copy your cumulative code from the Vibe Coding editor and take a clear photo of your full breadboard. By the end of this project your full switch bank - button, lever, touch, IR, joystick, and sip-and-puff - is wired, coded, and working on one board. That board is exactly what you will plug into the hub in Project 4.',
             'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one input and one LED. Maximum: both inputs and both LEDs. Every switch and sensor from Projects 1 and 2 stays wired in either way - part of the build, not the star.** Pick what your user\'s motion and goal actually need - function first, looks later. Your sketch must answer two questions: where does their mouth, chin, or breath meet the joystick and the sip-and-puff tube, and where do the LEDs sit so they can see them? Sketch your mount now too - the mount is the 3D-printed housing that holds the joystick and tube themselves, secured right where their mouth, chin, and breath can reach. You will design and print it in a later step. Prefer paper? Sketch it in your notebook instead - upload a photo of the page when you turn it in.',
             'Open the [Vibe Coding Tool](tools#vibe). **Keep your cumulative code in the editor - your product rides on top of it.** Write your own prompt for the new behavior, applying everything you learned about prompting in the Joystick, Sip-and-Puff, and LED benchmarks. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends, (3) what happens on joystick move, on press, on puff, and on release, (4) when each LED is on or off. Then end your prompt with the guardrail line: *"Keep every behavior and pin I already have and do not change my existing wiring. For the new behavior, use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions."* Example of a precise line: *"While I puff, hold the X key down, and release it the moment the puff ends."* Click **Build** with your prompt.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new. **Each LED needs a 220 ohm resistor in series.**',
@@ -7010,7 +7009,7 @@
           gradeNote: 'Evidence (port-layout sketch + bill of materials photo showing instructor initials) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'The hub serves every end-user from Projects 1-3 at once - it is a universal junction, not a device for one person. List every input across your designs, then decide how many ports of each type the hub needs: one **3.5mm jack** per switch and one **JST-XH header** per sensor. A reasonable starter hub is four jacks and three JST headers.',
-            'Plan the bridge cables and adaptor plugs. Inside the hub, short jumper wires and pre-crimped JST-XH pigtails (a pigtail is a short cable with a connector on one end and bare wires on the other) run from the Arduino out to each panel connector\'s solder lugs (the metal tabs on a connector that you solder wires to). Outside the hub, each switch ends in a **3.5mm male plug** and each sensor in a **JST-XH male plug** (3-pin for the touch sensor, 4-pin for the VL53L0X distance sensor, 5-pin for the KY-023 joystick). Anything that does not already terminate that way gets a small adaptor cable.',
+            'Plan the bridge cables and adaptor plugs. Inside the hub, short jumper wires and pre-crimped JST-XH pigtails (a pigtail is a short cable with a connector on one end and bare wires on the other) run from the Arduino out to each panel connector\'s solder lugs (the metal tabs on a connector that you solder wires to). Outside the hub, each switch ends in a **3.5mm male plug** and each sensor in a **JST-XH male plug** (3-pin for the touch sensor and the FC-51 IR sensor, 5-pin for the KY-023 joystick). Anything that does not already terminate that way gets a small adaptor cable.',
             'Sketch the **port layout** on the [Idea Board](tools#idea-board): which face of the hub holds the row of 3.5mm jacks, which face holds the row of JST headers, where the USB cable enters, and where the QR code label sits. Label each port with the action it will fire by default. Prefer paper? Sketch it in your notebook instead - upload a photo of the page when you turn it in.',
             'Write a **Bill of Materials** as a list - one line per part with a count: Arduino, perfboard, 3.5mm panel-mount jacks, JST-XH panel-mount headers (with the right pin count for each sensor), indicator LEDs, internal bridge wire and pigtails, external adaptor cables, screws, and 3D-print filament. **Get instructor sign-off** before you cut a single wire.',
             'Complete **Evidence + Reflection** below. *Evidence* = port-layout sketch, bill of materials photo showing instructor initials. Take photos with the [Image Capture Tool](tools#camera) and save them to this benchmark.'
@@ -7027,7 +7026,7 @@
           instructions: [
             'You are about to take the circuit you grew across Projects 1-3 and make it permanent. **Do not change any behavior - the perfboard runs the same code your breadboard ran.** The only difference is that the connections are now soldered and the inputs exit the board through panel-mount connectors instead of jumper wires.',
             'Rebuild your master code first: combine your saved cumulative code from Projects 1-3 into one program in the [Vibe Coding Tool](tools#vibe) and verify every input works on the breadboard - W, A, S, D, X, and the joystick cursor and click - before you solder anything.',
-            'Open the [Wiring Schematic Tool](tools#schematic) and redraw your wiring as a **perfboard layout**. The perfboard is the bridge: Arduino pins land on one edge, the 3.5mm jacks and JST-XH headers land on the opposite edges, and every input pairs with the panel connector it bridges to. A switch input connects its Arduino pin through a soldered wire run (a "trace") to the solder lug of one 3.5mm jack. A sensor input connects its Arduino pins (signal, VCC, GND, plus any I2C or analog extras) through soldered wire runs ("traces") to the lugs of one JST-XH header.',
+            'Open the [Wiring Schematic Tool](tools#schematic) and redraw your wiring as a **perfboard layout**. The perfboard is the bridge: Arduino pins land on one edge, the 3.5mm jacks and JST-XH headers land on the opposite edges, and every input pairs with the panel connector it bridges to. A switch input connects its Arduino pin through a soldered wire run (a "trace") to the solder lug of one 3.5mm jack. A sensor input connects its Arduino pins (signal, VCC, GND, plus any analog extras) through soldered wire runs ("traces") to the lugs of one JST-XH header.',
             'Pick your connector strategy. The cleanest is **panel-mount female 3.5mm jacks** and **panel-mount female JST-XH headers** soldered directly onto the perfboard with short pigtails to the panel cutouts. The simpler alternative is **board-edge connectors** soldered along the perfboard\'s perimeter so the perfboard itself becomes the back wall of the connector panel. **If you are not sure, use panel-mount jacks with pigtails - the forgiving option.**',
             'Solder it. Check in with an instructor before using the soldering iron. Components first: Arduino headers, then the row of 3.5mm jacks, then the row of JST headers, then the indicator LEDs. Bridge the signal traces on the back of the perfboard. Check every joint: with the Arduino on USB and your code running, trigger each input and confirm its action fires.',
             'Test on USB with everything plugged in externally. Connect a switch into each 3.5mm jack and a sensor pigtail into each JST header. Every input should still do what it did on the breadboard. If something misbehaves, the bug is almost always a cold joint (a dull, cracked solder blob that does not conduct) or a missed bridge. Reflow (re-melt the joint with the iron) until it works.',
@@ -8419,25 +8418,27 @@
 
     irsensor: {
       group: 'components',
-      label: 'IR sensor (3-pin)',
-      w: 3, h: 2.5,
+      label: 'IR sensor (FC-51)',
+      w: 3, h: 3,
       pins: [
-        { name: 'VCC', gx: 0.5, gy: 2.5 },
-        { name: 'GND', gx: 1.5, gy: 2.5 },
-        { name: 'OUT', gx: 2.5, gy: 2.5 }
+        { name: 'VCC', gx: 0.5, gy: 3 },
+        { name: 'GND', gx: 1.5, gy: 3 },
+        { name: 'OUT', gx: 2.5, gy: 3 }
       ],
       svg: function() {
         const W = 3 * SCHEM_GRID_PITCH;
-        const H = 2.5 * SCHEM_GRID_PITCH;
+        const H = 3 * SCHEM_GRID_PITCH;
         return `
-          <rect x="0" y="0" width="${W}" height="${H}" rx="3" fill="#15803d" stroke="#064e3b" stroke-width="1.2"/>
-          <circle cx="${W*0.3}" cy="${H*0.4}" r="${W*0.15}" fill="#0f172a" stroke="#000"/>
-          <rect x="${W*0.55}" y="${H*0.18}" width="${W*0.32}" height="${H*0.5}" rx="1.5" fill="#1d4ed8" stroke="#0b2a6b"/>
-          <circle cx="${W*0.71}" cy="${H*0.43}" r="${W*0.06}" fill="#fbbf24"/>
-          <text x="${W*0.5}" y="${H*0.92}" text-anchor="middle" font-size="6" fill="#dcfce7" font-family="system-ui, sans-serif" font-weight="700">IR</text>
+          <rect x="0" y="${H*0.14}" width="${W}" height="${H*0.86}" rx="3" fill="#1d4ed8" stroke="#0b2a6b" stroke-width="1.2"/>
+          <rect x="${W*0.14}" y="0" width="${W*0.26}" height="${H*0.36}" rx="${W*0.13}" fill="#e0f2fe" stroke="#64748b" stroke-width="0.8"/>
+          <rect x="${W*0.60}" y="0" width="${W*0.26}" height="${H*0.36}" rx="${W*0.13}" fill="#111827" stroke="#000" stroke-width="0.8"/>
+          <rect x="${W*0.36}" y="${H*0.44}" width="${W*0.28}" height="${H*0.24}" rx="1.5" fill="#60a5fa" stroke="#0b2a6b" stroke-width="0.8"/>
+          <circle cx="${W*0.5}" cy="${H*0.56}" r="${W*0.07}" fill="#f8fafc" stroke="#0b2a6b" stroke-width="0.6"/>
+          <text x="${W*0.5}" y="${H*0.9}" text-anchor="middle" font-size="6" fill="#dbeafe" font-family="system-ui, sans-serif" font-weight="700">FC-51</text>
         `;
       },
-      pinLabels: true
+      pinLabels: true,
+      hint: 'OUT goes LOW when something is in front. Turn the blue dial to set the range. Pins come pre-soldered.'
     },
 
     sippuff: {
@@ -8486,6 +8487,7 @@
     tofsensor: {
       group: 'components',
       label: 'IR distance (VL53L0X)',
+      retired: true, // replaced by the FC-51 irsensor; kept so older saved schematics still render
       w: 3.5, h: 2.5,
       pins: [
         { name: 'VIN', gx: 0.5, gy: 2.5 },
@@ -9225,6 +9227,7 @@
     pal.innerHTML = '';
     const groups = { boards: [], components: [] };
     Object.entries(SCHEM_COMPONENTS).forEach(([type, def]) => {
+      if (def.retired) return;
       groups[def.group].push({ type, def });
     });
 
@@ -14753,7 +14756,7 @@
   // fallback so a class is never dead-ended when the AI or compile server is
   // down — a student can always load one of these and Upload. Every
   // sketch uses only libraries installed on the compile service (Keyboard,
-  // Mouse, Adafruit_VL53L0X) and the project's standard hardware/pin wiring.
+  // Mouse) and the project's standard hardware/pin wiring.
   const VIBE_EXAMPLES = [
     { id: 'button-key', name: 'Button → key', code:
 `// Single button -> presses the SPACE key.
@@ -14892,33 +14895,27 @@ void loop() {
   delay(15);
 }
 ` },
-    { id: 'distance-key', name: 'Distance sensor → key', code:
-`// VL53L0X distance sensor -> presses SPACE when your hand is within 100 mm.
-// Wire (I2C): VIN -> 5V, GND -> GND, SDA -> pin 2, SCL -> pin 3.
-// Needs the "Adafruit_VL53L0X" library (already installed for this class).
+    { id: 'distance-key', name: 'IR sensor → key', code:
+`// FC-51 IR sensor -> presses SPACE while your hand is in front of it.
+// Wire: VCC -> 5V, GND -> GND, OUT -> pin 7.
+// Turn the blue dial on the sensor to set how close your hand must be.
 #include <Keyboard.h>
-#include "Adafruit_VL53L0X.h"
 
-Adafruit_VL53L0X lox = Adafruit_VL53L0X();
-const int TRIGGER_MM = 100;   // trigger when something is closer than this
+const int IR_PIN = 7;
 bool wasNear = false;
 
 void setup() {
-  Serial.begin(9600);
+  pinMode(IR_PIN, INPUT);   // OUT is LOW when something is in front
   Keyboard.begin();
-  if (!lox.begin()) {
-    Serial.println("VL53L0X not found - check wiring");
-  }
+  Serial.begin(9600);
 }
 
 void loop() {
-  VL53L0X_RangingMeasurementData_t measure;
-  lox.rangingTest(&measure, false);
-  bool near = (measure.RangeStatus != 4) && (measure.RangeMilliMeter < TRIGGER_MM);
+  bool near = (digitalRead(IR_PIN) == LOW);
   if (near && !wasNear) { Keyboard.press(' '); Serial.println("near"); }
   if (!near && wasNear) { Keyboard.release(' '); }
   wasNear = near;
-  delay(40);
+  delay(15);
 }
 ` },
   ];
@@ -17711,14 +17708,14 @@ void loop() {
       }
     },
     {
-      key: 'ir', label: 'Distance Sensor',
+      key: 'ir', label: 'IR Sensor',
       build(x, y) {
         const g = 'ir_' + _ideaShortId();
         return [
           _ideaEl({ type:'rectangle', x, y, width:70, height:40, strokeColor:_AT_ACCENT, backgroundColor:'#1f2937', fillStyle:'solid', strokeWidth:2, roundness:{ type:3 } }, g),
           _ideaEl({ type:'ellipse', x:x+12, y:y+12, width:16, height:16, strokeColor:'#fbbf24', backgroundColor:'#f59e0b', fillStyle:'solid' }, g),
           _ideaEl({ type:'ellipse', x:x+44, y:y+12, width:16, height:16, strokeColor:'#fbbf24', backgroundColor:'#f59e0b', fillStyle:'solid' }, g),
-          _ideaText({ x:x-5, y:y+44, width:80, height:18, text:'IR DISTANCE', fontSize:12 }, g)
+          _ideaText({ x:x-5, y:y+44, width:80, height:18, text:'IR SENSOR', fontSize:12 }, g)
         ];
       }
     },
