@@ -1028,6 +1028,20 @@
     font-weight: 600;
   }
   .cp-step-body a:hover { color: var(--accent-hover); }
+  /* Part-photo links: a part name that opens a reference photo in a new tab,
+     so a student can match the word to the thing in the bin. Auto-applied to
+     the first mention of each part per benchmark by linkPartPhotos(). */
+  .cp-part-photo {
+    text-decoration-style: dotted;
+    white-space: nowrap;
+  }
+  .cp-part-photo svg {
+    width: 13px;
+    height: 13px;
+    margin-left: 2px;
+    vertical-align: -1px;
+    opacity: 0.75;
+  }
   .cp-step-tool {
     cursor: pointer;
   }
@@ -10952,6 +10966,8 @@
     //   [label](https://…)   → external link, new tab
     // Product-benchmark brief: rendered above Instructions so the user is the
     // headline, not buried in step 1. Story hook + How Might We + persona roster.
+    // One set per modal: each part links to its photo once, at first mention.
+    const partSeen = new Set();
     if (b.brief) {
       const sec = document.createElement('div');
       sec.className = 'modal-section';
@@ -10967,7 +10983,7 @@
         <h3>${badge()}Brief</h3>
         <div class="cp-brief">
           ${b.brief.hook ? `<p class="cp-brief-hook">${escapeHtml(b.brief.hook)}</p>` : ''}
-          ${b.brief.challenge ? `<p class="cp-brief-challenge">${formatStepMarkup(b.brief.challenge)}</p>` : ''}
+          ${b.brief.challenge ? `<p class="cp-brief-challenge">${formatStepMarkup(b.brief.challenge, partSeen)}</p>` : ''}
           ${personaCards ? `<p class="cp-brief-pick">Pick your user</p><div class="cp-persona-roster">${personaCards}</div>` : ''}
         </div>
       `;
@@ -10980,7 +10996,7 @@
         const stepsHtml = b.instructions.map((stepText, stepIdx) => `
           <div class="cp-step">
             <span class="cp-step-num" aria-hidden="true">${stepIdx + 1}</span>
-            <div class="cp-step-body">${formatStepMarkup(stepText)}</div>
+            <div class="cp-step-body">${formatStepMarkup(stepText, partSeen)}</div>
           </div>
         `).join('');
         sec.innerHTML = `<h3>${badge()}Instructions</h3><div class="cp-steps">${stepsHtml}</div>`;
@@ -17147,7 +17163,53 @@ void loop() {
 
   // Small inline-markup formatter for benchmark step text. Order matters:
   // 1) escape, 2) link tokens, 3) bold, 4) italic.
-  function formatStepMarkup(text) {
+  // Reference photos for the parts students pull out of the bins. The first
+  // mention of each part in a benchmark modal becomes a link that opens the
+  // photo in a new tab (see linkPartPhotos). Add a row here whenever a new
+  // part enters the project chain. `skip` names prefixes that mean the word
+  // is NOT this part (the joystick's press-down button is not a tactile button).
+  const PART_PHOTOS = [
+    { key: 'leonardo',   re: /\bArduino Leonardo\b/g,                                                url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Arduino_Leonardo_board.JPG/960px-Arduino_Leonardo_board.JPG' },
+    { key: 'breadboard', re: /\bbreadboard\b/gi,                                                     url: 'https://upload.wikimedia.org/wikipedia/commons/7/73/400_points_breadboard.jpg' },
+    { key: 'button',     re: /(press-down |joystick |digital |<\/strong> )?\b(?:simple )?(?:tactile )?button\b/gi, url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Tact_switches.JPG/960px-Tact_switches.JPG' },
+    { key: 'lever',      re: /\b(?:simple )?(?:roller-)?lever(?: switch)?\b/gi,                       url: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Mini_Microswitch_-_SPDT_%28Roller_Lever%29_%2812781884965%29.jpg' },
+    { key: 'led',        re: /(little |sensor )?\bLEDs?\b/g,                                                           url: 'https://upload.wikimedia.org/wikipedia/commons/c/c8/5mm_Red_LED.jpg' },
+    { key: 'resistor',   re: /\b220 ohm resistors?\b/gi,                                             url: 'https://upload.wikimedia.org/wikipedia/commons/9/9b/220_ohms_5%25_axial_resistor.jpg' },
+    { key: 'jumper',     re: /\b(?:male-female )?jumper wires?\b/gi,                                 url: 'https://upload.wikimedia.org/wikipedia/commons/6/66/Jumper_male-to-female.jpg' },
+    { key: 'touch',      re: /\bcapacitive touch sensor\b|\bTTP223B\b|\btouch sensor\b/gi,          url: 'https://shillehtek.com/cdn/shop/files/ttp223b-touch-switch-module-top-01.jpg' },
+    { key: 'ir',         re: /\bFC-51 IR sensor\b|\bFC-51\b|\bIR sensor\b/gi,                       url: 'https://leap.tardate.com/electronics101/ir/fc-51-sensor-module/assets/module.jpg' },
+    { key: 'joystick',   re: /\bjoystick module\b|\bKY-023\b|\bjoystick\b/gi,                       url: 'https://shillehtek.com/cdn/shop/files/AB001.jpg' },
+    { key: 'sippuff',    re: /\bsip-and-puff(?: switch)?\b/gi,                                       url: 'https://www.orin.com/access/photos/SP_wHead_500.png' }
+  ];
+  const PART_PHOTO_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>';
+
+  // Wrap the first unseen part mention in already-formatted step HTML with a
+  // photo link. `seen` is shared across one benchmark modal so each part links
+  // once per modal, not once per step. Existing <a> runs are left untouched.
+  function linkPartPhotos(html, seen) {
+    if (!seen) return html;
+    const segs = html.split(/(<a\b[^>]*>[\s\S]*?<\/a>)/);
+    PART_PHOTOS.forEach(part => {
+      if (seen.has(part.key)) return;
+      for (let i = 0; i < segs.length; i++) {
+        if (i % 2 === 1) continue;
+        part.re.lastIndex = 0;
+        let m;
+        while ((m = part.re.exec(segs[i]))) {
+          if (m[1]) continue;
+          const label = m[0];
+          const link = `<a class="cp-part-photo" href="${part.url}" target="_blank" rel="noopener" title="See what this part looks like">${label}${PART_PHOTO_ICON}</a>`;
+          segs[i] = segs[i].slice(0, m.index) + link + segs[i].slice(m.index + label.length);
+          seen.add(part.key);
+          break;
+        }
+        if (seen.has(part.key)) break;
+      }
+    });
+    return segs.join('');
+  }
+
+  function formatStepMarkup(text, partSeen) {
     let s = escapeHtml(text);
     // [label](href) — internal tool links resolve to data-tool-link, others to <a target=_blank>.
     s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, label, href) => {
@@ -17160,7 +17222,7 @@ void loop() {
     });
     s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
-    return s;
+    return linkPartPhotos(s, partSeen);
   }
 
   // ====== Idea Board: Excalidraw-based ======
