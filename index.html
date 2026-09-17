@@ -14103,22 +14103,31 @@
   }
 
   // Fill the "Jump to student" dropdown above the class-submissions list with
-  // the names of everyone who has actually submitted to this benchmark.
+  // the whole live roster. Students who have submitted to this benchmark are
+  // selectable; everyone else is listed greyed out so no name ever goes missing.
   function populatePfJump(items, readOnly) {
     const bar = document.getElementById('pfJumpbar');
     const sel = document.getElementById('pfJump');
     if (!bar || !sel) return;
-    const names = Array.from(new Set((items || [])
-      .map(it => (it.studentName || '').trim())
-      .filter(Boolean)))
+    const submitted = new Set((items || [])
+      .map(it => (it.studentName || '').trim().toLowerCase())
+      .filter(Boolean));
+    const byKey = new Map();
+    [..._liveRoster, ...(items || []).map(it => (it.studentName || '').trim())].forEach(n => {
+      const k = n.toLowerCase();
+      if (k && !byKey.has(k)) byKey.set(k, n);
+    });
+    const names = Array.from(byKey.values())
       .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
-    // A picker only earns its space once there are at least two names to pick from.
-    if (readOnly || names.length < 2) { bar.hidden = true; return; }
+    if (readOnly || !names.length) { bar.hidden = true; return; }
     bar.hidden = false;
     const prev = sel.value;
     sel.innerHTML = '<option value="">Choose a name…</option>' +
-      names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
-    if (prev && names.some(n => n === prev)) sel.value = prev;
+      names.map(n => submitted.has(n.toLowerCase())
+        ? `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`
+        : `<option value="${escapeHtml(n)}" disabled>${escapeHtml(n)} (not yet)</option>`
+      ).join('');
+    if (prev && submitted.has(prev.toLowerCase())) sel.value = prev;
   }
 
   // Expand + scroll to one student's submission row from the dropdown. Grows the
