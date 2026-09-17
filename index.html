@@ -7246,7 +7246,7 @@
     {
       id: 'wu-2026-09-17',
       date: '2026-09-17',
-      question: '<p><strong>For the code below:</strong> (1) draw the wiring diagram, and (2) explain the code in plain language. One button, one LED, Arduino Leonardo. Show Ramsey your diagram and your explanation.</p><pre class="warmup-code">#include &lt;Keyboard.h&gt;\n\nint buttonPin = 2;\nint ledPin = 9;\n\nvoid setup() {\n  pinMode(buttonPin, INPUT);\n  pinMode(ledPin, OUTPUT);\n  Keyboard.begin();\n}\n\nvoid loop() {\n  if (digitalRead(buttonPin) == HIGH) {\n    digitalWrite(ledPin, HIGH);\n    Keyboard.press(&#39; &#39;);\n  }\n  else {\n    digitalWrite(ledPin, LOW);\n    Keyboard.release(&#39; &#39;);\n  }\n}</pre>'
+      question: '<p><strong>For the code below:</strong> (1) draw the wiring diagram, and (2) explain the code in plain language. One FC-51 IR distance sensor, one LED, Arduino Leonardo. Remember: the sensor&#39;s OUT pin reads <strong>LOW</strong> when something is close to it. Show Ramsey your diagram and your explanation.</p><pre class="warmup-code">#include &lt;Keyboard.h&gt;\n\nint sensorPin = 7;\nint ledPin = 9;\n\nvoid setup() {\n  pinMode(sensorPin, INPUT);\n  pinMode(ledPin, OUTPUT);\n  Keyboard.begin();\n}\n\nvoid loop() {\n  if (digitalRead(sensorPin) == LOW) {\n    digitalWrite(ledPin, HIGH);\n    Keyboard.print(&quot;Hello&quot;);\n    delay(500);\n  }\n  else {\n    digitalWrite(ledPin, LOW);\n  }\n}</pre>'
     },
     {
       id: 'wu-2026-09-15',
