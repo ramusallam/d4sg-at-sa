@@ -7652,9 +7652,18 @@
     const colName = isHw ? 'artifacts' : 'portfolios';
     try {
       const base = query(collection(db, colName), where('benchmarkId', '==', benchmarkId));
-      const delQ = query(collection(db, colName), where('benchmarkId', '==', benchmarkId), where('deleted', '==', true));
-      const [aggAll, aggDel] = await Promise.all([getCountFromServer(base), getCountFromServer(delQ)]);
-      updateCountBadge(benchmarkId, Math.max(0, aggAll.data().count - aggDel.data().count));
+      if (isHw) {
+        const delQ = query(collection(db, colName), where('benchmarkId', '==', benchmarkId), where('deleted', '==', true));
+        const [aggAll, aggDel] = await Promise.all([getCountFromServer(base), getCountFromServer(delQ)]);
+        updateCountBadge(benchmarkId, Math.max(0, aggAll.data().count - aggDel.data().count));
+      } else {
+        // Portfolios: count STUDENTS, not docs, so older duplicate submits
+        // never inflate the badge.
+        const snap = await getDocs(base);
+        const names = new Set();
+        snap.forEach(d => { const x = d.data() || {}; if (x.deleted) return; names.add((x.studentName || '').trim().toLowerCase() || d.id); });
+        updateCountBadge(benchmarkId, names.size);
+      }
     } catch (err) {
       console.warn('count refresh failed for', benchmarkId, err);
     }
@@ -13573,21 +13582,27 @@
           else if (p.kind === 'stl') uploadedStls.push(slot);
           else uploadedImages.push(slot);
         }
-        await addDoc(collection(db, 'portfolios'), {
+        // One doc per student per benchmark (same id scheme as Products), so a
+        // re-submit updates the row instead of adding a duplicate. Only the
+        // slots in THIS submit are written; earlier uploads stay in place.
+        const pfRef = doc(db, 'portfolios', `${benchmarkId}__${nameSlug(name)}`);
+        let writeName = name;
+        try {
+          const prev = await getDoc(pfRef);
+          if (prev.exists() && prev.data().studentName) writeName = prev.data().studentName;
+        } catch (_) {}
+        const slots = { summary: { mode: 'text', text: text.slice(0, 1500) } };
+        if (uploadedImages.length) { slots.image = uploadedImages[0]; slots.images = uploadedImages; }
+        if (uploadedCode) slots.code = uploadedCode;
+        if (uploadedStls.length) { slots.cad = uploadedStls[0]; slots.cads = uploadedStls; }
+        await setDoc(pfRef, {
           benchmarkId,
-          studentName: name,
+          studentName: writeName,
           nameSlug: nameSlug(name),
           createdAt: serverTimestamp(),
-          slots: {
-            image: uploadedImages[0] || null,
-            images: uploadedImages,
-            video: null,
-            code: uploadedCode,
-            cad: uploadedStls[0] || null,
-            cads: uploadedStls,
-            summary: { mode: 'text', text: text.slice(0, 1500) }
-          }
-        });
+          deleted: false,
+          slots
+        }, { merge: true });
         await clearDraft(name, benchmarkId);
         pendingFiles = [];
         textarea.value = '';
@@ -14008,8 +14023,9 @@
     if (!grid) return;
     const q = query(collection(db, 'portfolios'), where('benchmarkId', '==', b.id));
     unsubscribePortfolios = onSnapshot(q, (snap) => {
-      const items = [];
-      snap.forEach(d => { const data = d.data(); if (data.deleted) return; items.push({ id: d.id, ...data }); });
+      const raw = [];
+      snap.forEach(d => { const data = d.data(); if (data.deleted) return; raw.push({ id: d.id, ...data }); });
+      const items = collapsePortfolioItems(raw);
       items.sort((a, z) => (a.studentName || '').localeCompare(z.studentName || '', undefined, { sensitivity: 'base' }));
       updateCountBadge(b.id, items.length);
       renderSummaryBoard(grid, items, b);
@@ -14038,6 +14054,26 @@
       if (it) renderPortfolioGallery(grid, it);
     }, 200);
   }
+  // One row per student. Checkpoint submits used to addDoc a fresh doc per
+  // click, so every re-submit stacked up as a duplicate row (Riley, Peter,
+  // Carina twice in Project 1). Collapse by name, newest first; for each slot
+  // the newest non-empty value wins and older docs only fill gaps. `ids`
+  // keeps every underlying doc so delete and slot edits cover all of them.
+  function collapsePortfolioItems(items) {
+    const ts = it => (it.createdAt && it.createdAt.toMillis) ? it.createdAt.toMillis() : 0;
+    const empty = x => x == null || (Array.isArray(x) && !x.length) ||
+      (typeof x === 'object' && !Array.isArray(x) && x.mode === 'text' && !(x.text || '').trim());
+    const byName = new Map();
+    items.slice().sort((a, b) => ts(b) - ts(a)).forEach(it => {
+      const key = (it.studentName || '').trim().toLowerCase() || it.id;
+      const cur = byName.get(key);
+      if (!cur) { byName.set(key, { ...it, ids: [it.id], slots: { ...(it.slots || {}) } }); return; }
+      cur.ids.push(it.id);
+      const sl = it.slots || {};
+      Object.keys(sl).forEach(k => { if (empty(cur.slots[k]) && !empty(sl[k])) cur.slots[k] = sl[k]; });
+    });
+    return Array.from(byName.values());
+  }
   function subscribePortfolios(benchmarkId) {
     if (unsubscribePortfolios) unsubscribePortfolios();
     _pfGalleryPage = PF_PAGE_SIZE; // reset paginator on every benchmark open
@@ -14045,8 +14081,9 @@
     if (!grid) return;
     const q = query(collection(db, 'portfolios'), where('benchmarkId', '==', benchmarkId));
     unsubscribePortfolios = onSnapshot(q, (snap) => {
-      const items = [];
-      snap.forEach(d => { const data = d.data(); if (data.deleted) return; items.push({ id: d.id, ...data }); });
+      const raw = [];
+      snap.forEach(d => { const data = d.data(); if (data.deleted) return; raw.push({ id: d.id, ...data }); });
+      const items = collapsePortfolioItems(raw);
       // alphabetical by name
       items.sort((a, b) => (a.studentName || '').localeCompare(b.studentName || '', undefined, { sensitivity: 'base' }));
       // Update the count badge live from the snapshot — no extra read.
@@ -14501,7 +14538,8 @@
     try {
       // Soft delete: never destroy student work. Leave uploaded blobs in Storage
       // (recoverable); mark the doc deleted so render/query paths filter it out.
-      await setDoc(doc(db, 'portfolios', item.id), { deleted: true, deletedAt: serverTimestamp() }, { merge: true });
+      const ids = (item.ids && item.ids.length) ? item.ids : [item.id];
+      await Promise.all(ids.map(id => setDoc(doc(db, 'portfolios', id), { deleted: true, deletedAt: serverTimestamp() }, { merge: true })));
       if (item.benchmarkId) refreshCountBadge(item.benchmarkId);
     } catch (err) {
       console.error('portfolio delete failed', err);
@@ -14526,8 +14564,10 @@
         // The key stays so the slots map never shrinks, which the rules require.
         slots[slotKey] = null;
       }
-      // Use setDoc with merge to update only slots
-      await setDoc(doc(db, 'portfolios', item.id), { slots }, { merge: true });
+      // Use setDoc with merge to update only slots, on every doc behind this row
+      // so an older duplicate cannot refill the slot on the next render.
+      const ids = (item.ids && item.ids.length) ? item.ids : [item.id];
+      await Promise.all(ids.map(id => setDoc(doc(db, 'portfolios', id), { slots }, { merge: true })));
     } catch (err) {
       console.error('slot delete failed', err);
       alert('Could not delete that slot. Try again.');
