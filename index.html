@@ -10861,6 +10861,7 @@
       if (row) row.classList.toggle('done', on);
     });
     updateProjMeters();
+    document.dispatchEvent(new Event('t4sg-checks-changed'));
   }
   // Live, not one-shot: two small listeners (exact studentName + nameSlug, so
   // a case or spacing variant still counts) keep the checks current from any
@@ -12081,13 +12082,14 @@
     panel.className = 'portfolio-panel pf-rubric-panel';
     panel.innerHTML = `
       <div class="pf-viewbanner" data-pf-viewbanner></div>
-      <div class="pf-drop-sub" style="margin:0 0 10px;">Everything you add autosaves to your draft - leave and come back anytime to finish.</div>
+      <div class="pf-drop-sub" style="margin:0 0 10px;">This is a work in progress. Everything you add saves automatically, so leave and come back anytime. Submit sends it to Ramsey for grading, and you can still add or replace work after that.</div>
       <div class="pf-rubric" data-pf-slots>
         <div class="pf-rubric-head">
           <span>Criterion</span><span>Emerging</span><span>Developing</span><span>Mastered</span><span>Your work</span>
         </div>
       </div>
       <div class="pf-viewonly" data-pf-viewonly></div>
+      <div class="pf-gate" data-pf-gate hidden style="font-size:13px;line-height:1.45;opacity:.75;margin:10px 0 0;" role="status"></div>
       <div class="pf-actions">
         <span class="pf-saved-pill" data-pf-saved aria-live="polite">Saved</span>
         <div class="pf-status" data-pf-status></div>
@@ -12098,6 +12100,7 @@
     const slotsEl = panel.querySelector('[data-pf-slots]');
     const submitBtn = panel.querySelector('[data-pf-submit]');
     const statusEl = panel.querySelector('[data-pf-status]');
+    const gateEl = panel.querySelector('[data-pf-gate]');
     const savedPill = panel.querySelector('[data-pf-saved]');
     const viewBanner = panel.querySelector('[data-pf-viewbanner]');
     const viewMount = panel.querySelector('[data-pf-viewonly]');
@@ -12759,13 +12762,32 @@
       persistDraftSlot(key);
     }
 
+    // Submit stays locked until every checkpoint in this project is checked
+    // off (checks are derived from real submissions). Work-in-progress saving
+    // is never gated: slots keep autosaving to the draft the whole time.
+    const _project = PROJECTS.find(pr => (pr.benchmarks || []).some(b => b.id === benchmarkId));
+    const _prereqs = _project ? _project.benchmarks.filter(b => b.id !== benchmarkId && !b.drop && b.id !== 'instructable') : [];
+    function missingPrereqs() { return _prereqs.filter(b => !checked.has(b.id)); }
+    function listTitles(arr) {
+      const t = arr.map(b => b.title);
+      return t.length <= 1 ? t.join('') : t.slice(0, -1).join(', ') + ' and ' + t[t.length - 1];
+    }
     function refreshSubmit() {
       const name = nameInput.value.trim();
       // Only new or changed work arms the button - already-submitted slots
       // are safe on the server and do not need resubmitting by themselves.
       const anyNew = Object.values(state).some(v => v && !v._submitted);
-      submitBtn.disabled = !(name && anyNew);
+      const missing = name ? missingPrereqs() : [];
+      submitBtn.disabled = !(name && anyNew) || missing.length > 0;
+      if (missing.length) {
+        gateEl.textContent = `Submit unlocks once ${listTitles(missing)} ${missing.length === 1 ? 'is' : 'are'} checked off. Your work here keeps saving in the meantime.`;
+        gateEl.hidden = false;
+      } else {
+        gateEl.hidden = true;
+      }
     }
+    const _onChecksChanged = () => refreshSubmit();
+    document.addEventListener('t4sg-checks-changed', _onChecksChanged);
     // Compat shim doesn't expose addEventListener; the picker's onChange does
     // the equivalent. We rebind to also refresh submit on name change.
     {
@@ -12796,6 +12818,8 @@
       if (!name) { setStatus('Please enter your name.', true); return; }
       const anyDirty = Object.values(state).some(v => v && !v._submitted);
       if (!anyDirty) { setStatus('Add or change at least one slot before submitting.', true); return; }
+      const missing = missingPrereqs();
+      if (missing.length) { setStatus(`Finish ${listTitles(missing)} first. Your work here is saved.`, true); return; }
       _isSubmitting = true;
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting…';
@@ -12938,12 +12962,12 @@
         if (!failedSlots.length) markChecked(benchmarkId, writeName);
 
         // Success pulse: green flash on the button, status briefly, then clear.
-        submitBtn.textContent = failedSlots.length ? 'Retry failed uploads' : '✓ Submitted!';
+        submitBtn.textContent = failedSlots.length ? 'Retry failed uploads' : 'Submitted';
         if (!failedSlots.length) submitBtn.classList.add('is-success');
         if (failedSlots.length) {
           setStatus(`Saved ${Object.values(finalSlots).filter(Boolean).length}. ${failedSlots.map(d => d.label).join(', ')} failed. Click Retry failed uploads.`, true);
         } else {
-          setStatus('Submitted. Your work stays here - the X removes a slot, dropping in a new file replaces it.');
+          setStatus('Submitted. You can keep adding or replacing work; press Submit again after any change.');
         }
         setTimeout(() => {
           submitBtn.classList.remove('is-success');
@@ -13046,46 +13070,36 @@
       refreshSubmit();
     }
 
-    // ----- Identity-aware mode: editable for the owner, read-only for others ---
+    // ----- Identity: whoever is picked is who edits. Picking a name that is
+    // not this device's remembered student simply switches the device to that
+    // student. (Katie, 2026-09-18: a shared laptop remembered someone else, so
+    // her own Product opened read-only and she thought she was locked out.)
+    // The one guard: unsubmitted local work from a different name is never
+    // wiped silently.
     function applyMode(name) {
       const n = (name || '').trim();
-      // First name actively chosen on this device claims edit ownership.
-      if (!ownerName && n) { ownerName = n; setLastPick(n); }
-      const isOwner = !n || norm(n) === norm(ownerName);
-      if (isOwner) {
-        panel.classList.remove('is-viewonly');
-        viewBanner.innerHTML = '';
-        viewMount.innerHTML = '';
-        hydrateFromSubmitted();
-        hydrateDraft(n || ownerName);
-        flushDraftForName();
-        refreshSubmit();
-        return;
-      }
-      // View-only: show this person's submitted work, hide the editable grid.
-      panel.classList.add('is-viewonly');
-      viewBanner.innerHTML = `
-        <span class="pf-viewbanner-text">Viewing <strong>${escapeHtml(n)}</strong>'s work (read only).</span>
-        <button type="button" class="pf-viewbanner-btn" data-pf-claim>This is me - switch to editing</button>
-      `;
-      const claimBtn = viewBanner.querySelector('[data-pf-claim]');
-      if (claimBtn) claimBtn.addEventListener('click', () => {
-        // Unsubmitted work parked on this device belongs to the previous
-        // identity - never destroy it silently on a claim.
-        const dirty = cached.owner !== norm(n) && cached.owner &&
-          Object.values(state).some(v => v && !v._submitted);
-        if (dirty && !confirm('This device has unsubmitted work from another name. Switch to ' + n + ' and clear it?')) return;
+      if (n && norm(n) !== norm(ownerName)) {
+        // Only work that is not yet safe in the cloud (a file still uploading, or
+        // text/link not yet saved to the draft) needs a confirm. Saved drafts
+        // reload for that student on any device, so switching is harmless.
+        const dirty = cached.owner && cached.owner !== norm(n) &&
+          Object.values(state).some(v => v && !v._submitted && !v._savedDraft);
+        if (dirty && !confirm('This device has unsaved work from another name. Switch to ' + n + ' and clear it?')) {
+          nameInput.value = ownerName;
+          return;
+        }
         ownerName = n;
         setLastPick(n);
         resetDraftForOwner(n);
-        applyMode(n);
-      });
-      const entry = submittedByName.get(norm(n));
-      if (entry && entry.slots && Object.values(entry.slots).some(Boolean)) {
-        renderRowBody(viewMount, { studentName: entry.studentName || n, slots: entry.slots }, { readOnly: true });
-      } else {
-        viewMount.innerHTML = `<div class="pf-gallery-empty">${escapeHtml(n)} hasn't submitted this portfolio yet.</div>`;
+        syncCheckedFromCloud(); // checkmarks (and the Submit gate) follow the picked student
       }
+      panel.classList.remove('is-viewonly');
+      viewBanner.innerHTML = '';
+      viewMount.innerHTML = '';
+      hydrateFromSubmitted();
+      hydrateDraft(n || ownerName);
+      flushDraftForName();
+      refreshSubmit();
     }
 
     // Live-load classmates' submissions so picking a name can show their work
@@ -13109,6 +13123,7 @@
     panel._cleanup = () => {
       try { picker.destroy(); } catch (_) {}
       if (_pfUnsub) { try { _pfUnsub(); } catch (_) {} }
+      document.removeEventListener('t4sg-checks-changed', _onChecksChanged);
     };
 
     applyMode(picker.getName());
