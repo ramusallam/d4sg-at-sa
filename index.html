@@ -112,6 +112,9 @@
   }
   .header-title-link:hover { opacity: 0.7; }
   .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 2px;
@@ -1403,7 +1406,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* ============== HEADER NAV (Homework / Back) ============== */
+  /* ============== HEADER NAV ============== */
   .nav-link {
     display: inline-flex;
     align-items: center;
@@ -1419,7 +1422,6 @@
     letter-spacing: 1px;
     text-transform: uppercase;
     transition: all 0.15s ease;
-    margin-right: 10px;
     cursor: pointer;
   }
   .nav-link:hover {
@@ -1427,13 +1429,12 @@
     color: var(--accent);
     background: var(--accent-soft);
   }
-  /* All four nav pills always visible: Home / Warm Ups / Tools / Homework.
+  /* All four nav pills always visible: Projects / Warm-ups / Tools / Homework.
      The pill for the current view fills indigo so the student sees where
      they are. No layout jumps as they navigate. */
-  .nav-to-home, .nav-to-warmups, .nav-to-cad, .nav-to-hw, .nav-to-tools { display: inline-flex; }
+  .nav-to-home, .nav-to-warmups, .nav-to-hw, .nav-to-tools { display: inline-flex; }
   body.view-home .nav-to-home,
   body.view-warmups .nav-to-warmups,
-  body.view-cad .nav-to-cad,
   body.view-hw .nav-to-hw,
   body.view-tools .nav-to-tools {
     background: var(--accent);
@@ -1442,7 +1443,6 @@
   }
   body.view-home .nav-to-home:hover,
   body.view-warmups .nav-to-warmups:hover,
-  body.view-cad .nav-to-cad:hover,
   body.view-hw .nav-to-hw:hover,
   body.view-tools .nav-to-tools:hover {
     background: var(--accent-hover);
@@ -1450,47 +1450,42 @@
     color: white;
   }
 
-  /* Syllabus — intentionally NOT a pill. It's informational, not an app
-     surface. Rendered as a ghost text link with a small doc icon, tucked
-     ahead of the nav pills and separated by a thin divider so the eye
-     reads it as "context, not a destination". */
-  .nav-syllabus,
-  .nav-exhibit {
-    background: transparent !important;
-    border: none !important;
-    color: var(--ink-low);
-    padding: 7px 16px 7px 4px;
-    border-radius: 0;
+  /* Course reference links stay available without competing with the four
+     student work destinations. */
+  .course-menu { position: relative; }
+  .course-menu > summary { list-style: none; }
+  .course-menu > summary::-webkit-details-marker { display: none; }
+  .course-menu[open] > summary {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .course-menu-popover {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 80;
+    min-width: 180px;
+    padding: 7px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 14px 34px rgba(17, 17, 17, 0.14);
+  }
+  .course-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 11px;
+    border-radius: 8px;
+    color: var(--ink-mid);
+    text-decoration: none;
     text-transform: none;
-    letter-spacing: 0.3px;
-    font-size: 12px;
-    font-weight: 500;
-    font-style: italic;
-    gap: 6px;
+    letter-spacing: 0;
+    font-size: 13px;
+    font-weight: 650;
   }
-  .nav-syllabus {
-    margin-right: 12px;
-    border-right: 1px solid var(--border) !important;
-  }
-  .nav-exhibit { padding-right: 10px; }
-  .nav-syllabus svg,
-  .nav-exhibit svg { opacity: 0.7; transition: opacity 0.15s ease; }
-  .nav-syllabus:hover,
-  .nav-exhibit:hover {
-    background: transparent !important;
-    color: var(--accent) !important;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  .nav-syllabus:hover svg,
-  .nav-exhibit:hover svg { opacity: 1; }
-  body.view-syllabus .nav-syllabus {
-    color: var(--accent) !important;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  body.view-syllabus .nav-syllabus,
-  body.view-syllabus .nav-syllabus:hover { background: transparent !important; border-color: transparent var(--border) transparent transparent !important; }
+  .course-menu-link:hover { color: var(--accent); background: var(--accent-soft); }
 
   /* ============== SYLLABUS page ============== */
   /* One column, no card boxes, generous whitespace. Reads like a printed
@@ -3370,6 +3365,27 @@
     padding: 20px 0;
   }
   /* ===== Jump-to-student picker (above the class submissions list) ===== */
+  .class-work {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-1);
+    overflow: hidden;
+  }
+  .class-work > summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 15px 17px;
+    cursor: pointer;
+    color: var(--ink-hi);
+    font-weight: 750;
+    list-style: none;
+  }
+  .class-work > summary::-webkit-details-marker { display: none; }
+  .class-work > summary span { color: var(--ink-low); font-size: 12px; font-weight: 550; }
+  .class-work[open] > summary { border-bottom: 1px solid var(--border); }
+  .class-work-body { padding: 16px; }
   .pf-jumpbar {
     display: flex;
     align-items: center;
@@ -3916,6 +3932,16 @@
   /* ============== MOBILE ============== */
   @media (max-width: 640px) {
     .header-inner { padding: 14px 18px; gap: 8px; flex-wrap: wrap; }
+    .header-title { width: 100%; }
+    .header-meta {
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 3px;
+      scrollbar-width: none;
+    }
+    .header-meta::-webkit-scrollbar { display: none; }
+    .nav-link { flex: 0 0 auto; padding: 7px 11px; }
+    .course-menu { flex: 0 0 auto; }
     main { padding: 28px 20px 80px; }
     .benchmark { padding: 14px 16px; gap: 12px; }
     .artifact-count { font-size: 11px; padding: 4px 8px; }
@@ -3961,6 +3987,33 @@
   .tool-card:hover {
     border-color: var(--accent);
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  }
+  .tool-card-head { display: flex; align-items: center; gap: 12px; }
+  .tool-card-icon {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    display: grid;
+    place-items: center;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 10px;
+  }
+  .tool-card-icon svg { width: 20px; height: 20px; }
+  .tool-loop {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    overflow: hidden;
+    margin: 0 0 22px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--border);
+  }
+  .tool-loop-step { padding: 12px 14px; background: var(--bg-1); color: var(--ink-mid); font-size: 12px; }
+  .tool-loop-step strong { color: var(--accent); margin-right: 5px; }
+  @media (max-width: 760px) {
+    .tool-loop { grid-template-columns: 1fr 1fr; }
   }
   .tool-card.is-disabled {
     cursor: not-allowed;
@@ -5700,6 +5753,11 @@
   .idea-tool-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
   .idea-tool-btn:active { transform: translateY(1px); }
   .idea-tool-btn.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .idea-tool-btn.idea-save-labeled { width: auto; padding: 0 10px; gap: 6px; font-size: 11.5px; font-weight: 700; }
+  @media (max-width: 720px) {
+    .idea-tool-btn.idea-save-labeled { width: 34px; padding: 0; }
+    .idea-tool-btn.idea-save-labeled span { display: none; }
+  }
   .idea-tool-btn--danger:hover { background: #fee2e2; border-color: #ef4444; color: #b91c1c; }
   .idea-color-swatch {
     width: 22px;
@@ -6504,25 +6562,23 @@
   <div class="header-inner">
     <h1 class="header-title"><a href="/" class="header-title-link">T<span class="fig">4</span>SG <span class="at">@</span> SA</a></h1>
     <div class="header-meta">
-      <a href="/exhibit" class="nav-link nav-exhibit" title="See what past students built">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
-        <span>Exhibit</span>
-      </a>
-      <a href="https://ramsey-syllabi.vercel.app/" target="_blank" rel="noopener" class="nav-link nav-syllabus" title="Course syllabus (opens in a new tab)">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/>
-          <path d="M14 3v6h6"/>
-          <path d="M8 13h8M8 17h6"/>
-        </svg>
-        <span>Syllabus</span>
-      </a>
-      <a href="/" class="nav-link nav-to-home">Home</a>
-      <a href="/warm-ups" class="nav-link nav-to-warmups">Warm Ups</a>
+      <a href="/" class="nav-link nav-to-home">Projects</a>
+      <a href="/warm-ups" class="nav-link nav-to-warmups">Warm-ups</a>
       <a href="/tools" class="nav-link nav-to-tools">Tools</a>
-      <a href="/cad" class="nav-link nav-to-cad">CAD</a>
       <a href="/hw" class="nav-link nav-to-hw">Homework</a>
+      <details class="course-menu">
+        <summary class="nav-link">Course</summary>
+        <div class="course-menu-popover">
+          <a href="/exhibit" class="course-menu-link" aria-label="Student exhibit">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>Student exhibit</span>
+          </a>
+          <a href="https://ramsey-syllabi.vercel.app/" target="_blank" rel="noopener" class="course-menu-link" aria-label="Course syllabus">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h6"/></svg>
+            <span>Course syllabus</span>
+          </a>
+        </div>
+      </details>
       <span class="admin-bar">
         <span class="admin-tag">Admin</span>
         <button class="archive-btn" id="archivesViewBtn">Archives</button>
@@ -6727,7 +6783,7 @@
     {
       id: 'p0',
       title: 'Project 0: Meet the Mission',
-      goal: '**Goal:** Meet five people whose lives change when a switch fits them.',
+      goal: 'Meet five people whose lives change when a switch fits them.',
       kind: 'videos',
       benchmarks: [
         {
@@ -6785,7 +6841,7 @@
     {
       id: 'p1',
       title: 'Project 1: Basic Adaptive Switches',
-      goal: '**Goal:** Build your first switches and wire them to an Arduino on a breadboard.',
+      goal: 'Build your first switches and wire them to an Arduino on a breadboard.',
       benchmarks: [
         {
           id: 'p1b1',
@@ -6880,7 +6936,7 @@
     {
       id: 'p2',
       title: 'Project 2: No-Force Sensors',
-      goal: '**Goal:** Add no-force sensors that answer a light touch or a nearby motion.',
+      goal: 'Add no-force sensors that answer a light touch or a nearby motion.',
       benchmarks: [
         {
           id: 'p2b1',
@@ -6975,7 +7031,7 @@
     {
       id: 'p3',
       title: 'Project 3: Hands-Free Controls',
-      goal: '**Goal:** Add hands-free inputs steered by mouth, chin, and breath.',
+      goal: 'Add hands-free inputs steered by mouth, chin, and breath.',
       benchmarks: [
         {
           id: 'p3b1',
@@ -7070,7 +7126,7 @@
     {
       id: 'p4',
       title: 'Project 4: Adaptive Controller Hub',
-      goal: '**Goal:** Combine everything into one 3D-printed hub any end user can plug into.',
+      goal: 'Combine everything into one 3D-printed hub any end user can plug into.',
       benchmarks: [
         {
           id: 'p4b1',
@@ -7164,7 +7220,7 @@
     {
       id: 'final',
       title: 'Final Project: Instructable',
-      goal: '**Goal:** Publish your finished controller to Instructables for the world to build.',
+      goal: 'Publish your finished controller to Instructables for the world to build.',
       benchmarks: [
         {
           id: 'instructable',
@@ -7762,8 +7818,8 @@
     const sec = document.createElement('section');
     sec.className = 'project';
     sec.innerHTML = `
-      <h2 class="project-title">CAD</h2>
-      <p class="project-blurb">Submit your design here, same as homework: pick your name and paste your <strong>public Tinkercad link</strong>. Built it in Fusion or another tool? Attach the STL instead.</p>
+      <h2 class="project-title">CAD Submissions</h2>
+      <p class="project-blurb">Pick your name, then submit a <strong>public CAD link</strong> or attach an STL file.</p>
       <div class="gallery-grid" id="galleryGrid"></div>
     `;
     app.appendChild(sec);
@@ -8049,25 +8105,36 @@
     sec.className = 'project';
     sec.innerHTML = `
       <h2 class="project-title">Tools</h2>
+      <div class="tool-loop" aria-label="Tool workflow">
+        <div class="tool-loop-step"><strong>1</strong> Pick your name</div>
+        <div class="tool-loop-step"><strong>2</strong> Make your work</div>
+        <div class="tool-loop-step"><strong>3</strong> Save to benchmark</div>
+        <div class="tool-loop-step"><strong>4</strong> Verify in the benchmark</div>
+      </div>
       <div class="tools-grid">
         <div class="tool-card" id="toolCardVibe">
-          <h3 class="tool-card-title">Vibe Coding</h3>
-          <p class="tool-card-blurb">Describe what your controller should do, and AI writes the Arduino code you can test on your board.</p>
+          <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg></span><h3 class="tool-card-title">Vibe Coding</h3></div>
+          <p class="tool-card-blurb">Write, test, and upload Arduino code.</p>
           <div class="tool-card-footer">Open</div>
         </div>
         <div class="tool-card" id="toolCardSchematic">
-          <h3 class="tool-card-title">Wiring Schematic</h3>
-          <p class="tool-card-blurb">Draw your Arduino wiring pin to pin, then save the diagram straight to a benchmark.</p>
+          <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 12h5a3 3 0 003-3V8M15 15v-3a3 3 0 013-3"/></svg></span><h3 class="tool-card-title">Wiring Schematic</h3></div>
+          <p class="tool-card-blurb">Draw and save a pin-to-pin circuit diagram.</p>
           <div class="tool-card-footer">Open</div>
         </div>
         <div class="tool-card" id="toolCardIdea">
-          <h3 class="tool-card-title">Idea Board</h3>
-          <p class="tool-card-blurb">Sketch your prototype with real components - switches, sensors, jacks, LEDs - and save it straight to a benchmark.</p>
+          <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a7 7 0 00-4 12.7V19h8v-3.3A7 7 0 0012 3zM9 22h6M9 16h6"/></svg></span><h3 class="tool-card-title">Idea Board</h3></div>
+          <p class="tool-card-blurb">Sketch a prototype with real components.</p>
           <div class="tool-card-footer">Open</div>
         </div>
         <div class="tool-card" id="toolCardCamera">
-          <h3 class="tool-card-title">Image Capture</h3>
-          <p class="tool-card-blurb">Hold your circuit up to the webcam, snap a photo, and save it straight to a benchmark.</p>
+          <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg></span><h3 class="tool-card-title">Image Capture</h3></div>
+          <p class="tool-card-blurb">Photograph a circuit or finished device.</p>
+          <div class="tool-card-footer">Open</div>
+        </div>
+        <div class="tool-card" id="toolCardCad">
+          <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9"/></svg></span><h3 class="tool-card-title">CAD Submissions</h3></div>
+          <p class="tool-card-blurb">Submit a public CAD link or an STL file.</p>
           <div class="tool-card-footer">Open</div>
         </div>
       </div>
@@ -8089,6 +8156,10 @@
     sec.querySelector('#toolCardCamera').addEventListener('click', () => {
       history.pushState({}, '', '/tools/camera');
       applyRoute('/tools/camera');
+    });
+    sec.querySelector('#toolCardCad').addEventListener('click', () => {
+      history.pushState({}, '', '/cad');
+      applyRoute('/cad');
     });
   }
 
@@ -8117,8 +8188,9 @@
           <button class="cam-shot-btn" id="camCapture" disabled>${ICON_CAM} Capture</button>
           <button class="cam-shot-btn" id="camRetake" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/></svg> Retake</button>
           <div class="vibe-toolbar-group" style="margin-left:auto;">
-            <button class="vibe-tool-btn" id="camSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark" disabled>
+            <button class="vibe-tool-btn is-labeled" id="camSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark" disabled>
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
+              <span class="vibe-tool-label">Save to benchmark</span>
             </button>
           </div>
         </div>
@@ -8276,10 +8348,10 @@
     wrap.className = 'tool-file';
     wrap.innerHTML = `
       <div class="tool-file-seg" role="radiogroup" aria-label="Which file">
-        <button type="button" class="tool-file-btn" role="radio" data-file="project">My Project</button>
-        <button type="button" class="tool-file-btn" role="radio" data-file="warmup">Warm-up</button>
+        <button type="button" class="tool-file-btn" role="radio" data-file="project">Project file</button>
+        <button type="button" class="tool-file-btn" role="radio" data-file="warmup">Warm-up file</button>
       </div>
-      <span class="tool-file-note">Warm-up scratch space. Your project is saved separately.</span>
+      <span class="tool-file-note">Each student's project and warm-up files stay separate.</span>
     `;
     const paint = () => {
       const f = toolFile();
@@ -9172,8 +9244,9 @@
             </button>
           </div>
           <div class="vibe-toolbar-group">
-            <button class="vibe-tool-btn" id="schemSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark">
+            <button class="vibe-tool-btn is-labeled" id="schemSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark">
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
+              <span class="vibe-tool-label">Save to benchmark</span>
             </button>
           </div>
         </div>
@@ -11112,7 +11185,14 @@
       const sec = document.createElement('div');
       sec.className = 'modal-section';
       if (Array.isArray(b.instructions)) {
-        const stepsHtml = b.instructions.map((stepText, stepIdx) => `
+        // The submission section immediately below owns the evidence workflow.
+        // Do not say it once in Instructions and then repeat the same four steps.
+        const instructionSteps = b.instructions.filter(stepText => {
+          const t = String(stepText || '');
+          return !t.includes('Complete **Evidence + Reflection**') &&
+            !t.includes('Submit your work in the **Rubric & Drop** section below');
+        });
+        const stepsHtml = instructionSteps.map((stepText, stepIdx) => `
           <div class="cp-step">
             <span class="cp-step-num" aria-hidden="true">${stepIdx + 1}</span>
             <div class="cp-step-body">${formatStepMarkup(stepText, partSeen)}</div>
@@ -11276,18 +11356,28 @@
       const gallerySec = document.createElement('div');
       gallerySec.className = 'modal-section';
       gallerySec.innerHTML = `
-        <h3>Class submissions</h3>
-        <div class="pf-jumpbar" id="pfJumpbar" hidden>
-          <label for="pfJump">Jump to student</label>
-          <select id="pfJump" class="pf-jump"><option value="">Choose a name…</option></select>
-        </div>
-        <div class="pf-gallery" id="pfGallery"></div>
+        <details class="class-work" id="classWork">
+          <summary>Class submissions <span>View read-only work</span></summary>
+          <div class="class-work-body">
+            <div class="pf-jumpbar" id="pfJumpbar" hidden>
+              <label for="pfJump">Jump to student</label>
+              <select id="pfJump" class="pf-jump"><option value="">Choose a name…</option></select>
+            </div>
+            <div class="pf-gallery" id="pfGallery"><div class="pf-gallery-empty">Open to load class work.</div></div>
+          </div>
+        </details>
       `;
       modalBody.appendChild(gallerySec);
       gallerySec.querySelector('#pfJump').addEventListener('change', (e) => {
         jumpToPortfolioStudent(e.target.value);
       });
-      subscribePortfolios(b.id);
+      const classWork = gallerySec.querySelector('#classWork');
+      classWork.addEventListener('toggle', () => {
+        if (classWork.open && !classWork.dataset.loaded) {
+          classWork.dataset.loaded = 'true';
+          subscribePortfolios(b.id);
+        }
+      });
     }
 
     // Wire tool-launcher links wherever they appear (brief AND instructions)
@@ -15020,23 +15110,26 @@
       }
       if (!portfolios.length) { alert('Nothing to restore.'); return; }
 
-      // Strip the archive doc id and write a fresh doc in /portfolios with a
-      // new server timestamp. We DO preserve all slot data including the
-      // existing fileUrl pointers. Archive no longer deletes Storage blobs
-      // (soft-delete only), so file-mode slots restore intact.
+      // Collapse any historical duplicates, then restore to the SAME stable
+      // per-student/per-benchmark id used by current submissions. A restore
+      // must never recreate random duplicate portfolio rows.
+      const uniquePortfolios = collapsePortfolioItems(portfolios);
       const writes = [];
-      portfolios.forEach(p => {
-        const { id, createdAt, ...rest } = p;
-        writes.push(addDoc(collection(db, 'portfolios'), {
+      uniquePortfolios.forEach(p => {
+        const { id, ids, createdAt, deletedAt, ...rest } = p;
+        const stableId = `${p.benchmarkId}__${nameSlug(p.studentName)}`;
+        if (!p.benchmarkId || !nameSlug(p.studentName)) return;
+        writes.push(setDoc(doc(db, 'portfolios', stableId), {
           ...rest,
+          deleted: false,
           createdAt: serverTimestamp()
-        }));
+        }, { merge: true }));
       });
       await Promise.all(writes);
       // Refresh count badges so admin sees the restore reflected.
       const benchIds = new Set(portfolios.map(p => p.benchmarkId).filter(Boolean));
       benchIds.forEach(bid => refreshCountBadge(bid));
-      alert(`Restored ${portfolios.length} portfolios to live. Uploaded files are preserved, so file-mode slots restore intact.`);
+      alert(`Restored ${writes.length} unique portfolios to live. Uploaded files are preserved, so file-mode slots restore intact.`);
     } catch (err) {
       console.error('restore failed', err);
       alert('Restore failed. Check console.');
@@ -15568,8 +15661,9 @@ void loop() {
                 </select>
               </div>
               <div class="vibe-toolbar-group">
-                <button class="vibe-tool-btn" id="vibeSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark">
+                <button class="vibe-tool-btn is-labeled" id="vibeSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg>
+                  <span class="vibe-tool-label">Save to benchmark</span>
                 </button>
               </div>
               <input type="file" id="vibeLoadCodeFile" accept=".ino,.txt,.cpp,.c,.h,.pde,text/plain" style="display:none;" />
@@ -17791,7 +17885,7 @@ void loop() {
       </div>
       <span class="idea-tb-div" aria-hidden="true"></span>
       <div class="idea-tb-group">
-        <button type="button" class="idea-tool-btn" id="ideaSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg></button>
+        <button type="button" class="idea-tool-btn idea-save-labeled" id="ideaSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V8l-3-3H5v16z"/><path d="M9 5v4h6"/><path d="M12 12v6M9 15h6"/></svg><span>Save to benchmark</span></button>
       </div>
     `;
     bar.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => ideaTbSetTool(b.dataset.tool)));
@@ -18469,7 +18563,7 @@ void loop() {
       document.body.classList.add('view-hw');
       renderHomework();
     } else if (r === '/cad') {
-      document.body.classList.add('view-cad');
+      document.body.classList.add('view-tools');
       renderCadPage();
     } else if (r === '/tools/vibe') {
       document.body.classList.add('view-tools');
@@ -18501,11 +18595,13 @@ void loop() {
   document.addEventListener('click', (e) => {
     const a = e.target && e.target.closest && e.target.closest('a');
     if (!a) return;
-    if (!(a.classList.contains('nav-link') || a.classList.contains('header-title-link'))) return;
+    if (!(a.classList.contains('nav-link') || a.classList.contains('header-title-link') || a.classList.contains('course-menu-link'))) return;
     const href = a.getAttribute('href') || '';
     if (!href.startsWith('/')) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
+    const menu = a.closest('.course-menu');
+    if (menu) menu.removeAttribute('open');
     // Compare path + query so navigating Home from /?b=... actually clears
     // the ?b= deep link instead of leaving a URL that reopens the benchmark.
     if (location.pathname + location.search !== href) history.pushState({}, '', href);
