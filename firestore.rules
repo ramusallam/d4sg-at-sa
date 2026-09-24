@@ -2,6 +2,13 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Students never sign in. Teacher-only maintenance uses Google sign-in,
+    // and Firebase rules enforce the identity even if someone copies the UI.
+    function isTeacher() {
+      return request.auth != null &&
+             request.auth.token.email == 'ramsey.musallam@gmail.com';
+    }
+
     // Legacy artifacts (homework still uses this; benchmark portfolios moved to /portfolios).
     match /artifacts/{artifactId} {
       allow read: if true;
@@ -11,14 +18,11 @@ service cloud.firestore {
                        request.resource.data.studentName.size() <= 80 &&
                        request.resource.data.description.size() <= 500 &&
                        request.resource.data.createdAt == request.time;
-      // Hard delete is denied for everyone (no login exists); the admin UI "delete"
-      // is a SOFT delete — an update that sets deleted:true — so student work is
-      // never destroyed by the web SDK and stays recoverable.
+      // Hard delete is denied for everyone. Teacher removal is a recoverable
+      // soft delete; students cannot hide one another's homework entries.
       allow delete: if false;
-      // Only permit soft-delete style updates: identity fields stay immutable and
-      // the update must be marking the doc deleted (deleted == true). This blocks
-      // any anonymous overwrite of an existing artifact's content.
-      allow update: if request.resource.data.benchmarkId == resource.data.benchmarkId &&
+      allow update: if isTeacher() &&
+                       request.resource.data.benchmarkId == resource.data.benchmarkId &&
                        request.resource.data.studentName == resource.data.studentName &&
                        request.resource.data.deleted == true;
     }
@@ -35,55 +39,52 @@ service cloud.firestore {
                        request.resource.data.studentName.size() <= 80 &&
                        request.resource.data.slots is map &&
                        request.resource.data.createdAt == request.time;
-      // Hard delete denied; admin "delete" is a soft delete (update deleted:true).
+      // Hard delete denied. Students may keep revising the stable document;
+      // teacher-only maintenance may soft-remove or restore it.
       allow delete: if false;
-      // Updates keep the identity fields immutable AND may never SHRINK the slots
-      // map — this blocks the "blank a classmate's graded slots to {}" vector while
-      // still allowing legitimate edits (adding/updating slots), setting a single
-      // slot value to null (key stays, size unchanged), and soft-delete markers.
       allow update: if request.resource.data.slots is map &&
                        request.resource.data.benchmarkId == resource.data.benchmarkId &&
                        request.resource.data.studentName == resource.data.studentName &&
-                       request.resource.data.slots.size() >= resource.data.slots.size();
+                       (isTeacher() ||
+                        (request.resource.data.slots.size() >= resource.data.slots.size() &&
+                         (!('deleted' in request.resource.data) ||
+                          request.resource.data.deleted == false)));
     }
 
     // Archived collections: same model, separated for class history.
     match /archives/{archiveId}/artifacts/{artifactId} {
-      allow read: if true;
-      allow create: if true;
+      allow read, create: if isTeacher();
       allow delete: if false;
       allow update: if false;
     }
     match /archives/{archiveId}/portfolios/{portfolioId} {
-      allow read: if true;
-      allow create: if true;
+      allow read, create: if isTeacher();
       allow delete: if false;
       allow update: if false;
     }
     // Parent archive metadata doc: archivedAt + counts + optional admin note.
     // Lets the archive viewer list archives without scanning subcollections.
     match /archives/{archiveId} {
-      allow read: if true;
-      allow create: if request.resource.data.archivedAt is timestamp;
+      allow read: if isTeacher();
+      allow create: if isTeacher() && request.resource.data.archivedAt is timestamp;
       allow update: if false;
       allow delete: if false;
     }
 
-    // Exhibit: a curated wall of past student work (websites, Instructables,
-    // builds). Public read; the admin-URL-token gate + honor code govern the
-    // add/delete UI, so create stays permissive with light validation.
+    // Exhibit: public to view, teacher-only to curate.
     match /exhibit/{exhibitId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['title','url','createdAt']) &&
+      allow create: if isTeacher() &&
+                       request.resource.data.keys().hasAll(['title','url','createdAt']) &&
                        request.resource.data.title is string &&
                        request.resource.data.title.size() > 0 &&
                        request.resource.data.title.size() <= 120 &&
                        request.resource.data.url is string &&
                        request.resource.data.url.size() <= 500 &&
                        request.resource.data.createdAt == request.time;
-      // Hard delete denied; admin "remove" is a soft delete (update deleted:true).
       allow delete: if false;
-      allow update: if request.resource.data.title == resource.data.title &&
+      allow update: if isTeacher() &&
+                       request.resource.data.title == resource.data.title &&
                        request.resource.data.url == resource.data.url &&
                        request.resource.data.deleted == true;
     }

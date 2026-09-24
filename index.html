@@ -2510,6 +2510,29 @@
     gap: 10px;
   }
   body.is-admin .admin-bar { display: inline-flex; }
+  .teacher-gate {
+    position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center;
+    padding: 24px; background: rgba(28,25,23,.52); backdrop-filter: blur(8px);
+  }
+  .teacher-gate-card {
+    width: min(420px, 100%); padding: 28px; border: 1px solid var(--border);
+    border-top: 4px solid var(--accent); border-radius: 18px; background: var(--paper);
+    box-shadow: var(--shadow-lg); text-align: center;
+  }
+  .teacher-gate-card h2 { margin: 8px 0; font-family: "Roboto Serif", Georgia, serif; font-size: 26px; }
+  .teacher-gate-card p { margin: 0 auto 18px; color: var(--ink-mid); line-height: 1.55; }
+  .teacher-gate-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .teacher-gate-actions button,
+  .teacher-gate-actions a {
+    min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+    padding: 10px 16px; border: 1px solid var(--border-strong); border-radius: 10px;
+    background: #fff; color: var(--ink-hi); font: 700 14px/1.2 "Inter", sans-serif;
+    text-decoration: none; cursor: pointer;
+  }
+  .teacher-gate-actions button { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .teacher-gate-actions button:hover:not(:disabled) { background: var(--accent-hover); }
+  .teacher-gate-actions button:disabled { opacity: .55; cursor: wait; }
+  .teacher-gate-error { min-height: 20px; margin-top: 12px; color: #b91c1c; font-size: 13px; }
   .admin-tag {
     font-size: 10px;
     font-weight: 700;
@@ -6624,6 +6647,9 @@
   import {
     getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject
   } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js';
+  import {
+    getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut
+  } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
 
   const firebaseConfig = {
     apiKey: 'AIzaSyBk_7fY9VbLla_2fePNqFTNehGJxkM3wYk',
@@ -6636,13 +6662,77 @@
   const fbApp = initializeApp(firebaseConfig);
   const db = getFirestore(fbApp);
   const storage = getStorage(fbApp);
+  const auth = getAuth(fbApp);
 
   // ============== ADMIN MODE ==============
-  // Visit ?admin=ramsey-d4sg to enable delete buttons & "Archive class".
-  const ADMIN_TOKEN = 'ramsey-d4sg';
   const urlParams = new URLSearchParams(location.search);
-  const isAdmin = urlParams.get('admin') === ADMIN_TOKEN;
-  if (isAdmin) document.body.classList.add('is-admin');
+  const wantsAdmin = urlParams.has('admin');
+  const TEACHER_EMAIL = 'ramsey.musallam@gmail.com';
+  let isAdmin = false;
+
+  function authUserOnce() {
+    return new Promise(resolve => {
+      let stop = () => {};
+      stop = onAuthStateChanged(auth, user => { stop(); resolve(user); }, () => { stop(); resolve(null); });
+    });
+  }
+
+  function isTeacherUser(user) {
+    return !!user && String(user.email || '').toLowerCase() === TEACHER_EMAIL;
+  }
+
+  async function establishTeacherMode() {
+    const current = await authUserOnce();
+    if (isTeacherUser(current)) return true;
+    if (current) await signOut(auth).catch(() => {});
+
+    const gate = document.createElement('div');
+    gate.className = 'teacher-gate';
+    gate.setAttribute('role', 'dialog');
+    gate.setAttribute('aria-modal', 'true');
+    gate.setAttribute('aria-labelledby', 'teacherGateTitle');
+    gate.innerHTML = `
+      <div class="teacher-gate-card">
+        <div class="eyebrow">Teacher tools</div>
+        <h2 id="teacherGateTitle">Sign in to continue</h2>
+        <p>Student work remains open. Archives and curation require your teacher Google account.</p>
+        <div class="teacher-gate-actions">
+          <button type="button" data-teacher-signin>Sign in with Google</button>
+          <a href="${location.pathname}${location.hash || ''}">View student site</a>
+        </div>
+        <div class="teacher-gate-error" role="status" aria-live="polite"></div>
+      </div>`;
+    document.body.appendChild(gate);
+
+    return new Promise(resolve => {
+      const button = gate.querySelector('[data-teacher-signin]');
+      const error = gate.querySelector('.teacher-gate-error');
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        error.textContent = '';
+        try {
+          const result = await signInWithPopup(auth, new GoogleAuthProvider());
+          if (!isTeacherUser(result.user)) {
+            await signOut(auth).catch(() => {});
+            throw new Error('Use the teacher account for this site.');
+          }
+          gate.remove();
+          resolve(true);
+        } catch (err) {
+          error.textContent = err?.message === 'Use the teacher account for this site.'
+            ? err.message
+            : 'Sign-in did not finish. Try again.';
+          button.disabled = false;
+        }
+      });
+      button.focus();
+    });
+  }
+
+  if (wantsAdmin) {
+    isAdmin = await establishTeacherMode();
+    if (isAdmin) document.body.classList.add('is-admin');
+  }
 
   // ============== CLASS ROSTER ==============
   // Hardcoded seed list. The live dropdown unions this with any names added
@@ -15013,7 +15103,7 @@
     // Update URL deep link.
     try {
       const sp = new URLSearchParams(location.search);
-      sp.set('admin', ADMIN_TOKEN);
+      sp.set('admin', '1');
       sp.set('archive', archiveId);
       history.replaceState(null, '', `${location.pathname}?${sp.toString()}`);
     } catch (_) {}
@@ -15137,9 +15227,7 @@
     }
   }
 
-  if (isAdmin) {
-    document.getElementById('archivesViewBtn').addEventListener('click', openArchivesList);
-  }
+  document.getElementById('archivesViewBtn').addEventListener('click', openArchivesList);
 
   // ============== VIBE CODING TOOL ==============
   // Two-panel chat-driven Arduino code workbench. Talks to /api/vibe-code
@@ -18361,7 +18449,7 @@ void loop() {
   // ============== EXHIBIT page render ==============
   // A quiet, dedicated wall of past student assistive-tech work: websites,
   // Instructables, builds, videos. Students see gorgeous read-only cards that
-  // link out to the real work. Admin (?admin token) gets an add form + delete.
+  // link out to the real work. Signed-in teacher mode gets an add form + delete.
   function exhibitHostLabel(url) {
     try { return new URL(url).hostname.replace(/^www\./, ''); }
     catch (_) { return 'Open'; }
@@ -18699,7 +18787,7 @@ void loop() {
     } catch (_) {}
   });
 
-  // Deep link to an archive: ?admin=ramsey-d4sg&archive=2026-04-15T12-34-56
+  // Deep link to an archive: ?admin=1&archive=2026-04-15T12-34-56
   if (isAdmin) {
     const archiveDeepLink = urlParams.get('archive');
     if (archiveDeepLink) {
