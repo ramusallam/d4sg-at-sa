@@ -8097,9 +8097,9 @@
 
   // ============== TOOLS page ==============
   function renderTools() {
-    // Opening a tool from the Tools page means project work: land in the
-    // Project file. Only warm-up links (?file=warmup) open the Warm-up file.
-    setToolFile('project');
+    // The general Tools page is neutral: keep the student's last Project or
+    // Warm-up file choice. Benchmark links intentionally set Project, while
+    // warm-up links use ?file=warmup.
     app.innerHTML = '';
     const sec = document.createElement('section');
     sec.className = 'project';
@@ -8107,10 +8107,11 @@
       <h2 class="project-title">Tools</h2>
       <div class="tool-loop" aria-label="Tool workflow">
         <div class="tool-loop-step"><strong>1</strong> Pick your name</div>
-        <div class="tool-loop-step"><strong>2</strong> Make your work</div>
-        <div class="tool-loop-step"><strong>3</strong> Save to benchmark</div>
-        <div class="tool-loop-step"><strong>4</strong> Verify in the benchmark</div>
+        <div class="tool-loop-step"><strong>2</strong> Choose Project or Warm-up</div>
+        <div class="tool-loop-step"><strong>3</strong> Make and revise freely</div>
+        <div class="tool-loop-step"><strong>4</strong> Save to any benchmark</div>
       </div>
+      <p class="project-blurb">Both files stay editable. Saving to a benchmark updates that submission without locking the tool.</p>
       <div class="tools-grid">
         <div class="tool-card" id="toolCardVibe">
           <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg></span><h3 class="tool-card-title">Vibe Coding</h3></div>
