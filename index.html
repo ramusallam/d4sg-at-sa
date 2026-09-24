@@ -885,6 +885,38 @@
     }
   }
 
+  /* ===== Tool file switch (Project / Warm-up) ===== */
+  .tool-file {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: -6px 0 16px;
+  }
+  .tool-file-seg {
+    display: inline-flex;
+    padding: 3px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .tool-file-btn {
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-mid);
+    padding: 6px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  .tool-file-btn:hover { color: var(--ink-hi); }
+  .tool-file-btn[aria-checked="true"] { background: var(--accent); color: #fff; }
+  .tool-file-btn[data-file="warmup"][aria-checked="true"] { background: #d97706; }
+  .tool-file-note { font-size: 12.5px; color: #92400e; }
+  .tool-file:not(.is-warmup) .tool-file-note { display: none; }
+
   /* ===== Saved-state pill near Submit ===== */
   .pf-saved-pill {
     font-size: 12px;
@@ -7306,12 +7338,12 @@
     {
       id: 'wu-2026-08-31',
       date: '2026-08-31',
-      question: '<p>Take apart all of your current wiring. Then build a circuit that blinks an LED at half-second intervals when a button is pressed, and stops blinking when the button is pressed again. Use the <a href="/tools/vibe">Vibe Coding tool</a> to build and load your code. Show Ramsey when done.</p>'
+      question: '<p>Take apart all of your current wiring. Then build a circuit that blinks an LED at half-second intervals when a button is pressed, and stops blinking when the button is pressed again. Use the <a href="/tools/vibe?file=warmup">Vibe Coding tool</a> to build and load your code. Show Ramsey when done.</p>'
     },
     {
       id: 'wu-2026-08-28',
       date: '2026-08-28',
-      question: '<p>Draw and label a wiring diagram in your notebook for an Arduino-coded circuit with two buttons, one lever, and one LED. The buttons are on digital pins 3 and 4, the lever is on pin 5, and the LED is on pin 6. Use a breadboard in your diagram. You may also use the <a href="/tools/schematic">wiring diagram tool</a> if you want. Call me over when done.</p>'
+      question: '<p>Draw and label a wiring diagram in your notebook for an Arduino-coded circuit with two buttons, one lever, and one LED. The buttons are on digital pins 3 and 4, the lever is on pin 5, and the LED is on pin 6. Use a breadboard in your diagram. You may also use the <a href="/tools/schematic?file=warmup">wiring diagram tool</a> if you want. Call me over when done.</p>'
     }
   ];
 
@@ -8009,6 +8041,9 @@
 
   // ============== TOOLS page ==============
   function renderTools() {
+    // Opening a tool from the Tools page means project work: land in the
+    // Project file. Only warm-up links (?file=warmup) open the Warm-up file.
+    setToolFile('project');
     app.innerHTML = '';
     const sec = document.createElement('section');
     sec.className = 'project';
@@ -8214,6 +8249,54 @@
   // with embedded <circle data-pin> endpoints; wires are SVG paths from
   // pin coord to pin coord.
 
+  // ----- Tool files: Project vs Warm-up -----
+  // Each student has two files in the Wiring Schematic and Vibe Coding tools:
+  // their running Project (cumulative across the project chain) and a Warm-up
+  // scratch file, so a warm-up never means wiping project work. The choice is
+  // shared by both tools for this tab; warm-up links open with ?file=warmup.
+  const TOOL_FILE_KEY = 'd4sg-tool-file-v1';
+  function toolFile() {
+    try { return sessionStorage.getItem(TOOL_FILE_KEY) === 'warmup' ? 'warmup' : 'project'; } catch (_) { return 'project'; }
+  }
+  function setToolFile(f) {
+    try { sessionStorage.setItem(TOOL_FILE_KEY, f === 'warmup' ? 'warmup' : 'project'); } catch (_) {}
+  }
+  function toolFileSuffix() { return toolFile() === 'warmup' ? '::warmup' : ''; }
+  function toolDraftId(base) { return toolFile() === 'warmup' ? `${base}-warmup` : base; }
+  function applyToolFileFromUrl() {
+    try {
+      const f = new URLSearchParams(location.search).get('file');
+      if (f === 'warmup' || f === 'project') setToolFile(f);
+    } catch (_) {}
+  }
+  // Two-button switch shown under the identity strip. canSwitch() can veto a
+  // switch (e.g. while an AI reply is in flight); onSwitch reloads the tool.
+  function renderToolFileSwitch({ onSwitch, canSwitch } = {}) {
+    const wrap = document.createElement('div');
+    wrap.className = 'tool-file';
+    wrap.innerHTML = `
+      <div class="tool-file-seg" role="radiogroup" aria-label="Which file">
+        <button type="button" class="tool-file-btn" role="radio" data-file="project">My Project</button>
+        <button type="button" class="tool-file-btn" role="radio" data-file="warmup">Warm-up</button>
+      </div>
+      <span class="tool-file-note">Warm-up scratch space. Your project is saved separately.</span>
+    `;
+    const paint = () => {
+      const f = toolFile();
+      wrap.classList.toggle('is-warmup', f === 'warmup');
+      wrap.querySelectorAll('.tool-file-btn').forEach(b => b.setAttribute('aria-checked', String(b.dataset.file === f)));
+    };
+    wrap.querySelectorAll('.tool-file-btn').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.file === toolFile()) return;
+      if (typeof canSwitch === 'function' && !canSwitch()) return;
+      setToolFile(b.dataset.file);
+      paint();
+      if (typeof onSwitch === 'function') onSwitch();
+    }));
+    paint();
+    return wrap;
+  }
+
   const SCHEM_STORAGE_KEY = 'd4sg-schematic-v1';
   // Per-student storage key. Mirrors the Vibe Coding pattern: each named
   // student gets their own slot, and anonymous work stays on the legacy key
@@ -8222,7 +8305,7 @@
     const slug = (typeof nameSlug === 'function')
       ? (nameSlug(localStorage.getItem(LAST_PICK_KEY) || '') || '')
       : '';
-    return slug ? `${SCHEM_STORAGE_KEY}::${slug}` : SCHEM_STORAGE_KEY;
+    return (slug ? `${SCHEM_STORAGE_KEY}::${slug}` : SCHEM_STORAGE_KEY) + toolFileSuffix();
   }
   const SCHEM_GRID_PITCH = 22;     // px between dots
   const SCHEM_DOT_RADIUS = 1.6;
@@ -8786,7 +8869,10 @@
     try {
       // Prefer the per-student slot; fall back to the legacy global key so
       // diagrams drawn before the per-student migration still appear.
-      const raw = localStorage.getItem(schemStorageKey()) || localStorage.getItem(SCHEM_STORAGE_KEY);
+      // The legacy fallback only applies to the Project file; a fresh
+      // Warm-up file always starts blank.
+      const raw = localStorage.getItem(schemStorageKey())
+        || (toolFile() === 'project' ? localStorage.getItem(SCHEM_STORAGE_KEY) : null);
       if (!raw) return _schemDefaultState();
       const parsed = JSON.parse(raw);
       // Merge defaults so older saves don't crash.
@@ -8814,7 +8900,7 @@
     try {
       const payload = JSON.stringify(_schemState);
       localStorage.setItem(schemStorageKey(), payload);
-      schemMirrorDraftDebounced(payload);
+      schemMirrorDraftDebounced(payload, toolDraftId('schematic'));
       _schemSaveWarned = false;
     } catch (err) {
       console.warn('schematic save failed', err);
@@ -8828,10 +8914,12 @@
 
   // Cloud mirror to Firestore so a student's schematic follows them across
   // laptops. Matches the Vibe Coding pattern. Only runs once a name is picked.
-  const schemMirrorDraftDebounced = debounce((payload) => {
+  // The draft id is captured at save time so a pending mirror can never land
+  // in the other file after a Project / Warm-up switch.
+  const schemMirrorDraftDebounced = debounce((payload, draftId) => {
     const name = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
     if (!name) return;
-    try { saveDraft(name, 'schematic', { schematic: payload }); } catch (_) {}
+    try { saveDraft(name, draftId, { schematic: payload }); } catch (_) {}
   }, 1200);
 
   // First-load hydrate from cloud: if local is empty for this student but
@@ -8842,7 +8930,7 @@
     const key = schemStorageKey();
     if (localStorage.getItem(key)) return; // already have local
     try {
-      const draft = await loadDraft(name, 'schematic');
+      const draft = await loadDraft(name, toolDraftId('schematic'));
       if (draft && typeof draft.schematic === 'string') {
         localStorage.setItem(key, draft.schematic);
       }
@@ -8897,7 +8985,7 @@
   // the newest wiring instructions into the Schematic tool. It auto-opens
   // when there are instructions the student hasn't dismissed yet; the
   // toolbar's Wiring guide button reopens it any time.
-  function schemWiringSeenKey() { return `d4sg-schem-wiring-seen::${vibeSlug()}`; }
+  function schemWiringSeenKey() { return `d4sg-schem-wiring-seen::${vibeSlug()}${toolFileSuffix()}`; }
 
   // Newest assistant message containing a **Wiring** heading, sliced from
   // that heading to the end (code fences stripped first). Same-student chat:
@@ -9033,6 +9121,7 @@
   })();
 
   function initSchematicTool() {
+    applyToolFileFromUrl();
     _schemState = schemLoad();
     _schemHistory.length = 0;
     _schemPendingPin = null;
@@ -9115,6 +9204,7 @@
       schemIdentityMount.appendChild(renderIdentityStrip({
         onChange: () => { schemSwitchStudent(); }
       }));
+      schemIdentityMount.appendChild(renderToolFileSwitch({ onSwitch: () => { schemSwitchStudent(); } }));
     }
     // Pull the student's saved schematic from cloud on first visit on this
     // device (no-op if local already has data).
@@ -11210,6 +11300,8 @@
           : tool === 'idea-board' ? '/tools/idea-board'
           : tool === 'camera' ? '/tools/camera'
           : '/tools/schematic';
+        // Benchmark work always lands in the running Project file.
+        setToolFile('project');
         if (typeof applyRoute === 'function') {
           // Push the tool URL BEFORE closing the modal: applyRoute closes it
           // itself, and closing it early would strip ?b= from the history
@@ -12104,7 +12196,6 @@
         </div>
       </div>
       <div class="pf-viewonly" data-pf-viewonly></div>
-      <div class="pf-gate" data-pf-gate hidden style="font-size:13px;line-height:1.45;opacity:.75;margin:10px 0 0;" role="status"></div>
       <div class="pf-actions">
         <span class="pf-saved-pill" data-pf-saved aria-live="polite">Saved</span>
         <div class="pf-status" data-pf-status></div>
@@ -12115,7 +12206,6 @@
     const slotsEl = panel.querySelector('[data-pf-slots]');
     const submitBtn = panel.querySelector('[data-pf-submit]');
     const statusEl = panel.querySelector('[data-pf-status]');
-    const gateEl = panel.querySelector('[data-pf-gate]');
     const savedPill = panel.querySelector('[data-pf-saved]');
     const viewBanner = panel.querySelector('[data-pf-viewbanner]');
     const viewMount = panel.querySelector('[data-pf-viewonly]');
@@ -12777,29 +12867,15 @@
       persistDraftSlot(key);
     }
 
-    // Submit stays locked until every checkpoint in this project is checked
-    // off (checks are derived from real submissions). Work-in-progress saving
-    // is never gated: slots keep autosaving to the draft the whole time.
-    const _project = PROJECTS.find(pr => (pr.benchmarks || []).some(b => b.id === benchmarkId));
-    const _prereqs = _project ? _project.benchmarks.filter(b => b.id !== benchmarkId && !b.drop && b.id !== 'instructable') : [];
-    function missingPrereqs() { return _prereqs.filter(b => !checked.has(b.id)); }
-    function listTitles(arr) {
-      const t = arr.map(b => b.title);
-      return t.length <= 1 ? t.join('') : t.slice(0, -1).join(', ') + ' and ' + t[t.length - 1];
-    }
+    // Submit is never gated on earlier checkpoints. Students can jump ahead to
+    // the Product when Ramsey okays skipping a part; unfinished checkpoints
+    // just aren't graded.
     function refreshSubmit() {
       const name = nameInput.value.trim();
       // Only new or changed work arms the button - already-submitted slots
       // are safe on the server and do not need resubmitting by themselves.
       const anyNew = Object.values(state).some(v => v && !v._submitted);
-      const missing = name ? missingPrereqs() : [];
-      submitBtn.disabled = !(name && anyNew) || missing.length > 0;
-      if (missing.length) {
-        gateEl.textContent = `Submit unlocks once ${listTitles(missing)} ${missing.length === 1 ? 'is' : 'are'} checked off. Your work here keeps saving in the meantime.`;
-        gateEl.hidden = false;
-      } else {
-        gateEl.hidden = true;
-      }
+      submitBtn.disabled = !(name && anyNew);
     }
     const _onChecksChanged = () => refreshSubmit();
     document.addEventListener('t4sg-checks-changed', _onChecksChanged);
@@ -12833,8 +12909,6 @@
       if (!name) { setStatus('Please enter your name.', true); return; }
       const anyDirty = Object.values(state).some(v => v && !v._submitted);
       if (!anyDirty) { setStatus('Add or change at least one slot before submitting.', true); return; }
-      const missing = missingPrereqs();
-      if (missing.length) { setStatus(`Finish ${listTitles(missing)} first. Your work here is saved.`, true); return; }
       _isSubmitting = true;
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting…';
@@ -13469,6 +13543,32 @@
       persistDraftFiles();
     }
 
+    async function loadSubmittedAsDraft(name) {
+      try {
+        const snap = await getDoc(doc(db, 'portfolios', `${benchmarkId}__${nameSlug(name)}`));
+        if (!snap.exists()) return null;
+        const data = snap.data() || {};
+        if (data.deleted) return null;
+        const s = data.slots || {};
+        const toFile = (slot, kind) => slot && slot.url ? {
+          url: slot.url, fileName: slot.fileName || kind, kind,
+          contentType: slot.contentType || '', filePath: slot.filePath || ''
+        } : null;
+        const imgs = Array.isArray(s.images) && s.images.length ? s.images : (s.image ? [s.image] : []);
+        const cads = Array.isArray(s.cads) && s.cads.length ? s.cads : (s.cad ? [s.cad] : []);
+        const files = [
+          ...imgs.map(x => toFile(x, 'image')),
+          toFile(s.code && s.code.mode !== 'link' ? s.code : null, 'pdf'),
+          ...cads.map(x => toFile(x, 'stl'))
+        ].filter(Boolean);
+        const reflection = (s.summary && s.summary.text) || '';
+        return (files.length || reflection) ? { files, reflection } : null;
+      } catch (e) {
+        console.warn('load submitted checkpoint failed', e);
+        return null;
+      }
+    }
+
     async function hydrateFromDraft(name) {
       const requestId = ++_hydrateRequest;
       _hydrating = true;
@@ -13477,8 +13577,14 @@
       textarea.value = '';
       renderPreviews();
       setStatus('Loading your saved work…');
-      const draft = await loadDraft(name, benchmarkId);
+      let draft = await loadDraft(name, benchmarkId);
       if (requestId !== _hydrateRequest || name !== getCurrentName()) return;
+      // No open draft? Load the submitted version so a student can revise
+      // everything and resubmit for a regrade instead of starting from blank.
+      if (!draft) {
+        draft = await loadSubmittedAsDraft(name);
+        if (requestId !== _hydrateRequest || name !== getCurrentName()) return;
+      }
       if (draft) {
         if (Array.isArray(draft.files)) {
           for (const f of draft.files) {
@@ -13621,10 +13727,15 @@
           const prev = await getDoc(pfRef);
           if (prev.exists() && prev.data().studentName) writeName = prev.data().studentName;
         } catch (_) {}
-        const slots = { summary: { mode: 'text', text: text.slice(0, 1500) } };
-        if (uploadedImages.length) { slots.image = uploadedImages[0]; slots.images = uploadedImages; }
-        if (uploadedCode) slots.code = uploadedCode;
-        if (uploadedStls.length) { slots.cad = uploadedStls[0]; slots.cads = uploadedStls; }
+        // The panel opens with the submitted work loaded, so this submit is the
+        // complete current version: write every evidence slot, emptying any the
+        // student removed, so a revision fully replaces the old one.
+        const slots = {
+          summary: { mode: 'text', text: text.slice(0, 1500) },
+          image: uploadedImages[0] || null, images: uploadedImages,
+          code: uploadedCode,
+          cad: uploadedStls[0] || null, cads: uploadedStls
+        };
         await setDoc(pfRef, {
           benchmarkId,
           studentName: writeName,
@@ -13634,21 +13745,18 @@
           slots
         }, { merge: true });
         await clearDraft(name, benchmarkId);
-        pendingFiles = [];
-        textarea.value = '';
-        renderPreviews();
         refreshCountBadge(benchmarkId);
         markChecked(benchmarkId, name);
         submitBtn.textContent = 'Submitted';
         submitBtn.classList.add('is-success');
-        setStatus('Submitted. Your work is in Class submissions below.');
+        setStatus('Submitted. You can change anything here and submit again.');
         setTimeout(() => {
           submitBtn.classList.remove('is-success');
           submitBtn.textContent = 'Submit';
           setStatus('');
           isSubmitting = false;
           refreshSubmit();
-        }, 1800);
+        }, 2400);
       } catch (err) {
         console.error('checkpoint submit failed', err);
         setStatus('Submit failed. Check your wifi and try again.', true);
@@ -13798,6 +13906,18 @@
         </div>`;
     }
 
+    // Load your own submitted link + proof into the editor so a revision
+    // starts from what you turned in (and resubmitting never drops the proof).
+    function prefillOwn() {
+      const name = nameInput.value.trim();
+      if (!name || norm(name) !== norm(ownerName)) return;
+      const e = submittedByName.get(norm(name));
+      if (!e) return;
+      if (!linkInput.value && e.instructableUrl) linkInput.value = e.instructableUrl;
+      if (!proofData && e.proof && e.proof.url) { proofData = e.proof; renderProof(); }
+      refresh();
+    }
+
     function applyMode(n) {
       const name = (n || '').trim();
       if (!ownerName && name) { ownerName = name; setLastPick(name); }
@@ -13805,13 +13925,14 @@
       if (isOwner) {
         panel.classList.remove('is-viewonly');
         viewBanner.innerHTML = '';
+        prefillOwn();
       } else {
         panel.classList.add('is-viewonly');
         viewBanner.innerHTML = `
           <span class="pf-viewbanner-text">Viewing <strong>${escapeHtml(name)}</strong>&rsquo;s submission (read only).</span>
           <button type="button" class="pf-viewbanner-btn" data-inst-claim>This is me - switch to editing</button>`;
         const c = viewBanner.querySelector('[data-inst-claim]');
-        if (c) c.addEventListener('click', () => { ownerName = name; setLastPick(name); applyMode(name); });
+        if (c) c.addEventListener('click', () => { ownerName = name; setLastPick(name); linkInput.value = ''; proofData = null; renderProof(); applyMode(name); });
       }
       renderSubmitted(name);
       refresh();
@@ -13877,9 +13998,10 @@
           if (!nm) return;
           const iu = data.instructableUrl || (data.slots && data.slots.code && data.slots.code.url) || '';
           const pu = (data.contestProof && data.contestProof.url) || data.contestUrl || '';
-          submittedByName.set(norm(nm), { studentName: nm, instructableUrl: iu, proofUrl: pu });
+          submittedByName.set(norm(nm), { studentName: nm, instructableUrl: iu, proofUrl: pu, proof: data.contestProof || (pu ? { mode: 'image', url: pu } : null) });
         });
         renderSubmitted(nameInput.value);
+        prefillOwn();
       });
     } catch (_) {}
     panel._cleanup = () => { try { picker.destroy(); } catch (_) {} if (_instUnsub) { try { _instUnsub(); } catch (_) {} } };
@@ -13937,12 +14059,22 @@
     panel.querySelector('[data-vs-namepicker]').appendChild(picker.element);
     const getName = () => picker.getName();
 
+    // Load the open draft, or else the saved summary, so a student can revise
+    // it for a regrade without retyping.
+    let _vsDraftChecked = false;
+    function prefillFromSaved(n) {
+      if (!_vsDraftChecked || textarea.value || !n || norm(n) !== norm(ownerName)) return;
+      const e = submittedByName.get(norm(n));
+      if (e && e.text) textarea.value = e.text;
+    }
     function hydrate(n) {
       if (!n) return;
       loadDraft(n, b.id).then(d => {
         if (d && typeof d.reflection === 'string' && !textarea.value) {
           textarea.value = d.reflection;
         }
+        _vsDraftChecked = true;
+        prefillFromSaved(n);
       });
     }
 
@@ -14036,6 +14168,7 @@
           if (nm) submittedByName.set(norm(nm), { studentName: nm, text: t || '' });
         });
         renderSubmitted(getName());
+        prefillFromSaved(getName());
       });
     } catch (_) {}
     panel._cleanup = () => { try { picker.destroy(); } catch (_) {} if (_vsUnsub) { try { _vsUnsub(); } catch (_) {} } };
@@ -15115,9 +15248,9 @@ void loop() {
     const s = nameSlug(vibeStudentName());
     return s || '_anon';
   }
-  function vibeChatKey() { return `d4sg-vibe-chat::${vibeSlug()}`; }
-  function vibeEditorKey() { return `d4sg-vibe-editor::${vibeSlug()}`; }
-  function vibeVersionsKey() { return `d4sg-vibe-versions::${vibeSlug()}`; }
+  function vibeChatKey() { return `d4sg-vibe-chat::${vibeSlug()}${toolFileSuffix()}`; }
+  function vibeEditorKey() { return `d4sg-vibe-editor::${vibeSlug()}${toolFileSuffix()}`; }
+  function vibeVersionsKey() { return `d4sg-vibe-versions::${vibeSlug()}${toolFileSuffix()}`; }
 
   function vibeLoadChat() {
     if (!vibeStudentName()) return [];
@@ -15132,7 +15265,7 @@ void loop() {
     const name = vibeStudentName();
     if (!name) return; // no name picked -> local only
     try {
-      saveDraft(name, 'vibe', {
+      saveDraft(name, toolDraftId('vibe'), {
         vibeChat: JSON.stringify(_vibeChat || []),
         vibeEditor: vibeGetEditorText()
       });
@@ -15199,7 +15332,7 @@ void loop() {
     const hasLocalEditor = !!localStorage.getItem(vibeEditorKey());
     if (hasLocalChat && hasLocalEditor) return; // local wins, no fetch
     try {
-      const draft = await loadDraft(name, 'vibe');
+      const draft = await loadDraft(name, toolDraftId('vibe'));
       if (!draft) return;
       let changed = false;
       if (!hasLocalChat && typeof draft.vibeChat === 'string') {
@@ -15354,6 +15487,7 @@ void loop() {
   }
 
   function initVibeCodingTool() {
+    applyToolFileFromUrl();
     _vibeChat = vibeLoadChat();
     // Reset transient state from any previous visit: a wedged in-flight AI
     // request must not keep Send disabled forever, and a stale Monaco
@@ -15490,6 +15624,13 @@ void loop() {
     if (vibeIdentityMount) {
       vibeIdentityMount.appendChild(renderIdentityStrip({
         onChange: () => { vibeSwitchStudent(); }
+      }));
+      vibeIdentityMount.appendChild(renderToolFileSwitch({
+        canSwitch: () => {
+          if (_vibeBusy) { schemToast('Wait for the AI to finish, then switch files.'); return false; }
+          return true;
+        },
+        onSwitch: () => { vibeSwitchStudent(); }
       }));
     }
 
