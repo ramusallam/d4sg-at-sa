@@ -7422,6 +7422,11 @@
   // HTML (teacher-authored), so links/lists/images all work.
   const WARM_UPS = [
     {
+      id: 'wu-2026-09-25',
+      date: '2026-09-25',
+      question: '<ol><li>Flux tutorial</li><li>Interface change</li></ol>'
+    },
+    {
       id: 'wu-2026-09-24',
       date: '2026-09-24',
       question: '<p><strong>Your switch:</strong> swipe one FC-51 IR distance sensor to send a <strong>right arrow</strong> and blink a <strong>green LED</strong>. Swipe a second IR sensor right next to it to send a <strong>left arrow</strong> and blink a <strong>red LED</strong>. Press a button to <strong>left click</strong>. Arduino Leonardo.</p><ol><li><strong>In your notebook,</strong> write the prompt you will give <a href="https://gemini.google.com" target="_blank" rel="noopener">Gemini</a>. Then paste it into Gemini to get the code.</li><li><strong>In your notebook,</strong> draw the wiring diagram using the pins in Gemini&#39;s code. Show Ramsey your wiring diagram.</li></ol>'
@@ -18652,7 +18657,8 @@ void loop() {
       document.body.classList.add('view-hw');
       renderHomework();
     } else if (r === '/cad') {
-      document.body.classList.add('view-tools');
+      // view-tools keeps the Tools nav lit; view-cad keeps the small Homework-size tiles.
+      document.body.classList.add('view-tools', 'view-cad');
       renderCadPage();
     } else if (r === '/tools/vibe') {
       document.body.classList.add('view-tools');
