@@ -8840,6 +8840,39 @@
       hint: 'I2C distance sensor: SDA + SCL. Solder the header pins before use.'
     },
 
+    // Adafruit TCS34725 RGB color sensor breakout. Header order matches the
+    // real board: LED, INT, SDA, SCL, 3V3, GND, VIN.
+    rgbsensor: {
+      group: 'components',
+      label: 'RGB color sensor (TCS34725)',
+      w: 7, h: 4,
+      pins: [
+        { name: 'LED', gx: 0.5, gy: 4 },
+        { name: 'INT', gx: 1.5, gy: 4 },
+        { name: 'SDA', gx: 2.5, gy: 4 },
+        { name: 'SCL', gx: 3.5, gy: 4 },
+        { name: '3V3', gx: 4.5, gy: 4 },
+        { name: 'GND', gx: 5.5, gy: 4 },
+        { name: 'VIN', gx: 6.5, gy: 4 }
+      ],
+      svg: function() {
+        const W = 7 * SCHEM_GRID_PITCH;
+        const H = 4 * SCHEM_GRID_PITCH;
+        return `
+          <rect x="0" y="0" width="${W}" height="${H}" rx="4" fill="#1e293b" stroke="#0f172a" stroke-width="1.2"/>
+          <rect x="${W*0.06}" y="${H - 5}" width="${W*0.88}" height="5" fill="#111"/>
+          <rect x="${W*0.36}" y="${H*0.2}" width="${W*0.14}" height="${H*0.3}" rx="1.5" fill="#0b0b0b" stroke="#475569" stroke-width="0.8"/>
+          <rect x="${W*0.39}" y="${H*0.27}" width="${W*0.035}" height="${H*0.08}" fill="#ef4444"/>
+          <rect x="${W*0.43}" y="${H*0.27}" width="${W*0.035}" height="${H*0.08}" fill="#22c55e"/>
+          <rect x="${W*0.41}" y="${H*0.37}" width="${W*0.035}" height="${H*0.08}" fill="#3b82f6"/>
+          <circle cx="${W*0.62}" cy="${H*0.35}" r="${H*0.1}" fill="#fefce8" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="${W*0.5}" y="${H*0.74}" text-anchor="middle" font-size="8" fill="#e2e8f0" font-family="system-ui, sans-serif" font-weight="700" letter-spacing="0.4">RGB TCS34725</text>
+        `;
+      },
+      pinLabels: true,
+      hint: 'VIN to 5V, GND to GND, SDA to pin 2, SCL to pin 3. Leave LED, INT, and 3V3 open.'
+    },
+
     led: {
       group: 'components',
       label: 'LED',
