@@ -8643,7 +8643,9 @@
       //   col 0 → left + rail, col 1 → left - rail, col 2 → row labels
       //   cols 3-7 → A-E, col 8 → channel, cols 9-13 → F-J
       //   col 14 → row labels, col 15 → right - rail, col 16 → right + rail
-      w: 17, h: 13,
+      // Standard half-size 400-point board: 33 grid rows = letter header +
+      // 15 tie rows + channel row + 15 tie rows + letter header (30 numbered rows).
+      w: 17, h: 33,
       pins: (() => {
         // Compact 13-row board sized to sit alongside the Arduino + perfboard:
         // row 0 + row 12 = letter headers; row 6 = center channel; rows 1-5 =
@@ -8653,7 +8655,8 @@
         const out = [];
         const LETTERS_LEFT  = ['A','B','C','D','E'];
         const LETTERS_RIGHT = ['F','G','H','I','J'];
-        const tieRows = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
+        const tieRows = [];
+        for (let r = 1; r <= 31; r++) if (r !== 16) tieRows.push(r);
         tieRows.forEach((r, idx) => {
           const tieIdx = idx + 1;
           const y = r + 0.5;
@@ -8669,7 +8672,7 @@
       // Palette + ghost use the same dynamic body as the placed component, so
       // what students see in the toolbar matches what lands on the canvas.
       svg: function() {
-        return _schemBreadboardBodySvg(17, 13);
+        return _schemBreadboardBodySvg(17, 33);
       },
       pinLabels: false,
       pinStyle: 'socket'
@@ -9045,17 +9048,6 @@
       const parsed = JSON.parse(raw);
       // Merge defaults so older saves don't crash.
       const state = Object.assign(_schemDefaultState(), parsed);
-      // Migrate oversized breadboards from the old 30-row layout down to the
-      // compact 13-row footprint so previously-placed boards stop swallowing
-      // the canvas. Width is already forced to 17 elsewhere.
-      if (Array.isArray(state.components)) {
-        state.components.forEach(c => {
-          if (c && c.type === 'breadboard' && (c.rows || 0) > 17) {
-            c.rows = 13;
-            c.cols = 17;
-          }
-        });
-      }
       return state;
     } catch (err) {
       console.warn('schematic load failed', err);
@@ -10519,7 +10511,7 @@
     }
     if (type === 'breadboard') {
       c.cols = 17;
-      c.rows = 13; // header + 10 numbered tie rows (5 top + 5 bottom) + channel + header
+      c.rows = 33; // standard half-size: header + 30 numbered tie rows (15 + channel + 15) + header
     }
     _schemState.components.push(c);
     _schemSelected = id;
