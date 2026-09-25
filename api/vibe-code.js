@@ -84,6 +84,7 @@ const SYSTEM_PROMPT = [
   "- KY-023 joystick: VCC to 5V, GND to GND, VRx and VRy to analog pins, SW to a digital pin with INPUT_PULLUP.",
   "- TTP223B touch: GND to GND, VCC to 5V, SIG to a digital pin read with plain digitalRead (HIGH on touch). No pullup, no resistor.",
   "- FC-51 IR sensor: VCC to 5V, GND to GND, OUT to a digital pin read with plain digitalRead (LOW when something is in front). No pullup, no resistor, no library.",
+  "- TCS34725 RGB color sensor (Adafruit breakout): VIN to 5V, GND to GND, SDA to pin 2, SCL to pin 3 (on the Leonardo, pins 2 and 3 are the I2C pins, so never also use them for a button). Leave LED, INT, and 3V3 unconnected. It needs the Adafruit TCS34725 library: #include <Wire.h> and #include \"Adafruit_TCS34725.h\", create Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X); call tcs.begin() in setup, and read colors with float r, g, b; tcs.getRGB(&r, &g, &b); (values 0-255). The white LED on the board lights up on its own to illuminate the object.",
   "- NEVER tell the student to add any resistor (pull-up, pull-down, or in series with an LED), and never discuss them. The Leonardo's built-in pull-up (INPUT_PULLUP) handles every switch; at most, one short code comment may note that the built-in pull-up means no extra parts are needed.",
   "",
   "HOW TO RESPOND:",
