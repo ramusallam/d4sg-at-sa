@@ -4502,7 +4502,7 @@
 
   /* ============== ARDUINO CODE LOADING TOOL ============== */
   /* One panel: the Arduino editor + serial monitor, full width. Students
-     write their code in Gemini or ChatGPT (their own tab), paste it here,
+     write their code in ChatGPT or Gemini (their own tab), paste it here,
      and Upload. The starter prompt card above the editor gives the AI the
      board + parts context the old in-app assistant used to carry. */
   .vibe-wrap {
@@ -4566,7 +4566,9 @@
      high on the page; a Show toggle reveals the full text. */
   .vibe-starter { margin: 12px 0 0; padding-right: 14px; }
   .vibe-starter-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .vibe-starter-title { font-weight: 700; font-size: 13px; color: var(--ink-hi); letter-spacing: 0.01em; flex: 1 1 auto; }
+  .vibe-starter-lead { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .vibe-starter-title { font-weight: 700; font-size: 13px; color: var(--ink-hi); letter-spacing: 0.01em; }
+  .vibe-starter-sub { font-size: 12.5px; color: var(--ink-mid); line-height: 1.4; }
   .vibe-starter .copy-prompt-btn { position: static; }
   .vibe-starter-toggle {
     padding: 5px 10px; border-radius: 999px; border: 1px solid transparent; background: transparent;
@@ -7657,7 +7659,7 @@
       <div class="tools-grid">
         <div class="tool-card" id="toolCardVibe">
           <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg></span><h3 class="tool-card-title">Arduino Code Loading Tool</h3></div>
-          <p class="tool-card-blurb">Paste code from Gemini or ChatGPT, then upload it to your Arduino.</p>
+          <p class="tool-card-blurb">Paste code from ChatGPT or Gemini, then upload it to your Arduino.</p>
           <div class="tool-card-footer">Open</div>
         </div>
         <div class="tool-card" id="toolCardSchematic">
@@ -14603,14 +14605,14 @@
 
   // ============== ARDUINO CODE LOADING TOOL ==============
   // A Monaco (VS Code) editor + Web Serial monitor with a real AVR109/Caterina
-  // flash-to-board flow. Students write code in Gemini or ChatGPT in their own
+  // flash-to-board flow. Students write code in ChatGPT or Gemini in their own
   // tab, paste it here, and Upload. (The in-app AI assistant and its OpenAI
   // proxy were removed Sep 2026; the /tools/vibe route name is kept so old
   // links still open.)
 
-  const VIBE_DEFAULT_CODE = '// Paste your code from Gemini or ChatGPT here, then click Upload.\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n}\n';
+  const VIBE_DEFAULT_CODE = '// Paste your code from ChatGPT or Gemini here, then click Upload.\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n}\n';
 
-  // Starter prompt students paste into Gemini or ChatGPT at the top of every
+  // Starter prompt students paste into ChatGPT or Gemini at the top of every
   // new chat. Carries the board + parts + wiring rules the old assistant knew.
   const VIBE_STARTER_PROMPT = [
     "I am a high school student building an adaptive controller with an Arduino Leonardo (always the Leonardo, never another board). Please follow these rules for everything I ask:",
@@ -15026,10 +15028,13 @@ void loop() {
       <button class="schem-back" id="vibeBack" aria-label="Back to Tools"><span class="schem-back-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></span> Back to Tools</button>
       <h2 class="project-title">Arduino Code Loading Tool</h2>
       <div data-vibe-identity></div>
-      <p class="vibe-intro">Write your code with <a href="https://gemini.google.com" target="_blank" rel="noopener">Gemini</a> or <a href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT</a>, paste it into the editor below, and click <strong>Upload</strong> to load it onto your Arduino. Start every new chat with the starter prompt so the AI knows your board and your parts.</p>
+      <p class="vibe-intro">Write your code with <a href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT</a> or <a href="https://gemini.google.com" target="_blank" rel="noopener">Gemini</a>, paste it into the editor below, and click <strong>Upload</strong> to load it onto your Arduino. Start every new chat with the starter prompt so the AI knows your board and your parts.</p>
       <div class="copy-prompt vibe-starter" id="vibeStarter">
         <div class="vibe-starter-head">
-          <span class="vibe-starter-title">Starter prompt for Gemini or ChatGPT</span>
+          <div class="vibe-starter-lead">
+            <span class="vibe-starter-title">Starter prompt for ChatGPT or Gemini</span>
+            <span class="vibe-starter-sub">Paste this at the start of every session you work with an AI on your code.</span>
+          </div>
           <button type="button" class="copy-prompt-btn" data-copy-target="vibeStarter" aria-label="Copy the starter prompt">Copy starter prompt</button>
           <button type="button" class="vibe-starter-toggle" id="vibeStarterToggle" aria-expanded="false">Show</button>
         </div>
@@ -15218,7 +15223,7 @@ void loop() {
       }
       const txt = vibeGetEditorText();
       if (!txt || !txt.trim()) {
-        schemToast('Editor is empty. Paste your code from Gemini or ChatGPT first.');
+        schemToast('Editor is empty. Paste your code from ChatGPT or Gemini first.');
         return;
       }
       const buildBlob = () => vibeBuildPdfBlob();
@@ -15495,7 +15500,7 @@ void loop() {
 
   // When the compile errors out, drop ONE button into the monitor that copies
   // a ready-made prompt (the compiler output + what to ask) so the student
-  // can paste it straight into Gemini or ChatGPT and bring the fix back.
+  // can paste it straight into ChatGPT or Gemini and bring the fix back.
   function vibeOfferCopyError(stderr) {
     const monitor = document.getElementById('vibeMonitor');
     if (!monitor) return;
@@ -15505,7 +15510,7 @@ void loop() {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'vibe-monitor-fix-btn';
-    btn.textContent = 'Copy error for Gemini or ChatGPT';
+    btn.textContent = 'Copy error for ChatGPT or Gemini';
     btn.addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(prompt); btn.textContent = 'Copied. Paste it into your chat, then paste the fixed code back here.'; }
       catch (_) { btn.textContent = 'Copy failed. Select the error text above and copy it yourself.'; }
@@ -15519,7 +15524,7 @@ void loop() {
   async function vibeUploadToArduino() {
     const sketch = vibeGetEditorText();
     if (!sketch || !sketch.trim()) {
-      schemToast('Editor is empty. Paste your code from Gemini or ChatGPT first.', 2400);
+      schemToast('Editor is empty. Paste your code from ChatGPT or Gemini first.', 2400);
       return;
     }
     if (!('serial' in navigator)) {
