@@ -4338,134 +4338,6 @@
     .schem-stage { grid-template-columns: 1fr; }
   }
 
-  /* Wiring guide: the **Wiring** section of the newest Vibe Coding reply,
-     carried into the schematic so students wire and read on one page.
-     Floats over the canvas on wide screens; stacks above it on small ones. */
-  .schem-wiring-panel {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 340px;
-    max-height: min(560px, 100%);
-    display: none;
-    flex-direction: column;
-    background: var(--bg-1);
-    border: 1px solid var(--border-strong);
-    border-radius: 14px;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
-    z-index: 30;
-    overflow: hidden;
-  }
-  .schem-wiring-panel.is-open { display: flex; }
-  .schem-wiring-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .schem-wiring-icon {
-    display: inline-flex;
-    color: var(--accent);
-    font-size: 17px;
-  }
-  .schem-wiring-title {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--ink-hi);
-    line-height: 1.2;
-  }
-  .schem-wiring-sub {
-    font-size: 11px;
-    color: var(--ink-low);
-  }
-  .schem-wiring-close {
-    margin-left: auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    border: none;
-    border-radius: 8px;
-    background: transparent;
-    color: var(--ink-low);
-    cursor: pointer;
-    font-size: 14px;
-  }
-  .schem-wiring-close:hover { background: var(--bg-2); color: var(--ink-hi); }
-  .schem-wiring-body {
-    padding: 12px 14px;
-    overflow-y: auto;
-    font-size: 13px;
-    line-height: 1.6;
-    color: var(--ink-hi);
-  }
-  .schem-wiring-body p { margin: 6px 0; }
-  .schem-wiring-body p:first-child { margin-top: 0; }
-  .schem-wiring-body ul {
-    margin: 6px 0;
-    padding-left: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .schem-wiring-body strong { font-weight: 700; }
-  .schem-wiring-body code {
-    background: var(--bg-2);
-    border-radius: 5px;
-    padding: 1px 5px;
-    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11.5px;
-  }
-  .schem-wiring-empty {
-    font-size: 12.5px;
-    color: var(--ink-low);
-    line-height: 1.6;
-  }
-  .schem-wiring-empty a {
-    color: var(--accent);
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    cursor: pointer;
-  }
-  .schem-wiring-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 7px 12px;
-    border: 1px solid var(--border-strong);
-    border-radius: 10px;
-    background: var(--bg-1);
-    color: var(--ink-hi);
-    font-family: inherit;
-    font-size: 12.5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.12s ease;
-  }
-  .schem-wiring-btn:hover {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-    color: var(--accent);
-  }
-  .schem-wiring-btn .schem-wiring-btn-ic {
-    display: inline-flex;
-    color: var(--accent);
-    font-size: 15px;
-  }
-  @media (max-width: 820px) {
-    .schem-wiring-panel {
-      position: static;
-      width: auto;
-      max-height: 340px;
-      order: -1;
-      box-shadow: none;
-    }
-  }
-
   .schem-palette {
     background: var(--bg-1);
     border: 1px solid var(--border);
@@ -4628,81 +4500,81 @@
     border-radius: 8px;
   }
 
-  /* ============== VIBE CODING TOOL ============== */
-  /* Companion layout: AI chat lives in a persistent left pane, the Arduino
-     editor + serial monitor in the right pane — both visible at once, like
-     ChatGPT next to the Arduino IDE. Stacks vertically on narrow screens. */
+  /* ============== ARDUINO CODE LOADING TOOL ============== */
+  /* One panel: the Arduino editor + serial monitor, full width. Students
+     write their code in Gemini or ChatGPT (their own tab), paste it here,
+     and Upload. The starter prompt card above the editor gives the AI the
+     board + parts context the old in-app assistant used to carry. */
   .vibe-wrap {
     display: grid;
-    grid-template-columns: minmax(320px, 34%) 1fr;
+    grid-template-columns: 1fr;
     gap: 16px;
     margin-top: 8px;
     height: calc(100vh - 150px);
     min-height: 640px;
   }
-  .vibe-privacy-note {
-    margin: 7px 0 0;
-    color: var(--ink-low);
-    font-size: 12px;
+  .vibe-intro {
+    margin: 8px 0 0;
+    color: var(--ink-mid);
+    font-size: 14.5px;
+    line-height: 1.55;
+    max-width: 72ch;
   }
+  .vibe-intro a { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
   @media (max-width: 900px) {
     .vibe-wrap {
-      grid-template-columns: 1fr;
       height: auto;
       min-height: 0;
     }
-    .vibe-left { height: 70vh; min-height: 460px; }
     .vibe-right { min-height: 520px; }
   }
 
-  /* ----- Left pane: the AI chat companion ----- */
-  .vibe-left {
+  /* ----- Copy-prompt box: ONE component for every prompt a student copies
+     (the starter prompt on the tool, every prompt inside a benchmark). Quiet
+     indigo tint, the text itself, and a one-click Copy that flips to Copied. */
+  .copy-prompt {
+    position: relative;
+    margin: 10px 0 8px;
+    padding: 12px 14px;
+    padding-right: 92px;
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--paper-ink);
+  }
+  .copy-prompt-text { white-space: pre-wrap; word-break: break-word; }
+  .copy-prompt-btn {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
     background: var(--bg-1);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    min-height: 0;
-  }
-  .vibe-left-head {
-    padding: 13px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    background: var(--bg-2);
-  }
-  .vibe-left-title {
-    font-size: 13px;
+    color: var(--accent);
+    font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.2px;
-    color: var(--ink-hi);
-    margin: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-  }
-  .vibe-left-title-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #14b8a6, var(--accent));
-    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.16);
-  }
-  .vibe-left-clear {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--ink-low);
-    border-radius: 8px;
-    padding: 5px 11px;
-    font-size: 11.5px;
-    font-weight: 600;
+    letter-spacing: 0.01em;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
   }
-  .vibe-left-clear:hover { border-color: var(--ink-mid); color: var(--ink-mid); }
+  .copy-prompt-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .copy-prompt-btn.is-done { background: var(--success); border-color: var(--success); color: #fff; }
+  /* Starter prompt on the tool: collapsed by default so the editor stays
+     high on the page; a Show toggle reveals the full text. */
+  .vibe-starter { margin: 12px 0 0; padding-right: 14px; }
+  .vibe-starter-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .vibe-starter-title { font-weight: 700; font-size: 13px; color: var(--ink-hi); letter-spacing: 0.01em; flex: 1 1 auto; }
+  .vibe-starter .copy-prompt-btn { position: static; }
+  .vibe-starter-toggle {
+    padding: 5px 10px; border-radius: 999px; border: 1px solid transparent; background: transparent;
+    color: var(--ink-mid); font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .vibe-starter-toggle:hover { color: var(--accent); }
+  .vibe-starter .copy-prompt-text { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13.5px; color: var(--ink-mid); }
+  .vibe-starter.is-open .copy-prompt-text { display: block; }
 
   @media (max-width: 980px) {
     .vibe-wrap { height: auto; }
@@ -4739,431 +4611,6 @@
     align-items: center;
     flex-wrap: wrap;
   }
-
-  /* Chat panel */
-  .vibe-chat-scroll {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-height: 0;
-  }
-  .vibe-msg {
-    max-width: 92%;
-    padding: 12px 16px;
-    border-radius: 14px;
-    font-size: 14.5px;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  .vibe-msg-user {
-    align-self: flex-end;
-    background: var(--accent);
-    color: white;
-    border: none;
-  }
-  .vibe-msg-ai {
-    align-self: flex-start;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    color: var(--ink-hi);
-  }
-  .vibe-msg-error {
-    align-self: flex-start;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #b91c1c;
-    font-size: 13.5px;
-  }
-  .vibe-msg-loading {
-    align-self: flex-start;
-    color: var(--ink-mid);
-    font-size: 13.5px;
-    font-style: italic;
-    animation: vibePulse 1.4s ease-in-out infinite;
-  }
-  @keyframes vibePulse {
-    0%, 100% { opacity: 0.55; }
-    50% { opacity: 1; }
-  }
-  .vibe-msg-codepreview {
-    margin-top: 8px;
-    background: #1e293b;
-    color: #e2e8f0;
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12px;
-    line-height: 1.5;
-    max-height: 180px;
-    overflow: auto;
-    white-space: pre;
-  }
-  .vibe-msg-copybtn {
-    margin-top: 8px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 7px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-  .vibe-msg-copybtn:hover { background: var(--accent-hover); }
-  .vibe-msg-copybtn.is-copied { background: var(--success); }
-
-  .vibe-stems-wrap {
-    border-top: 1px solid var(--border);
-    background: var(--bg-2);
-    padding: 9px 14px 0;
-  }
-  .vibe-stems {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .vibe-stem {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 5px 11px;
-    font-size: 11.5px;
-    font-weight: 600;
-    color: var(--ink-mid);
-    cursor: pointer;
-    transition: all 0.15s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-  }
-  .vibe-stem:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-soft);
-  }
-  .vibe-stem--primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-    box-shadow: 0 3px 10px rgba(99, 102, 241, 0.22);
-  }
-  .vibe-stem--primary:hover {
-    background: var(--accent-hover);
-    border-color: var(--accent-hover);
-    color: #fff;
-  }
-  .vibe-stem--primary .vibe-stem-icon { opacity: 1; }
-  .vibe-stem-icon { font-size: 10.5px; opacity: 0.7; }
-
-  /* The composer card — textarea + send button share one rounded card that
-     lifts on focus (the signature premium moment). */
-  .vibe-input-row {
-    border-top: 1px solid var(--border);
-    padding: 12px 14px 14px;
-    background: var(--bg-2);
-  }
-  .vibe-composer {
-    display: flex;
-    gap: 8px;
-    align-items: flex-end;
-    background: var(--bg-1);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 8px 8px 8px 14px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  }
-  .vibe-composer:focus-within {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), 0 6px 18px rgba(99, 102, 241, 0.10);
-  }
-  /* The textarea sits transparently on top of a mirror layer that re-renders
-     the same text. The mirror is what's actually visible — it lets us paint
-     the <FILL-IN> tokens blue, which a bare textarea can't do. The two share
-     identical box metrics so the caret lands exactly on the painted glyphs. */
-  .vibe-input-wrap {
-    flex: 1 1 auto;
-    position: relative;
-    display: flex;
-    min-width: 0;
-  }
-  .vibe-input,
-  .vibe-input-mirror {
-    font: inherit;
-    font-size: 14.5px;
-    line-height: 1.5;
-    padding: 7px 0;
-    letter-spacing: normal;
-    white-space: pre-wrap;
-    overflow-wrap: break-word;
-    word-break: break-word;
-  }
-  .vibe-input {
-    position: relative;
-    z-index: 1;
-    flex: 1 1 auto;
-    width: 100%;
-    border: none;
-    background: transparent;
-    min-height: 76px;
-    max-height: 220px;
-    overflow-y: auto;
-    color: transparent;
-    caret-color: var(--ink-hi);
-    resize: none;
-    outline: none;
-  }
-  .vibe-input-mirror {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    overflow-y: auto;
-    pointer-events: none;
-    color: var(--ink-hi);
-    margin: 0;
-  }
-  /* Empty mirror shows nothing; the textarea's own ::placeholder handles the
-     hint so we don't double up. */
-  .vibe-input-mirror:empty { display: none; }
-  .vibe-fillin {
-    color: var(--accent);
-    font-weight: 600;
-    background: var(--accent-soft);
-    border-radius: 4px;
-    padding: 0 2px;
-  }
-  .vibe-input::placeholder { color: var(--ink-low); }
-  /* When a stem auto-selects the fill-in token, keep that selection blue too. */
-  .vibe-input::selection { background: rgba(99, 102, 241, 0.22); }
-
-  /* Empty state: no conversation yet. Collapse the blank chat scroll and let
-     the composer grow to fill the panel as one big writing box. */
-  .vibe-left.is-empty .vibe-chat-scroll {
-    flex: 0 0 0;
-    min-height: 0;
-    padding: 0;
-    overflow: hidden;
-  }
-  .vibe-left.is-empty .vibe-input-row {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-  }
-  .vibe-left.is-empty .vibe-composer {
-    flex: 1 1 auto;
-    align-items: stretch;
-  }
-  .vibe-left.is-empty .vibe-input-wrap { height: 100%; }
-  .vibe-left.is-empty .vibe-input {
-    max-height: none;
-    height: 100%;
-  }
-  .vibe-left.is-empty .vibe-send-btn { align-self: flex-end; }
-
-  .vibe-photo-btn {
-    background: transparent;
-    color: var(--text-muted);
-    border: 1px solid var(--border);
-    border-radius: 11px;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: color .15s, border-color .15s;
-  }
-  .vibe-photo-btn:hover { color: var(--accent); border-color: var(--accent); }
-  .vibe-photo-chips {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    padding: 0 2px 8px;
-  }
-  .vibe-photo-chip {
-    position: relative;
-    width: 52px;
-    height: 52px;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    flex: 0 0 auto;
-  }
-  .vibe-photo-chip img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .vibe-photo-chip-x {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 18px;
-    height: 18px;
-    border: none;
-    border-radius: 50%;
-    background: rgba(0,0,0,.55);
-    color: #fff;
-    font-size: 12px;
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    padding: 0;
-  }
-  .vibe-msg-photos {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-bottom: 6px;
-  }
-  .vibe-msg-photos img {
-    width: 72px;
-    height: 72px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid rgba(255,255,255,.35);
-  }
-
-  .vibe-send-btn {
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 11px;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.15s ease, transform 0.12s ease, opacity 0.15s ease;
-    flex-shrink: 0;
-  }
-  .vibe-send-btn:hover:not(:disabled) { transform: translateY(-1px); background: var(--accent-hover); }
-  .vibe-send-btn:disabled {
-    background: var(--border);
-    color: var(--ink-low);
-    cursor: not-allowed;
-  }
-  /* Markdown rendering inside assistant chat bubbles. */
-  .vibe-md p { margin: 0 0 8px; }
-  .vibe-md p:last-child { margin-bottom: 0; }
-  .vibe-md ul, .vibe-md ol { margin: 4px 0 8px; padding-left: 20px; }
-  .vibe-md li { margin: 2px 0; }
-  .vibe-md strong { font-weight: 700; color: var(--ink-hi); }
-  .vibe-md code {
-    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12.5px;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    padding: 1px 5px;
-  }
-  /* A generated-code block in chat, with its own action bar. */
-  .vibe-codeblock {
-    margin: 10px 0 6px;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid #1e293b;
-  }
-  .vibe-codeblock-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    background: #0f172a;
-    padding: 6px 10px;
-  }
-  .vibe-codeblock-lang {
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: #94a3b8;
-  }
-  .vibe-codeblock-actions { display: flex; gap: 6px; }
-  .vibe-codeblock-btn {
-    background: #1e293b;
-    color: #e2e8f0;
-    border: 1px solid #334155;
-    border-radius: 7px;
-    padding: 4px 10px;
-    font-size: 11.5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.14s ease, border-color 0.14s ease;
-  }
-  .vibe-codeblock-btn:hover { background: #334155; }
-  .vibe-codeblock-btn.is-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .vibe-codeblock-btn.is-primary:hover { background: var(--accent-hover); }
-  .vibe-codeblock-btn.is-done { background: var(--success); border-color: var(--success); color: #fff; }
-  .vibe-codeblock pre {
-    margin: 0;
-    background: #1e293b;
-    color: #e2e8f0;
-    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12px;
-    line-height: 1.5;
-    padding: 11px 12px;
-    max-height: 260px;
-    overflow: auto;
-    white-space: pre;
-  }
-
-  /* Compact "loaded into editor" confirmation chip — replaces the duplicate
-     black code box in the chat. Keeps the conversation clean so only the
-     wiring + loading instructions remain readable. */
-  .vibe-codeloaded {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 10px 0 6px;
-    padding: 9px 11px;
-    border-radius: 10px;
-    border: 1px solid rgba(16, 185, 129, 0.32);
-    background: rgba(16, 185, 129, 0.08);
-  }
-  .vibe-codeloaded-icon {
-    flex: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--success);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1;
-  }
-  .vibe-codeloaded-text {
-    flex: 1;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-hi);
-  }
-  .vibe-codeloaded-actions { display: flex; gap: 6px; flex: none; }
-  .vibe-codeloaded-btn {
-    background: var(--bg-1);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 4px 10px;
-    font-size: 11.5px;
-    font-weight: 600;
-    color: var(--ink-mid);
-    cursor: pointer;
-    transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
-  }
-  .vibe-codeloaded-btn:hover { background: var(--bg-2); border-color: var(--border-strong); }
-  .vibe-codeloaded-btn.is-done { color: var(--success); border-color: var(--success); }
 
   /* Editor panel: takes full page width now. Editor expands, monitor docks
      at bottom. */
@@ -5476,7 +4923,7 @@
     color: white;
   }
 
-  /* "+ Save to..." popover (shared by Schematic + Vibe Coding tools). */
+  /* "+ Save to..." popover (shared by Schematic + Arduino Code Loading Tools). */
   .save-to-anchor {
     position: relative;
     display: inline-block;
@@ -6830,7 +6277,7 @@
     }
   }
 
-  // Lightweight identity strip for the Tool views (Vibe Coding, Schematic).
+  // Lightweight identity strip for the Tool views (Arduino Code Loading, Schematic).
   // Shows the student "saving as" + a quick name picker so identity is set
   // BEFORE they do work. Saves into the same LAST_PICK_KEY so the benchmark
   // panels pre-select correctly when they hit "Save to benchmark".
@@ -6939,9 +6386,9 @@
           points: 2,
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
-            'Open the [Vibe Coding Tool](tools#vibe), click **Build**, and describe this behavior in the input: *"Activate the W key each time a simple tactile button is pressed. Avoid pins 2 and 3 - I need them free for a later sensor. Use only the Arduino Leonardo and the button - no other parts, no resistors. Simplest possible code and simplest wiring instructions."*',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then this prompt: {{prompt}}Activate the W key each time a simple tactile button is pressed. Avoid pins 2 and 3 - I need them free for a later sensor. Use only the Arduino Leonardo and the button - no other parts, no resistors. Simplest possible code and simplest wiring instructions.{{/prompt}} Paste the code it gives you into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to lay out a digital schematic of your circuit using a **breadboard**.',
-            'Wire your physical Arduino to match your schematic, then load the code from the Vibe Coding editor.',
+            'Wire your physical Arduino to match your schematic, then upload the code from the Arduino Code Loading Tool.',
             'Test it: click into any text field and press your button - a w should appear on every press. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. **Save to benchmark** in each tool files the schematic and code PDF automatically. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and save it to this benchmark the same way.'
           ],
@@ -6956,9 +6403,9 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Button wiring exactly where it is.** Add the lever switch beside it on the same breadboard.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: activate the A key each time a simple lever switch is triggered. Keep the W-key button behavior I already have and do not change my existing wiring. Use only the lever switch - no other new parts, no resistors. Simplest possible code and simplest wiring instructions."*',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Button code from the tool, then this prompt: {{prompt}}Add to my existing code: activate the A key each time a simple lever switch is triggered. Keep the W-key button behavior I already have and do not change my existing wiring. Use only the lever switch - no other new parts, no resistors. Simplest possible code and simplest wiring instructions.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the lever switch to your existing schematic on the **breadboard**.',
-            'Wire the lever switch into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
+            'Wire the lever switch into your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool.',
             'Test it: the A key should hold while the lever is lifted. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
@@ -6974,9 +6421,9 @@
           instructions: [
             '**First, get out your breadboard.** Up to now everything has plugged straight into the Arduino, but the Arduino only has a few ground pins - add two LEDs and you are out of grounds. The breadboard fixes that by letting all your parts share the same ground rail. Ramsey will talk through how a breadboard works before you start wiring.',
             '**Leave your Button and Lever wiring exactly where it is.** Add two different-color LEDs. The LEDs do not plug into the breadboard directly - push each LED leg into the female end of a male-female jumper wire, one wire per leg, so the LED hangs off the breadboard on its two wires.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Button and Lever code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the button is pressed, and a different-color LED while the lever is triggered. Keep the W-key and A-key behaviors I already have and do not change my existing wiring. Use only the two LEDs - no other new parts, no resistors. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go."*',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Button and Lever code from the tool, then this prompt: {{prompt}}Add to my existing code: turn on one LED while the button is pressed, and a different-color LED while the lever is triggered. Keep the W-key and A-key behaviors I already have and do not change my existing wiring. Use only the two LEDs - no other new parts, no resistors. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
-            'Wire the two LEDs into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
+            'Wire the two LEDs into your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool.',
             'Test it: one LED should light while the button is pressed and the other while the lever is triggered. If an LED will not light, the most common cause is an LED leg or jumper sitting in the wrong breadboard row - check that before removing anything. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
@@ -7001,13 +6448,13 @@
           },
           instructions: [
             'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one switch and one LED. Maximum: both switches and both LEDs.** Pick what your user\'s motion and goal actually need - function first, looks later. Your sketch must answer two questions: where does their reliable motion hit the switch, and where do the LEDs sit so they can see them? Sketch your mount now too - the mount is the 3D-printed housing that holds the switch itself and positions it right where your user\'s motion lands. You will design and print it in a later step. Prefer paper? Sketch it in your notebook instead - upload a photo of the page when you turn it in.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Clear the editor - you are starting fresh.** Write your own prompt from scratch, applying everything you learned about prompting in the Button, Lever, and LED benchmarks. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends (a key can also type a whole preset phrase - just describe it), (3) what happens on press, release, and hold, (4) when each LED is on or off. Then end your prompt with the guardrail line: *"Use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions."* Example of a precise line: *"While the button is held, hold the W key down, and release it the moment the button is released."* Click **Build** with your prompt.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a fresh chat. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then write your own prompt from scratch, applying everything you learned about prompting in the Button, Lever, and LED benchmarks. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends (a key can also type a whole preset phrase - just describe it), (3) what happens on press, release, and hold, (4) when each LED is on or off. Then end your prompt with this guardrail line: {{prompt}}Use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions.{{/prompt}} Example of a precise line: *"While the button is held, hold the W key down, and release it the moment the button is released."* Send it, then paste the code it gives you into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new.',
-            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
+            'Wire your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in [Tinkercad](https://www.tinkercad.com) that holds the switch where your user\'s motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL (the file format 3D printers read - in Tinkercad: Export, then .STL).',
             '3D print your mount and assemble the final product - switch, mount, LEDs, Arduino. Then **test it like your user would** - use only the motion they actually have. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Video slot below.',
-            '**Your final product is where Project 2 starts.** Once it works, copy your final code out of the Vibe Coding editor and take a clear photo of your final breadboard. Project 2 adds on to this exact code and wiring - not the Button, Lever, and LED benchmarks. If your final product used only a button, the button is what you carry forward.',
-            'Submit your work in the **Rubric & Drop** section below - the rubric is your checklist. The [Idea Board](tools#idea-board), [Vibe Coding Tool](tools#vibe), [Wiring Schematic Tool](tools#schematic), and [Image Capture Tool](tools#camera) each save straight into the right slot with their **Save to** button.'
+            '**Your final product is where Project 2 starts.** Once it works, copy your final code out of the Arduino Code Loading Tool and take a clear photo of your final breadboard. Project 2 adds on to this exact code and wiring - not the Button, Lever, and LED benchmarks. If your final product used only a button, the button is what you carry forward.',
+            'Submit your work in the **Rubric & Drop** section below - the rubric is your checklist. The [Idea Board](tools#idea-board), [Arduino Code Loading Tool](tools#vibe), [Wiring Schematic Tool](tools#schematic), and [Image Capture Tool](tools#camera) each save straight into the right slot with their **Save to** button.'
           ],
           videoUrl: '',
           links: [],
@@ -7034,10 +6481,10 @@
           points: 2,
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
-            '**Start from your Project 1 final product, not the benchmarks.** Load your final product code back into the Vibe Coding editor and match your breadboard to your final product photo - only the switches and LEDs that product used. If it used just a button, you bring back just the button. Add the capacitive touch sensor beside them - the small blue **TTP223B** board with a circle pad and three pins labeled **SIG, VCC, GND**. **The build is cumulative from here on:** power and ground come from the breadboard rails, every new part gets its own free pin, and nothing already wired ever comes out.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Project 1 final product code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: type the letter s each time I lightly touch a TTP223B capacitive touch sensor. No force or pressing should be needed. The sensor has three pins: SIG, VCC, and GND. Tell me which free digital pin to put SIG on and use that exact pin number in the code. Keep every behavior from my Project 1 final product and do not change my existing wiring. Use only the touch sensor - no other new parts, no resistors. Simplest possible code and simplest wiring instructions."*',
+            '**Start from your Project 1 final product, not the benchmarks.** Load your final product code back into the Arduino Code Loading Tool and match your breadboard to your final product photo - only the switches and LEDs that product used. If it used just a button, you bring back just the button. Add the capacitive touch sensor beside them - the small blue **TTP223B** board with a circle pad and three pins labeled **SIG, VCC, GND**. **The build is cumulative from here on:** power and ground come from the breadboard rails, every new part gets its own free pin, and nothing already wired ever comes out.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Project 1 final product code from the tool, then this prompt: {{prompt}}Add to my existing code: type the letter s each time I lightly touch a TTP223B capacitive touch sensor. No force or pressing should be needed. The sensor has three pins: SIG, VCC, and GND. Tell me which free digital pin to put SIG on and use that exact pin number in the code. Keep every behavior from my Project 1 final product and do not change my existing wiring. Use only the touch sensor - no other new parts, no resistors. Simplest possible code and simplest wiring instructions.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the touch sensor to your existing schematic on the **breadboard**.',
-            'Wire the sensor to match your schematic: **GND to GND, VCC to 5V, SIG to the digital pin your code reads** - the pin number in the code and the socket SIG sits in must match exactly. One continuous wire per connection - never chain two jumpers end to end. Then load the code from the Vibe Coding editor.',
+            'Wire the sensor to match your schematic: **GND to GND, VCC to 5V, SIG to the digital pin your code reads** - the pin number in the code and the socket SIG sits in must match exactly. One continuous wire per connection - never chain two jumpers end to end. Then upload the code from the Arduino Code Loading Tool.',
             'Test it: the little LED on the sensor lights while your finger is on the pad, and an s should type on every light touch, with no pressing needed. If it types nothing, first check that SIG is really in the pin the code names. If it types s over and over with no finger on it, unplug its VCC wire, lay the sensor flat, and plug it back in without touching the pad - it recalibrates itself in the first half-second. The small LED on the touch sensor stays on the whole time it has power. It does not show touches, so use the typed s as your test. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
@@ -7052,9 +6499,9 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Touch wiring exactly where it is.** Add the IR sensor beside it on the same breadboard - the small blue **FC-51** board with two bulbs on one end (one clear, one black), a small blue dial, and three pins labeled **VCC, GND, OUT**. Its pins come already soldered on, so it plugs straight into the breadboard.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Touch code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: type the letter d each time a hand or object comes close to an FC-51 IR sensor module. The sensor has three pins: VCC, GND, and OUT, and OUT goes LOW when something is in front of it. Tell me which free digital pin to put OUT on and use that exact pin number in the code. Keep my Project 1 final product behaviors and the S-key touch behavior I already have and do not change my existing wiring. Use only the IR sensor - no other new parts, no resistors, no libraries. Simplest possible code and simplest wiring instructions."*',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Touch code from the tool, then this prompt: {{prompt}}Add to my existing code: type the letter d each time a hand or object comes close to an FC-51 IR sensor module. The sensor has three pins: VCC, GND, and OUT, and OUT goes LOW when something is in front of it. Tell me which free digital pin to put OUT on and use that exact pin number in the code. Keep my Project 1 final product behaviors and the S-key touch behavior I already have and do not change my existing wiring. Use only the IR sensor - no other new parts, no resistors, no libraries. Simplest possible code and simplest wiring instructions.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the IR sensor to your existing schematic on the **breadboard**.',
-            'Wire the sensor to match your schematic: **VCC to 5V, GND to GND, OUT to the digital pin your code reads** - the pin number in the code and the socket OUT sits in must match exactly. One continuous wire per connection - never chain two jumpers end to end. Then load the code from the Vibe Coding editor.',
+            'Wire the sensor to match your schematic: **VCC to 5V, GND to GND, OUT to the digital pin your code reads** - the pin number in the code and the socket OUT sits in must match exactly. One continuous wire per connection - never chain two jumpers end to end. Then upload the code from the Arduino Code Loading Tool.',
             'Test it: the little LED on the sensor lights when your hand is in front of the bulbs, and a d should type each time your hand comes close. If it triggers from too far away, or only when your hand is almost touching it, turn the blue dial a little with a small screwdriver to set the distance. If it triggers with nothing in front of it, turn the dial the other way and point the sensor away from windows and bright lights. The IR sensor has two small onboard LEDs: one is a power light and stays on, the other changes only when a hand or object is in front of the sensor. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
@@ -7069,9 +6516,9 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Touch and Distance wiring exactly where it is.** Add two different-color LEDs beside them on the same breadboard.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Touch and Distance code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the touch sensor is active, and a different-color LED while the IR sensor is triggered. Keep my Project 1 final product behaviors and the S-key and D-key behaviors I already have and do not change my existing wiring. Use only the two LEDs - no other new parts, no resistors. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go."*',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Touch and Distance code from the tool, then this prompt: {{prompt}}Add to my existing code: turn on one LED while the touch sensor is active, and a different-color LED while the IR sensor is triggered. Keep my Project 1 final product behaviors and the S-key and D-key behaviors I already have and do not change my existing wiring. Use only the two LEDs - no other new parts, no resistors. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
-            'Wire the two LEDs into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
+            'Wire the two LEDs into your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool.',
             'Test it: one LED should light while the touch sensor is active and the other while the IR sensor is triggered. If an LED will not light, the most common cause is an LED leg or jumper sitting in the wrong breadboard row - check that before removing anything. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
@@ -7096,13 +6543,13 @@
           },
           instructions: [
             'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one sensor and one LED. Maximum: both sensors and both LEDs. Your Project 1 final product stays wired in either way - part of the build, not the star.** Pick what your user\'s motion and goal actually need - function first, looks later. Your sketch must answer two questions: where does their smallest reliable movement meet the sensor, and where do the LEDs sit so they can see them? Sketch your mount now too - the mount is the 3D-printed housing that holds the sensor itself and positions it right where their smallest movement lands. You will design and print it in a later step. Prefer paper? Sketch it in your notebook instead - upload a photo of the page when you turn it in.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your cumulative code in the editor - your product rides on top of it.** Write your own prompt for the new behavior, applying everything you learned about prompting in the Touch, Distance, and LED benchmarks. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends, (3) what happens on touch or approach, on release, and on hold, (4) when each LED is on or off. Then end your prompt with the guardrail line: *"Keep every behavior and pin I already have and do not change my existing wiring. For the new behavior, use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions."* Example of a precise line: *"When a hand comes close enough to trigger the IR sensor, type the D key once, and do not repeat until the hand moves away and comes back."* Click **Build** with your prompt.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then your cumulative code from the tool - your product rides on top of it. Then write your own prompt for the new behavior, applying everything you learned about prompting in the Touch, Distance, and LED benchmarks. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends, (3) what happens on touch or approach, on release, and on hold, (4) when each LED is on or off. Then end your prompt with this guardrail line: {{prompt}}Keep every behavior and pin I already have and do not change my existing wiring. For the new behavior, use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions.{{/prompt}} Example of a precise line: *"When a hand comes close enough to trigger the IR sensor, type the D key once, and do not repeat until the hand moves away and comes back."* Send it, then paste the code it gives you into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new.',
-            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
+            'Wire your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in [Tinkercad](https://www.tinkercad.com) that holds the sensor where your user\'s smallest motion actually lands. Include a tab or clamp so it can mount to a desk, tray, headrest, or chair. Export the STL.',
             '3D print your mount and assemble the final product - sensor, mount, LEDs, Arduino, **with your Project 1 final product still wired in and still working**. Then **test it like your user would** - use only the motion they actually have, with no force. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Video slot below - the earlier switches do not need to be featured, but they must be visibly wired in.',
-            '**Your final product is where Project 3 starts.** Once it works, copy your final code out of the Vibe Coding editor and take a clear photo of your final breadboard. Project 3 adds on to this exact code and wiring - your Project 1 final product plus everything you added here - not the Touch, Distance, and LED benchmarks.',
-            'Submit your work in the **Rubric & Drop** section below - the rubric is your checklist. The [Idea Board](tools#idea-board), [Vibe Coding Tool](tools#vibe), [Wiring Schematic Tool](tools#schematic), and [Image Capture Tool](tools#camera) each save straight into the right slot with their **Save to** button.'
+            '**Your final product is where Project 3 starts.** Once it works, copy your final code out of the Arduino Code Loading Tool and take a clear photo of your final breadboard. Project 3 adds on to this exact code and wiring - your Project 1 final product plus everything you added here - not the Touch, Distance, and LED benchmarks.',
+            'Submit your work in the **Rubric & Drop** section below - the rubric is your checklist. The [Idea Board](tools#idea-board), [Arduino Code Loading Tool](tools#vibe), [Wiring Schematic Tool](tools#schematic), and [Image Capture Tool](tools#camera) each save straight into the right slot with their **Save to** button.'
           ],
           videoUrl: '',
           links: [],
@@ -7129,10 +6576,10 @@
           points: 2,
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
-            '**Start from your Project 2 final product, not the benchmarks.** Load your Project 2 final product code back into the Vibe Coding editor and match your breadboard to your final product photo - everything that product carried, including your Project 1 final product. Add the joystick module (KY-023 - it has 5 pins: power, ground, X, Y, and a press-down button) beside it all. **The build stays cumulative:** power and ground come from the breadboard rails, every new part gets its own free pins, and nothing already wired ever comes out.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Project 2 final product code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: move the mouse cursor with a 5-pin joystick, and send a left mouse click each time I press the joystick down. Keep everything I already have and do not change my existing wiring. Use only the joystick - no other new parts, no resistors. Simplest possible code and simplest wiring instructions."*',
+            '**Start from your Project 2 final product, not the benchmarks.** Load your Project 2 final product code back into the Arduino Code Loading Tool and match your breadboard to your final product photo - everything that product carried, including your Project 1 final product. Add the joystick module (KY-023 - it has 5 pins: power, ground, X, Y, and a press-down button) beside it all. **The build stays cumulative:** power and ground come from the breadboard rails, every new part gets its own free pins, and nothing already wired ever comes out.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Project 2 final product code from the tool, then this prompt: {{prompt}}Add to my existing code: move the mouse cursor with a 5-pin joystick, and send a left mouse click each time I press the joystick down. Keep everything I already have and do not change my existing wiring. Use only the joystick - no other new parts, no resistors. Simplest possible code and simplest wiring instructions.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the joystick to your existing schematic on the **breadboard**.',
-            'Wire your physical Arduino to match your schematic, then load the code from the Vibe Coding editor.',
+            'Wire your physical Arduino to match your schematic, then upload the code from the Arduino Code Loading Tool.',
             'Test it: the cursor should follow the stick, and pressing the stick down should left-click. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
@@ -7147,9 +6594,9 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Joystick wiring exactly where it is.** Add the sip-and-puff switch beside it on the same breadboard.',
-            'A sip-and-puff switch is a tube you breathe through - a puff of air closes the switch, like pressing a button with your breath. Open the [Vibe Coding Tool](tools#vibe). **Keep your Joystick code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: press the X key each time I puff into a sip-and-puff switch, which acts like a digital button with a ground pin and a signal pin. Keep my Project 2 final product behaviors and the joystick mouse and click behaviors I already have and do not change my existing wiring. Use only the sip-and-puff switch - no other new parts, no resistors. Simplest possible code and simplest wiring instructions."*',
+            'A sip-and-puff switch is a tube you breathe through - a puff of air closes the switch, like pressing a button with your breath. Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Joystick code from the tool, then this prompt: {{prompt}}Add to my existing code: press the X key each time I puff into a sip-and-puff switch, which acts like a digital button with a ground pin and a signal pin. Keep my Project 2 final product behaviors and the joystick mouse and click behaviors I already have and do not change my existing wiring. Use only the sip-and-puff switch - no other new parts, no resistors. Simplest possible code and simplest wiring instructions.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the sip-and-puff switch to your existing schematic on the **breadboard**.',
-            'Wire the sip-and-puff switch into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
+            'Wire the sip-and-puff switch into your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool.',
             'Test it: an x should type on every puff. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
@@ -7164,9 +6611,9 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Joystick and Sip-and-Puff wiring exactly where it is.** Add two different-color LEDs beside it all on the same breadboard.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your Joystick and Sip-and-Puff code in the editor.** Click **Build** and describe this behavior in the input: *"Add to my existing code: turn on one LED while the joystick button is pressed, and a different-color LED while the sip-and-puff switch is triggered. Keep my Project 2 final product behaviors and the mouse, click, and X-key behaviors I already have and do not change my existing wiring. Use only the two LEDs - no other new parts, no resistors. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go."*',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Joystick and Sip-and-Puff code from the tool, then this prompt: {{prompt}}Add to my existing code: turn on one LED while the joystick button is pressed, and a different-color LED while the sip-and-puff switch is triggered. Keep my Project 2 final product behaviors and the mouse, click, and X-key behaviors I already have and do not change my existing wiring. Use only the two LEDs - no other new parts, no resistors. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
-            'Wire the two LEDs into your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor.',
+            'Wire the two LEDs into your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool.',
             'Test it: one LED should light while the joystick is pressed and the other while the sip-and-puff switch is triggered. If an LED will not light, the most common cause is an LED leg or jumper sitting in the wrong breadboard row - check that before removing anything. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
@@ -7191,13 +6638,13 @@
           },
           instructions: [
             'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: one input and one LED. Maximum: both inputs and both LEDs. Your Project 2 final product stays wired in either way - part of the build, not the star.** Pick what your user\'s motion and goal actually need - function first, looks later. Your sketch must answer two questions: where does their mouth, chin, or breath meet the joystick and the sip-and-puff tube, and where do the LEDs sit so they can see them? Sketch your mount now too - the mount is the 3D-printed housing that holds the joystick and tube themselves, secured right where their mouth, chin, and breath can reach. You will design and print it in a later step. Prefer paper? Sketch it in your notebook instead - upload a photo of the page when you turn it in.',
-            'Open the [Vibe Coding Tool](tools#vibe). **Keep your cumulative code in the editor - your product rides on top of it.** Write your own prompt for the new behavior, applying everything you learned about prompting in the Joystick, Sip-and-Puff, and LED benchmarks. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends, (3) what happens on joystick move, on press, on puff, and on release, (4) when each LED is on or off. Then end your prompt with the guardrail line: *"Keep every behavior and pin I already have and do not change my existing wiring. For the new behavior, use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions."* Example of a precise line: *"While I puff, hold the X key down, and release it the moment the puff ends."* Click **Build** with your prompt.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then your cumulative code from the tool - your product rides on top of it. Then write your own prompt for the new behavior, applying everything you learned about prompting in the Joystick, Sip-and-Puff, and LED benchmarks. A strong prompt answers: (1) which inputs and LEDs you are using, (2) the exact key or mouse action each input sends, (3) what happens on joystick move, on press, on puff, and on release, (4) when each LED is on or off. Then end your prompt with this guardrail line: {{prompt}}Keep every behavior and pin I already have and do not change my existing wiring. For the new behavior, use only the parts I named - nothing extra. Simplest possible code and simplest wiring instructions.{{/prompt}} Example of a precise line: *"While I puff, hold the X key down, and release it the moment the puff ends."* Send it, then paste the code it gives you into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new.',
-            'Wire your physical Arduino to match your updated schematic, then load the new code from the Vibe Coding editor. **Test it.** Modify the code until the behavior works exactly the way you described it.',
+            'Wire your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool. **Test it.** Modify the code until the behavior works exactly the way you described it.',
             'Design a CAD mount in [Tinkercad](https://www.tinkercad.com) that holds the joystick and the sip-and-puff tube where your user\'s mouth and chin actually reach them. **It must clamp or bolt to a table, wheelchair tray, or mount arm so it cannot shift while your user drives it with their face.** Export the STL.',
             '3D print your mount and assemble the final product - joystick, sip-and-puff, mount, LEDs, Arduino, **with your Project 2 final product still wired in and still working**. Then **test it like your user would** - use only your mouth, chin, and breath, with your device secured in place, and use a fresh mouthpiece or your own tube when testing the sip-and-puff. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, with no accidental triggers. You will show this in your Video slot below - the earlier switches do not need to be featured, but they must be visibly wired in.',
-            '**Your final product is what you plug into the hub in Project 4.** Once it works, copy your final code out of the Vibe Coding editor and take a clear photo of your final breadboard. That one board - every input your final products carried across Projects 1-3 - is what the hub is built around.',
-            'Submit your work in the **Rubric & Drop** section below - the rubric is your checklist. The [Idea Board](tools#idea-board), [Vibe Coding Tool](tools#vibe), [Wiring Schematic Tool](tools#schematic), and [Image Capture Tool](tools#camera) each save straight into the right slot with their **Save to** button.'
+            '**Your final product is what you plug into the hub in Project 4.** Once it works, copy your final code out of the Arduino Code Loading Tool and take a clear photo of your final breadboard. That one board - every input your final products carried across Projects 1-3 - is what the hub is built around.',
+            'Submit your work in the **Rubric & Drop** section below - the rubric is your checklist. The [Idea Board](tools#idea-board), [Arduino Code Loading Tool](tools#vibe), [Wiring Schematic Tool](tools#schematic), and [Image Capture Tool](tools#camera) each save straight into the right slot with their **Save to** button.'
           ],
           videoUrl: '',
           links: [],
@@ -7241,7 +6688,7 @@
           gradeNote: 'Evidence (perfboard photo front/back + code PDF + powered-board photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'You are about to take the circuit you grew across Projects 1-3 and make it permanent. **Do not change any behavior - the perfboard runs the same code your breadboard ran.** The only difference is that the connections are now soldered and the inputs exit the board through panel-mount connectors instead of jumper wires.',
-            'Start from your Project 3 final product code - it already carries your Project 1 and 2 final products. Load it into the [Vibe Coding Tool](tools#vibe) and verify every input it uses works on the breadboard before you solder anything.',
+            'Start from your Project 3 final product code - it already carries your Project 1 and 2 final products. Load it into the [Arduino Code Loading Tool](tools#vibe) and verify every input it uses works on the breadboard before you solder anything.',
             'Open the [Wiring Schematic Tool](tools#schematic) and redraw your wiring as a **perfboard layout**. The perfboard is the bridge: Arduino pins land on one edge, the 3.5mm jacks and JST-XH headers land on the opposite edges, and every input pairs with the panel connector it bridges to. A switch input connects its Arduino pin through a soldered wire run (a "trace") to the solder lug of one 3.5mm jack. A sensor input connects its Arduino pins (signal, VCC, GND, plus any analog extras) through soldered wire runs ("traces") to the lugs of one JST-XH header.',
             'Pick your connector strategy. The cleanest is **panel-mount female 3.5mm jacks** and **panel-mount female JST-XH headers** soldered directly onto the perfboard with short pigtails to the panel cutouts. The simpler alternative is **board-edge connectors** soldered along the perfboard\'s perimeter so the perfboard itself becomes the back wall of the connector panel. **If you are not sure, use panel-mount jacks with pigtails - the forgiving option.**',
             'Solder it. Check in with an instructor before using the soldering iron. Components first: Arduino headers, then the row of 3.5mm jacks, then the row of JST headers, then the indicator LEDs. Bridge the signal traces on the back of the perfboard. Check every joint: with the Arduino on USB and your code running, trigger each input and confirm its action fires.',
@@ -7276,11 +6723,11 @@
           gradeNote: 'Evidence (remap-app screenshot + QR-on-hub photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             'What you are making: a simple web page that opens from a **QR code on the front of the hub** and lets anyone change what each switch does - live, no coding. It runs on a laptop in **Chrome or Edge** with the hub plugged in over USB.',
-            'Teach the hub to listen. Open the [Vibe Coding Tool](tools#vibe), click **Build**, and paste: *"Add remap support to my Arduino Leonardo code over Serial at 9600 baud. Each port has a number (0, 1, 2...). On startup print `ready`. When a port is pressed print `port <n> pressed`, and on release `port <n> released`. When a line `set port <n> to <action>` arrives (action = a key A-Z, or space, enter, up, down, left, right, mouse left, mouse right), update that port and print `port <n> is now <action>`. Always release the key after each press. Do not add any new hardware - use only what my code already has. Keep the code as simple as possible."* Load the new code onto your hub.',
+            'Teach the hub to listen. Open [Gemini](https://gemini.google.com) or ChatGPT. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then your hub code from the tool, then this prompt: {{prompt}}Add remap support to my Arduino Leonardo code over Serial at 9600 baud. Each port has a number (0, 1, 2...). On startup print `ready`. When a port is pressed print `port <n> pressed`, and on release `port <n> released`. When a line `set port <n> to <action>` arrives (action = a key A-Z, or space, enter, up, down, left, right, mouse left, mouse right), update that port and print `port <n> is now <action>`. Always release the key after each press. Do not add any new hardware - use only what my code already has. Keep the code as simple as possible.{{/prompt}} Paste the new code back into the tool and **Upload** it onto your hub.',
             'Build the remap app. Open [Gemini](https://gemini.google.com) and paste: *"Build one index.html file (HTML, CSS, vanilla JS, no frameworks) that talks to an Arduino over Web Serial. A big Connect button opens the chosen port at 9600 baud. Show one card per port with a light that turns on while the port is pressed, the current action, and a dropdown to pick a new action (A-Z, space, enter, up, down, left, right, mouse left, mouse right). When a dropdown changes, send `set port <n> to <action>` + a newline. Make it big, high-contrast, with large hit targets and a short 3-step how-to at the top."* Paste the code into a plain-text editor (Mac: TextEdit, Format, Make Plain Text; or VS Code) and save it as exactly **index.html** - not index.txt, not index.html.txt.',
             'Put it online. Go to [Netlify Drop](https://app.netlify.com/drop), drag your **index.html** onto the page, and in about 30 seconds you get a public URL - copy it. **Then claim the site with a free Netlify account - unclaimed drops expire and your QR code would die.**',
             'Tape it to the hub. Make a QR code for your URL at [a QR generator](https://www.qr-code-generator.com), print it, and tape it to the **front of the hub** with the URL written underneath.',
-            'Test as the end-user. On a laptop in **Chrome or Edge**, open your URL (or scan the QR), plug in the hub, click **Connect**, and choose the **Arduino Leonardo**. Press a switch - it lights up on the page. Change its dropdown - that switch now fires the new action. If something is off: web page problems go back to [Gemini](https://gemini.google.com) with your **index.html** code; Arduino problems go to the [Vibe Coding Tool](tools#vibe) with the Serial output.',
+            'Test as the end-user. On a laptop in **Chrome or Edge**, open your URL (or scan the QR), plug in the hub, click **Connect**, and choose the **Arduino Leonardo**. Press a switch - it lights up on the page. Change its dropdown - that switch now fires the new action. If something is off: web page problems go back to [Gemini](https://gemini.google.com) with your **index.html** code; Arduino problems go back to Gemini with your code and the Serial output, then reload the fix through the [Arduino Code Loading Tool](tools#vibe).',
             'Complete **Evidence + Reflection** below. *Evidence* = remap-app screenshot, QR-on-hub photo. Take the photo with the [Image Capture Tool](tools#camera) and save it to this benchmark. Save your **index.html** into your class Drive folder now - you will need it and your QR code for your Instructable.'
           ],
           videoUrl: '',
@@ -7479,7 +6926,7 @@
     {
       id: 'wu-2026-09-03',
       date: '2026-09-03',
-      question: '<p>In your notebook, draw a circuit diagram that uses a breadboard and an Arduino Leonardo. The circuit has three buttons and three LEDs. Each button turns on a different LED:</p><ul><li>One button turns on a <strong>green</strong> LED that stays on constantly.</li><li>One button turns on a <strong>yellow</strong> LED that blinks at a medium speed.</li><li>One button turns on a <strong>red</strong> LED that flashes on and off really fast.</li></ul><p>Then generate the code in <a href="https://gemini.google.com" target="_blank" rel="noopener">Gemini</a>, not the Vibe Coding tool. Be specific in your prompt: tell Gemini the board is an Arduino Leonardo, which pin each button and LED is on (match your drawing), and exactly how each LED should behave.</p><p>Show Ramsey your drawing in your notebook plus your prompt and the code in Gemini.</p>'
+      question: '<p>In your notebook, draw a circuit diagram that uses a breadboard and an Arduino Leonardo. The circuit has three buttons and three LEDs. Each button turns on a different LED:</p><ul><li>One button turns on a <strong>green</strong> LED that stays on constantly.</li><li>One button turns on a <strong>yellow</strong> LED that blinks at a medium speed.</li><li>One button turns on a <strong>red</strong> LED that flashes on and off really fast.</li></ul><p>Then generate the code in <a href="https://gemini.google.com" target="_blank" rel="noopener">Gemini</a>. Be specific in your prompt: tell Gemini the board is an Arduino Leonardo, which pin each button and LED is on (match your drawing), and exactly how each LED should behave.</p><p>Show Ramsey your drawing in your notebook plus your prompt and the code in Gemini.</p>'
     },
     {
       id: 'wu-2026-09-01',
@@ -7489,7 +6936,7 @@
     {
       id: 'wu-2026-08-31',
       date: '2026-08-31',
-      question: '<p>Take apart all of your current wiring. Then build a circuit that blinks an LED at half-second intervals when a button is pressed, and stops blinking when the button is pressed again. Use the <a href="/tools/vibe?file=warmup">Vibe Coding tool</a> to build and load your code. Show Ramsey when done.</p>'
+      question: '<p>Take apart all of your current wiring. Then build a circuit that blinks an LED at half-second intervals when a button is pressed, and stops blinking when the button is pressed again. Build your code in Gemini, then use the <a href="/tools/vibe?file=warmup">Arduino Code Loading Tool</a> to load it. Show Ramsey when done.</p>'
     },
     {
       id: 'wu-2026-08-28',
@@ -8209,8 +7656,8 @@
       <p class="project-blurb">Both files stay editable. Saving to a benchmark updates that submission without locking the tool.</p>
       <div class="tools-grid">
         <div class="tool-card" id="toolCardVibe">
-          <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg></span><h3 class="tool-card-title">Vibe Coding</h3></div>
-          <p class="tool-card-blurb">Write, test, and upload Arduino code.</p>
+          <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg></span><h3 class="tool-card-title">Arduino Code Loading Tool</h3></div>
+          <p class="tool-card-blurb">Paste code from Gemini or ChatGPT, then upload it to your Arduino.</p>
           <div class="tool-card-footer">Open</div>
         </div>
         <div class="tool-card" id="toolCardSchematic">
@@ -8262,7 +7709,7 @@
   // ============== IMAGE CAPTURE TOOL ==============
   // Webcam photo booth for evidence: live preview, capture a still, then
   // "+ Save to..." drops the JPEG into a benchmark's Evidence drop or the
-  // Portfolio's Image slot (same popover the Schematic and Vibe tools use).
+  // Portfolio's Image slot (same popover the Schematic and Arduino Code Loading tools use).
   let _camStream = null;
   function _camStopStream() {
     if (_camStream) {
@@ -8418,7 +7865,7 @@
   // pin coord to pin coord.
 
   // ----- Tool files: Project vs Warm-up -----
-  // Each student has two files in the Wiring Schematic and Vibe Coding tools:
+  // Each student has two files in the Wiring Schematic and Arduino Code Loading Tools:
   // their running Project (cumulative across the project chain) and a Warm-up
   // scratch file, so a warm-up never means wiping project work. The choice is
   // shared by both tools for this tab; warm-up links open with ?file=warmup.
@@ -8466,7 +7913,7 @@
   }
 
   const SCHEM_STORAGE_KEY = 'd4sg-schematic-v1';
-  // Per-student storage key. Mirrors the Vibe Coding pattern: each named
+  // Per-student storage key. Mirrors the Arduino Code Loading pattern: each named
   // student gets their own slot, and anonymous work stays on the legacy key
   // so existing per-laptop boards keep working until a name is picked.
   function schemStorageKey() {
@@ -9106,7 +8553,7 @@
   }
 
   // Cloud mirror to Firestore so a student's schematic follows them across
-  // laptops. Matches the Vibe Coding pattern. Only runs once a name is picked.
+  // laptops. Matches the Arduino Code Loading pattern. Only runs once a name is picked.
   // The draft id is captured at save time so a pending mirror can never land
   // in the other file after a Project / Warm-up switch.
   const schemMirrorDraftDebounced = debounce((payload, draftId) => {
@@ -9142,13 +8589,6 @@
       _schemState = schemLoad();
       if (document.getElementById('schemCanvasWrap')) renderPerfboard();
     } catch (e) { console.warn('schemSwitchStudent failed', e); }
-    // Wiring guide follows the newly-picked student's chat too.
-    if (document.getElementById('schemWiringPanel')) {
-      schemRenderWiringGuide(false);
-      vibeHydrateFromCloud().catch(() => null).then(() => {
-        if (document.getElementById('schemWiringPanel')) schemRenderWiringGuide(true);
-      });
-    }
   }
 
   function schemNewId(prefix) {
@@ -9170,65 +8610,6 @@
     el._timer = setTimeout(() => {
       el.classList.remove('is-visible');
     }, ms || 2400);
-  }
-
-  // ============== Wiring guide (Vibe Coding → Schematic handoff) ==============
-  // The AI's reply ends with a **Wiring** section, but students draw their
-  // schematic on a different page and had to remember it. This panel carries
-  // the newest wiring instructions into the Schematic tool. It auto-opens
-  // when there are instructions the student hasn't dismissed yet; the
-  // toolbar's Wiring guide button reopens it any time.
-  function schemWiringSeenKey() { return `d4sg-schem-wiring-seen::${vibeSlug()}${toolFileSuffix()}`; }
-
-  // Newest assistant message containing a **Wiring** heading, sliced from
-  // that heading to the end (code fences stripped first). Same-student chat:
-  // both tools key off LAST_PICK_KEY.
-  function schemLatestWiring() {
-    const chat = vibeLoadChat();
-    for (let i = chat.length - 1; i >= 0; i--) {
-      const m = chat[i];
-      if (!m || m.role !== 'assistant' || !m.content) continue;
-      const noCode = String(m.content).replace(/```[\s\S]*?```/g, '').trim();
-      const match = /\*\*wiring[^*]*\*\*/i.exec(noCode);
-      if (match) return noCode.slice(match.index);
-    }
-    return null;
-  }
-
-  function schemWiringHash(text) {
-    let h = 0;
-    const s = String(text || '');
-    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-    return String(h);
-  }
-
-  // Repaint the panel body from the current student's chat. autoOpen: open
-  // the panel if these instructions haven't been dismissed before.
-  function schemRenderWiringGuide(autoOpen) {
-    const panelEl = document.getElementById('schemWiringPanel');
-    const bodyEl = document.getElementById('schemWiringBody');
-    if (!panelEl || !bodyEl) return;
-    const text = schemLatestWiring();
-    bodyEl.innerHTML = '';
-    if (text) {
-      const frag = document.createDocumentFragment();
-      vibeRenderProse(text, frag);
-      bodyEl.appendChild(frag);
-    } else {
-      bodyEl.innerHTML = '<div class="schem-wiring-empty">No wiring instructions yet. Build your code in the <a data-wiring-vibe-link>Vibe Coding Tool</a> first - the wiring section of the AI\'s reply will appear here.</div>';
-      const link = bodyEl.querySelector('[data-wiring-vibe-link]');
-      if (link) link.addEventListener('click', () => {
-        if (typeof applyRoute === 'function') {
-          history.pushState({}, '', '/tools/vibe');
-          applyRoute('/tools/vibe');
-        }
-      });
-    }
-    if (autoOpen && text) {
-      let seen = '';
-      try { seen = localStorage.getItem(schemWiringSeenKey()) || ''; } catch (_) {}
-      if (schemWiringHash(text) !== seen) panelEl.classList.add('is-open');
-    }
   }
 
   // ============== Hover tooltips for tool icons ==============
@@ -9351,11 +8732,6 @@
               </button>
             </div>
           </div>
-          <div class="vibe-toolbar-group" style="margin-left: auto;">
-            <button class="schem-wiring-btn" id="schemWiringBtn" title="Show the wiring instructions from your latest Vibe Coding reply">
-              <span class="schem-wiring-btn-ic">${ICON_WIRING}</span>Wiring guide
-            </button>
-          </div>
           <div class="vibe-toolbar-group">
             <button class="vibe-tool-btn" id="schemUndo" title="Undo (Cmd+Z / Ctrl+Z)" aria-label="Undo">
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
@@ -9375,17 +8751,6 @@
         <div class="schem-stage">
           <div class="schem-palette" id="schemPalette"></div>
           <div class="schem-canvas-wrap" id="schemCanvasWrap"></div>
-          <aside class="schem-wiring-panel" id="schemWiringPanel" aria-label="Wiring instructions from your Vibe Coding chat">
-            <div class="schem-wiring-head">
-              <span class="schem-wiring-icon">${ICON_WIRING}</span>
-              <div>
-                <div class="schem-wiring-title">Wiring guide</div>
-                <div class="schem-wiring-sub">From your Vibe Coding chat</div>
-              </div>
-              <button class="schem-wiring-close" id="schemWiringClose" aria-label="Hide wiring guide">${ICON_X}</button>
-            </div>
-            <div class="schem-wiring-body" id="schemWiringBody"></div>
-          </aside>
         </div>
 
       </div>
@@ -9414,29 +8779,6 @@
     renderComponentPalette();
     renderColorRow();
     renderPerfboard();
-
-    // Wiring guide: fill from this student's Vibe Coding chat (pulling the
-    // chat from the cloud first if this device has none) and auto-open when
-    // there are instructions they haven't dismissed.
-    schemRenderWiringGuide(false);
-    vibeHydrateFromCloud().catch(() => null).then(() => {
-      if (document.getElementById('schemWiringPanel')) schemRenderWiringGuide(true);
-    });
-    document.getElementById('schemWiringBtn').addEventListener('click', () => {
-      const p = document.getElementById('schemWiringPanel');
-      if (!p) return;
-      schemRenderWiringGuide(false);
-      p.classList.toggle('is-open');
-    });
-    document.getElementById('schemWiringClose').addEventListener('click', () => {
-      const p = document.getElementById('schemWiringPanel');
-      if (!p) return;
-      p.classList.remove('is-open');
-      // Remember this exact set of instructions as seen, so the panel only
-      // auto-opens again when a NEWER wiring section arrives.
-      const text = schemLatestWiring();
-      if (text) { try { localStorage.setItem(schemWiringSeenKey(), schemWiringHash(text)); } catch (_) {} }
-    });
 
     document.getElementById('schemUndo').addEventListener('click', schemUndo);
     document.getElementById('schemZoomOut').addEventListener('click', () => schemSetZoom(_schemZoom - 0.15));
@@ -10855,7 +10197,7 @@
     schemToast('Canvas cleared.');
   }
 
-  // ============== Save-to popover (shared by Schematic + Vibe Coding) ==============
+  // ============== Save-to popover (shared by Schematic + Arduino Code Loading) ==============
   // Pending artifact handed off to the next openModal() call. Consumed by
   // buildCheckpointPanel / buildPortfolioPanel and then cleared.
   // Shape: { blob, fileName, contentType, slotKey, benchmarkId, panelType, kind }
@@ -11274,7 +10616,7 @@
     // strings. Step strings support a small markup vocabulary:
     //   **bold**             → <strong>
     //   *italic*             → <em>
-    //   [label](tools#vibe)  → inline tool launcher (Vibe Coding)
+    //   [label](tools#vibe)  → inline tool launcher (Arduino Code Loading)
     //   [label](tools#schematic) → inline tool launcher (Schematic)
     //   [label](https://…)   → external link, new tab
     // Product-benchmark brief: rendered above Instructions so the user is the
@@ -13433,7 +12775,7 @@
 
   // ----- Evidence flow steps (checkpoint benchmarks) -----
   // Derives the numbered gather-your-evidence path from the benchmark's
-  // gradeNote "Evidence (...)" clause, in build order: code from the Vibe
+  // gradeNote "Evidence (...)" clause, in build order: code from the Arduino Code Loading
   // Coding Tool, schematic from the Wiring Schematic Tool, photo from the
   // Image Capture Tool, then the reflection. Each step carries a done()
   // predicate checked live against the draft's files and reflection text.
@@ -13446,7 +12788,7 @@
     const steps = [];
     if (hasCode) steps.push({
       key: 'code',
-      text: '**Code PDF.** Go back to the [Vibe Coding Tool](tools#vibe) and press **Save to benchmark**.',
+      text: '**Code PDF.** Go back to the [Arduino Code Loading Tool](tools#vibe) and press **Save to benchmark**.',
       done: (files) => files.some(p => p.status === 'uploaded' && p.kind === 'pdf')
     });
     if (hasSchem) steps.push({
@@ -15259,12 +14601,27 @@
 
   document.getElementById('archivesViewBtn').addEventListener('click', openArchivesList);
 
-  // ============== VIBE CODING TOOL ==============
-  // Two-panel chat-driven Arduino code workbench. Talks to /api/vibe-code
-  // (origin-gated AI proxy). Right panel is a Monaco (VS Code) editor +
-  // Web Serial monitor with a real AVR109/Caterina flash-to-board flow.
+  // ============== ARDUINO CODE LOADING TOOL ==============
+  // A Monaco (VS Code) editor + Web Serial monitor with a real AVR109/Caterina
+  // flash-to-board flow. Students write code in Gemini or ChatGPT in their own
+  // tab, paste it here, and Upload. (The in-app AI assistant and its OpenAI
+  // proxy were removed Sep 2026; the /tools/vibe route name is kept so old
+  // links still open.)
 
-  const VIBE_DEFAULT_CODE = '// Your Arduino code will appear here.\n// Ask the AI assistant on the left to build something, then load it in.\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n}\n';
+  const VIBE_DEFAULT_CODE = '// Paste your code from Gemini or ChatGPT here, then click Upload.\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n}\n';
+
+  // Starter prompt students paste into Gemini or ChatGPT at the top of every
+  // new chat. Carries the board + parts + wiring rules the old assistant knew.
+  const VIBE_STARTER_PROMPT = [
+    "I am a high school student building an adaptive controller with an Arduino Leonardo (always the Leonardo, never another board). Please follow these rules for everything I ask:",
+    "- Write the shortest, simplest Arduino code that does exactly what I ask. Use only the parts I name plus whatever my existing code already uses. Never add extra parts, extra LEDs, buzzers, modes, or features.",
+    "- No resistors of any kind. The Leonardo's built-in pull-up (INPUT_PULLUP) handles every switch.",
+    "- Use Keyboard.h or Mouse.h when the controller should act as a keyboard or mouse, and press and release keys cleanly so nothing sticks. Add simple debouncing.",
+    "- Wiring recipes: tactile button = one leg to a digital pin, the diagonally opposite leg to GND, pressed reads LOW. Lever microswitch = COM to GND, NO to a digital pin. Sip-and-puff switch = one wire to a digital pin, one to GND. LED = long leg to a digital pin, short leg to GND, and always tell me which leg is which. KY-023 joystick = VCC to 5V, GND to GND, VRx and VRy to analog pins, SW to a digital pin with INPUT_PULLUP. TTP223B touch sensor = GND to GND, VCC to 5V, SIG to a digital pin read with plain digitalRead (HIGH on touch). FC-51 IR sensor = VCC to 5V, GND to GND, OUT to a digital pin read with plain digitalRead (LOW when something is in front), no library.",
+    "- When I say to add to my existing code, keep every existing pin, behavior, and comment and add only the new part. Never rewire what already works.",
+    "- Reply with the full sketch in one code block, then a short Wiring section: one line per connection with the exact pin numbers, in plain language for a beginner. Keep comments short.",
+    "Here is what I need:"
+  ].join("\n");
 
   // Curated, known-good example sketches. These are a guaranteed-compile
   // fallback so a class is never dead-ended when the AI or compile server is
@@ -15435,21 +14792,13 @@ void loop() {
   ];
 
   let _vibeEditor = null;     // Monaco editor instance (or null if fallback textarea used)
-  let _vibeChat = [];         // [{ role: 'user'|'assistant'|'error', content: string }]
-  let _vibeBusy = false;
   let _vibeSerialPort = null;
   let _vibeSerialReader = null;
   let _vibeSerialKeepReading = false;
   let _vibeMonitorAutoScroll = true;
-  let _vibeAwaitingFix = false;   // set when the student clicks "Ask AI to fix" so the
-                                  // next code block they load auto-re-verifies (closes the loop)
-  let _vibeFixAttempts = 0;       // consecutive failed auto-fix rounds; after 2 we nudge "Explain"
-  let _vibeImages = [];           // photos attached to the NEXT message: [{ data, thumb }]
-                                  // data = full-size JPEG data URL sent to the API,
-                                  // thumb = small data URL kept in chat history for display
 
   // ----- Per-student persistence -----
-  // Chat + editor are keyed to the picked student so two kids on one machine
+  // The editor is keyed to the picked student so two kids on one machine
   // never share state, and so a student's work follows their name. Source of
   // truth is localStorage (instant, offline-safe); we also mirror to a
   // Firestore draft (drafts/${slug}__vibe) so it survives a device switch.
@@ -15460,34 +14809,18 @@ void loop() {
     const s = nameSlug(vibeStudentName());
     return s || '_anon';
   }
-  function vibeChatKey() { return `d4sg-vibe-chat::${vibeSlug()}${toolFileSuffix()}`; }
   function vibeEditorKey() { return `d4sg-vibe-editor::${vibeSlug()}${toolFileSuffix()}`; }
   function vibeVersionsKey() { return `d4sg-vibe-versions::${vibeSlug()}${toolFileSuffix()}`; }
 
-  function vibeLoadChat() {
-    if (!vibeStudentName()) return [];
-    try {
-      const raw = localStorage.getItem(vibeChatKey());
-      if (!raw) return [];
-      const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : [];
-    } catch (_) { return []; }
-  }
   const _vibeMirrorDraft = debounce(() => {
     const name = vibeStudentName();
     if (!name) return; // no name picked -> local only
     try {
       saveDraft(name, toolDraftId('vibe'), {
-        vibeChat: JSON.stringify(_vibeChat || []),
         vibeEditor: vibeGetEditorText()
       });
     } catch (_) {}
   }, 1200);
-  function vibeSaveChat() {
-    if (!vibeStudentName()) return;
-    try { localStorage.setItem(vibeChatKey(), JSON.stringify(_vibeChat)); } catch (_) {}
-    _vibeMirrorDraft();
-  }
   function vibeLoadEditorText() {
     if (!vibeStudentName()) return VIBE_DEFAULT_CODE;
     try { return localStorage.getItem(vibeEditorKey()) || VIBE_DEFAULT_CODE; } catch (_) { return VIBE_DEFAULT_CODE; }
@@ -15535,48 +14868,30 @@ void loop() {
     schemToast('Restored the previous code version.');
   }
 
-  // Pull this student's saved chat + editor from Firestore when nothing is
-  // stored locally on this device (e.g. they moved to a new computer).
+  // Pull this student's saved editor from Firestore when nothing is stored
+  // locally on this device (e.g. they moved to a new computer).
   async function vibeHydrateFromCloud() {
     const name = vibeStudentName();
     if (!name) return;
-    const hasLocalChat = !!localStorage.getItem(vibeChatKey());
-    const hasLocalEditor = !!localStorage.getItem(vibeEditorKey());
-    if (hasLocalChat && hasLocalEditor) return; // local wins, no fetch
+    if (localStorage.getItem(vibeEditorKey())) return; // local wins, no fetch
     try {
       const draft = await loadDraft(name, toolDraftId('vibe'));
       if (!draft) return;
-      let changed = false;
-      if (!hasLocalChat && typeof draft.vibeChat === 'string') {
-        try {
-          const arr = JSON.parse(draft.vibeChat);
-          if (Array.isArray(arr) && arr.length) {
-            _vibeChat = arr;
-            localStorage.setItem(vibeChatKey(), draft.vibeChat);
-            changed = true;
-          }
-        } catch (_) {}
-      }
-      if (!hasLocalEditor && typeof draft.vibeEditor === 'string' && draft.vibeEditor.trim()) {
+      if (typeof draft.vibeEditor === 'string' && draft.vibeEditor.trim()) {
         vibeSetEditorText(draft.vibeEditor);
         localStorage.setItem(vibeEditorKey(), draft.vibeEditor);
         vibeUpdateLibraries();
       }
-      if (changed) vibeRenderChat();
     } catch (_) {}
   }
 
-  // Switch the loaded chat + editor to the currently-picked student. Called
-  // when the roster dropdown changes.
+  // Switch the loaded editor to the currently-picked student. Called when
+  // the roster dropdown changes.
   function vibeSwitchStudent() {
-    _vibeChat = vibeLoadChat();
     const txt = vibeLoadEditorText();
     vibeSetEditorText(txt);
     vibeSaveEditorText(txt);
     vibeUpdateLibraries();
-    const inp = document.getElementById('vibeInput');
-    if (inp) { inp.value = ''; vibeAutoGrow(inp); vibeUpdateSendEnabled(); }
-    vibeRenderChat();
     vibeHydrateFromCloud();
     vibeUpdateRestoreButton();
   }
@@ -15700,11 +15015,8 @@ void loop() {
 
   function initVibeCodingTool() {
     applyToolFileFromUrl();
-    _vibeChat = vibeLoadChat();
-    // Reset transient state from any previous visit: a wedged in-flight AI
-    // request must not keep Send disabled forever, and a stale Monaco
-    // instance must not swallow editor reads/writes during boot.
-    _vibeBusy = false;
+    // A stale Monaco instance from a previous visit must not swallow editor
+    // reads/writes during boot.
     if (_vibeEditor) { try { _vibeEditor.dispose(); } catch (_) {} _vibeEditor = null; }
 
     app.innerHTML = '';
@@ -15712,44 +15024,19 @@ void loop() {
     wrap.className = 'project';
     wrap.innerHTML = `
       <button class="schem-back" id="vibeBack" aria-label="Back to Tools"><span class="schem-back-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></span> Back to Tools</button>
-      <h2 class="project-title">Vibe Coding</h2>
+      <h2 class="project-title">Arduino Code Loading Tool</h2>
       <div data-vibe-identity></div>
-      <p class="vibe-privacy-note">Pick your own name. AI requests send your prompt and current sketch to the coding assistant and save them to your named draft.</p>
+      <p class="vibe-intro">Write your code with <a href="https://gemini.google.com" target="_blank" rel="noopener">Gemini</a> or <a href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT</a>, paste it into the editor below, and click <strong>Upload</strong> to load it onto your Arduino. Start every new chat with the starter prompt so the AI knows your board and your parts.</p>
+      <div class="copy-prompt vibe-starter" id="vibeStarter">
+        <div class="vibe-starter-head">
+          <span class="vibe-starter-title">Starter prompt for Gemini or ChatGPT</span>
+          <button type="button" class="copy-prompt-btn" data-copy-target="vibeStarter" aria-label="Copy the starter prompt">Copy starter prompt</button>
+          <button type="button" class="vibe-starter-toggle" id="vibeStarterToggle" aria-expanded="false">Show</button>
+        </div>
+        <div class="copy-prompt-text" id="vibeStarterText"></div>
+      </div>
 
       <div class="vibe-wrap">
-        <div class="vibe-left">
-          <div class="vibe-left-head">
-            <h3 class="vibe-left-title"><span class="vibe-left-title-dot"></span>AI Assistant</h3>
-            <button class="vibe-left-clear" id="vibeChatClear" style="display: none;">Clear chat</button>
-          </div>
-          <div class="vibe-chat-scroll" id="vibeChatScroll" role="log" aria-live="polite" aria-relevant="additions" aria-label="AI assistant conversation"></div>
-          <div class="vibe-stems-wrap">
-            <div class="vibe-stems" id="vibeStems"></div>
-          </div>
-          <div class="vibe-input-row">
-            <div class="vibe-photo-chips" id="vibePhotoChips" hidden></div>
-            <div class="vibe-composer">
-              <div class="vibe-input-wrap">
-                <div class="vibe-input-mirror" id="vibeInputMirror" aria-hidden="true"></div>
-                <textarea class="vibe-input" id="vibeInput" rows="3" spellcheck="true" aria-label="Describe what your controller should do" placeholder="Describe what your controller should do - e.g. 'press W when the big button is held'"></textarea>
-              </div>
-              <button class="vibe-photo-btn" id="vibePhotoBtn" title="Add a photo" aria-label="Add a photo of your part or wiring for the AI to look at">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
-                  <circle cx="12" cy="13" r="3"/>
-                </svg>
-              </button>
-              <input type="file" id="vibePhotoFile" accept="image/*" multiple hidden>
-              <button class="vibe-send-btn" id="vibeSend" aria-label="Send" disabled>
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 2 L11 13"/>
-                  <path d="M22 2 L15 22 L11 13 L2 9 Z"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
         <div class="vibe-panel vibe-right">
           <div class="vibe-panel-header">
             <p class="vibe-panel-title">Arduino Code Editor</p>
@@ -15832,17 +15119,13 @@ void loop() {
     app.appendChild(wrap);
 
     // Identity strip — when the student switches names, save the current
-    // work, then load that student's own chat + editor (per-student state).
+    // work, then load that student's own editor (per-student state).
     const vibeIdentityMount = wrap.querySelector('[data-vibe-identity]');
     if (vibeIdentityMount) {
       vibeIdentityMount.appendChild(renderIdentityStrip({
         onChange: () => { vibeSwitchStudent(); }
       }));
       vibeIdentityMount.appendChild(renderToolFileSwitch({
-        canSwitch: () => {
-          if (_vibeBusy) { schemToast('Wait for the AI to finish, then switch files.'); return false; }
-          return true;
-        },
         onSwitch: () => { vibeSwitchStudent(); }
       }));
     }
@@ -15862,51 +15145,6 @@ void loop() {
       cleanupIdentityStrip(vibeIdentityMount);
     });
 
-    document.getElementById('vibeChatClear').addEventListener('click', () => {
-      if (!_vibeChat.length) { schemToast('Chat is already empty.'); return; }
-      if (!confirm('Clear the entire chat history?')) return;
-      _vibeChat = [];
-      vibeSaveChat();
-      vibeRenderChat();
-    });
-
-    document.getElementById('vibeSend').addEventListener('click', () => vibeSend());
-    // ----- Photo attachments: pick, compress in-browser, chip preview -----
-    const photoBtn = document.getElementById('vibePhotoBtn');
-    const photoFile = document.getElementById('vibePhotoFile');
-    photoBtn.addEventListener('click', () => {
-      if (_vibeImages.length >= 2) { schemToast('2 photos max per message. Remove one first.'); return; }
-      photoFile.click();
-    });
-    photoFile.addEventListener('change', async () => {
-      const files = Array.from(photoFile.files || []);
-      photoFile.value = '';
-      for (const f of files) {
-        if (_vibeImages.length >= 2) { schemToast('2 photos max per message.'); break; }
-        try {
-          _vibeImages.push(await vibeShrinkPhoto(f));
-        } catch (_) {
-          schemToast('Could not read that image. Try a different photo.');
-        }
-      }
-      vibeRenderPhotoChips();
-      vibeUpdateSendEnabled();
-    });
-    const inputEl = document.getElementById('vibeInput');
-    inputEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        vibeSend();
-      }
-    });
-    // Auto-grow the textarea + toggle the send button's enabled state.
-    inputEl.addEventListener('input', () => {
-      vibeAutoGrow(inputEl);
-      vibeUpdateSendEnabled();
-    });
-    inputEl.addEventListener('scroll', () => vibeSyncMirror(inputEl));
-    vibeSyncMirror(inputEl);
-    vibeUpdateSendEnabled();
 
     document.getElementById('vibeClearEditor').addEventListener('click', () => {
       if (!confirm('Clear the editor?')) return;
@@ -15980,7 +15218,7 @@ void loop() {
       }
       const txt = vibeGetEditorText();
       if (!txt || !txt.trim()) {
-        schemToast('Editor is empty. Click Build in the AI Assistant, or paste code, first.');
+        schemToast('Editor is empty. Paste your code from Gemini or ChatGPT first.');
         return;
       }
       const buildBlob = () => vibeBuildPdfBlob();
@@ -16032,10 +15270,18 @@ void loop() {
       });
     }
 
-    // Prompt starter chips
-    vibeRenderStems();
+    // Starter prompt card: fill the text + wire the Show/Hide toggle.
+    const starterText = document.getElementById('vibeStarterText');
+    if (starterText) starterText.textContent = VIBE_STARTER_PROMPT;
+    const starterToggle = document.getElementById('vibeStarterToggle');
+    if (starterToggle) starterToggle.addEventListener('click', () => {
+      const card = document.getElementById('vibeStarter');
+      const open = card.classList.toggle('is-open');
+      starterToggle.textContent = open ? 'Hide' : 'Show';
+      starterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
 
-    // Bootstrap editor + chat
+    // Bootstrap editor
     const fallback = document.getElementById('vibeEditorFallback');
     fallback.value = vibeLoadEditorText();
     fallback.addEventListener('input', () => {
@@ -16090,7 +15336,6 @@ void loop() {
 
     vibeUpdateLibraries();
     vibeUpdateRestoreButton();
-    vibeRenderChat();
     // Pull this student's saved work from the cloud if this device has none.
     vibeHydrateFromCloud();
   }
@@ -16106,352 +15351,6 @@ void loop() {
     } else {
       const fb = document.getElementById('vibeEditorFallback');
       if (fb) fb.value = txt;
-    }
-  }
-
-  // ----- Composer helpers -----
-  function vibeAutoGrow(el) {
-    if (!el) return;
-    // In the empty state the composer fills the panel via flex, so don't pin
-    // an inline height (that would shrink the big writing box as you type).
-    if (!el.closest('.vibe-left.is-empty')) {
-      el.style.height = 'auto';
-      el.style.height = Math.min(el.scrollHeight, 220) + 'px';
-    } else {
-      el.style.height = '';
-    }
-    vibeSyncMirror(el);
-  }
-  // Repaint the visible mirror layer to match the (transparent) textarea,
-  // wrapping any <FILL-IN> token in a blue chip so students see exactly what
-  // to replace. Keeps the mirror scrolled in lock-step with the textarea.
-  function vibeSyncMirror(el) {
-    const mirror = document.getElementById('vibeInputMirror');
-    if (!mirror || !el) return;
-    const raw = el.value || '';
-    // Escape first, then highlight <...> tokens on the escaped string.
-    const safe = raw
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-    const html = safe.replace(/&lt;[^&]*?&gt;/g, m => `<span class="vibe-fillin">${m}</span>`);
-    // Trailing newline needs a spacer so the mirror's last line has height.
-    mirror.innerHTML = html + (raw.endsWith('\n') ? '\n&#8203;' : '');
-    mirror.scrollTop = el.scrollTop;
-  }
-  function vibeUpdateSendEnabled() {
-    const inp = document.getElementById('vibeInput');
-    const btn = document.getElementById('vibeSend');
-    if (!inp || !btn) return;
-    btn.disabled = _vibeBusy || !vibeStudentName() || (!inp.value.trim() && !_vibeImages.length);
-  }
-
-  // Downscale a photo in the browser before it travels: long edge capped at
-  // 1024px, JPEG. Keeps uploads fast on school wifi and bounds what the API
-  // bills. Also produces a small thumb that lives in the chat transcript.
-  function vibeShrinkPhoto(file) {
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        try {
-          const scale = Math.min(1, 1024 / Math.max(img.naturalWidth, img.naturalHeight));
-          const c = document.createElement('canvas');
-          c.width = Math.max(1, Math.round(img.naturalWidth * scale));
-          c.height = Math.max(1, Math.round(img.naturalHeight * scale));
-          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-          const data = c.toDataURL('image/jpeg', 0.82);
-          const tScale = Math.min(1, 120 / Math.max(c.width, c.height));
-          const t = document.createElement('canvas');
-          t.width = Math.max(1, Math.round(c.width * tScale));
-          t.height = Math.max(1, Math.round(c.height * tScale));
-          t.getContext('2d').drawImage(img, 0, 0, t.width, t.height);
-          resolve({ data, thumb: t.toDataURL('image/jpeg', 0.7) });
-        } catch (err) { reject(err); }
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('unreadable image')); };
-      img.src = url;
-    });
-  }
-
-  function vibeRenderPhotoChips() {
-    const wrap = document.getElementById('vibePhotoChips');
-    if (!wrap) return;
-    wrap.innerHTML = '';
-    wrap.hidden = !_vibeImages.length;
-    _vibeImages.forEach((ph, i) => {
-      const chip = document.createElement('div');
-      chip.className = 'vibe-photo-chip';
-      const img = document.createElement('img');
-      img.src = ph.thumb;
-      img.alt = 'Attached photo';
-      const x = document.createElement('button');
-      x.className = 'vibe-photo-chip-x';
-      x.setAttribute('aria-label', 'Remove photo');
-      x.textContent = '×';
-      x.addEventListener('click', () => {
-        _vibeImages.splice(i, 1);
-        vibeRenderPhotoChips();
-        vibeUpdateSendEnabled();
-      });
-      chip.appendChild(img);
-      chip.appendChild(x);
-      wrap.appendChild(chip);
-    });
-  }
-
-  // ----- Suggested prompts (empty-state chips) -----
-  // ----- Tiny Markdown renderer for assistant replies -----
-  // Handles paragraphs, **bold**, `inline code`, simple bullet lists, and
-  // ```fenced code blocks``` (rendered with a Load/Copy action bar). Returns a
-  // DocumentFragment so we never inject raw HTML strings from the model.
-  function vibeRenderMarkdown(text) {
-    const frag = document.createDocumentFragment();
-    const src = String(text || '');
-    // Split on fenced code blocks first.
-    const parts = src.split(/(```[\s\S]*?```)/g);
-    parts.forEach(part => {
-      if (!part) return;
-      const fence = part.match(/^```(?:arduino|cpp|c\+\+|c|ino)?\s*\n?([\s\S]*?)```$/i);
-      if (fence) {
-        const code = (fence[1] || '').replace(/\n$/, '');
-        frag.appendChild(vibeBuildCodeBlock(code));
-      } else {
-        vibeRenderProse(part, frag);
-      }
-    });
-    return frag;
-  }
-
-  function vibeRenderProse(text, frag) {
-    const lines = String(text).replace(/^\n+|\n+$/g, '').split('\n');
-    let listEl = null;
-    const flushList = () => { if (listEl) { frag.appendChild(listEl); listEl = null; } };
-    let paraBuf = [];
-    const flushPara = () => {
-      if (!paraBuf.length) return;
-      const p = document.createElement('p');
-      vibeInlineMd(paraBuf.join(' '), p);
-      frag.appendChild(p);
-      paraBuf = [];
-    };
-    lines.forEach(line => {
-      const bullet = line.match(/^\s*[-*]\s+(.*)$/);
-      if (bullet) {
-        flushPara();
-        if (!listEl) listEl = document.createElement('ul');
-        const li = document.createElement('li');
-        vibeInlineMd(bullet[1], li);
-        listEl.appendChild(li);
-      } else if (!line.trim()) {
-        flushPara(); flushList();
-      } else {
-        flushList();
-        paraBuf.push(line.trim());
-      }
-    });
-    flushPara(); flushList();
-  }
-
-  // Inline markdown: **bold** and `code`. Escapes everything else as text.
-  function vibeInlineMd(text, parent) {
-    const tokens = String(text).split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
-    tokens.forEach(tok => {
-      if (!tok) return;
-      if (/^\*\*[^*]+\*\*$/.test(tok)) {
-        const s = document.createElement('strong');
-        s.textContent = tok.slice(2, -2);
-        parent.appendChild(s);
-      } else if (/^`[^`]+`$/.test(tok)) {
-        const c = document.createElement('code');
-        c.textContent = tok.slice(1, -1);
-        parent.appendChild(c);
-      } else {
-        parent.appendChild(document.createTextNode(tok));
-      }
-    });
-  }
-
-  // The assistant's code goes straight into the editor, so the chat never
-  // shows a duplicate black code box. Where a fenced block would have been we
-  // render a compact confirmation chip — the student keeps reading the wiring
-  // and loading instructions, with quiet Reload / Copy fallbacks.
-  function vibeBuildCodeBlock(code) {
-    const chip = document.createElement('div');
-    chip.className = 'vibe-codeloaded';
-
-    const icon = document.createElement('span');
-    icon.className = 'vibe-codeloaded-icon';
-    icon.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg>';
-
-    const text = document.createElement('span');
-    text.className = 'vibe-codeloaded-text';
-    text.textContent = 'Code loaded into your editor';
-
-    const actions = document.createElement('div');
-    actions.className = 'vibe-codeloaded-actions';
-
-    const loadBtn = document.createElement('button');
-    loadBtn.className = 'vibe-codeloaded-btn';
-    loadBtn.textContent = 'Reload';
-    loadBtn.title = 'Replace the editor with this version';
-    loadBtn.addEventListener('click', () => {
-      vibeSnapshotEditor('Before reloading AI code');
-      vibeSetEditorText(code);
-      vibeSaveEditorText(code);
-      vibeUpdateLibraries();
-      loadBtn.textContent = 'Reloaded';
-      loadBtn.classList.add('is-done');
-      schemToast('Code loaded into the editor.');
-      setTimeout(() => { loadBtn.textContent = 'Reload'; loadBtn.classList.remove('is-done'); }, 1600);
-      if (_vibeAwaitingFix) {
-        _vibeAwaitingFix = false;
-        if (typeof vibeVerifyCode === 'function') setTimeout(() => vibeVerifyCode(true), 200);
-      }
-    });
-
-    const copyBtn = document.createElement('button');
-    copyBtn.className = 'vibe-codeloaded-btn';
-    copyBtn.textContent = 'Copy';
-    copyBtn.addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(code); copyBtn.textContent = 'Copied'; copyBtn.classList.add('is-done'); }
-      catch (_) { copyBtn.textContent = 'Copy failed'; }
-      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('is-done'); }, 1500);
-    });
-
-    actions.appendChild(loadBtn);
-    actions.appendChild(copyBtn);
-    chip.appendChild(icon);
-    chip.appendChild(text);
-    chip.appendChild(actions);
-    return chip;
-  }
-
-  function vibeRenderChat() {
-    const scroll = document.getElementById('vibeChatScroll');
-    if (!scroll) return;
-    const wasNearBottom = (scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight) < 80 || scroll.scrollHeight <= scroll.clientHeight;
-    const clearBtn = document.getElementById('vibeChatClear');
-    if (clearBtn) clearBtn.style.display = _vibeChat.length ? '' : 'none';
-    const isEmpty = !_vibeChat.length && !_vibeBusy;
-    // When there's no conversation yet, collapse the empty chat area and let
-    // the composer grow to fill the panel (a big writing box, no dead space).
-    const leftPane = scroll.closest('.vibe-left');
-    if (leftPane) leftPane.classList.toggle('is-empty', isEmpty);
-    if (isEmpty) {
-      scroll.innerHTML = '';
-      return;
-    }
-    scroll.innerHTML = '';
-    const _row = (avatarKind, msgClass) => {
-      const row = document.createElement('div');
-      row.className = `vibe-msg-row is-${avatarKind}`;
-      const av = document.createElement('div');
-      av.className = `vibe-msg-avatar is-${avatarKind}`;
-      av.textContent = avatarKind === 'user' ? 'You' : 'AI';
-      const msg = document.createElement('div');
-      msg.className = `vibe-msg ${msgClass}`;
-      row.appendChild(av);
-      row.appendChild(msg);
-      return { row, msg };
-    };
-
-    _vibeChat.forEach((msg) => {
-      if (msg.role === 'user') {
-        const { row, msg: el } = _row('user', 'vibe-msg-user');
-        if (Array.isArray(msg.images) && msg.images.length) {
-          const ph = document.createElement('div');
-          ph.className = 'vibe-msg-photos';
-          msg.images.forEach(src => {
-            if (typeof src === 'string' && src.startsWith('data:image/')) {
-              const im = document.createElement('img');
-              im.src = src;
-              im.alt = 'Photo you attached';
-              ph.appendChild(im);
-            }
-          });
-          el.appendChild(ph);
-          const t = document.createElement('div');
-          t.textContent = msg.content;
-          el.appendChild(t);
-        } else {
-          el.textContent = msg.content;
-        }
-        scroll.appendChild(row);
-      } else if (msg.role === 'assistant') {
-        const { row, msg: el } = _row('ai', 'vibe-msg-ai');
-        const md = document.createElement('div');
-        md.className = 'vibe-md';
-        md.appendChild(vibeRenderMarkdown(msg.content));
-        el.appendChild(md);
-        scroll.appendChild(row);
-      } else if (msg.role === 'error') {
-        const { row, msg: el } = _row('ai', 'vibe-msg-error');
-        el.textContent = msg.content;
-        scroll.appendChild(row);
-      }
-    });
-    if (_vibeBusy) {
-      const { row, msg: el } = _row('ai', 'vibe-msg-loading');
-      el.textContent = 'Writing your code…';
-      row.classList.add('is-loading');
-      scroll.appendChild(row);
-    }
-    // Only auto-scroll when the student was already near the bottom, so
-    // re-reading earlier wiring instructions isn't undone by a re-render.
-    if (wasNearBottom) scroll.scrollTop = scroll.scrollHeight;
-  }
-
-  // ----- Prompt templates -----
-  // Plain-text scaffolds that drop into the textarea with the placeholder
-  // pre-selected so the student types right over it. No HTML span tricks.
-  const VIBE_STEMS = [
-    {
-      label: 'Build',
-      primary: true,
-      text: "Build Arduino code for my adaptive controller that does this: <DESCRIBE THE BEHAVIOR>. Explain how to wire it and which pins to use.",
-      placeholder: '<DESCRIBE THE BEHAVIOR>'
-    },
-    {
-      label: 'Debug',
-      text: "My code isn't working right. Here's what's happening: <DESCRIBE WHAT'S WRONG>. The code is in my editor. Find the bug and fix it.",
-      placeholder: "<DESCRIBE WHAT'S WRONG>"
-    }
-  ];
-
-  function vibeRenderStems() {
-    const wrap = document.getElementById('vibeStems');
-    if (!wrap) return;
-    wrap.innerHTML = '';
-    VIBE_STEMS.forEach(stem => {
-      const btn = document.createElement('button');
-      btn.className = 'vibe-stem' + (stem.primary ? ' vibe-stem--primary' : '');
-      btn.type = 'button';
-      btn.innerHTML = `<span class="vibe-stem-icon">${ICON_SPARKLE}</span><span>${stem.label}</span>`;
-      btn.title = stem.text.length > 80 ? stem.text.slice(0, 77) + '...' : stem.text;
-      btn.addEventListener('click', () => vibeApplyStem(stem));
-      wrap.appendChild(btn);
-    });
-  }
-
-  function vibeApplyStem(stem) {
-    const inp = document.getElementById('vibeInput');
-    if (!inp) return;
-    // Drop the scaffold into the textarea as plain text. If it has a
-    // <PLACEHOLDER> token, select exactly that span so the student types
-    // right over it; otherwise put the cursor at the end.
-    const placeholder = stem.placeholder || '';
-    const text = stem.text || '';
-    inp.value = text;
-    vibeAutoGrow(inp);
-    vibeUpdateSendEnabled();
-    inp.focus();
-    const idx = placeholder ? text.indexOf(placeholder) : -1;
-    if (idx >= 0) {
-      inp.setSelectionRange(idx, idx + placeholder.length);
-    } else {
-      inp.setSelectionRange(text.length, text.length);
     }
   }
 
@@ -16522,138 +15421,7 @@ void loop() {
     bar.querySelector('.vibe-status-text').textContent = label;
   }
 
-  function vibeSend() {
-    if (_vibeBusy) return;
-    if (!vibeStudentName()) {
-      schemToast('Pick your name before using the AI Assistant.');
-      const picker = document.querySelector('[data-vibe-identity] [data-name-select]');
-      if (picker) picker.focus();
-      return;
-    }
-    const inputEl = document.getElementById('vibeInput');
-    let txt = (inputEl.value || '').trim();
-    // Photos attach to THIS message only. Grab and clear them up front so a
-    // slow request can't double-send the same photos.
-    const photos = _vibeImages.slice();
-    _vibeImages = [];
-    vibeRenderPhotoChips();
-    if (!txt && !photos.length) return;
-    if (!txt) txt = 'Look at the attached photo.';
-
-    const userMsg = { role: 'user', content: txt };
-    if (photos.length) userMsg.images = photos.map(p => p.thumb);
-    _vibeChat.push(userMsg);
-    vibeSaveChat();
-    inputEl.value = '';
-    vibeAutoGrow(inputEl);
-    _vibeBusy = true;
-    vibeUpdateSendEnabled();
-    vibeRenderChat();
-
-    // Give the model the student's current sketch as context (like an IDE
-    // companion) so "debug / explain / clean up my code" works — but only
-    // when there's real code, and never show this context in the chat. The
-    // sketch travels as its own field so the server can cap it without
-    // rejecting the student's short message (the accumulated multi-behavior
-    // sketch grows past a message-sized cap by later benchmarks).
-    const editorCode = vibeGetEditorText();
-    const editorIsDefault = !editorCode || !editorCode.trim() || editorCode.trim() === VIBE_DEFAULT_CODE.trim();
-    const editorForApi = editorIsDefault ? '' : editorCode;
-
-    // Short history (last few turns, excluding errors and the new message).
-    const history = _vibeChat
-      .filter(m => m.role === 'user' || m.role === 'assistant')
-      .slice(-7, -1)
-      .map(m => ({ role: m.role, content: m.content }));
-
-    // Refocus the chat only if the student is still working in the chat
-    // column — don't yank them out of the editor mid-keystroke.
-    const chatHadFocus = () => {
-      const active = document.activeElement;
-      return !active || active === document.body || (active.closest && active.closest('.vibe-left'));
-    };
-    const finish = () => {
-      _vibeBusy = false;
-      vibeUpdateSendEnabled();
-      const refocus = chatHadFocus();
-      vibeRenderChat();
-      const el = document.getElementById('vibeInput');
-      if (el && refocus) el.focus();
-    };
-
-    // Abort a hung request after 75s so the composer never wedges shut on a
-    // dropped connection (finish() is what re-enables Send).
-    const aborter = new AbortController();
-    const abortTimer = setTimeout(() => aborter.abort(), 75000);
-
-    fetch('/api/vibe-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: txt, editorCode: editorForApi, history, images: photos.map(p => p.data) }),
-      signal: aborter.signal
-    }).then(async (r) => {
-      clearTimeout(abortTimer);
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        const errMsg = data.error || ('Server error ' + r.status);
-        // Surface the server's own message honestly — a rate limit or
-        // too-long prompt is NOT a "try again" situation.
-        if (r.status === 429) {
-          _vibeChat.push({ role: 'error', content: errMsg + ' Upload still works while you wait.' });
-        } else if (r.status === 400 || r.status === 403) {
-          _vibeChat.push({ role: 'error', content: errMsg });
-        } else {
-          _vibeChat.push({ role: 'error', content: 'Something went wrong, try again. (' + errMsg + ')' });
-        }
-      } else {
-        const reply = (data.reply || '').trim();
-        // Prefer the structured code field; fall back to the first fenced
-        // block inside the reply so we always have something to auto-load.
-        let code = (data.code || '').trim();
-        if (!code && reply) {
-          const m = reply.match(/```(?:arduino|cpp|c\+\+|c|ino)?\s*\n?([\s\S]*?)```/i);
-          if (m) code = (m[1] || '').replace(/\n$/, '').trim();
-        }
-        if (reply) {
-          _vibeChat.push({ role: 'assistant', content: reply });
-          // Vibe-coding flow: the code drops straight into the editor so the
-          // chat stays clean — only the wiring + loading instructions live
-          // there. Any fenced block in the reply renders as a small "loaded"
-          // chip (see vibeBuildCodeBlock), not a duplicate black code box.
-          if (code) {
-            vibeSnapshotEditor('Before AI update');
-            vibeSetEditorText(code);
-            vibeSaveEditorText(code);
-            vibeUpdateLibraries();
-            if (_vibeAwaitingFix) {
-              _vibeAwaitingFix = false;
-              if (typeof vibeVerifyCode === 'function') setTimeout(() => vibeVerifyCode(true), 200);
-            }
-          }
-        } else if (code) {
-          _vibeChat.push({ role: 'assistant', content: '```cpp\n' + code + '\n```' });
-        } else {
-          _vibeChat.push({ role: 'error', content: 'The assistant did not return a response. Try rephrasing your request.' });
-        }
-      }
-      vibeSaveChat();
-      finish();
-    }).catch((err) => {
-      clearTimeout(abortTimer);
-      const msg = (err && err.name === 'AbortError')
-        ? 'The request took too long and was cancelled. Check your connection and try again.'
-        : 'Something went wrong, try again. (' + (err.message || err) + ')';
-      _vibeChat.push({ role: 'error', content: msg });
-      vibeSaveChat();
-      finish();
-    });
-  }
-
-
   // ============== Compile + Upload (Arduino IDE-style) ==============
-  // vibeVerifyCode: POST sketch to /api/compile (Wokwi hexi proxy) — show
-  //   stdout/stderr in the serial monitor. No toolbar button; only the AI
-  //   auto-fix loop calls it after loading corrected code.
   // Upload: compile the same way, parse the resulting Intel HEX, then flash
   //   it to a connected Leonardo / Micro using AVR109 (Caterina bootloader)
   //   over Web Serial. The 1200-baud "knock" reboots the board into the
@@ -16725,127 +15493,33 @@ void loop() {
     return data; // { hex, stdout, stderr, board }
   }
 
-  async function vibeVerifyCode(fromAutoFix) {
-    const sketch = vibeGetEditorText();
-    if (!sketch || !sketch.trim()) {
-      schemToast('Editor is empty. Click Build in the AI Assistant, or paste code, first.', 2400);
-      return;
-    }
-    vibeMonitorLine('[ Verifying… ]', 'info');
-    let lastStderr = '';
-    try {
-      const data = await vibeCompileSketch(sketch);
-      if (data.stdout) vibeMonitorLine(data.stdout.trimEnd(), 'dim');
-      if (data.hex) {
-        vibeMonitorLine('[ ✓ Compile succeeded ]', 'ok');
-        _vibeFixAttempts = 0;   // clean compile resets the thrash counter
-      } else {
-        if (data.stderr) {
-          lastStderr = data.stderr.trimEnd();
-          vibeMonitorLine(lastStderr, 'err');
-        }
-        vibeMonitorLine('[ ✗ Verify failed ]', 'err');
-        if (fromAutoFix) _vibeFixAttempts++;
-        vibeOfferFixButton(lastStderr);
-      }
-    } catch (err) {
-      if (err && err.stderr && !err.isInfra) {
-        // Non-2xx, but the compiler still produced an error message — treat it
-        // like a real compile error so the AI fix loop can act on it.
-        lastStderr = err.stderr;
-        vibeMonitorLine(lastStderr, 'err');
-        vibeMonitorLine('[ ✗ Verify failed ]', 'err');
-        if (fromAutoFix) _vibeFixAttempts++;
-        vibeOfferFixButton(lastStderr);
-      } else {
-        // Infrastructure failure (server offline/waking, rate limit, network).
-        // The AI can't fix this — do NOT offer the fix button, or the student
-        // re-rolls forever chasing a ghost. Say plainly it isn't their code.
-        vibeMonitorLine('[ ' + (err.message || String(err)) + ' ]', 'err');
-        if (err && err.isRateLimit) {
-          vibeMonitorLine("That's a daily compile limit, not a problem with your code. Try again later.", 'info');
-        } else {
-          vibeMonitorLine("The compile server is offline or waking up right now. This is NOT a problem with your code. Wait about a minute and click Upload again, or load an example from the Examples menu while you wait.", 'info');
-        }
-      }
-    }
-  }
-
-  // When the compile errors out, drop two buttons into the monitor:
-  // "Explain this error" (plain-English, learn-first) and "Ask AI to fix this"
-  // (returns a corrected sketch). Explain comes first because understanding the
-  // error beats blindly accepting a patch.
-  function vibeOfferFixButton(stderr) {
+  // When the compile errors out, drop ONE button into the monitor that copies
+  // a ready-made prompt (the compiler output + what to ask) so the student
+  // can paste it straight into Gemini or ChatGPT and bring the fix back.
+  function vibeOfferCopyError(stderr) {
     const monitor = document.getElementById('vibeMonitor');
     if (!monitor) return;
-    // Remove any old buttons so only the most recent error has them.
-    monitor.querySelectorAll('.vibe-monitor-fix-btn, .vibe-monitor-explain-btn').forEach(b => b.remove());
-
-    // After two failed auto-fix rounds, the AI is clearly stuck — nudge the
-    // student to slow down and actually understand the error via Explain.
-    const stuck = _vibeFixAttempts >= 2;
-    if (stuck) {
-      vibeMonitorLine('[ The AI fix did not work twice in a row. Try "Explain this error" and fix it yourself. You can do this. ]', 'info');
-    }
-
-    const explainBtn = document.createElement('button');
-    explainBtn.type = 'button';
-    explainBtn.textContent = 'Explain this error';
-    explainBtn.addEventListener('click', () => vibeAskAiToExplain(stderr));
-
-    const fixBtn = document.createElement('button');
-    fixBtn.type = 'button';
-    fixBtn.textContent = 'Ask AI to fix this';
-    fixBtn.addEventListener('click', () => vibeAskAiToFix(stderr));
-
-    // The first (filled) slot is the recommended action; the second (outline)
-    // slot is the alternative. Normally Fix leads; once the AI is stuck, Explain
-    // leads so the student is steered toward understanding over re-rolling.
-    const [primary, secondary] = stuck ? [explainBtn, fixBtn] : [fixBtn, explainBtn];
-    primary.className = 'vibe-monitor-fix-btn';
-    secondary.className = 'vibe-monitor-explain-btn';
-
+    monitor.querySelectorAll('.vibe-monitor-fix-btn').forEach(b => b.remove());
+    const tail = (stderr || '').slice(-1500).trim();
+    const prompt = 'My Arduino Leonardo sketch does not compile. Explain the error in plain English, then fix it and return the full corrected sketch in one code block. Do not add any new parts or behaviors. Here is the compiler output:\n\n' + tail;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'vibe-monitor-fix-btn';
+    btn.textContent = 'Copy error for Gemini or ChatGPT';
+    btn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(prompt); btn.textContent = 'Copied. Paste it into your chat, then paste the fixed code back here.'; }
+      catch (_) { btn.textContent = 'Copy failed. Select the error text above and copy it yourself.'; }
+    });
     monitor.appendChild(document.createTextNode('\n'));
-    monitor.appendChild(primary);
-    monitor.appendChild(secondary);
+    monitor.appendChild(btn);
     monitor.appendChild(document.createTextNode('\n'));
     if (_vibeMonitorAutoScroll) monitor.scrollTop = monitor.scrollHeight;
-  }
-
-  // Trim stderr to the most useful slice (last ~1500 chars; gcc summarizes at the bottom).
-  function vibeErrTail(stderr) { return (stderr || '').slice(-1500).trim(); }
-
-  function vibeAskAiToFix(stderr) {
-    const inp = document.getElementById('vibeInput');
-    if (!inp) return;
-    _vibeAwaitingFix = true;   // arm the auto-verify loop for the next code block loaded
-    const prompt = 'My sketch in the editor does not compile. Please fix it and return the full corrected sketch in one ```cpp code block. Do not add any new components, features, or behaviors - just fix the error. Here is the compiler output:\n\n' + vibeErrTail(stderr);
-    inp.value = prompt;
-    if (typeof vibeAutoGrow === 'function') vibeAutoGrow(inp);
-    if (typeof vibeUpdateSendEnabled === 'function') vibeUpdateSendEnabled();
-    if (typeof vibeSyncMirror === 'function') vibeSyncMirror(inp);
-    if (typeof vibeSend === 'function') vibeSend();
-  }
-
-  // Learn-first: ask the AI to explain the error in plain English WITHOUT
-  // rewriting the code, so the student understands what went wrong and can fix
-  // it themselves. Does not arm the auto-verify loop.
-  function vibeAskAiToExplain(stderr) {
-    const inp = document.getElementById('vibeInput');
-    if (!inp) return;
-    _vibeAwaitingFix = false;
-    const prompt = 'My Arduino sketch did not compile. In plain English, explain what this error means, what most likely caused it in my code, and what to look for to fix it myself. Do NOT rewrite the whole sketch - just point me to the problem. Here is the compiler output:\n\n' + vibeErrTail(stderr);
-    inp.value = prompt;
-    if (typeof vibeAutoGrow === 'function') vibeAutoGrow(inp);
-    if (typeof vibeUpdateSendEnabled === 'function') vibeUpdateSendEnabled();
-    if (typeof vibeSyncMirror === 'function') vibeSyncMirror(inp);
-    if (typeof vibeSend === 'function') vibeSend();
   }
 
   async function vibeUploadToArduino() {
     const sketch = vibeGetEditorText();
     if (!sketch || !sketch.trim()) {
-      schemToast('Editor is empty. Click Build in the AI Assistant, or paste code, first.', 2400);
+      schemToast('Editor is empty. Paste your code from Gemini or ChatGPT first.', 2400);
       return;
     }
     if (!('serial' in navigator)) {
@@ -16865,7 +15539,7 @@ void loop() {
       if (!data.hex) {
         if (data.stderr) vibeMonitorLine(data.stderr.trimEnd(), 'err');
         vibeMonitorLine('[ ✗ Compile failed - fix errors above and try again ]', 'err');
-        vibeOfferFixButton(data.stderr || '');
+        vibeOfferCopyError(data.stderr || '');
         return;
       }
       hexText = data.hex;
@@ -17645,8 +16319,50 @@ void loop() {
     return segs.join('');
   }
 
+  // Prompt box: {{prompt}}...{{/prompt}} renders the ONE copy-prompt component
+  // (same as the starter prompt on the Arduino Code Loading Tool). The inner
+  // text is already HTML-escaped by the caller.
+  function copyPromptHtml(escapedText) {
+    return `<div class="copy-prompt"><button type="button" class="copy-prompt-btn" aria-label="Copy this prompt">Copy</button><span class="copy-prompt-text">${escapedText}</span></div>`;
+  }
+  // One delegated handler for every Copy button in the app.
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest && e.target.closest('.copy-prompt-btn');
+    if (!btn) return;
+    e.preventDefault(); e.stopPropagation();
+    const box = btn.dataset.copyTarget ? document.getElementById(btn.dataset.copyTarget) : btn.closest('.copy-prompt');
+    const textEl = box && box.querySelector('.copy-prompt-text');
+    const text = textEl ? textEl.textContent : '';
+    if (!text) return;
+    const label = btn.textContent;
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch (_) {}
+    if (!ok) {
+      // Legacy fallback (older browsers, or clipboard API blocked): copy from a
+      // temporary textarea via execCommand.
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed'; ta.style.top = '-1000px';
+        document.body.appendChild(ta); ta.select();
+        ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (_) { ok = false; }
+    }
+    btn.textContent = ok ? 'Copied' : 'Copy failed';
+    btn.classList.toggle('is-done', ok);
+    setTimeout(() => { btn.textContent = label; btn.classList.remove('is-done'); }, 1600);
+  });
+
   function formatStepMarkup(text, partSeen) {
     let s = escapeHtml(text);
+    // Lift prompt boxes out FIRST so the link/bold/part-photo passes never
+    // touch the prompt text (or the box's own markup); drop them back in last.
+    const prompts = [];
+    s = s.replace(/\{\{prompt\}\}([\s\S]*?)\{\{\/prompt\}\}/g, (m, t) => {
+      prompts.push(t.trim());
+      return `\u0000P${prompts.length - 1}\u0000`;
+    });
     // [label](href) — internal tool links resolve to data-tool-link, others to <a target=_blank>.
     s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, label, href) => {
       const internal = href.match(/^tools#(vibe|schematic|idea-board|camera)$/);
@@ -17658,7 +16374,9 @@ void loop() {
     });
     s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
-    return linkPartPhotos(s, partSeen);
+    let out = linkPartPhotos(s, partSeen);
+    out = out.replace(/\u0000P(\d+)\u0000/g, (m, i) => copyPromptHtml(prompts[+i]));
+    return out;
   }
 
   // ====== Idea Board: Excalidraw-based ======
@@ -17725,7 +16443,7 @@ void loop() {
     }
   }
 
-  // Debounced cloud mirror (matches the Vibe Coding pattern). Only runs if a
+  // Debounced cloud mirror (matches the Arduino Code Loading pattern). Only runs if a
   // student name is picked; anonymous work stays local.
   const ideaMirrorDraftDebounced = debounce((payload, name) => {
     if (!name) return;
@@ -18014,7 +16732,7 @@ void loop() {
     bar.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => ideaToolbarAction(b.dataset.act)));
     const zl = bar.querySelector('#ideaZoomLabel');
     if (zl) zl.addEventListener('click', () => ideaZoom('reset'));
-    // Save-to-benchmark (icon) — mirrors the Vibe/Schematic tools.
+    // Save-to-benchmark (icon) — mirrors the Arduino Code Loading/Schematic tools.
     const saveBtn = bar.querySelector('#ideaSaveTo');
     if (saveBtn) saveBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -18380,7 +17098,7 @@ void loop() {
     if (!mount) return;
     // The components row is just the stamp palette now. Save-to-benchmark
     // lives in the drawing toolbar as an icon button (renderIdeaToolbar),
-    // matching the Vibe Coding and Schematic tools.
+    // matching the Arduino Code Loading and Schematic tools.
     mount.innerHTML = IDEA_STAMPS.map(s =>
       `<button type="button" class="idea-stamp-btn" data-stamp="${s.key}" title="Drop a ${escapeHtml(s.label)}">${escapeHtml(s.label)}</button>`
     ).join('');
