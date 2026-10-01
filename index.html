@@ -1087,9 +1087,18 @@
     gap: 14px;
     padding: 14px 0;
     position: relative;
+    border-radius: 12px;
+    transition: background 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
   }
   .cp-step + .cp-step {
     border-top: 1px solid rgba(17, 17, 17, 0.06);
+  }
+  .cp-step.is-released { opacity: 0.72; }
+  .cp-step.is-current {
+    margin-inline: -12px;
+    padding-inline: 12px;
+    background: var(--accent-soft);
+    box-shadow: inset 3px 0 0 var(--accent);
   }
   .cp-step-num {
     flex-shrink: 0;
@@ -6264,14 +6273,14 @@
       <div class="modal-journey-row">
         <div>
           <p class="modal-journey-kicker" id="journeyKicker"></p>
-          <p class="modal-journey-label" id="journeyLabel"></p>
+          <p class="modal-journey-label" id="journeyLabel" aria-live="polite"></p>
         </div>
         <div class="modal-journey-actions">
           <button class="journey-btn" id="journeyPrev" type="button" aria-label="Previous step">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span>Previous</span>
           </button>
           <button class="journey-btn journey-btn-next" id="journeyNext" type="button" aria-label="Next step">
-            <span>Next</span><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+            <span id="journeyNextLabel">Next</span><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
           </button>
         </div>
       </div>
@@ -6642,8 +6651,8 @@
           points: 50,
           drop: true,
           brief: {
-            hook: "A switch worth $15 can unlock a one-button rhythm game for an individual who can only move one wrist. The most important assistive technology in the world is sometimes the simplest. Now it is your turn.",
-            challenge: "How might we give one specific person a way to do something they want to do but can't? Your available materials: a button, a lever, two LEDs, and an Arduino Leonardo. The minimum build is one switch and one LED - use more of the kit whenever your user's motion and goal need it. The wiring is only half the build. The other half is 3D design: you will model and print a custom mount - the housing that holds the switch itself - shaped and placed so the device fits your user's body and motion, not the other way around.",
+            hook: "A switch worth $15 can unlock a one-button rhythm game for a person whose most reliable movement is one wrist. The most important assistive technology in the world is sometimes the simplest. Now it is your turn.",
+            challenge: "How might we help one specific person access something they want to do more independently? Your available materials: a button, a lever, two LEDs, and an Arduino Leonardo. The minimum build is one switch and one LED - use more of the kit whenever your user's motion and goal need it. The wiring is only half the build. The other half is 3D design: you will model and print a custom mount - the housing that holds the switch itself - shaped and placed so the device fits your user's body and motion, not the other way around.",
             personas: [
               { name: 'Mia, 9',  condition: 'Cerebral palsy',           motion: 'Firm right-forearm sweep, full press',   goal: 'Play Geometry Dash with her brother (1 key, jump).' },
               { name: 'Leo, 16', condition: 'Cerebral palsy',           motion: 'Strong fist/palm press',                 goal: 'DJ in GarageBand, trigger drum loops (2 keys, kick + snare).' },
@@ -6669,7 +6678,7 @@
             { label: 'Code',    text: 'Upload a PDF of the code used in your final product.', points: 8 },
             { label: 'Wiring',  text: 'Upload the wiring schematic of your final product, made in the Wiring Schematic Tool on a breadboard. This is the wiring diagram the rubric grades. No perfboard yet - that is Project 4.', points: 7 },
             { label: 'Image',   text: 'Upload a clear photo of your final product.', points: 4 },
-            { label: 'Video',   text: 'Upload a 15-60 second video of your end-user (or a peer simulating their motion) using your final product.', points: 10 },
+            { label: 'Video',   text: 'Upload a 15-60 second video of your end-user (or a peer using the same access method) using your final product.', points: 10 },
             { label: 'Summary', text: 'Write a 4-5 sentence reflection: who your end user is, what you built for them, what failed along the way, and what you changed.', points: 5 }
           ]
         }
@@ -6690,7 +6699,7 @@
             'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Project 1 final product code from the tool, then this prompt: {{prompt}}Add to my existing code: type the letter s each time I lightly touch a TTP223B capacitive touch sensor. No force or pressing should be needed. The sensor has three pins: SIG, VCC, and GND. Tell me which free digital pin to put SIG on and use that exact pin number in the code. Keep every behavior from my Project 1 final product and do not change my existing wiring. Use only the touch sensor - no other new parts, no resistors. Simplest possible code and simplest wiring instructions.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the touch sensor to your existing schematic on the **breadboard**.',
             'Wire the sensor to match your schematic: **GND to GND, VCC to 5V, SIG to the digital pin your code reads** - the pin number in the code and the socket SIG sits in must match exactly. One continuous wire per connection - never chain two jumpers end to end. Then upload the code from the Arduino Code Loading Tool.',
-            'Test it: the little LED on the sensor lights while your finger is on the pad, and an s should type on every light touch, with no pressing needed. If it types nothing, first check that SIG is really in the pin the code names. If it types s over and over with no finger on it, unplug its VCC wire, lay the sensor flat, and plug it back in without touching the pad - it recalibrates itself in the first half-second. The small LED on the touch sensor stays on the whole time it has power. It does not show touches, so use the typed s as your test. Modify the code until it works exactly as described.',
+            'Test it: an s should type on every light touch, with no pressing needed. Use the typed s as your success signal because the onboard LED behaves differently on different TTP223B boards. If it types nothing, first check that SIG is really in the pin the code names. If it types s repeatedly with no finger on it, unplug VCC, lay the sensor flat, and reconnect VCC without touching the pad so it can recalibrate. Modify the code until it works exactly as described.',
             'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
           ],
           videoUrl: '',
@@ -6737,8 +6746,8 @@
           points: 50,
           drop: true,
           brief: {
-            hook: "An individual who can only graze a pad with one fingertip can still turn the page, send a message, or call for help, as long as the sensor needs no force at all. The right sensor does not wait for a push - it answers the smallest movement a body can make. Now it is your turn.",
-            challenge: "How might we give one specific person a way to do something they want to do but can't - using only the smallest movement they have, and no force at all? Your available materials: a capacitive touch sensor, an FC-51 IR sensor, two LEDs, and an Arduino Leonardo. The minimum build is one sensor and one LED - use more of the kit whenever your user's motion and goal need it. Like Project 1, you will 3D-model and print a custom mount - the housing that holds the sensor itself - so the device meets their smallest movement exactly where their body makes it. One standing rule: the build is cumulative. Your Project 1 final product stays wired in - in your code, your schematic, and on your breadboard - even when this product does not feature it.",
+            hook: "A light fingertip graze can turn a page, send a message, or call for help when the sensor needs no force at all. The right sensor does not wait for a push - it answers the smallest reliable movement a person can make. Now it is your turn.",
+            challenge: "How might we help one specific person access something they want to do using their smallest reliable movement, with no force? Your available materials: a capacitive touch sensor, an FC-51 IR sensor, two LEDs, and an Arduino Leonardo. The minimum build is one sensor and one LED - use more of the kit whenever your user's motion and goal need it. Like Project 1, you will 3D-model and print a custom mount - the housing that holds the sensor itself - so the device meets their smallest movement exactly where their body makes it. One standing rule: the build is cumulative. Your Project 1 final product stays wired in - in your code, your schematic, and on your breadboard - even when this product does not feature it.",
             personas: [
               { name: 'Noa, 12',  condition: 'Spinal muscular atrophy',             motion: 'Rests and lifts a single fingertip, no force',  goal: 'Turn pages in a digital comic with a fingertip touch (1 key, next page).' },
               { name: 'Kai, 17',  condition: 'High cervical spinal cord injury (C1-C4)', motion: 'Slow, reliable head and cheek movement',     goal: 'Call a caregiver hands-free by moving toward a sensor (1 key - the key types a message into an open chat window with his caregiver).' },
@@ -6764,7 +6773,7 @@
             { label: 'Code',    text: 'Upload a PDF of the code used in your final product - your Project 1 final product behaviors still included.', points: 8 },
             { label: 'Wiring',  text: 'Upload the wiring schematic of your final product, made in the Wiring Schematic Tool on a breadboard, with your Project 1 final product still wired in. This is the wiring diagram the rubric grades. No perfboard yet - that is Project 4.', points: 7 },
             { label: 'Image',   text: 'Upload a clear photo of your final product.', points: 4 },
-            { label: 'Video',   text: 'Upload a 15-60 second video of your end-user (or a peer simulating their motion) using your final product. Earlier switches stay wired in the frame - they do not need to be featured.', points: 10 },
+            { label: 'Video',   text: 'Upload a 15-60 second video of your end-user (or a peer using the same access method) using your final product. Earlier switches stay wired in the frame - they do not need to be featured.', points: 10 },
             { label: 'Summary', text: 'Write a 4-5 sentence reflection: who your end user is, what you built for them, what failed along the way, and what you changed.', points: 5 }
           ]
         }
@@ -6849,8 +6858,8 @@
           points: 50,
           drop: true,
           brief: {
-            hook: "An individual who cannot move their hands can still aim, click, and play, if the controls meet their mouth instead of their fingers. A joystick they steer with their lips and a tube that knows a soft breath from a hard one can open a whole screen back up. Now it is your turn.",
-            challenge: "How might we give one specific person a way to do something they want to do but can't - using only their mouth, chin, and breath? Your available materials: a joystick, a sip or puff switch, a breath pressure sensor, two LEDs, and an Arduino Leonardo. The minimum build is one input and one LED - use more of the kit whenever your user's motion and goal need it. You will 3D-model and print the mount that makes it possible - the housing that holds the joystick and tubes themselves, secured exactly where their mouth and chin can reach. The standing rule still holds: the build is cumulative. Your Project 2 final product, with your Project 1 final product inside it, stays wired in - code, schematic, and breadboard - even though this product features the mouth and breath controls.",
+            hook: "A person who navigates without hand movement can aim, click, and play when the controls meet their mouth instead of their fingers. A joystick steered with the lips and a tube that knows a soft breath from a hard one can open a whole screen back up. Now it is your turn.",
+            challenge: "How might we help one specific person access something they want to do using their mouth, chin, and breath? Your available materials: a joystick, a sip or puff switch, a breath pressure sensor, two LEDs, and an Arduino Leonardo. The minimum build is one input and one LED - use more of the kit whenever your user's motion and goal need it. You will 3D-model and print the mount that makes it possible - the housing that holds the joystick and tubes themselves, secured exactly where their mouth and chin can reach. The standing rule still holds: the build is cumulative. Your Project 2 final product, with your Project 1 final product inside it, stays wired in - code, schematic, and breadboard - even though this product features the mouth and breath controls.",
             personas: [
               { name: 'Elias, 16', condition: 'High cervical spinal cord injury (C1-C2)', motion: 'Precise lip control, strong and steady breath, can sip and puff at different strengths', goal: 'Play online chess hands-free (4 actions - joystick moves the cursor, soft puff picks up a piece, hard puff drops it, sip takes back the last move).' },
               { name: 'Priya, 19', condition: 'ALS (amyotrophic lateral sclerosis)', motion: 'Reliable chin movement, breath that is strong in the morning and softer by evening', goal: 'Paint in a digital art app all day (4 actions - joystick moves the brush, soft puff draws a thin line, hard puff draws a thick line, sip lifts the pen). Soft and hard must still work when her breath tires late in the day.' },
@@ -6876,7 +6885,7 @@
             { label: 'Code',    text: 'Upload a PDF of the code used in your final product - your Project 2 final product behaviors still included.', points: 8 },
             { label: 'Wiring',  text: 'Upload the wiring schematic of your final product, made in the Wiring Schematic Tool on a breadboard, with your Project 2 final product still wired in. This is the wiring diagram the rubric grades. No perfboard yet - that is Project 4.', points: 7 },
             { label: 'Image',   text: 'Upload a clear photo of your final product.', points: 4 },
-            { label: 'Video',   text: 'Upload a 15-60 second video of your end-user (or a peer simulating their motion) using your final product. Earlier switches stay wired in the frame - they do not need to be featured.', points: 10 },
+            { label: 'Video',   text: 'Upload a 15-60 second video of your end-user (or a peer using the same access method) using your final product. Earlier switches stay wired in the frame - they do not need to be featured.', points: 10 },
             { label: 'Summary', text: 'Write a 4-5 sentence reflection: who your end user is, what you built for them, what failed along the way, and what you changed.', points: 5 }
           ]
         }
@@ -6893,7 +6902,7 @@
           points: 2,
           gradeNote: 'Evidence (port-layout sketch + bill of materials photo showing instructor initials) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
-            'The hub serves every end-user from Projects 1-3 at once - it is a universal junction, not a device for one person. List every input across your designs, then decide how many ports of each type the hub needs: one **3.5mm jack** per switch and one **JST-XH header** per sensor. A reasonable starter hub is four jacks and three JST headers.',
+            'The hub supports every input type you built across Projects 1-3 - it is a universal junction, not another single-input device. List every input across your designs, then decide how many ports of each type the hub needs: one **3.5mm jack** per switch and one **JST-XH header** per sensor. A reasonable starter hub is four jacks and three JST headers.',
             'Plan the bridge cables and adaptor plugs. Inside the hub, short jumper wires and pre-crimped JST-XH pigtails (a pigtail is a short cable with a connector on one end and bare wires on the other) run from the Arduino out to each panel connector\'s solder lugs (the metal tabs on a connector that you solder wires to). Outside the hub, each switch ends in a **3.5mm male plug** and each sensor in a **JST-XH male plug** (3-pin for the touch sensor and the FC-51 IR sensor, 4-pin for the pressure sensor, 5-pin for the KY-023 joystick). Anything that does not already terminate that way gets a small adaptor cable.',
             'Sketch the **port layout** on the [Idea Board](tools#idea-board): which face of the hub holds the row of 3.5mm jacks, which face holds the row of JST headers, where the USB cable enters, and where the QR code label sits. Label each port with the action it will fire by default. Prefer paper? Sketch it in your notebook instead - upload a photo of the page when you turn it in.',
             'Write a **Bill of Materials** as a list - one line per part with a count: Arduino, perfboard, 3.5mm panel-mount jacks, JST-XH panel-mount headers (with the right pin count for each sensor), indicator LEDs, internal bridge wire and pigtails, external adaptor cables, screws, and 3D-print filament. **Get instructor sign-off** before you cut a single wire.',
@@ -6961,7 +6970,7 @@
           title: 'Product',
           points: 50,
           drop: true,
-          instructions: 'Submit your final product for Project 4 by following the rubric below. This is the integrated hub you grew across all four projects - sketch, perfboard, enclosure, remap app, and a testing session with your end-user (or a peer simulating their motion) - adopt one persona from Projects 1-3 as the hub\'s end-user.',
+          instructions: 'Submit your final product for Project 4 by following the rubric below. This is the integrated hub you grew across all four projects - sketch, perfboard, enclosure, remap app, and a testing session with your end-user (or a peer using the same access method) - adopt one persona from Projects 1-3 as the hub\'s end-user.',
           videoUrl: '',
           links: [],
           rubric: [
@@ -6970,7 +6979,7 @@
             { label: 'Code',    text: 'Upload a PDF of your final Arduino code (the version with remap support).', points: 8 },
             { label: 'Wiring',  text: 'Upload an image of your perfboard wiring layout (front and back).', points: 7 },
             { label: 'Image',   text: 'Upload a clear photo of your finished hub with everything plugged in.', points: 4 },
-            { label: 'Video',   text: 'Upload a short video of your end-user (or a peer simulating their motion) plugging in a switch, opening the remap app from the QR code, and remapping an input.', points: 10 },
+            { label: 'Video',   text: 'Upload a short video of your end-user (or a peer using the same access method) plugging in a switch, opening the remap app from the QR code, and remapping an input.', points: 10 },
             { label: 'Summary', text: 'Write a 4-5 sentence reflection on the full system - what you grew from Projects 1-3 into this hub, what user testing taught you, and a link to your live remap app.', points: 5 }
           ]
         }
@@ -11009,9 +11018,35 @@
   const journeyLabel = document.getElementById('journeyLabel');
   const journeyPrev = document.getElementById('journeyPrev');
   const journeyNext = document.getElementById('journeyNext');
+  const journeyNextLabel = document.getElementById('journeyNextLabel');
   let journeyPages = [];
   let journeyIndex = 0;
   let modalReturnFocus = null;
+
+  // Short action names keep the gradual-release footer useful. The full
+  // authored instruction stays in the body; this label answers "what am I
+  // doing now?" without repeating the paragraph.
+  const BENCHMARK_STEP_LABELS = {
+    p1b1: ['Generate the button code', 'Draw the button circuit', 'Build and upload', 'Test the button'],
+    p1b2: ['Keep the button baseline', 'Generate the lever code', 'Update the schematic', 'Add the lever', 'Test the lever'],
+    p1b3: ['Set up the breadboard', 'Add the LEDs', 'Generate the LED code', 'Update the schematic', 'Wire the LEDs', 'Test both LEDs'],
+    p1b4: ['Sketch for your user', 'Write the product prompt', 'Update the schematic', 'Build and test the circuit', 'Design the mount', 'Assemble and user-test', 'Save the cumulative baseline'],
+    p2b1: ['Restore the Project 1 build', 'Generate the touch code', 'Update the schematic', 'Wire the touch sensor', 'Test the touch sensor'],
+    p2b2: ['Add the distance sensor', 'Generate the distance code', 'Update the schematic', 'Wire the distance sensor', 'Tune and test the distance'],
+    p2b3: ['Add the LEDs', 'Generate the LED code', 'Update the schematic', 'Wire the LEDs', 'Test both LEDs'],
+    p2b4: ['Sketch for your user', 'Write the product prompt', 'Update the schematic', 'Build and test the circuit', 'Design the sensor mount', 'Assemble and user-test', 'Save the cumulative baseline'],
+    p3b1: ['Restore the Project 2 build', 'Generate the joystick code', 'Update the schematic', 'Wire the joystick', 'Test cursor and click'],
+    p3b2: ['Add the sip or puff switch', 'Generate the breath-switch code', 'Update the schematic', 'Wire the switch', 'Test the puff action'],
+    p3b5: ['Add the pressure sensor', 'Generate the pressure code', 'Update the schematic', 'Wire the pressure sensor', 'Calibrate soft and hard breaths'],
+    p3b3: ['Add the LEDs', 'Generate the LED code', 'Update the schematic', 'Wire the LEDs', 'Test the indicator LEDs'],
+    p3b4: ['Sketch the hands-free design', 'Write the product prompt', 'Update the schematic', 'Build and test the circuit', 'Design a secure mount', 'Assemble and user-test', 'Save the hub baseline'],
+    p4b1: ['Count the required ports', 'Plan cables and adapters', 'Sketch the port layout', 'Build the bill of materials'],
+    p4b2: ['Preserve the working behavior', 'Verify the breadboard baseline', 'Draw the perfboard layout', 'Choose a connector strategy', 'Solder in stages', 'Test every external port'],
+    p4b3: ['Start the enclosure CAD', 'Add the required features', 'Print a thin-wall prototype', 'Print and label the final', 'Optional built-in inputs'],
+    p4b4: ['Define the remap workflow', 'Add Arduino serial commands', 'Build the remap webpage', 'Deploy and claim the site', 'Add the QR label', 'Test end-to-end'],
+    p4b5: ['Review the product rubric'],
+    instructable: ['Scope the story', 'Gather every project file', 'Start the Instructable', 'Add the cover image', 'Write the introduction', 'Add the materials list', 'Write the build steps', 'Add the action video', 'Attach the build files', 'Enter a contest', 'Publish and submit', 'Prepare the live demo']
+  };
 
   function setModalBoundary(active) {
     modal.setAttribute('aria-hidden', active ? 'false' : 'true');
@@ -11020,7 +11055,10 @@
   }
 
   function journeyPageLabel(section, step, stepIndex, stepCount) {
-    if (step) return `Instruction ${stepIndex + 1} of ${stepCount}`;
+    if (step) {
+      return BENCHMARK_STEP_LABELS[currentBenchmark?.id]?.[stepIndex]
+        || `Instruction ${stepIndex + 1} of ${stepCount}`;
+    }
     const heading = section.querySelector(':scope > h3') || section.querySelector('summary');
     if (!heading) return 'Benchmark work';
     const copy = heading.cloneNode(true);
@@ -11035,17 +11073,30 @@
     const current = journeyPages[journeyIndex];
     // Gradual release: every page up to the current one stays on screen, so
     // Next adds the next step below the last instead of swapping to a new page.
-    modalBody.querySelectorAll(':scope > .modal-section').forEach(section => { section.hidden = true; });
-    modalBody.querySelectorAll('.cp-step').forEach(step => { step.hidden = true; });
+    modalBody.querySelectorAll(':scope > .modal-section').forEach(section => {
+      section.hidden = true;
+      section.removeAttribute('aria-current');
+    });
+    modalBody.querySelectorAll('.cp-step').forEach(step => {
+      step.hidden = true;
+      step.classList.remove('is-current', 'is-released');
+      step.removeAttribute('aria-current');
+    });
     journeyPages.slice(0, journeyIndex + 1).forEach(page => {
       page.section.hidden = false;
-      if (page.step) page.step.hidden = false;
+      if (page.step) {
+        page.step.hidden = false;
+        page.step.classList.add(page === current ? 'is-current' : 'is-released');
+      }
     });
+    (current.step || current.section).setAttribute('aria-current', 'step');
     journeyKicker.textContent = `${String(journeyIndex + 1).padStart(2, '0')} / ${String(journeyPages.length).padStart(2, '0')}`;
     journeyLabel.textContent = current.label;
     journeyProgress.style.width = `${((journeyIndex + 1) / journeyPages.length) * 100}%`;
     journeyPrev.disabled = journeyIndex === 0;
     journeyNext.disabled = journeyIndex === journeyPages.length - 1;
+    journeyNextLabel.textContent = journeyNext.disabled ? 'All released' : 'Next';
+    journeyNext.setAttribute('aria-label', journeyNext.disabled ? 'All steps released' : 'Next step');
     if (persist && currentBenchmark?.id) {
       try { localStorage.setItem(`t4sg-benchmark-page:${currentBenchmark.id}`, String(journeyIndex)); } catch (_) {}
     }
