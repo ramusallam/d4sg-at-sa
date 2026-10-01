@@ -16100,7 +16100,7 @@ void loop() {
     if (!monitor) return;
     monitor.querySelectorAll('.vibe-monitor-fix-btn').forEach(b => b.remove());
     const tail = (stderr || '').slice(-1500).trim();
-    const prompt = 'My Arduino Leonardo sketch does not compile. Explain the error in plain English, then fix it and return the full corrected sketch in one code block. Do not add any new parts or behaviors. Here is the compiler output:\n\n' + tail;
+    const prompt = 'My Arduino Leonardo sketch does not compile. Explain the error in plain English, then fix it and return the full corrected sketch in one code block. Do not add any new parts or behaviors. The compiler only has these libraries: Keyboard.h, Mouse.h, Joystick.h, Adafruit_VL53L0X.h, Adafruit_TCS34725.h, HX710AB.h, HX710B.h, and HX711.h. If the error is a missing library, rewrite the sketch to use one of these (for the HX710B breath pressure sensor, use HX710AB.h). Here is the compiler output:\n\n' + tail;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'vibe-monitor-fix-btn';
