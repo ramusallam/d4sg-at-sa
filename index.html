@@ -105,6 +105,9 @@
     transform: translateY(-0.063em);
   }
   .header-title-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
     color: inherit;
     text-decoration: none;
     cursor: pointer;
@@ -705,8 +708,8 @@
   }
   .close-btn {
     flex-shrink: 0;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.06);
     border: none;
@@ -729,6 +732,73 @@
     overflow-y: auto;
     padding: 22px 36px 28px;
   }
+  .modal-body > .modal-section[hidden],
+  .cp-step[hidden],
+  .modal-journey[hidden] { display: none !important; }
+  .modal-journey {
+    flex: 0 0 auto;
+    padding: 13px 36px 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    background: var(--paper-soft);
+  }
+  .modal-journey-progress {
+    height: 3px;
+    margin-bottom: 11px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(99, 102, 241, 0.14);
+  }
+  .modal-journey-progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width 0.18s ease;
+  }
+  .modal-journey-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+  }
+  .modal-journey-kicker {
+    margin: 0 0 3px;
+    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    color: var(--paper-accent);
+  }
+  .modal-journey-label {
+    margin: 0;
+    overflow: hidden;
+    color: var(--paper-ink);
+    font-size: 13px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .modal-journey-actions { display: flex; gap: 8px; }
+  .journey-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+    border-radius: 10px;
+    background: white;
+    color: var(--paper-ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font: 700 12px/1 Inter, system-ui, sans-serif;
+    cursor: pointer;
+  }
+  .journey-btn-next { background: var(--accent); border-color: var(--accent); color: white; }
+  .journey-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .journey-btn-next:hover:not(:disabled) { background: var(--accent-hover); color: white; }
+  .journey-btn:disabled { opacity: 0.35; cursor: default; }
   .modal-section {
     margin-bottom: 28px;
   }
@@ -1423,6 +1493,7 @@
     text-transform: uppercase;
     transition: all 0.15s ease;
     cursor: pointer;
+    min-height: 44px;
   }
   .nav-link:hover {
     border-color: var(--accent);
@@ -3805,6 +3876,9 @@
     gap: 8px;
   }
   .archive-banner button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: white;
     border: 1px solid #d97706;
     color: #78350f;
@@ -3958,13 +4032,21 @@
     .header-title { width: 100%; }
     .header-meta {
       width: 100%;
-      overflow-x: auto;
-      padding-bottom: 3px;
-      scrollbar-width: none;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 5px;
     }
-    .header-meta::-webkit-scrollbar { display: none; }
-    .nav-link { flex: 0 0 auto; padding: 7px 11px; }
-    .course-menu { flex: 0 0 auto; }
+    .nav-link {
+      width: 100%;
+      min-width: 0;
+      justify-content: center;
+      padding: 7px 3px;
+      font-size: 9.5px;
+      letter-spacing: 0.25px;
+    }
+    .course-menu { min-width: 0; }
+    .course-menu-popover { right: 0; }
+    .admin-bar { grid-column: 1 / -1; }
     main { padding: 28px 20px 80px; }
     .benchmark { padding: 14px 16px; gap: 12px; }
     .artifact-count { font-size: 11px; padding: 4px 8px; }
@@ -3975,7 +4057,12 @@
       border-radius: 0;
     }
     .modal-header { padding: 20px 22px 16px; }
-    .modal-body { padding: 20px 22px 32px; }
+    .modal-body { padding: 20px 22px 24px; }
+    .modal-journey { padding: 11px 16px max(12px, env(safe-area-inset-bottom)); }
+    .modal-journey-row { gap: 10px; }
+    .modal-journey-label { max-width: 42vw; }
+    .journey-btn { padding: 0 10px; }
+    .journey-btn span { display: none; }
     .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .pf-slots { grid-template-columns: repeat(3, 1fr); }
     .pf-slot.is-open { grid-column: 1 / -1; }
@@ -6161,7 +6248,7 @@
 
 <main id="app"></main>
 
-<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
   <div class="modal" id="modalCard">
     <div class="modal-header">
       <div class="modal-title-wrap">
@@ -6172,10 +6259,27 @@
       <button class="close-btn" id="closeBtn" aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="modal-body" id="modalBody"></div>
+    <div class="modal-journey" id="modalJourney" hidden>
+      <div class="modal-journey-progress" aria-hidden="true"><span id="journeyProgress"></span></div>
+      <div class="modal-journey-row">
+        <div>
+          <p class="modal-journey-kicker" id="journeyKicker"></p>
+          <p class="modal-journey-label" id="journeyLabel"></p>
+        </div>
+        <div class="modal-journey-actions">
+          <button class="journey-btn" id="journeyPrev" type="button" aria-label="Previous step">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span>Previous</span>
+          </button>
+          <button class="journey-btn journey-btn-next" id="journeyNext" type="button" aria-label="Next step">
+            <span>Next</span><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-labelledby="lightboxName" aria-hidden="true">
   <button class="lightbox-close" id="lightboxClose" aria-label="Close"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
   <div class="lightbox-media" id="lightboxMedia"></div>
   <div class="lightbox-meta">
@@ -6885,15 +6989,15 @@
             'This is the capstone. You are **not building any new hardware** - you are pulling **everything you have already made** into one Instructable that teaches someone to build your complete controller hub: every switch from Projects 1-3, the hub from Project 4, and the remap app. (One exception: the last step asks you to set up a fun demo using your existing switches.) Keep the **rubric below** open as you work - before each step, read its row and aim for **Mastered**.',
             'Gather all the work you already have: the photos, wiring schematics, code, STL files, and videos from every project, plus your **remap app (index.html) and its QR code**. This step is about **collecting and organizing** it all in one place.',
             'Make a free account at [Instructables](https://www.instructables.com) and click **Create** to start one Instructable for the whole system.',
-            'Add a **cover image**: a clear, bright photo of your finished, complete hub with its switches. **↓ Check the rubric: *Cover + Intro*.**',
-            'Write a short **intro**: who your user is, what they need, and what the whole system does - in **3 sentences or fewer**. **↓ Check the rubric: *Cover + Intro*.**',
-            'Make your first step a **Materials** list for the entire build, each part with a count, a price, and a **purchase link** (Amazon or another store), ending with a **total build cost**. **↓ Check the rubric: *Materials + Links*.**',
-            'Write **step-by-step build instructions** for the complete system: each switch, then the hub, then the remap app (include your **index.html** and the **QR code**). One clear step per stage, using the photos you already took, and name the **parts and pins** each step uses. **↓ Check the rubric: *Build Steps*.**',
-            'Embed a **video of your complete hub in action**: show at least one input used with your end-user\'s actual motion, and the remap app changing an action. **↓ Check the rubric: *Video in Action*.**',
-            'Attach **all your files** from every project: every STL, every code PDF, every wiring schematic, plus your **remap app (index.html) and QR code**. **↓ Check the rubric: *All Files*.**',
-            'Browse the [open contests](https://www.instructables.com/contest) and **enter the one that best fits your build**. (If nothing fits, the always-open *Anything Goes* contest qualifies.) Take a **screenshot** that shows you entered. **↓ Check the rubric: *Published + Contest*.**',
-            'Add the tag **assistive technology** in your Instructable settings before publishing - the rubric grades it. Publish, then finish in **Drop your Instructable link** below: paste your public Instructable **URL** and upload the **screenshot** of your contest entry. **↓ Check the rubric: *Published + Contest*.**',
-            '**Instructable Live:** (1) build something fun a guest can play - a game, soundboard, or instrument - using *all your switches at once*; (2) print a small sign with 2-3 steps that teach a stranger how to play. Done = a guest plays it with no help from you. (Graded in person on demo day.) **↓ Check the rubric: *Instructable Live*.**'
+            'Add a **cover image**: a clear, bright photo of your finished, complete hub with its switches. **Check the rubric: *Cover + Intro*.**',
+            'Write a short **intro**: who your user is, what they need, and what the whole system does - in **3 sentences or fewer**. **Check the rubric: *Cover + Intro*.**',
+            'Make your first step a **Materials** list for the entire build, each part with a count, a price, and a **purchase link** (Amazon or another store), ending with a **total build cost**. **Check the rubric: *Materials + Links*.**',
+            'Write **step-by-step build instructions** for the complete system: each switch, then the hub, then the remap app (include your **index.html** and the **QR code**). One clear step per stage, using the photos you already took, and name the **parts and pins** each step uses. **Check the rubric: *Build Steps*.**',
+            'Embed a **video of your complete hub in action**: show at least one input used with your end-user\'s actual motion, and the remap app changing an action. **Check the rubric: *Video in Action*.**',
+            'Attach **all your files** from every project: every STL, every code PDF, every wiring schematic, plus your **remap app (index.html) and QR code**. **Check the rubric: *All Files*.**',
+            'Browse the [open contests](https://www.instructables.com/contest) and **enter the one that best fits your build**. (If nothing fits, the always-open *Anything Goes* contest qualifies.) Take a **screenshot** that shows you entered. **Check the rubric: *Published + Contest*.**',
+            'Add the tag **assistive technology** in your Instructable settings before publishing - the rubric grades it. Publish, then finish in **Drop your Instructable link** below: paste your public Instructable **URL** and upload the **screenshot** of your contest entry. **Check the rubric: *Published + Contest*.**',
+            '**Instructable Live:** (1) build something fun a guest can play - a game, soundboard, or instrument - using *all your switches at once*; (2) print a small sign with 2-3 steps that teach a stranger how to play. Done = a guest plays it with no help from you. (Graded in person on demo day.) **Check the rubric: *Instructable Live*.**'
           ],
           videoUrl: '',
           links: [
@@ -7044,7 +7148,7 @@
     {
       id: 'wu-2026-09-11',
       date: '2026-09-11',
-      question: '<p>A company called Augmental builds what it calls Skinware: interfaces that live on the body instead of in your hands. We are looking at both of their devices today.</p><p><strong>Device 1: the MouthPad.</strong> A trackpad on the roof of your mouth: you move the cursor with your tongue, click by pressing, and right-click with a sip. It pairs over Bluetooth like any mouse and works with phones, tablets, and computers. Explore the site while we watch the videos together:</p><div style="position:relative;width:100%;height:520px;border-radius:10px;overflow:hidden;margin:0 0 10px;border:1px solid var(--border);"><iframe src="https://www.augmental.tech/" title="Augmental MouthPad" style="position:absolute;inset:0;width:100%;height:100%;border:0;" loading="lazy"></iframe></div><p><a href="https://www.augmental.tech/" target="_blank" rel="noopener">Open augmental.tech in its own tab ↗</a></p><p><strong>Prompt 1, in your notebook:</strong> Augmental looked at the body and noticed the tongue - fast, precise, tireless, and ignored by every controller ever made - and turned it into an interface. Who gains the most from this device, and what does it unlock that a mouse, controller, or touchscreen could not?</p><p><strong>Device 2: Vox.</strong> A wearable mic that rests on the skin and picks up your voice through your body, so a whisper too quiet for anyone nearby to hear still types for you. Augmental calls it "speak without being heard."</p><div style="position:relative;width:100%;height:520px;border-radius:10px;overflow:hidden;margin:0 0 10px;border:1px solid var(--border);"><iframe src="https://www.augmental.tech/vox" title="Augmental Vox" style="position:absolute;inset:0;width:100%;height:100%;border:0;" loading="lazy"></iframe></div><p><a href="https://www.augmental.tech/vox" target="_blank" rel="noopener">Open the Vox page in its own tab ↗</a></p><p><strong>Prompt 2, in your notebook:</strong> Voice control already exists - Siri, Alexa, dictation - but it assumes you can speak loudly and do not mind being overheard. Who gains the most from a keyboard you can whisper to, and what does it unlock that regular voice control could not?</p><p>A few sentences on each prompt. Be ready to share.</p>'
+      question: '<p>A company called Augmental builds what it calls Skinware: interfaces that live on the body instead of in your hands. We are looking at both of their devices today.</p><p><strong>Device 1: the MouthPad.</strong> A trackpad on the roof of your mouth: you move the cursor with your tongue, click by pressing, and right-click with a sip. It pairs over Bluetooth like any mouse and works with phones, tablets, and computers. Explore the site while we watch the videos together:</p><div style="position:relative;width:100%;height:520px;border-radius:10px;overflow:hidden;margin:0 0 10px;border:1px solid var(--border);"><iframe src="https://www.augmental.tech/" title="Augmental MouthPad" style="position:absolute;inset:0;width:100%;height:100%;border:0;" loading="lazy"></iframe></div><p><a href="https://www.augmental.tech/" target="_blank" rel="noopener">Open augmental.tech in its own tab</a></p><p><strong>Prompt 1, in your notebook:</strong> Augmental looked at the body and noticed the tongue - fast, precise, tireless, and ignored by every controller ever made - and turned it into an interface. Who gains the most from this device, and what does it unlock that a mouse, controller, or touchscreen could not?</p><p><strong>Device 2: Vox.</strong> A wearable mic that rests on the skin and picks up your voice through your body, so a whisper too quiet for anyone nearby to hear still types for you. Augmental calls it "speak without being heard."</p><div style="position:relative;width:100%;height:520px;border-radius:10px;overflow:hidden;margin:0 0 10px;border:1px solid var(--border);"><iframe src="https://www.augmental.tech/vox" title="Augmental Vox" style="position:absolute;inset:0;width:100%;height:100%;border:0;" loading="lazy"></iframe></div><p><a href="https://www.augmental.tech/vox" target="_blank" rel="noopener">Open the Vox page in its own tab</a></p><p><strong>Prompt 2, in your notebook:</strong> Voice control already exists - Siri, Alexa, dictation - but it assumes you can speak loudly and do not mind being overheard. Who gains the most from a keyboard you can whisper to, and what does it unlock that regular voice control could not?</p><p>A few sentences on each prompt. Be ready to share.</p>'
     },
     {
       id: 'wu-2026-09-08',
@@ -7175,6 +7279,9 @@
   const ICON_SKETCH  = `<svg ${_SVG_ATTRS}><path d="M12 19l7-7 3 3-7 7H12z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18"/><path d="M2 2l7.586 7.586"/></svg>`;
   const ICON_DOC     = `<svg ${_SVG_ATTRS}><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/></svg>`;
   const ICON_X       = `<svg ${_SVG_ATTRS} aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
+  const ICON_EXTERNAL = `<svg ${_SVG_ATTRS} aria-hidden="true"><path d="M14 5h5v5M10 14L19 5M19 14v5H5V5h5"/></svg>`;
+  const ICON_DOWNLOAD = `<svg ${_SVG_ATTRS} aria-hidden="true"><path d="M12 4v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>`;
+  const ICON_PLAY = `<svg ${_SVG_ATTRS} aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>`;
   const ICON_SPARKLE = `<svg ${_SVG_ATTRS} aria-hidden="true"><path d="M12 3l1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4z"/><path d="M18.5 15l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7z"/></svg>`;
 
   // Benchmarks open in ONE dedicated "work" tab so the home list never has to
@@ -7266,7 +7373,7 @@
       <h2 class="dayone-banner-title">Make Something.</h2>
       <div class="dayone-banner-side">
         <span class="dayone-banner-meta">20 min · ${DAY_ONE.points} pts</span>
-        <span class="dayone-banner-cta">Start <span class="arrow">→</span></span>
+        <span class="dayone-banner-cta">Start <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6l6 6-6 6"/></svg></span>
       </div>
     `;
     dayoneBanner.addEventListener('click', () => {
@@ -7321,7 +7428,7 @@
           <div class="capstone-footer">
             <span class="capstone-points">${b.points} pts</span>
             <span class="artifact-count" data-count="${b.id}" style="display:none;">${PAPERCLIP_SVG}<span data-count-num>0</span></span>
-            <span class="capstone-cta">Open project <span class="capstone-arrow">→</span></span>
+            <span class="capstone-cta">Open project <svg class="capstone-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6l6 6-6 6"/></svg></span>
           </div>
         `;
         card.addEventListener('click', (e) => {
@@ -7579,7 +7686,7 @@
         <h2 class="dayone-title">Make Something.</h2>
         <p class="dayone-sub">Pick a problem below. Build a 3D-printable fix in CAD. 20 minutes.</p>
         <div class="dayone-hero-row">
-          <a href="https://www.tinkercad.com/" target="_blank" rel="noopener" class="tinkercad-btn">Open Tinkercad <span class="arrow">↗</span></a>
+          <a href="https://www.tinkercad.com/" target="_blank" rel="noopener" class="tinkercad-btn">Open Tinkercad <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M10 14L19 5M19 14v5H5V5h5"/></svg></a>
           <div class="dayone-timer" id="dayoneTimer" role="timer" aria-label="Challenge timer">
             <span class="dayone-timer-readout" id="dayoneTimerReadout">20:00</span>
             <button type="button" class="dayone-timer-btn" id="dayoneTimerBtn">Start</button>
@@ -10896,11 +11003,80 @@
   const modalPoints = document.getElementById('modalPoints');
   const modalBody = document.getElementById('modalBody');
   const closeBtn = document.getElementById('closeBtn');
+  const modalJourney = document.getElementById('modalJourney');
+  const journeyProgress = document.getElementById('journeyProgress');
+  const journeyKicker = document.getElementById('journeyKicker');
+  const journeyLabel = document.getElementById('journeyLabel');
+  const journeyPrev = document.getElementById('journeyPrev');
+  const journeyNext = document.getElementById('journeyNext');
+  let journeyPages = [];
+  let journeyIndex = 0;
+  let modalReturnFocus = null;
+
+  function setModalBoundary(active) {
+    modal.setAttribute('aria-hidden', active ? 'false' : 'true');
+    document.querySelector('body > header')?.toggleAttribute('inert', active);
+    document.getElementById('app')?.toggleAttribute('inert', active);
+  }
+
+  function journeyPageLabel(section, step, stepIndex, stepCount) {
+    if (step) return `Instruction ${stepIndex + 1} of ${stepCount}`;
+    const heading = section.querySelector(':scope > h3') || section.querySelector('summary');
+    if (!heading) return 'Benchmark work';
+    const copy = heading.cloneNode(true);
+    copy.querySelector('.step-num')?.remove();
+    copy.querySelector('span')?.remove();
+    return copy.textContent.trim().replace(/\s+/g, ' ');
+  }
+
+  function showJourneyPage(nextIndex, persist = true) {
+    if (!journeyPages.length) return;
+    journeyIndex = Math.max(0, Math.min(nextIndex, journeyPages.length - 1));
+    const current = journeyPages[journeyIndex];
+    modalBody.querySelectorAll(':scope > .modal-section').forEach(section => { section.hidden = true; });
+    modalBody.querySelectorAll('.cp-step').forEach(step => { step.hidden = true; });
+    current.section.hidden = false;
+    if (current.step) current.step.hidden = false;
+    journeyKicker.textContent = `${String(journeyIndex + 1).padStart(2, '0')} / ${String(journeyPages.length).padStart(2, '0')}`;
+    journeyLabel.textContent = current.label;
+    journeyProgress.style.width = `${((journeyIndex + 1) / journeyPages.length) * 100}%`;
+    journeyPrev.disabled = journeyIndex === 0;
+    journeyNext.disabled = journeyIndex === journeyPages.length - 1;
+    if (persist && currentBenchmark?.id) {
+      try { localStorage.setItem(`t4sg-benchmark-page:${currentBenchmark.id}`, String(journeyIndex)); } catch (_) {}
+    }
+    modalBody.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  function setupBenchmarkJourney(b) {
+    journeyPages = [];
+    modalBody.querySelectorAll(':scope > .modal-section').forEach(section => {
+      const steps = [...section.querySelectorAll(':scope .cp-steps > .cp-step')];
+      if (steps.length) {
+        steps.forEach((step, index) => journeyPages.push({
+          section,
+          step,
+          label: journeyPageLabel(section, step, index, steps.length)
+        }));
+      } else {
+        journeyPages.push({ section, step: null, label: journeyPageLabel(section, null, 0, 0) });
+      }
+    });
+    modalJourney.hidden = journeyPages.length < 2;
+    if (journeyPages.length < 2) return;
+    let savedIndex = 0;
+    try { savedIndex = Number(localStorage.getItem(`t4sg-benchmark-page:${b.id}`)) || 0; } catch (_) {}
+    showJourneyPage(savedIndex, false);
+  }
+
+  journeyPrev.addEventListener('click', () => showJourneyPage(journeyIndex - 1));
+  journeyNext.addEventListener('click', () => showJourneyPage(journeyIndex + 1));
 
   // _focusStudent: when set, the next portfolio gallery render auto-expands the
   // row for that student name and scrolls it into view.
   let _focusStudent = null;
   function openModal(b) {
+    modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     _focusStudent = null; // reset per open; set only by the gallery's student-jump dropdown
     currentBenchmark = b;
     modalEyebrow.textContent = b.id === 'instructable' ? 'Final Project'
@@ -10942,10 +11118,21 @@
         <div class="cp-brief">
           ${b.brief.hook ? `<p class="cp-brief-hook">${escapeHtml(b.brief.hook)}</p>` : ''}
           ${b.brief.challenge ? `<p class="cp-brief-challenge">${formatStepMarkup(b.brief.challenge, partSeen)}</p>` : ''}
-          ${personaCards ? `<p class="cp-brief-pick">Pick your user</p><div class="cp-persona-roster">${personaCards}</div>` : ''}
         </div>
       `;
       modalBody.appendChild(sec);
+      if (personaCards) {
+        const personaSec = document.createElement('div');
+        personaSec.className = 'modal-section';
+        personaSec.innerHTML = `
+          <h3>${badge()}Choose a user</h3>
+          <div class="cp-brief">
+            <p class="cp-brief-pick">Pick the person whose motion and goal will guide your design.</p>
+            <div class="cp-persona-roster">${personaCards}</div>
+          </div>
+        `;
+        modalBody.appendChild(personaSec);
+      }
     }
     if (b.instructions && (!Array.isArray(b.instructions) || b.instructions.length)) {
       const sec = document.createElement('div');
@@ -11170,13 +11357,18 @@
       });
     });
 
+    setupBenchmarkJourney(b);
     modal.classList.add('open');
+    setModalBoundary(true);
     document.body.style.overflow = 'hidden';
     closeBtn.focus();
   }
 
   function closeModal() {
     modal.classList.remove('open');
+    setModalBoundary(false);
+    modalJourney.hidden = true;
+    journeyPages = [];
     document.documentElement.classList.remove('deeplink-paint');
     document.body.style.overflow = '';
     currentBenchmark = null;
@@ -11203,9 +11395,12 @@
         history.replaceState(null, '', sp.toString() ? `${location.pathname}?${sp.toString()}` : location.pathname);
       }
     } catch (_) {}
+    if (modalReturnFocus?.isConnected) modalReturnFocus.focus();
+    modalReturnFocus = null;
   }
 
   function openHomeworkModal(w) {
+    modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     currentBenchmark = w;
     modalEyebrow.textContent = 'Homework';
     modalTitle.textContent = w.title;
@@ -11225,7 +11420,7 @@
         <div class="step-section">
           <h3><span class="step-num">1</span>Watch + follow along</h3>
           <p>Watch the video and follow along in Tinkercad.</p>
-          <a href="https://www.tinkercad.com/" target="_blank" rel="noopener" class="tinkercad-btn">Open Tinkercad <span class="arrow">↗</span></a>
+          <a href="https://www.tinkercad.com/" target="_blank" rel="noopener" class="tinkercad-btn">Open Tinkercad <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 5h5v5M10 14L19 5M19 14v5H5V5h5"/></svg></a>
           ${videoBlock}
         </div>
       </div>
@@ -11246,7 +11441,10 @@
       descriptionPlaceholder: 'Describe the purpose of your design…'
     });
 
+    modalJourney.hidden = true;
+    journeyPages = [];
     modal.classList.add('open');
+    setModalBoundary(true);
     document.body.style.overflow = 'hidden';
     closeBtn.focus();
   }
@@ -14468,7 +14666,7 @@
         ${headHtml}
         <div class="pf-view-thumb"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.5-1.5"/></svg></div>
         <div class="pf-view-filename">${escapeHtml(domain)}</div>
-        <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ↗</a>
+        <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ${ICON_EXTERNAL}</a>
       `;
     }
 
@@ -14488,12 +14686,12 @@
           ${headHtml}
           <div class="pf-view-thumb"><video src="${data.url}" controls preload="metadata"></video></div>
           <div class="pf-view-filename">${escapeHtml(data.fileName || 'Video')}</div>
-          <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ↗</a>
+          <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ${ICON_EXTERNAL}</a>
         `;
       }
       return `
         ${headHtml}
-        <div class="pf-view-thumb"><video src="${data.url}" muted preload="metadata"></video><div class="play-badge">▶</div></div>
+        <div class="pf-view-thumb"><video src="${data.url}" muted preload="metadata"></video><div class="play-badge">${ICON_PLAY}</div></div>
         <div class="pf-view-filename">${escapeHtml(data.fileName || 'Video')}</div>
       `;
     }
@@ -14505,14 +14703,14 @@
             <iframe src="${data.url}" loading="lazy" style="width:100%;height:100%;border:0;"></iframe>
           </div>
           <div class="pf-view-filename">${escapeHtml(data.fileName || 'PDF')}</div>
-          <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ↗</a>
+          <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ${ICON_EXTERNAL}</a>
         `;
       }
       return `
         ${headHtml}
         <div class="pf-view-thumb"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h6"/></svg></div>
         <div class="pf-view-filename">${escapeHtml(data.fileName || 'PDF')}</div>
-        <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ↗</a>
+        <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Open ${ICON_EXTERNAL}</a>
       `;
     }
     // STL: labeled chip that links to the file for download (no <img> attempt).
@@ -14525,7 +14723,7 @@
           <span style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:8px;background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e;font-size:13px;font-weight:700;letter-spacing:1.2px;">STL</span>
         </div>
         <div class="pf-view-filename">${escapeHtml(data.fileName || 'STL file')}</div>
-        <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Download ↓</a>
+        <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Download ${ICON_DOWNLOAD}</a>
       `;
     }
     // Generic file
@@ -14533,7 +14731,7 @@
       ${headHtml}
       <div class="pf-view-thumb"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg></div>
       <div class="pf-view-filename">${escapeHtml(data.fileName || 'File')}</div>
-      <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Download ↓</a>
+      <a class="pf-view-open" href="${data.url}" target="_blank" rel="noopener">Download ${ICON_DOWNLOAD}</a>
     `;
   }
 
@@ -14550,7 +14748,7 @@
     }
     lightboxName.textContent = `${studentName || 'Unnamed'} · ${slotLabel}`;
     lightboxDesc.textContent = data.fileName || '';
-    lightbox.classList.add('open');
+    finishOpenLightbox();
   }
 
   async function deletePortfolio(item) {
@@ -14599,6 +14797,25 @@
   const lightboxName = document.getElementById('lightboxName');
   const lightboxDesc = document.getElementById('lightboxDesc');
   const lightboxClose = document.getElementById('lightboxClose');
+  let lightboxReturnFocus = null;
+
+  function setLightboxBoundary(active) {
+    lightbox.setAttribute('aria-hidden', active ? 'false' : 'true');
+    if (modal.classList.contains('open')) {
+      modalCard.toggleAttribute('inert', active);
+      modal.setAttribute('aria-hidden', active ? 'true' : 'false');
+    } else {
+      document.querySelector('body > header')?.toggleAttribute('inert', active);
+      document.getElementById('app')?.toggleAttribute('inert', active);
+    }
+  }
+
+  function finishOpenLightbox() {
+    lightboxReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    lightbox.classList.add('open');
+    setLightboxBoundary(true);
+    lightboxClose.focus();
+  }
 
   function openLightbox(item) {
     const isVideo = (item.contentType || '').startsWith('video/');
@@ -14607,11 +14824,14 @@
       : `<img src="${item.fileUrl}" alt="${escapeHtml(item.studentName || '')}" />`;
     lightboxName.textContent = item.studentName || 'Unnamed';
     lightboxDesc.textContent = item.description || '';
-    lightbox.classList.add('open');
+    finishOpenLightbox();
   }
   function closeLightbox() {
     lightbox.classList.remove('open');
+    setLightboxBoundary(false);
     lightboxMedia.innerHTML = '';
+    if (lightboxReturnFocus?.isConnected) lightboxReturnFocus.focus();
+    lightboxReturnFocus = null;
   }
   lightboxClose.addEventListener('click', closeLightbox);
   lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
@@ -14687,7 +14907,11 @@
 
   async function openArchivesList() {
     if (!isAdmin) return;
+    if (!modal.classList.contains('open')) {
+      modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    }
     currentBenchmark = null;
+    modalEyebrow.textContent = 'Teacher tools';
     modalTitle.textContent = 'Class Archives';
     modalPoints.style.display = 'none';
     modalBody.classList.remove('is-hw');
@@ -14704,7 +14928,10 @@
     // Tear down any open live listeners first.
     if (unsubscribeGallery) { unsubscribeGallery(); unsubscribeGallery = null; }
     if (unsubscribePortfolios) { unsubscribePortfolios(); unsubscribePortfolios = null; }
+    modalJourney.hidden = true;
+    journeyPages = [];
     modal.classList.add('open');
+    setModalBoundary(true);
     document.body.style.overflow = 'hidden';
 
     const listEl = document.getElementById('archiveList');
@@ -14757,6 +14984,7 @@
   async function openArchiveDetail(archiveId, metaHint) {
     if (!isAdmin) return;
     currentBenchmark = null;
+    modalEyebrow.textContent = 'Teacher tools';
     modalTitle.textContent = archiveTitleFor(metaHint || {}, archiveId);
     modalPoints.style.display = 'none';
     modalBody.classList.remove('is-hw');
@@ -14766,7 +14994,7 @@
           <span class="archive-banner-tag">Archive</span>
           <span>Read-only snapshot. ${escapeHtml(fmtArchiveDate(metaHint?.archivedAt) || archiveId.slice(0, 10))}</span>
           <div class="archive-banner-actions">
-            <button type="button" data-archive-back>← All archives</button>
+            <button type="button" data-archive-back><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg> All archives</button>
             <button type="button" class="btn-restore" data-archive-restore>Restore to live</button>
           </div>
         </div>
@@ -14795,7 +15023,11 @@
     modalBody.querySelector('[data-archive-restore]').addEventListener('click', () => restoreArchive(archiveId));
 
     if (!modal.classList.contains('open')) {
+      modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      modalJourney.hidden = true;
+      journeyPages = [];
       modal.classList.add('open');
+      setModalBoundary(true);
       document.body.style.overflow = 'hidden';
     }
 
