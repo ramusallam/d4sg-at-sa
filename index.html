@@ -4190,8 +4190,95 @@
     color: var(--ink-mid);
     line-height: 1.5;
   }
+  .cam-shot-btn.is-ghost {
+    background: var(--bg-1);
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1.5px var(--accent);
+  }
+  .cam-shot-btn.is-ghost:hover { background: var(--accent-soft, #EEF2FF); }
+  .cam-shot-btn.is-counting {
+    background: var(--bg-1);
+    color: var(--ink-mid);
+    box-shadow: inset 0 0 0 1.5px var(--border);
+  }
+  .cam-shot-btn.is-counting:hover { background: var(--bg-2, #F3F4F6); }
+  /* Self-timer overlay: big centered numeral over the live preview, a ring
+     that drains across the full count, click anywhere (or Esc) to cancel. */
+  .cam-count {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    background: rgba(17, 17, 17, 0.28);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .cam-count.is-active { display: flex; }
+  .cam-count-dial {
+    position: relative;
+    width: 168px;
+    height: 168px;
+    display: grid;
+    place-items: center;
+  }
+  .cam-count-dial svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .cam-count-dial circle {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+  .cam-count-track { stroke: rgba(255, 255, 255, 0.28); }
+  .cam-count-ring {
+    stroke: #fff;
+    stroke-dasharray: 490;
+    stroke-dashoffset: 0;
+  }
+  .cam-count.is-active .cam-count-ring { animation: camRingDrain var(--cam-count-ms, 5000ms) linear forwards; }
+  @keyframes camRingDrain {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: 490; }
+  }
+  .cam-count-num {
+    font-size: 88px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+  }
+  .cam-count-num.is-tick { animation: camNumPop 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  @keyframes camNumPop {
+    0% { transform: scale(1.35); opacity: 0.4; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .cam-count-cancel {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(0, 0, 0, 0.35);
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cam-count.is-active .cam-count-ring { animation: none; }
+    .cam-count-num.is-tick { animation: none; }
+    .cam-flash.is-firing { animation-duration: 0.12s; }
+  }
   @media (max-width: 640px) {
     .cam-stage { aspect-ratio: 4 / 3; }
+    .cam-count-dial { width: 132px; height: 132px; }
+    .cam-count-num { font-size: 68px; }
   }
 
   /* ============== SCHEMATIC TOOL ============== */
@@ -7741,6 +7828,7 @@
       <div class="cam-wrap">
         <div class="cam-toolbar">
           <button class="cam-shot-btn" id="camCapture" disabled>${ICON_CAM} Capture</button>
+          <button class="cam-shot-btn is-ghost" id="camTimer" disabled aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2h4"/><path d="M12 14l3-3"/><circle cx="12" cy="14" r="8"/></svg> <span id="camTimerLabel">5s timer</span></button>
           <button class="cam-shot-btn" id="camRetake" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/></svg> Retake</button>
           <div class="vibe-toolbar-group" style="margin-left:auto;">
             <button class="vibe-tool-btn is-labeled" id="camSaveTo" title="Save to a benchmark" aria-label="Save to a benchmark" disabled>
@@ -7757,9 +7845,16 @@
             <div class="cam-empty-text" id="camEmptyText">Starting your camera…</div>
             <button class="cam-start-btn" id="camStart" hidden>Turn on camera</button>
           </div>
+          <div class="cam-count" id="camCount" role="status" aria-live="assertive" aria-atomic="true" title="Click to cancel">
+            <div class="cam-count-dial">
+              <svg viewBox="0 0 168 168" aria-hidden="true"><circle class="cam-count-track" cx="84" cy="84" r="78"/><circle class="cam-count-ring" cx="84" cy="84" r="78"/></svg>
+              <div class="cam-count-num" id="camCountNum">5</div>
+            </div>
+            <div class="cam-count-cancel" aria-hidden="true">Click to cancel</div>
+          </div>
           <div class="cam-flash" id="camFlash"></div>
         </div>
-        <p class="cam-hint">Hold your working circuit up to the camera (or point your laptop at it), click <strong>Capture</strong>, then use <strong>Save to</strong> to drop the photo straight into your benchmark's Evidence.</p>
+        <p class="cam-hint">Hold your working circuit up to the camera (or point your laptop at it) and click <strong>Capture</strong>. Need both hands? <strong>5s timer</strong> counts down with beeps, then shoots. Use <strong>Save to</strong> to drop the photo straight into your benchmark's Evidence.</p>
       </div>
     `;
     app.appendChild(wrap);
@@ -7773,16 +7868,134 @@
     const emptyText = document.getElementById('camEmptyText');
     const startBtn = document.getElementById('camStart');
     const captureBtn = document.getElementById('camCapture');
+    const timerBtn = document.getElementById('camTimer');
+    const timerLabel = document.getElementById('camTimerLabel');
     const retakeBtn = document.getElementById('camRetake');
     const saveBtn = document.getElementById('camSaveTo');
+    const countEl = document.getElementById('camCount');
+    const countNum = document.getElementById('camCountNum');
 
     let _shotBlob = null;
 
     function setFrozen(frozen) {
       stage.classList.toggle('is-frozen', frozen);
       captureBtn.hidden = frozen;
+      timerBtn.hidden = frozen;
       retakeBtn.hidden = !frozen;
       saveBtn.disabled = !frozen || !_shotBlob;
+    }
+
+    // ----- Sounds (Web Audio, no files). The context is created inside the
+    // click handler so browsers treat it as user-initiated and let it play.
+    let _audio = null;
+    function audioCtx() {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return null;
+        if (!_audio) _audio = new Ctx();
+        if (_audio.state === 'suspended') _audio.resume().catch(() => {});
+        return _audio;
+      } catch (_) { return null; }
+    }
+    function beep(freq, ms, vol) {
+      const ctx = audioCtx();
+      if (!ctx) return;
+      try {
+        const t0 = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(vol, t0 + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + ms / 1000);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(t0);
+        osc.stop(t0 + ms / 1000 + 0.02);
+      } catch (_) {}
+    }
+    function shutterSound() {
+      const ctx = audioCtx();
+      if (!ctx) return;
+      try {
+        // Two short noise bursts (open + close) read as a camera shutter.
+        const t0 = ctx.currentTime;
+        [0, 0.07].forEach((offset, i) => {
+          const len = Math.floor(ctx.sampleRate * 0.045);
+          const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+          const data = buf.getChannelData(0);
+          for (let k = 0; k < len; k++) data[k] = (Math.random() * 2 - 1) * (1 - k / len);
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+          const filt = ctx.createBiquadFilter();
+          filt.type = 'bandpass';
+          filt.frequency.value = i === 0 ? 2600 : 1800;
+          filt.Q.value = 0.8;
+          const gain = ctx.createGain();
+          gain.gain.value = i === 0 ? 0.35 : 0.22;
+          src.connect(filt).connect(gain).connect(ctx.destination);
+          src.start(t0 + offset);
+        });
+      } catch (_) {}
+    }
+
+    // ----- 5-second self-timer. Ticks each second (higher, longer on the final
+    // two), shutter sound on the shot. Timing is anchored to a start timestamp
+    // so the count never drifts from the ring animation. Click anywhere on the
+    // preview, press Esc, or press the button again to cancel.
+    const COUNT_FROM = 5;
+    let _countTimeout = null;
+    let _counting = false;
+    let _onKeyCancel = null;
+
+    function showNumber(n) {
+      countNum.textContent = String(n);
+      countNum.classList.remove('is-tick');
+      void countNum.offsetWidth;
+      countNum.classList.add('is-tick');
+    }
+    function cancelCountdown() {
+      if (!_counting) return;
+      _counting = false;
+      if (_countTimeout) { clearTimeout(_countTimeout); _countTimeout = null; }
+      if (_onKeyCancel) { document.removeEventListener('keydown', _onKeyCancel); _onKeyCancel = null; }
+      countEl.classList.remove('is-active');
+      timerBtn.classList.remove('is-counting');
+      timerBtn.setAttribute('aria-pressed', 'false');
+      timerLabel.textContent = '5s timer';
+      captureBtn.disabled = !_camStream;
+    }
+    function startCountdown() {
+      if (_counting) { cancelCountdown(); return; }
+      if (!_camStream || !video.videoWidth) return;
+      _counting = true;
+      audioCtx(); // unlock audio on the gesture
+      timerBtn.classList.add('is-counting');
+      timerBtn.setAttribute('aria-pressed', 'true');
+      timerLabel.textContent = 'Cancel';
+      captureBtn.disabled = true;
+      countEl.style.setProperty('--cam-count-ms', (COUNT_FROM * 1000) + 'ms');
+      countEl.classList.remove('is-active');
+      void countEl.offsetWidth;
+      countEl.classList.add('is-active');
+      _onKeyCancel = (e) => { if (e.key === 'Escape') cancelCountdown(); };
+      document.addEventListener('keydown', _onKeyCancel);
+
+      const startedAt = performance.now();
+      const step = (n) => {
+        if (!_counting) return;
+        if (n === 0) {
+          const wasCounting = _counting;
+          cancelCountdown();
+          if (wasCounting) capture();
+          return;
+        }
+        showNumber(n);
+        if (n <= 2) beep(1320, 180, 0.22); else beep(880, 110, 0.16);
+        const due = startedAt + (COUNT_FROM - n + 1) * 1000;
+        _countTimeout = setTimeout(() => step(n - 1), Math.max(0, due - performance.now()));
+      };
+      step(COUNT_FROM);
     }
 
     async function startCamera(deviceId) {
@@ -7791,10 +8004,12 @@
         startBtn.hidden = true;
         return;
       }
+      cancelCountdown();
       _camStopStream();
       _shotBlob = null;
       setFrozen(false);
       captureBtn.disabled = true;
+      timerBtn.disabled = true;
       emptyEl.style.display = '';
       emptyText.textContent = 'Starting your camera…';
       startBtn.hidden = true;
@@ -7827,6 +8042,7 @@
       try { await video.play(); } catch (_) {}
       emptyEl.style.display = 'none';
       captureBtn.disabled = false;
+      timerBtn.disabled = false;
     }
 
     function capture() {
@@ -7834,6 +8050,7 @@
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       canvas.getContext('2d').drawImage(video, 0, 0);
+      shutterSound();
       const flash = document.getElementById('camFlash');
       if (flash) {
         flash.classList.remove('is-firing');
@@ -7848,6 +8065,8 @@
     }
 
     captureBtn.addEventListener('click', capture);
+    timerBtn.addEventListener('click', startCountdown);
+    countEl.addEventListener('click', cancelCountdown);
     retakeBtn.addEventListener('click', () => {
       _shotBlob = null;
       setFrozen(false);
@@ -7864,7 +8083,11 @@
     });
     // Stop the camera on ANY route change (back button, top nav, tool links)
     // so the camera light never stays on after leaving the tool.
-    setViewTeardown(() => { _camStopStream(); });
+    setViewTeardown(() => {
+      cancelCountdown();
+      _camStopStream();
+      if (_audio) { try { _audio.close(); } catch (_) {} _audio = null; }
+    });
 
     startCamera();
   }
