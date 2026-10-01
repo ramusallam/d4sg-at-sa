@@ -11033,10 +11033,14 @@
     if (!journeyPages.length) return;
     journeyIndex = Math.max(0, Math.min(nextIndex, journeyPages.length - 1));
     const current = journeyPages[journeyIndex];
+    // Gradual release: every page up to the current one stays on screen, so
+    // Next adds the next step below the last instead of swapping to a new page.
     modalBody.querySelectorAll(':scope > .modal-section').forEach(section => { section.hidden = true; });
     modalBody.querySelectorAll('.cp-step').forEach(step => { step.hidden = true; });
-    current.section.hidden = false;
-    if (current.step) current.step.hidden = false;
+    journeyPages.slice(0, journeyIndex + 1).forEach(page => {
+      page.section.hidden = false;
+      if (page.step) page.step.hidden = false;
+    });
     journeyKicker.textContent = `${String(journeyIndex + 1).padStart(2, '0')} / ${String(journeyPages.length).padStart(2, '0')}`;
     journeyLabel.textContent = current.label;
     journeyProgress.style.width = `${((journeyIndex + 1) / journeyPages.length) * 100}%`;
@@ -11045,7 +11049,13 @@
     if (persist && currentBenchmark?.id) {
       try { localStorage.setItem(`t4sg-benchmark-page:${currentBenchmark.id}`, String(journeyIndex)); } catch (_) {}
     }
-    modalBody.scrollTo({ top: 0, behavior: 'instant' });
+    // Bring the newest step into view; on the first page, start at the top.
+    const target = journeyIndex === 0 ? null
+      : (current.step && current.section.querySelector('.cp-step:not([hidden])') === current.step ? current.section : (current.step || current.section));
+    const top = target
+      ? target.getBoundingClientRect().top - modalBody.getBoundingClientRect().top + modalBody.scrollTop - 12
+      : 0;
+    modalBody.scrollTo({ top, behavior: persist ? 'smooth' : 'instant' });
   }
 
   function setupBenchmarkJourney(b) {
