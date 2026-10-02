@@ -16849,9 +16849,13 @@ void loop() {
       vibeMonitorSetSendEnabled(true);
       vibeReadLoop();
     } catch (err) {
-      // User cancelled the picker, or open failed.
+      // User cancelled the picker, or open failed. Say so in the status bar,
+      // which is visible from the Code tab too (the monitor is not).
       if (err && err.name !== 'NotFoundError') {
         vibeAppendMonitor('[ connection error: ' + (err.message || err) + ' ]\n');
+        vibeSetStatus('disconnected', 'Could not connect: the board is busy. Close other tabs or apps using the Arduino, unplug it, plug it back in, then click Connect Arduino.');
+      } else {
+        vibeSetStatus('disconnected', 'No board picked. Click Connect Arduino, select the Arduino Leonardo in the list, then click Connect.');
       }
     } finally {
       _vibeConnecting = false;
