@@ -16,6 +16,19 @@ const labels = vm.runInNewContext(`(${labelsMatch[1]})`);
 const breathPressure = projects.flatMap(project => project.benchmarks).find(benchmark => benchmark.id === 'p3b5');
 assert.ok(breathPressure, 'Breath Pressure benchmark exists');
 assert.equal(breathPressure.instructions.length, 6, 'Breath Pressure follows the six-step checkpoint pattern');
+const breathInstructions = breathPressure.instructions.join(' ');
+assert.match(breathInstructions, /separate puff and sip trigger values/,
+  'pressure thresholds come from each sensor and breathing pattern');
+assert.match(breathInstructions, /two consecutive readings return inside the release band/,
+  'one breath cannot chatter into several actions at the trigger edge');
+assert.doesNotMatch(breathInstructions, /150000|Every 20 seconds/,
+  'pressure behavior does not depend on a universal threshold or abrupt recalibration');
+
+const project3 = projects.find(project => project.id === 'p3');
+const project3Product = project3?.benchmarks.find(benchmark => benchmark.id === 'p3b4');
+assert.ok(project3Product, 'Project 3 product exists');
+assert.doesNotMatch(JSON.stringify(project3Product), /soft puff|hard puff|soft and hard/i,
+  'Project 3 product language matches the quick-versus-long benchmark model');
 
 for (const project of projects) {
   for (const benchmark of project.benchmarks) {
@@ -45,4 +58,4 @@ assert.match(html, /Every external LED needs its own 220-330 ohm current-limitin
 assert.doesNotMatch(html, /two LEDs[^}]{0,500}no resistors/,
   'LED benchmark prompts never prohibit current-limiting resistors');
 
-console.log('T4SG benchmark-flow audit passed: six-step pressure flow, gradual release, safe LEDs, concise labels, and instruction parity.');
+console.log('T4SG benchmark-flow audit passed: six-step pressure flow, student-specific thresholds, one-action breath release, aligned product language, safe LEDs, concise labels, and instruction parity.');

@@ -25,9 +25,28 @@ assert.match(html, /id="vibeMonitorAnnouncement" aria-live="polite"/,
   'new Serial output has a polite live-region announcement');
 assert.match(html, /sketchCandidates\.length > 1[\s\S]*choose the board you just uploaded/,
   'ambiguous Arduino reconnects require an explicit board choice');
-assert.match(html, /sensor\.request\(\)[\s\S]*sensor\.is_ready\(\)[\s\S]*sensor\.fetch\(\)/,
-  'breath calibration uses non-blocking sensor reads');
-assert.doesNotMatch(html, /quiet = \(hi - lo\) \* 3/,
-  'breath calibration does not let one startup spike set the quiet band');
+const breathExampleStart = html.indexOf("{ id: 'breath-calibration'");
+const breathExampleEnd = html.indexOf('` },', breathExampleStart);
+assert.ok(breathExampleStart >= 0 && breathExampleEnd > breathExampleStart,
+  'the HX710B see-it-work example can be isolated for regression checks');
+const breathExample = html.slice(breathExampleStart, breathExampleEnd);
+assert.match(breathExample, /for \(int i = 0; i < 20; i\+\+\)/,
+  'the see-it-work sketch establishes zero from 20 readings');
+assert.match(breathExample, /Serial\.println\(sensor\.read\(\) - rest\)/,
+  'the see-it-work sketch exposes signed pressure change');
+assert.doesNotMatch(breathExample, /void loop\(\)[\s\S]*delay\(/,
+  'the see-it-work sketch does not throw away quick-breath samples');
 
-console.log('T4SG refinement audit passed: focused journey, full-height accessible Arduino monitor, robust sensing, dialog isolation, and stable portfolio writes.');
+const starterStart = html.indexOf('const VIBE_STARTER_PROMPT');
+const starterEnd = html.indexOf('].join("\\n")', starterStart);
+assert.ok(starterStart >= 0 && starterEnd > starterStart,
+  'the Arduino starter prompt can be isolated for regression checks');
+const starterPrompt = html.slice(starterStart, starterEnd);
+assert.match(starterPrompt, /sensor\.request\(\)[\s\S]*sensor\.is_ready\(\)[\s\S]*sensor\.fetch\(\)/,
+  'combined controllers use the HX710AB asynchronous API');
+assert.match(starterPrompt, /shared release band[\s\S]*two consecutive readings/,
+  'combined controllers use hysteresis before ending a breath');
+assert.match(starterPrompt, /slowly move the resting value[\s\S]*Never adjust it during a breath/,
+  'combined controllers follow drift only while idle');
+
+console.log('T4SG refinement audit passed: focused journey, full-height accessible Arduino monitor, sampled breath check, drift-safe asynchronous sensing, dialog isolation, and stable portfolio writes.');
