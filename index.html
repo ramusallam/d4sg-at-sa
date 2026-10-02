@@ -4805,6 +4805,9 @@
     min-height: 0;
     flex: 1 1 auto;
   }
+  .vibe-right.is-monitor {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
   /* Two tabs, one box: Code or Serial Monitor fills the whole panel. The
      monitor used to dock under the editor and the panel clipped its last
      lines (the compile + flash log) below the fold. */
@@ -4841,9 +4844,27 @@
     border-radius: 50%;
     background: var(--accent);
   }
+  .vibe-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   .vibe-right.is-monitor .vibe-libs,
   .vibe-right.is-monitor .vibe-editor-wrap { display: none; }
+  .vibe-right.is-monitor #vibeLoadCode,
+  .vibe-right.is-monitor #vibeClearEditor,
+  .vibe-right.is-monitor #vibeRestoreEditor,
+  .vibe-right.is-monitor #vibeExamples,
+  .vibe-right.is-monitor #vibeSaveTo { display: none; }
   .vibe-right:not(.is-monitor) .vibe-monitor-pane { display: none; }
+  .vibe-editor-wrap[hidden],
+  .vibe-monitor-pane[hidden] { display: none !important; }
   .vibe-monitor-pane {
     display: flex;
     flex-direction: column;
@@ -5081,6 +5102,7 @@
   @media (max-width: 720px) {
     .vibe-tool-btn.is-labeled { width: 36px; padding: 0; }
     .vibe-tool-btn.is-labeled .vibe-tool-label { display: none; }
+    .vibe-right.is-monitor { min-height: 650px; }
   }
   .vibe-tool-btn + .vibe-tool-btn { border-left: 1px solid var(--border); }
   .vibe-tool-btn svg {
@@ -6681,7 +6703,7 @@
           instructions: [
             '**First, get out your breadboard.** Up to now everything has plugged straight into the Arduino, but the Arduino only has a few ground pins - add two LEDs and you are out of grounds. The breadboard fixes that by letting all your parts share the same ground rail. Ramsey will talk through how a breadboard works before you start wiring.',
             '**Leave your Button and Lever wiring exactly where it is.** Add two different-color LEDs. The LEDs do not plug into the breadboard directly - push each LED leg into the female end of a male-female jumper wire, one wire per leg, so the LED hangs off the breadboard on its two wires.',
-            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Button and Lever code from the tool, then this prompt: {{prompt}}Add to my existing code: turn on one LED while the button is pressed, and a different-color LED while the lever is triggered. Keep the W-key and A-key behaviors I already have and do not change my existing wiring. Use only the two LEDs - no other new parts, no resistors. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Button and Lever code from the tool, then this prompt: {{prompt}}Add to my existing code: turn on one LED while the button is pressed, and a different-color LED while the lever is triggered. Keep the W-key and A-key behaviors I already have and do not change my existing wiring. Use only the two LEDs and one 220-330 ohm current-limiting resistor for each LED. Simplest possible code, and wiring instructions that tell me exactly where each resistor, long LED leg, and short LED leg go.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
             'Wire the two LEDs into your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool.',
             'Test it: one LED should light while the button is pressed and the other while the lever is triggered. If an LED will not light, the most common cause is an LED leg or jumper sitting in the wrong breadboard row - check that before removing anything. Modify the code until it works exactly as described.',
@@ -6776,7 +6798,7 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Touch and Distance wiring exactly where it is.** Add two different-color LEDs beside them on the same breadboard.',
-            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Touch and Distance code from the tool, then this prompt: {{prompt}}Add to my existing code: turn on one LED while the touch sensor is active, and a different-color LED while the IR sensor is triggered. Keep my Project 1 final product behaviors and the S-key and D-key behaviors I already have and do not change my existing wiring. Use only the two LEDs - no other new parts, no resistors. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Touch and Distance code from the tool, then this prompt: {{prompt}}Add to my existing code: turn on one LED while the touch sensor is active, and a different-color LED while the IR sensor is triggered. Keep my Project 1 final product behaviors and the S-key and D-key behaviors I already have and do not change my existing wiring. Use only the two LEDs and one 220-330 ohm current-limiting resistor for each LED. Simplest possible code, and wiring instructions that tell me exactly where each resistor, long LED leg, and short LED leg go.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
             'Wire the two LEDs into your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool.',
             'Test it: one LED should light while the touch sensor is active and the other while the IR sensor is triggered. If an LED will not light, the most common cause is an LED leg or jumper sitting in the wrong breadboard row - check that before removing anything. Modify the code until it works exactly as described.',
@@ -6870,15 +6892,12 @@
           points: 2,
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
-            '**Leave your Joystick and Sip or Puff wiring exactly where it is.** Add the breath pressure sensor beside them on the same breadboard - the small red **HX710B** board with a black nozzle on top and four pins labeled **VCC, OUT, SCK, GND**. Push your own short piece of tubing onto the nozzle and never share it.',
-            '**Solder first.** The board comes with its four header pins loose, so solder them on before you wire anything. Push the short end of the pin strip through the four holes, long legs pointing down so the board can stand in the breadboard, and solder each pin to its own ring on the back. Each joint should be a small shiny cone that touches only its own ring. **Never let solder bridge two rings** - a bridge joins two pins and short-circuits the board the moment it gets power. Check the back for bridges, then have Ramsey check it before you plug it in.',
-            'Wire it for calibration: **VCC to 5V, GND to GND, OUT to pin 4, SCK to pin 5**. If pins 4 or 5 are already taken on your breadboard, use two free digital pins instead and change the two pin numbers at the top of the sketch in the next step. One continuous wire per connection - never chain two jumpers end to end.',
-            'Calibrate your breaths. In the [Arduino Code Loading Tool](tools#vibe), pick **Breath calibration (HX710B)** from the Examples menu and click **Upload**. The tool switches to the **Serial Monitor** tab; the **Code** tab brings your sketch back. **Hold still for the first 3 seconds** while it measures the resting value, then it prints **Quiet band:** with a number. Write that number down. Now breathe: one puff or sip, then **take your mouth off the tube** and wait a second so the pressure settles. Each breath prints one line, **PUFF peak:** or **SIP peak:**, with its strongest number. **In your notebook,** make a four-row table and record the peak for each one: light puff, strong puff, light sip, strong sip. Do each breath three times and write down the middle number. A light breath is a small bite of air, not a whisper: if it never prints a peak, breathe a little harder. Puffs go up and sips go down. If you see **(resting value reset)**, the sensor drifted after a hard breath and fixed itself; just keep going. These are your numbers - every mouth is different, and your code will use them.',
-            'The sip or puff switch is only on or off. The pressure sensor measures how hard you breathe, so one tube can do more than one thing. Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Joystick and Sip or Puff code from the tool, then this prompt with your own numbers filled in: {{prompt}}Add to my existing code: type the number 1 when I give a soft puff into an HX710B breath pressure sensor, and type the number 2 when I give a hard puff. The sensor has four pins: VCC, OUT, SCK, and GND. OUT is on pin 4 and SCK is on pin 5. Use the HX710AB library. Each puff types only one number, decided when the puff ends, so a hard puff never types a 1 first. I calibrated the sensor and measured the change from the resting value: my quiet band is about ___, a light puff peaks at about ___, a strong puff at about ___, a light sip at about ___, and a strong sip at about ___. Set the soft and hard thresholds halfway between my light and strong numbers. The resting value drifts after a hard breath, so follow the HX710B rules from the starter prompt: re-measure the resting value at startup, slide it to match whenever the tube has been quiet for a second, and reset it if the reading sits off but stops changing for two seconds. Keep printing the pressure change to the Serial Monitor. Keep my Project 2 final product behaviors and the joystick mouse, click, and X-key behaviors I already have and do not change my existing wiring. Use only the pressure sensor - no other new parts, no resistors. Simplest possible code and simplest wiring instructions.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
-            'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the pressure sensor to your existing schematic on the **breadboard**.',
-            'Your sensor is already wired from calibration. Check that the OUT and SCK pin numbers in your new code match the sockets they sit in, fix the code if they do not, then upload the code from the Arduino Code Loading Tool.',
-            'Test it: watch the Serial Monitor in the Arduino Code Loading Tool as you breathe into the tube, mouth off the tube between breaths. A soft puff should type 1 and a hard puff should type 2, one number per puff. If a soft puff types 2 or a hard puff types 1, give the AI your calibration numbers again and the number you just saw, and ask it to move the thresholds. If it fires on its own after a hard puff, the resting value is not following the drift: tell the AI the change you see at rest and ask it to apply the HX710B drift rules from the starter prompt. Modify the code until it works exactly as described.',
-            'Complete **Evidence + Reflection** below. *Evidence* = wiring schematic, code PDF, circuit photo. For the photo, open the [Image Capture Tool](tools#camera), take a picture of your working circuit, and **Save to benchmark** drops it straight in here.'
+            '**Keep your Joystick and Sip or Puff wiring intact.** Add the HX710B pressure sensor beside them on the same breadboard. Solder its four header pins into separate shiny joints, check that no solder bridges two rings, and have Ramsey inspect it before power. Use your own tubing and never share it.',
+            'Calibrate first. Wire **VCC to 5V, GND to GND, OUT to pin 4, and SCK to pin 5**. In the [Arduino Code Loading Tool](tools#vibe), load **Breath calibration (HX710B)** and upload it. Hold still for 3 seconds, then record the **Quiet band**. In your notebook, make four rows: light puff, strong puff, light sip, and strong sip. Test each three times, taking your mouth off the tube between breaths, and record the middle **PUFF peak** or **SIP peak**.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT. Paste the starter prompt and your current Joystick and Sip or Puff code, then use this prompt with your numbers: {{prompt}}Add an HX710B breath pressure sensor to my existing code. Type 1 after a soft puff and 2 after a hard puff, one number only when the puff ends. OUT is pin 4 and SCK is pin 5. My quiet band is ___; light puff ___; strong puff ___; light sip ___; strong sip ___. Keep the joystick, click, and X-key responsive while the sensor measures. Keep every existing behavior and wire. Use only the pressure sensor and the HX710AB library.{{/prompt}} Paste the full sketch into the [Arduino Code Loading Tool](tools#vibe).',
+            'Open the [Wiring Schematic Tool](tools#schematic) and add the pressure sensor to your existing schematic on the **breadboard**. Match the OUT and SCK pin numbers in the code.',
+            'Upload the code. A soft puff should type 1 and a hard puff should type 2, once per breath, while the joystick and X-key stay responsive. If the result is wrong, give the AI the peak you saw and ask it to adjust the thresholds. Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
           ],
           videoUrl: '',
           links: [],
@@ -6891,7 +6910,7 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Joystick, Sip or Puff, and Breath Pressure wiring exactly where it is.** Add two different-color LEDs beside it all on the same breadboard.',
-            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Joystick, Sip or Puff, and Breath Pressure code from the tool, then this prompt: {{prompt}}Add to my existing code: turn on one LED while the joystick button is pressed, and a different-color LED while the sip or puff switch is triggered. Keep my Project 2 final product behaviors and the mouse, click, X-key, and soft-and-hard-puff behaviors I already have and do not change my existing wiring. Use only the two LEDs - no other new parts, no resistors. Simplest possible code, and wiring instructions that tell me exactly where the long leg and short leg of each LED go.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Joystick, Sip or Puff, and Breath Pressure code from the tool, then this prompt: {{prompt}}Add to my existing code: turn on one LED while the joystick button is pressed, and a different-color LED while the sip or puff switch is triggered. Keep my Project 2 final product behaviors and the mouse, click, X-key, and soft-and-hard-puff behaviors I already have and do not change my existing wiring. Use only the two LEDs and one 220-330 ohm current-limiting resistor for each LED. Simplest possible code, and wiring instructions that tell me exactly where each resistor, long LED leg, and short LED leg go.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
             'Wire the two LEDs into your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool.',
             'Test it: one LED should light while the joystick is pressed and the other while the sip or puff switch is triggered. If an LED will not light, the most common cause is an LED leg or jumper sitting in the wrong breadboard row - check that before removing anything. Modify the code until it works exactly as described.',
@@ -11086,7 +11105,7 @@
     p2b4: ['Sketch for your user', 'Write the product prompt', 'Update the schematic', 'Build and test the circuit', 'Design the sensor mount', 'Assemble and user-test', 'Save the cumulative baseline'],
     p3b1: ['Restore the Project 2 build', 'Generate the joystick code', 'Update the schematic', 'Wire the joystick', 'Test cursor and click'],
     p3b2: ['Add the sip or puff switch', 'Generate the breath-switch code', 'Update the schematic', 'Wire the switch', 'Test the puff action'],
-    p3b5: ['Add the pressure sensor', 'Solder the header pins', 'Wire it for calibration', 'Record your breath numbers', 'Generate the pressure code', 'Update the schematic', 'Check the pins and upload', 'Test soft and hard puffs'],
+    p3b5: ['Prepare the pressure sensor', 'Calibrate your breaths', 'Generate the pressure code', 'Update the schematic', 'Upload and test'],
     p3b3: ['Add the LEDs', 'Generate the LED code', 'Update the schematic', 'Wire the LEDs', 'Test the indicator LEDs'],
     p3b4: ['Sketch the hands-free design', 'Write the product prompt', 'Update the schematic', 'Build and test the circuit', 'Design a secure mount', 'Assemble and user-test', 'Save the hub baseline'],
     p4b1: ['Count the required ports', 'Plan cables and adapters', 'Sketch the port layout', 'Build the bill of materials'],
@@ -15260,9 +15279,9 @@
   const VIBE_STARTER_PROMPT = [
     "I am a high school student building an adaptive controller with an Arduino Leonardo (always the Leonardo, never another board). Please follow these rules for everything I ask:",
     "- Write the shortest, simplest Arduino code that does exactly what I ask. Use only the parts I name plus whatever my existing code already uses. Never add extra parts, extra LEDs, buzzers, modes, or features.",
-    "- No resistors of any kind. The Leonardo's built-in pull-up (INPUT_PULLUP) handles every switch.",
+    "- Switches use the Leonardo's built-in pull-up (INPUT_PULLUP) and do not need resistors. Every external LED needs its own 220-330 ohm current-limiting resistor.",
     "- Use Keyboard.h or Mouse.h when the controller should act as a keyboard or mouse, and press and release keys cleanly so nothing sticks. Add simple debouncing.",
-    "- Wiring recipes: tactile button = one leg to a digital pin, the diagonally opposite leg to GND, pressed reads LOW. Lever microswitch = COM to GND, NO to a digital pin. Sip or puff switch = one wire to a digital pin, one to GND. LED = long leg to a digital pin, short leg to GND, and always tell me which leg is which. KY-023 joystick = VCC to 5V, GND to GND, VRx and VRy to analog pins, SW to a digital pin with INPUT_PULLUP. TTP223B touch sensor = GND to GND, VCC to 5V, SIG to a digital pin read with plain digitalRead (HIGH on touch). FC-51 IR sensor = VCC to 5V, GND to GND, OUT to a digital pin read with plain digitalRead (LOW when something is in front), no library. HX710B breath pressure sensor = VCC to 5V, GND to GND, OUT and SCK each to their own digital pin. For it, use only the HX710AB library by Rob Tillaart (#include \"HX710AB.h\", HX710B sensor(outPin, sckPin), sensor.begin(), sensor.read()), never another HX710 or HX711 library. In setup, read the resting value with no breath in the tube for about 3 seconds and also measure how much it wobbles; a quiet band of about 3 times that wobble separates a breath from noise. Measure every breath as the change from the resting value: a puff raises it and a sip lowers it. To tell a soft breath from a hard one, follow the strongest change during the breath and act once when the reading comes back inside the quiet band, so a hard puff never fires the soft action first. The resting value drifts after a hard breath, so keep it moving: whenever the reading has stayed inside the quiet band for a second, slide the resting value toward the current reading, and if the reading sits outside the band but stops changing for two seconds, treat that as drift and reset the resting value to it. Print the change to the Serial Monitor so I can pick my soft and hard numbers.",
+    "- Wiring recipes: tactile button = one leg to a digital pin, the diagonally opposite leg to GND, pressed reads LOW. Lever microswitch = COM to GND, NO to a digital pin. Sip or puff switch = one wire to a digital pin, one to GND. LED = digital pin to a 220-330 ohm resistor, resistor to the long LED leg, short LED leg to GND; every LED gets its own resistor, and always tell me which leg is which. KY-023 joystick = VCC to 5V, GND to GND, VRx and VRy to analog pins, SW to a digital pin with INPUT_PULLUP. TTP223B touch sensor = GND to GND, VCC to 5V, SIG to a digital pin read with plain digitalRead (HIGH on touch). FC-51 IR sensor = VCC to 5V, GND to GND, OUT to a digital pin read with plain digitalRead (LOW when something is in front), no library. HX710B breath pressure sensor = VCC to 5V, GND to GND, OUT and SCK each to their own digital pin. For it, use only the HX710AB library by Rob Tillaart (#include \"HX710AB.h\", HX710B sensor(outPin, sckPin), sensor.begin()), never another HX710 or HX711 library. In a combined controller, keep the joystick, buttons, and keyboard handling running every loop; never call blocking sensor.read() there. Start a measurement with sensor.request(), then on a later loop use sensor.is_ready() and sensor.fetch(). At startup, measure the resting value with no breath in the tube for about 3 seconds and use a robust spread that ignores isolated spikes to set the quiet band. Measure every breath as the change from rest: a puff raises it and a sip lowers it. Follow the strongest change and act once only after the reading returns inside the quiet band, so a hard puff never fires the soft action first. After one quiet second, slide rest toward the current reading. Never reset rest during an active breath; only treat a small offset as drift after it has stayed stable for at least four seconds. Print the change to the Serial Monitor so I can pick my soft and hard numbers.",
     "- When I say to add to my existing code, keep every existing pin, behavior, and comment and add only the new part. Never rewire what already works.",
     "- Reply with the full sketch in one code block, then a short Wiring section: one line per connection with the exact pin numbers, in plain language for a beginner. Keep comments short.",
     "Here is what I need:"
@@ -15440,49 +15459,68 @@ void loop() {
 // If pins 4 and 5 are taken on your breadboard, change the two numbers below.
 //
 // How it protects itself:
-//  - Measures the resting value AND its wobble for 3 seconds at startup, and
-//    sets the quiet band from that wobble, so it fits your board.
+//  - Uses the median and median deviation at startup, so one spike cannot
+//    make the quiet band too wide for normal breaths.
 //  - The resting value drifts after a hard breath, so once the tube has been
 //    quiet for a second the resting value slides to match.
-//  - If the reading sits outside the quiet band but stops moving for two
-//    seconds, that is drift, not a breath: the resting value resets to it.
+//  - A small offset must stay still for four seconds before it counts as drift.
 // Take your mouth off the tube between breaths so the pressure can settle.
 #include "HX710AB.h"
 
 const int OUT_PIN = 4;
 const int SCK_PIN = 5;
+const int SAMPLE_COUNT = 31;
 
 HX710B sensor(OUT_PIN, SCK_PIN);
 
 long rest = 0;        // resting value, kept up to date while the tube is quiet
-long quiet = 0;       // how far the reading wobbles with no breath, times 3
+long quiet = 0;       // robust quiet band that ignores isolated startup spikes
 long peak = 0;        // strongest change during the current breath
 long lastChange = 0;
 bool breathing = false;
+bool samplePending = false;
 unsigned long quietSince = 0;
 unsigned long stableSince = 0;
 unsigned long lastPrint = 0;
+
+void sortValues(long values[], int count) {
+  for (int i = 1; i < count; i++) {
+    long value = values[i];
+    int j = i - 1;
+    while (j >= 0 && values[j] > value) {
+      values[j + 1] = values[j];
+      j--;
+    }
+    values[j + 1] = value;
+  }
+}
+
+long calibrationSample() {
+  sensor.request();
+  unsigned long started = millis();
+  while (!sensor.is_ready()) {
+    if (millis() - started > 750) return sensor.last_value_read();
+    delay(1);
+  }
+  return sensor.fetch();
+}
 
 void setup() {
   Serial.begin(9600);
   sensor.begin();
   delay(1000);
   Serial.println("Hold still. Measuring the resting value for 3 seconds, no breath...");
-  long lo = 2147483647L;
-  long hi = -2147483647L;
-  long total = 0;
-  int count = 0;
-  unsigned long start = millis();
-  while (millis() - start < 3000) {
-    long v = sensor.read();
-    total += v;
-    count++;
-    if (v < lo) lo = v;
-    if (v > hi) hi = v;
-    delay(10);
+  long samples[SAMPLE_COUNT];
+  long deviations[SAMPLE_COUNT];
+  for (int i = 0; i < SAMPLE_COUNT; i++) samples[i] = calibrationSample();
+  sortValues(samples, SAMPLE_COUNT);
+  rest = samples[SAMPLE_COUNT / 2];
+  for (int i = 0; i < SAMPLE_COUNT; i++) {
+    long difference = samples[i] - rest;
+    deviations[i] = difference < 0 ? -difference : difference;
   }
-  rest = total / count;
-  quiet = (hi - lo) * 3;
+  sortValues(deviations, SAMPLE_COUNT);
+  quiet = deviations[SAMPLE_COUNT / 2] * 6;
   if (quiet < 50) quiet = 50;
   Serial.print("Rest: ");
   Serial.println(rest);
@@ -15492,10 +15530,20 @@ void setup() {
   Serial.println("Puff = change goes up. Sip = change goes down.");
   quietSince = millis();
   stableSince = millis();
+  sensor.request();
+  samplePending = true;
 }
 
 void loop() {
-  long change = sensor.read() - rest;
+  // Non-blocking reads leave time for joystick, key, and mouse handling in a
+  // combined controller. Those inputs can run above this readiness check.
+  if (!samplePending) {
+    sensor.request();
+    samplePending = true;
+  }
+  if (!sensor.is_ready()) return;
+  long change = sensor.fetch() - rest;
+  samplePending = false;
   bool outside = (change > quiet) || (change < -quiet);
   bool moving = (change - lastChange > quiet / 2) || (lastChange - change > quiet / 2);
   lastChange = change;
@@ -15506,8 +15554,9 @@ void loop() {
     if (!breathing) { breathing = true; peak = 0; }
     if (change > 0 && change > peak) peak = change;
     if (change < 0 && change < peak) peak = change;
-    // Off the resting value but not moving for 2 seconds: drift, not a breath.
-    if (millis() - stableSince > 2000) {
+    long magnitude = change < 0 ? -change : change;
+    // Only a small, stable offset can be drift. A held strong breath stays a breath.
+    if (millis() - stableSince > 4000 && magnitude < quiet * 2) {
       rest = rest + change;
       breathing = false;
       peak = 0;
@@ -15531,7 +15580,6 @@ void loop() {
     Serial.print("change: ");
     Serial.println(change);
   }
-  delay(20);
 }
 ` },
   ];
@@ -15541,6 +15589,8 @@ void loop() {
   let _vibeSerialReader = null;
   let _vibeSerialKeepReading = false;
   let _vibeMonitorAutoScroll = true;
+  let _vibeUploadPort = null;
+  let _vibeUploadPortInfo = null;
 
   // ----- Per-student persistence -----
   // The editor is keyed to the picked student so two kids on one machine
@@ -15788,8 +15838,9 @@ void loop() {
         <div class="vibe-panel vibe-right">
           <div class="vibe-panel-header">
             <div class="vibe-tabs" role="tablist" aria-label="Editor panels">
-              <button type="button" class="vibe-tab" id="vibeTabCode" role="tab" aria-selected="true" aria-controls="vibeEditorWrap">Code</button>
-              <button type="button" class="vibe-tab" id="vibeTabMonitor" role="tab" aria-selected="false" aria-controls="vibeMonitorPane">Serial Monitor</button>
+              <button type="button" class="vibe-tab" id="vibeTabCode" role="tab" aria-selected="true" aria-controls="vibeEditorWrap" tabindex="0">Code</button>
+              <button type="button" class="vibe-tab" id="vibeTabMonitor" role="tab" aria-selected="false" aria-controls="vibeMonitorPane" tabindex="-1" aria-label="Serial Monitor">Serial Monitor</button>
+              <span class="vibe-sr-only" id="vibeMonitorAnnouncement" aria-live="polite"></span>
             </div>
             <div class="vibe-panel-actions">
               <div class="vibe-toolbar-group">
@@ -15831,10 +15882,10 @@ void loop() {
             <div class="vibe-libs-active" id="vibeLibsActive"></div>
             <div class="vibe-libs-add" id="vibeLibsAdd"></div>
           </div>
-          <div class="vibe-editor-wrap" id="vibeEditorWrap">
+          <div class="vibe-editor-wrap" id="vibeEditorWrap" role="tabpanel" aria-labelledby="vibeTabCode">
             <textarea class="vibe-editor-fallback" id="vibeEditorFallback" spellcheck="false"></textarea>
           </div>
-          <div class="vibe-monitor-pane" id="vibeMonitorPane" role="tabpanel">
+          <div class="vibe-monitor-pane" id="vibeMonitorPane" role="tabpanel" aria-labelledby="vibeTabMonitor" hidden>
             <div class="vibe-monitor-header">
               <p class="vibe-monitor-title">Serial Monitor</p>
               <div class="vibe-monitor-controls">
@@ -15860,7 +15911,7 @@ void loop() {
               <button type="button" class="vibe-mini-btn vibe-monitor-send-btn" id="vibeMonitorSend" title="Send the line to the Arduino" disabled>Send</button>
             </div>
           </div>
-          <div class="vibe-status" id="vibeStatus">
+          <div class="vibe-status" id="vibeStatus" role="status" aria-live="polite">
             <span class="vibe-status-dot"></span>
             <span class="vibe-status-text">Disconnected. Click Connect Arduino and pick your Leonardo or Micro.</span>
           </div>
@@ -15989,8 +16040,17 @@ void loop() {
       m.innerHTML = '<span class="vibe-monitor-empty">Cleared.</span>';
     });
     // Code / Serial Monitor tabs.
-    document.getElementById('vibeTabCode').addEventListener('click', () => vibeShowTab('code'));
-    document.getElementById('vibeTabMonitor').addEventListener('click', () => vibeShowTab('monitor'));
+    const codeTab = document.getElementById('vibeTabCode');
+    const monitorTab = document.getElementById('vibeTabMonitor');
+    codeTab.addEventListener('click', () => vibeShowTab('code'));
+    monitorTab.addEventListener('click', () => vibeShowTab('monitor'));
+    [codeTab, monitorTab].forEach((tab) => tab.addEventListener('keydown', (event) => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      const showMonitor = event.key === 'ArrowRight' || event.key === 'End';
+      vibeShowTab(showMonitor ? 'monitor' : 'code');
+      (showMonitor ? monitorTab : codeTab).focus();
+    }));
 
     // Send line to Arduino over Serial. Enter in the input or click Send.
     const sendInput = document.getElementById('vibeMonitorInput');
@@ -16205,10 +16265,6 @@ void loop() {
   const isArduinoVid = (info) => !!(info && ARDUINO_USB_VIDS.has(info.usbVendorId));
   // Picker filters for requestPort — one entry per known vendor.
   const ARDUINO_PORT_FILTERS = Array.from(ARDUINO_USB_VIDS, (v) => ({ usbVendorId: v }));
-  // Tracks whether the user had the monitor open before we started flashing,
-  // so we can auto-reconnect after the upload finishes.
-  let _vibeWasMonitoring = false;
-
   function vibeMonitorLine(text, kind) {
     const m = document.getElementById('vibeMonitor');
     if (!m) return;
@@ -16321,7 +16377,6 @@ void loop() {
 
     // 2. Flash.
     try {
-      _vibeWasMonitoring = !!_vibeSerialPort;
       const hexBytes = parseIntelHex(hexText);
       await vibeFlashHexToArduino(hexBytes);
       vibeMonitorLine('[ ✓ Upload complete ]', 'ok');
@@ -16418,6 +16473,12 @@ void loop() {
       // Stop the read loop and release the port before we touch it.
       await vibeDisconnectSerial();
     }
+
+    // Remember the exact board chosen for this upload. Web Serial may return
+    // the same Port object after reboot; if not, the VID/PID still lets us
+    // reconnect safely when there is only one matching candidate.
+    _vibeUploadPort = knockedPort;
+    _vibeUploadPortInfo = knockedPort.getInfo ? (knockedPort.getInfo() || {}) : {};
 
     // Open at 1200 then close — that's the magic reset signal.
     const knock = async () => {
@@ -16709,17 +16770,29 @@ void loop() {
     if (_vibeSerialPort) return; // already open (e.g. the student clicked Connect)
     try {
       const ports = await navigator.serial.getPorts();
-      const sketchPort = ports.find(p => {
+      const sketchCandidates = ports.filter(p => {
         const info = p.getInfo() || {};
-        // Sketch port is the Arduino vendor entry that's not still in bootloader
-        // VID/PID. Caterina's bootloader uses 0x0036/0x0037; sketches usually
-        // use 0x8036/0x8037 or higher.
-        return info.usbVendorId === ARDUINO_USB_VID && (info.usbProductId & 0x8000);
-      }) || ports.find(p => isArduinoVid(p.getInfo() || {}));
+        const isCaterinaBootloader = info.usbVendorId === ARDUINO_USB_VID &&
+          (info.usbProductId === 0x0036 || info.usbProductId === 0x0037);
+        return isArduinoVid(info) && !isCaterinaBootloader;
+      });
+      let sketchPort = sketchCandidates.find(p => p === _vibeUploadPort) || null;
+      if (!sketchPort && _vibeUploadPortInfo) {
+        const exactInfoMatches = sketchCandidates.filter((p) => {
+          const info = p.getInfo() || {};
+          return info.usbVendorId === _vibeUploadPortInfo.usbVendorId &&
+            info.usbProductId === _vibeUploadPortInfo.usbProductId;
+        });
+        if (exactInfoMatches.length === 1) sketchPort = exactInfoMatches[0];
+      }
+      if (!sketchPort && sketchCandidates.length === 1) sketchPort = sketchCandidates[0];
       if (!sketchPort) {
         if (retries > 0) { setTimeout(() => vibeReconnectSketchPort(retries - 1), 800); return; }
-        // Clone boards can re-enumerate with an unknown VID — never bail silently.
-        vibeMonitorLine('Click "Connect Arduino" above to watch Serial output.', 'dim');
+        const message = sketchCandidates.length > 1
+          ? 'More than one Arduino is available. Click "Connect Arduino" and choose the board you just uploaded.'
+          : 'Click "Connect Arduino" above to watch Serial output.';
+        vibeMonitorLine(message, 'dim');
+        vibeSetStatus('disconnected', message);
         return;
       }
       const baud = parseInt(document.getElementById('vibeBaudRate').value, 10) || 9600;
@@ -16866,13 +16939,22 @@ void loop() {
     const right = document.querySelector('.vibe-right');
     const tabCode = document.getElementById('vibeTabCode');
     const tabMon = document.getElementById('vibeTabMonitor');
+    const editorPanel = document.getElementById('vibeEditorWrap');
+    const monitorPanel = document.getElementById('vibeMonitorPane');
     if (!right || !tabCode || !tabMon) return;
     const monitor = which === 'monitor';
     right.classList.toggle('is-monitor', monitor);
     tabCode.setAttribute('aria-selected', monitor ? 'false' : 'true');
     tabMon.setAttribute('aria-selected', monitor ? 'true' : 'false');
+    tabCode.tabIndex = monitor ? -1 : 0;
+    tabMon.tabIndex = monitor ? 0 : -1;
+    if (editorPanel) editorPanel.hidden = monitor;
+    if (monitorPanel) monitorPanel.hidden = !monitor;
     if (monitor) {
       tabMon.classList.remove('has-new');
+      tabMon.setAttribute('aria-label', 'Serial Monitor');
+      const announcement = document.getElementById('vibeMonitorAnnouncement');
+      if (announcement) announcement.textContent = '';
       const m = document.getElementById('vibeMonitor');
       if (m) m.scrollTop = m.scrollHeight;
     } else if (_vibeEditor) {
@@ -16883,7 +16965,13 @@ void loop() {
   function vibeMonitorMarkNew() {
     const right = document.querySelector('.vibe-right');
     const tabMon = document.getElementById('vibeTabMonitor');
-    if (right && tabMon && !right.classList.contains('is-monitor')) tabMon.classList.add('has-new');
+    if (right && tabMon && !right.classList.contains('is-monitor')) {
+      const alreadyMarked = tabMon.classList.contains('has-new');
+      tabMon.classList.add('has-new');
+      tabMon.setAttribute('aria-label', 'Serial Monitor, new output');
+      const announcement = document.getElementById('vibeMonitorAnnouncement');
+      if (announcement && !alreadyMarked) announcement.textContent = 'New Serial Monitor output.';
+    }
   }
 
   // Write a line over Serial. Read by the Arduino sketch via Serial.read(). The

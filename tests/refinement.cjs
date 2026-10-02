@@ -15,5 +15,19 @@ assert.match(html, /function setLightboxBoundary\(active\)/, 'media previews iso
 assert.match(html, /doc\(db, 'portfolios', `\$\{benchmarkId\}__\$\{nameSlug\(/, 'portfolio submissions keep the stable one-student document key');
 assert.match(html, /setDoc\(doc\(db, 'portfolios'/, 'portfolio revisions merge into a stable document');
 assert.match(html, /function collapsePortfolioItems\(items\)/, 'historical duplicate documents collapse to one student row');
+assert.match(html, /\.vibe-right\.is-monitor\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0, 1fr\) auto/,
+  'Serial Monitor receives the flexible panel row');
+assert.match(html, /\['ArrowLeft', 'ArrowRight', 'Home', 'End'\]/,
+  'Arduino tabs support standard keyboard navigation');
+assert.match(html, /tabMon\.setAttribute\('aria-label', 'Serial Monitor, new output'\)/,
+  'new Serial output is announced without relying on color');
+assert.match(html, /id="vibeMonitorAnnouncement" aria-live="polite"/,
+  'new Serial output has a polite live-region announcement');
+assert.match(html, /sketchCandidates\.length > 1[\s\S]*choose the board you just uploaded/,
+  'ambiguous Arduino reconnects require an explicit board choice');
+assert.match(html, /sensor\.request\(\)[\s\S]*sensor\.is_ready\(\)[\s\S]*sensor\.fetch\(\)/,
+  'breath calibration uses non-blocking sensor reads');
+assert.doesNotMatch(html, /quiet = \(hi - lo\) \* 3/,
+  'breath calibration does not let one startup spike set the quiet band');
 
-console.log('T4SG refinement audit passed: focused journey, complete mobile nav, dialog isolation, and stable portfolio writes.');
+console.log('T4SG refinement audit passed: focused journey, full-height accessible Arduino monitor, robust sensing, dialog isolation, and stable portfolio writes.');

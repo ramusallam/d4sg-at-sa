@@ -13,6 +13,10 @@ assert.ok(labelsMatch, 'benchmark step labels can be audited');
 const projects = vm.runInNewContext(`(${projectsMatch[1]})`);
 const labels = vm.runInNewContext(`(${labelsMatch[1]})`);
 
+const breathPressure = projects.flatMap(project => project.benchmarks).find(benchmark => benchmark.id === 'p3b5');
+assert.ok(breathPressure, 'Breath Pressure benchmark exists');
+assert.equal(breathPressure.instructions.length, 6, 'Breath Pressure follows the six-step checkpoint pattern');
+
 for (const project of projects) {
   for (const benchmark of project.benchmarks) {
     if (!benchmark.instructions) continue;
@@ -36,5 +40,9 @@ assert.match(html, /setAttribute\('aria-current', 'step'\)/,
   'the current released step is announced to assistive technology');
 assert.doesNotMatch(html, /little LED on the sensor lights while your finger is on the pad[\s\S]{0,700}stays on the whole time/,
   'touch-sensor testing does not give contradictory LED directions');
+assert.match(html, /Every external LED needs its own 220-330 ohm current-limiting resistor/,
+  'starter prompt protects every external LED with a current-limiting resistor');
+assert.doesNotMatch(html, /two LEDs[^}]{0,500}no resistors/,
+  'LED benchmark prompts never prohibit current-limiting resistors');
 
-console.log('T4SG benchmark-flow audit passed: gradual release, concise action labels, current-step focus, and instruction parity.');
+console.log('T4SG benchmark-flow audit passed: six-step pressure flow, gradual release, safe LEDs, concise labels, and instruction parity.');
