@@ -16385,7 +16385,7 @@ void loop() {
       // and most sketches print the numbers they need to see right away.
       // The sketch port can take a few seconds to re-enumerate after a
       // flash, so retry before giving up.
-      setTimeout(() => vibeReconnectSketchPort(6), 1500);
+      setTimeout(() => vibeReconnectSketchPort(15), 1500);
     } catch (err) {
       vibeMonitorLine('[ Upload error: ' + (err.message || err) + ' ]', 'err');
       vibeMonitorLine('Tip: unplug + replug the board and try again. Make sure no other program or browser tab has the port open.', 'dim');
@@ -16789,9 +16789,26 @@ void loop() {
       if (!sketchPort) {
         if (retries > 0) { setTimeout(() => vibeReconnectSketchPort(retries - 1), 800); return; }
         const message = sketchCandidates.length > 1
-          ? 'More than one Arduino is available. Click "Connect Arduino" and choose the board you just uploaded.'
-          : 'Click "Connect Arduino" above to watch Serial output.';
+          ? 'More than one Arduino is available. Click the button below and choose the board you just uploaded.'
+          : 'Upload worked. Click the button below and pick your Arduino to watch Serial output.';
         vibeMonitorLine(message, 'dim');
+        // What Chrome can see right now, so a stuck reconnect can be diagnosed.
+        vibeMonitorLine('[ ports seen: ' + (ports.map(p => {
+          const i = p.getInfo() || {};
+          return (i.usbVendorId || 0).toString(16) + ':' + (i.usbProductId || 0).toString(16);
+        }).join(', ') || 'none') + ' ]', 'dim');
+        // The picker needs a real click, so offer it right here in the monitor.
+        const monitor = document.getElementById('vibeMonitor');
+        if (monitor && !monitor.querySelector('.vibe-monitor-fix-btn')) {
+          const openBtn = document.createElement('button');
+          openBtn.type = 'button';
+          openBtn.className = 'vibe-monitor-fix-btn';
+          openBtn.textContent = 'Watch Serial output';
+          openBtn.addEventListener('click', () => { openBtn.remove(); vibeConnectSerial(true); });
+          monitor.appendChild(openBtn);
+          monitor.appendChild(document.createTextNode('\n'));
+          if (_vibeMonitorAutoScroll) monitor.scrollTop = monitor.scrollHeight;
+        }
         vibeSetStatus('disconnected', message);
         return;
       }
@@ -16821,7 +16838,7 @@ void loop() {
   // ---- Web Serial ----
   let _vibeConnecting = false;
   let _vibeSerialPipeDone = null;
-  async function vibeConnectSerial() {
+  async function vibeConnectSerial(keepLog) {
     const monitor = document.getElementById('vibeMonitor');
     if (!('serial' in navigator)) {
       monitor.innerHTML = '';
@@ -16842,10 +16859,10 @@ void loop() {
       btn.classList.remove('is-primary');
       btn.classList.add('is-active');
       vibeSetTooltip(btn, 'Disconnect Arduino');
-      monitor.innerHTML = '';
+      if (keepLog !== true) monitor.innerHTML = '';
       vibeShowTab('monitor');
       vibeAppendMonitor('[ connected at ' + baud + ' baud ]\n');
-      vibeSetStatus('connected', `Connected. Click Upload to send your code to the board.`);
+      vibeSetStatus('connected', keepLog === true ? `Connected at ${baud} baud.` : `Connected. Click Upload to send your code to the board.`);
       vibeMonitorSetSendEnabled(true);
       vibeReadLoop();
     } catch (err) {
