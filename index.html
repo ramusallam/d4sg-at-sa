@@ -4801,16 +4801,61 @@
      at bottom. */
   .vibe-right {
     display: grid;
-    grid-template-rows: auto auto 1fr auto auto auto;
+    grid-template-rows: auto auto 1fr auto;
     min-height: 0;
     flex: 1 1 auto;
+  }
+  /* Two tabs, one box: Code or Serial Monitor fills the whole panel. The
+     monitor used to dock under the editor and the panel clipped its last
+     lines (the compile + flash log) below the fold. */
+  .vibe-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 3px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+  .vibe-tab {
+    position: relative;
+    border: 0;
+    background: transparent;
+    color: var(--ink-mid);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .vibe-tab:hover { color: var(--ink-hi); }
+  .vibe-tab[aria-selected="true"] { background: var(--bg-1); color: var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .vibe-tab.has-new::after {
+    content: '';
+    position: absolute;
+    top: 5px; right: 6px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .vibe-right.is-monitor .vibe-libs,
+  .vibe-right.is-monitor .vibe-editor-wrap { display: none; }
+  .vibe-right:not(.is-monitor) .vibe-monitor-pane { display: none; }
+  .vibe-monitor-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
   }
   .vibe-editor-wrap {
     flex: 1 1 auto;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    min-height: 340px;
+    min-height: 0;
   }
   .vibe-editor-wrap .vibe-monaco {
     width: 100%;
@@ -4890,17 +4935,12 @@
     font-size: 12px;
     line-height: 1.5;
     padding: 8px 14px;
-    height: 240px;
-    min-height: 120px;
-    max-height: 75vh;
-    resize: vertical;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-word;
   }
-  /* Expand toggle: tall enough to read a stream of sensor numbers while
-     calibrating (breath pressure), without scrolling the page. */
-  .vibe-monitor.is-tall { height: 520px; }
   .vibe-monitor::-webkit-scrollbar { width: 10px; }
   .vibe-monitor::-webkit-scrollbar-track { background: #0b1220; }
   .vibe-monitor::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
@@ -6833,7 +6873,7 @@
             '**Leave your Joystick and Sip or Puff wiring exactly where it is.** Add the breath pressure sensor beside them on the same breadboard - the small red **HX710B** board with a black nozzle on top and four pins labeled **VCC, OUT, SCK, GND**. Push your own short piece of tubing onto the nozzle and never share it.',
             '**Solder first.** The board comes with its four header pins loose, so solder them on before you wire anything. Push the short end of the pin strip through the four holes, long legs pointing down so the board can stand in the breadboard, and solder each pin to its own ring on the back. Each joint should be a small shiny cone that touches only its own ring. **Never let solder bridge two rings** - a bridge joins two pins and short-circuits the board the moment it gets power. Check the back for bridges, then have Ramsey check it before you plug it in.',
             'Wire it for calibration: **VCC to 5V, GND to GND, OUT to pin 4, SCK to pin 5**. If pins 4 or 5 are already taken on your breadboard, use two free digital pins instead and change the two pin numbers at the top of the sketch in the next step. One continuous wire per connection - never chain two jumpers end to end.',
-            'Calibrate your breaths. In the [Arduino Code Loading Tool](tools#vibe), pick **Breath calibration (HX710B)** from the Examples menu and click **Upload**. The Serial Monitor shows the change in pressure as you breathe into the tube, and prints **PEAK** with the strongest number of each breath. Click **Expand** on the monitor so you can see the numbers. **In your notebook,** make a four-row table and record your PEAK number for each one: light puff, strong puff, light sip, strong sip. Do each breath three times and write down the middle number. Puffs go up and sips go down. These are your numbers - every mouth is different, and your code will use them.',
+            'Calibrate your breaths. In the [Arduino Code Loading Tool](tools#vibe), pick **Breath calibration (HX710B)** from the Examples menu and click **Upload**. The Serial Monitor shows the change in pressure as you breathe into the tube, and prints **PEAK** with the strongest number of each breath. The tool switches to the **Serial Monitor** tab when you upload, and the **Code** tab brings your sketch back. **In your notebook,** make a four-row table and record your PEAK number for each one: light puff, strong puff, light sip, strong sip. Do each breath three times and write down the middle number. Puffs go up and sips go down. These are your numbers - every mouth is different, and your code will use them.',
             'The sip or puff switch is only on or off. The pressure sensor measures how hard you breathe, so one tube can do more than one thing. Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Joystick and Sip or Puff code from the tool, then this prompt with your own numbers filled in: {{prompt}}Add to my existing code: type the number 1 when I give a soft puff into an HX710B breath pressure sensor, and type the number 2 when I give a hard puff. The sensor has four pins: VCC, OUT, SCK, and GND. OUT is on pin 4 and SCK is on pin 5. Use the HX710AB library. Each puff types only one number, decided when the puff ends, so a hard puff never types a 1 first. I calibrated the sensor and measured the change from the resting value: a light puff peaks at about ___, a strong puff at about ___, a light sip at about ___, and a strong sip at about ___. Set the soft and hard thresholds from those numbers. Keep printing the pressure change to the Serial Monitor. Keep my Project 2 final product behaviors and the joystick mouse, click, and X-key behaviors I already have and do not change my existing wiring. Use only the pressure sensor - no other new parts, no resistors. Simplest possible code and simplest wiring instructions.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the pressure sensor to your existing schematic on the **breadboard**.',
             'Your sensor is already wired from calibration. Check that the OUT and SCK pin numbers in your new code match the sockets they sit in, fix the code if they do not, then upload the code from the Arduino Code Loading Tool.',
@@ -15696,7 +15736,10 @@ void loop() {
       <div class="vibe-wrap">
         <div class="vibe-panel vibe-right">
           <div class="vibe-panel-header">
-            <p class="vibe-panel-title">Arduino Code Editor</p>
+            <div class="vibe-tabs" role="tablist" aria-label="Editor panels">
+              <button type="button" class="vibe-tab" id="vibeTabCode" role="tab" aria-selected="true" aria-controls="vibeEditorWrap">Code</button>
+              <button type="button" class="vibe-tab" id="vibeTabMonitor" role="tab" aria-selected="false" aria-controls="vibeMonitorPane">Serial Monitor</button>
+            </div>
             <div class="vibe-panel-actions">
               <div class="vibe-toolbar-group">
                 <button class="vibe-tool-btn is-labeled" id="vibeUpload" title="Upload to Arduino" aria-label="Upload to Arduino">
@@ -15740,7 +15783,7 @@ void loop() {
           <div class="vibe-editor-wrap" id="vibeEditorWrap">
             <textarea class="vibe-editor-fallback" id="vibeEditorFallback" spellcheck="false"></textarea>
           </div>
-          <div>
+          <div class="vibe-monitor-pane" id="vibeMonitorPane" role="tabpanel">
             <div class="vibe-monitor-header">
               <p class="vibe-monitor-title">Serial Monitor</p>
               <div class="vibe-monitor-controls">
@@ -15752,7 +15795,6 @@ void loop() {
                   <option value="115200">115200</option>
                 </select>
                 <button class="vibe-mini-btn" id="vibeMonitorClear">Clear</button>
-                <button class="vibe-mini-btn" id="vibeMonitorExpand" title="Make the Serial Monitor taller">Expand</button>
               </div>
             </div>
             <div class="vibe-monitor" id="vibeMonitor"><span class="vibe-monitor-empty">Serial output shows here once your board is connected.</span></div>
@@ -15895,17 +15937,9 @@ void loop() {
       const m = document.getElementById('vibeMonitor');
       m.innerHTML = '<span class="vibe-monitor-empty">Cleared.</span>';
     });
-    // Expand / Shrink the monitor. Clears any drag-resize height so the
-    // toggle always lands on a known size.
-    const expandBtn = document.getElementById('vibeMonitorExpand');
-    if (expandBtn) expandBtn.addEventListener('click', () => {
-      const m = document.getElementById('vibeMonitor');
-      m.style.height = '';
-      const tall = m.classList.toggle('is-tall');
-      expandBtn.textContent = tall ? 'Shrink' : 'Expand';
-      expandBtn.title = tall ? 'Make the Serial Monitor shorter' : 'Make the Serial Monitor taller';
-      m.scrollTop = m.scrollHeight;
-    });
+    // Code / Serial Monitor tabs.
+    document.getElementById('vibeTabCode').addEventListener('click', () => vibeShowTab('code'));
+    document.getElementById('vibeTabMonitor').addEventListener('click', () => vibeShowTab('monitor'));
 
     // Send line to Arduino over Serial. Enter in the input or click Send.
     const sendInput = document.getElementById('vibeMonitorInput');
@@ -16138,6 +16172,7 @@ void loop() {
     line.textContent = text;
     m.appendChild(line);
     m.scrollTop = m.scrollHeight;
+    vibeMonitorMarkNew();
   }
 
   async function vibeCompileSketch(sketch) {
@@ -16201,6 +16236,7 @@ void loop() {
 
     // 1. Compile.
     let hexText;
+    vibeShowTab('monitor');
     vibeMonitorLine('[ Compiling… ]', 'info');
     try {
       const data = await vibeCompileSketch(sketch);
@@ -16683,6 +16719,7 @@ void loop() {
       btn.classList.add('is-active');
       vibeSetTooltip(btn, 'Disconnect Arduino');
       monitor.innerHTML = '';
+      vibeShowTab('monitor');
       vibeAppendMonitor('[ connected at ' + baud + ' baud ]\n');
       vibeSetStatus('connected', `Connected. Click Upload to send your code to the board.`);
       vibeMonitorSetSendEnabled(true);
@@ -16768,6 +16805,34 @@ void loop() {
     if (_vibeMonitorAutoScroll) {
       m.scrollTop = m.scrollHeight;
     }
+    vibeMonitorMarkNew();
+  }
+
+  // Which panel is in front: 'code' or 'monitor'. Upload and Connect switch
+  // to the monitor so the compile + flash log and the board's output are in
+  // view; output that arrives while Code is in front lights a dot on the tab.
+  function vibeShowTab(which) {
+    const right = document.querySelector('.vibe-right');
+    const tabCode = document.getElementById('vibeTabCode');
+    const tabMon = document.getElementById('vibeTabMonitor');
+    if (!right || !tabCode || !tabMon) return;
+    const monitor = which === 'monitor';
+    right.classList.toggle('is-monitor', monitor);
+    tabCode.setAttribute('aria-selected', monitor ? 'false' : 'true');
+    tabMon.setAttribute('aria-selected', monitor ? 'true' : 'false');
+    if (monitor) {
+      tabMon.classList.remove('has-new');
+      const m = document.getElementById('vibeMonitor');
+      if (m) m.scrollTop = m.scrollHeight;
+    } else if (_vibeEditor) {
+      // Monaco measured itself while hidden; re-measure now that it is visible.
+      try { _vibeEditor.layout(); } catch (_) {}
+    }
+  }
+  function vibeMonitorMarkNew() {
+    const right = document.querySelector('.vibe-right');
+    const tabMon = document.getElementById('vibeTabMonitor');
+    if (right && tabMon && !right.classList.contains('is-monitor')) tabMon.classList.add('has-new');
   }
 
   // Write a line over Serial. Read by the Arduino sketch via Serial.read(). The
