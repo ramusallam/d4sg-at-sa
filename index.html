@@ -6891,10 +6891,10 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Keep your Joystick and Sip or Puff wiring intact.** Add the HX710B pressure sensor beside them on the same breadboard. Solder its four header pins into separate shiny joints, check that no solder bridges two rings, and have Ramsey inspect it before power. Use your own tubing and never share it.',
-            'Calibrate first. Wire **VCC to 5V, GND to GND, OUT to pin 4, and SCK to pin 5**. In the [Arduino Code Loading Tool](tools#vibe), load **Breath calibration (HX710B)** and upload it. Hold still for 3 seconds, then record the **Quiet band**. In your notebook, make four rows: light puff, strong puff, light sip, and strong sip. Test each three times, taking your mouth off the tube between breaths, and record the middle **PUFF peak** or **SIP peak**.',
-            'Open [Gemini](https://gemini.google.com) or ChatGPT. Paste the starter prompt and your current Joystick and Sip or Puff code, then use this prompt with your numbers: {{prompt}}Add an HX710B breath pressure sensor to my existing code. Type 1 after a soft puff and 2 after a hard puff, one number only when the puff ends. OUT is pin 4 and SCK is pin 5. My quiet band is ___; light puff ___; strong puff ___; light sip ___; strong sip ___. Keep the joystick, click, and X-key responsive while the sensor measures. Keep every existing behavior and wire. Use only the pressure sensor and the HX710AB library.{{/prompt}} Paste the full sketch into the [Arduino Code Loading Tool](tools#vibe).',
+            '**See it work first.** Wire **VCC to 5V, GND to GND, OUT to pin 4, and SCK to pin 5**. In the [Arduino Code Loading Tool](tools#vibe), load **Breath test (HX710B)** from Examples and upload it. Watch the Serial Monitor: the number sits near 0 at rest, goes **positive** when you puff, and goes **negative** when you sip. You are not calibrating yet - this proves the sensor is alive and shows you how it talks. In your notebook, write about how high a hard puff goes and how low a hard sip goes. Then click **Restore previous code** in the tool to bring back your Joystick and Sip or Puff code.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Joystick and Sip or Puff code from the tool, then this prompt: {{prompt}}Add to my existing code: an HX710B breath pressure sensor with OUT on pin 4 and SCK on pin 5. At startup, average about 20 readings with no breath to get a resting value, and measure every breath as the change from rest: a puff is positive and a sip is negative. A puff counts when the change goes above 150000 and a sip counts when it goes below -150000. When a breath ends, do one thing based on how long it lasted: a quick puff (under 1 second) types 1, a long puff (1 second or more) types 2, a quick sip types 3, and a long sip types 4. Print a short message to the Serial Monitor for each one. Every 20 seconds, if I am not puffing or sipping, measure the resting value again. Keep my Project 2 final product behaviors and the mouse, click, and X-key behaviors I already have and do not change my existing wiring. Use only the pressure sensor and the HX710AB library.{{/prompt}} If your hard puff or hard sip never reached 150000 in the test, swap in a number a little under what you saw. Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe).',
             'Open the [Wiring Schematic Tool](tools#schematic) and add the pressure sensor to your existing schematic on the **breadboard**. Match the OUT and SCK pin numbers in the code.',
-            'Upload the code. A soft puff should type 1 and a hard puff should type 2, once per breath, while the joystick and X-key stay responsive. If the result is wrong, give the AI the peak you saw and ask it to adjust the thresholds. Test it. Modify the code until the behavior works exactly the way you described it.',
+            'Upload the code. A quick puff should type 1, a long puff 2, a quick sip 3, and a long sip 4, once per breath, while the joystick and X-key stay responsive. If a breath does nothing, tell the AI the numbers you saw in the test and ask it to change the 150000. Test it. Modify the code until the behavior works exactly the way you described it.',
             'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
           ],
           videoUrl: '',
@@ -6908,7 +6908,7 @@
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
             '**Leave your Joystick, Sip or Puff, and Breath Pressure wiring exactly where it is.** Add two different-color LEDs beside it all on the same breadboard.',
-            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Joystick, Sip or Puff, and Breath Pressure code from the tool, then this prompt: {{prompt}}Add to my existing code: turn on one LED while the joystick button is pressed, and a different-color LED while the sip or puff switch is triggered. Keep my Project 2 final product behaviors and the mouse, click, X-key, and soft-and-hard-puff behaviors I already have and do not change my existing wiring. Use only the two LEDs and one 220-330 ohm current-limiting resistor for each LED. Simplest possible code, and wiring instructions that tell me exactly where each resistor, long LED leg, and short LED leg go.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Joystick, Sip or Puff, and Breath Pressure code from the tool, then this prompt: {{prompt}}Add to my existing code: turn on one LED while the joystick button is pressed, and a different-color LED while the sip or puff switch is triggered. Keep my Project 2 final product behaviors and the mouse, click, X-key, and breath behaviors I already have and do not change my existing wiring. Use only the two LEDs and one 220-330 ohm current-limiting resistor for each LED. Simplest possible code, and wiring instructions that tell me exactly where each resistor, long LED leg, and short LED leg go.{{/prompt}} Paste the code it gives you back into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to add the two LEDs to your existing schematic on the **breadboard**.',
             'Wire the two LEDs into your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool.',
             'Test it: one LED should light while the joystick is pressed and the other while the sip or puff switch is triggered. If an LED will not light, the most common cause is an LED leg or jumper sitting in the wrong breadboard row - check that before removing anything. Modify the code until it works exactly as described.',
@@ -11103,7 +11103,7 @@
     p2b4: ['Sketch for your user', 'Write the product prompt', 'Update the schematic', 'Build and test the circuit', 'Design the sensor mount', 'Assemble and user-test', 'Save the cumulative baseline'],
     p3b1: ['Restore the Project 2 build', 'Generate the joystick code', 'Update the schematic', 'Wire the joystick', 'Test cursor and click'],
     p3b2: ['Add the sip or puff switch', 'Generate the breath-switch code', 'Update the schematic', 'Wire the switch', 'Test the puff action'],
-    p3b5: ['Prepare the pressure sensor', 'Calibrate your breaths', 'Generate the pressure code', 'Update the schematic', 'Upload and test'],
+    p3b5: ['Prepare the pressure sensor', 'See the sensor work', 'Generate the pressure code', 'Update the schematic', 'Upload and test'],
     p3b3: ['Add the LEDs', 'Generate the LED code', 'Update the schematic', 'Wire the LEDs', 'Test the indicator LEDs'],
     p3b4: ['Sketch the hands-free design', 'Write the product prompt', 'Update the schematic', 'Build and test the circuit', 'Design a secure mount', 'Assemble and user-test', 'Save the hub baseline'],
     p4b1: ['Count the required ports', 'Plan cables and adapters', 'Sketch the port layout', 'Build the bill of materials'],
@@ -15279,7 +15279,7 @@
     "- Write the shortest, simplest Arduino code that does exactly what I ask. Use only the parts I name plus whatever my existing code already uses. Never add extra parts, extra LEDs, buzzers, modes, or features.",
     "- Switches use the Leonardo's built-in pull-up (INPUT_PULLUP) and do not need resistors. Every external LED needs its own 220-330 ohm current-limiting resistor.",
     "- Use Keyboard.h or Mouse.h when the controller should act as a keyboard or mouse, and press and release keys cleanly so nothing sticks. Add simple debouncing.",
-    "- Wiring recipes: tactile button = one leg to a digital pin, the diagonally opposite leg to GND, pressed reads LOW. Lever microswitch = COM to GND, NO to a digital pin. Sip or puff switch = one wire to a digital pin, one to GND. LED = digital pin to a 220-330 ohm resistor, resistor to the long LED leg, short LED leg to GND; every LED gets its own resistor, and always tell me which leg is which. KY-023 joystick = VCC to 5V, GND to GND, VRx and VRy to analog pins, SW to a digital pin with INPUT_PULLUP. TTP223B touch sensor = GND to GND, VCC to 5V, SIG to a digital pin read with plain digitalRead (HIGH on touch). FC-51 IR sensor = VCC to 5V, GND to GND, OUT to a digital pin read with plain digitalRead (LOW when something is in front), no library. HX710B breath pressure sensor = VCC to 5V, GND to GND, OUT and SCK each to their own digital pin. For it, use only the HX710AB library by Rob Tillaart (#include \"HX710AB.h\", HX710B sensor(outPin, sckPin), sensor.begin()), never another HX710 or HX711 library. In a combined controller, keep the joystick, buttons, and keyboard handling running every loop; never call blocking sensor.read() there. Start a measurement with sensor.request(), then on a later loop use sensor.is_ready() and sensor.fetch(). At startup, measure the resting value with no breath in the tube for about 3 seconds and use a robust spread that ignores isolated spikes to set the quiet band. Measure every breath as the change from rest: a puff raises it and a sip lowers it. Follow the strongest change and act once only after the reading returns inside the quiet band, so a hard puff never fires the soft action first. After one quiet second, slide rest toward the current reading. Never reset rest during an active breath; only treat a small offset as drift after it has stayed stable for at least four seconds. Print the change to the Serial Monitor so I can pick my soft and hard numbers.",
+    "- Wiring recipes: tactile button = one leg to a digital pin, the diagonally opposite leg to GND, pressed reads LOW. Lever microswitch = COM to GND, NO to a digital pin. Sip or puff switch = one wire to a digital pin, one to GND. LED = digital pin to a 220-330 ohm resistor, resistor to the long LED leg, short LED leg to GND; every LED gets its own resistor, and always tell me which leg is which. KY-023 joystick = VCC to 5V, GND to GND, VRx and VRy to analog pins, SW to a digital pin with INPUT_PULLUP. TTP223B touch sensor = GND to GND, VCC to 5V, SIG to a digital pin read with plain digitalRead (HIGH on touch). FC-51 IR sensor = VCC to 5V, GND to GND, OUT to a digital pin read with plain digitalRead (LOW when something is in front), no library. HX710B breath pressure sensor = VCC to 5V, GND to GND, OUT and SCK each to their own digital pin. For it, use only the HX710AB library by Rob Tillaart (#include \"HX710AB.h\", HX710B sensor(outPin, sckPin), sensor.begin()), never another HX710 or HX711 library. In a combined controller, keep the joystick, buttons, and keyboard handling running every loop; never call blocking sensor.read() there. Start a measurement with sensor.request(), then on a later loop use sensor.is_ready() and sensor.fetch(). At startup, average about 20 readings with no breath in the tube to get the resting value. Measure every breath as the change from rest: a puff is positive and a sip is negative. Act once, when the breath ends. Never measure the resting value again during a breath. Print the change to the Serial Monitor so I can see my numbers.",
     "- When I say to add to my existing code, keep every existing pin, behavior, and comment and add only the new part. Never rewire what already works.",
     "- Reply with the full sketch in one code block, then a short Wiring section: one line per connection with the exact pin numbers, in plain language for a beginner. Keep comments short.",
     "Here is what I need:"
@@ -15451,133 +15451,38 @@ void loop() {
   delay(15);
 }
 ` },
-    { id: 'breath-calibration', name: 'Breath calibration (HX710B)', code:
-`// Breath calibration for the HX710B breath pressure sensor.
+    { id: 'breath-calibration', name: 'Breath test (HX710B)', code:
+`// Breath test for the HX710B breath pressure sensor.
 // Wire: VCC to 5V, GND to GND, OUT to pin 4, SCK to pin 5.
-// If pins 4 and 5 are taken on your breadboard, change the two numbers below.
-//
-// How it protects itself:
-//  - Uses the median and median deviation at startup, so one spike cannot
-//    make the quiet band too wide for normal breaths.
-//  - The resting value drifts after a hard breath, so once the tube has been
-//    quiet for a second the resting value slides to match.
-//  - A small offset must stay still for four seconds before it counts as drift.
-// Take your mouth off the tube between breaths so the pressure can settle.
+// Open the Serial Monitor. Puff = positive number. Sip = negative number.
 #include "HX710AB.h"
 
 const int OUT_PIN = 4;
 const int SCK_PIN = 5;
-const int SAMPLE_COUNT = 31;
 
 HX710B sensor(OUT_PIN, SCK_PIN);
-
-long rest = 0;        // resting value, kept up to date while the tube is quiet
-long quiet = 0;       // robust quiet band that ignores isolated startup spikes
-long peak = 0;        // strongest change during the current breath
-long lastChange = 0;
-bool breathing = false;
-bool samplePending = false;
-unsigned long quietSince = 0;
-unsigned long stableSince = 0;
-unsigned long lastPrint = 0;
-
-void sortValues(long values[], int count) {
-  for (int i = 1; i < count; i++) {
-    long value = values[i];
-    int j = i - 1;
-    while (j >= 0 && values[j] > value) {
-      values[j + 1] = values[j];
-      j--;
-    }
-    values[j + 1] = value;
-  }
-}
-
-long calibrationSample() {
-  sensor.request();
-  unsigned long started = millis();
-  while (!sensor.is_ready()) {
-    if (millis() - started > 750) return sensor.last_value_read();
-    delay(1);
-  }
-  return sensor.fetch();
-}
+long rest = 0;
 
 void setup() {
   Serial.begin(9600);
   sensor.begin();
-  delay(1000);
-  Serial.println("Hold still. Measuring the resting value for 3 seconds, no breath...");
-  long samples[SAMPLE_COUNT];
-  long deviations[SAMPLE_COUNT];
-  for (int i = 0; i < SAMPLE_COUNT; i++) samples[i] = calibrationSample();
-  sortValues(samples, SAMPLE_COUNT);
-  rest = samples[SAMPLE_COUNT / 2];
-  for (int i = 0; i < SAMPLE_COUNT; i++) {
-    long difference = samples[i] - rest;
-    deviations[i] = difference < 0 ? -difference : difference;
+  delay(500);
+
+  // Average 20 readings with no breath to get the resting value
+  long total = 0;
+  for (int i = 0; i < 20; i++) {
+    total += sensor.read();
+    delay(20);
   }
-  sortValues(deviations, SAMPLE_COUNT);
-  quiet = deviations[SAMPLE_COUNT / 2] * 6;
-  if (quiet < 50) quiet = 50;
-  Serial.print("Rest: ");
-  Serial.println(rest);
-  Serial.print("Quiet band: ");
-  Serial.println(quiet);
-  Serial.println("Ready. Puff or sip, then take your mouth off the tube.");
-  Serial.println("Puff = change goes up. Sip = change goes down.");
-  quietSince = millis();
-  stableSince = millis();
-  sensor.request();
-  samplePending = true;
+  rest = total / 20;
+
+  Serial.println("Ready. Puff = positive. Sip = negative.");
 }
 
 void loop() {
-  // Non-blocking reads leave time for joystick, key, and mouse handling in a
-  // combined controller. Those inputs can run above this readiness check.
-  if (!samplePending) {
-    sensor.request();
-    samplePending = true;
-  }
-  if (!sensor.is_ready()) return;
-  long change = sensor.fetch() - rest;
-  samplePending = false;
-  bool outside = (change > quiet) || (change < -quiet);
-  bool moving = (change - lastChange > quiet / 2) || (lastChange - change > quiet / 2);
-  lastChange = change;
-  if (moving) stableSince = millis();
-
-  if (outside) {
-    quietSince = millis();
-    if (!breathing) { breathing = true; peak = 0; }
-    if (change > 0 && change > peak) peak = change;
-    if (change < 0 && change < peak) peak = change;
-    long magnitude = change < 0 ? -change : change;
-    // Only a small, stable offset can be drift. A held strong breath stays a breath.
-    if (millis() - stableSince > 4000 && magnitude < quiet * 2) {
-      rest = rest + change;
-      breathing = false;
-      peak = 0;
-      Serial.println("(resting value reset)");
-    }
-  } else {
-    if (breathing) {
-      Serial.print(peak > 0 ? "PUFF peak: " : "SIP peak: ");
-      Serial.println(peak);
-      breathing = false;
-      peak = 0;
-    }
-    // Quiet for a second: let the resting value follow any slow drift.
-    if (millis() - quietSince > 1000) {
-      rest = rest + change / 8;
-    }
-  }
-
-  if (millis() - lastPrint > 250) {
-    lastPrint = millis();
-    Serial.print("change: ");
-    Serial.println(change);
-  }
+  long change = sensor.read() - rest;
+  Serial.println(change);
+  delay(250);
 }
 ` },
   ];
