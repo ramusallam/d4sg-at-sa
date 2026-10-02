@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "t4sg-hub",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "4173", "-s", "."],
+      "port": 4173
+    }
+  ]
+}
