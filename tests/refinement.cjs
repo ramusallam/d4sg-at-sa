@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const compileProxy = fs.readFileSync(path.join(__dirname, '..', 'api', 'compile.js'), 'utf8');
 
 assert.match(html, /function setupBenchmarkJourney\(b\)/, 'benchmarks use the focused journey');
 assert.match(html, /t4sg-benchmark-page:\$\{b\.id\}/, 'journey position is saved per benchmark');
@@ -49,4 +50,17 @@ assert.match(starterPrompt, /shared release band[\s\S]*two consecutive readings/
 assert.match(starterPrompt, /slowly move the resting value[\s\S]*Never adjust it during a breath/,
   'combined controllers follow drift only while idle');
 
-console.log('T4SG refinement audit passed: focused journey, full-height accessible Arduino monitor, sampled breath check, drift-safe asynchronous sensing, dialog isolation, and stable portfolio writes.');
+const pressurePhotoPath = path.join(__dirname, '..', 'parts', 'hx710b-pressure-sensor.jpg');
+const pressurePhoto = fs.readFileSync(pressurePhotoPath);
+assert.match(html, /key: 'pressure'[\s\S]{0,180}url: '\/parts\/hx710b-pressure-sensor\.jpg'/,
+  'every pressure-sensor photo link resolves to the hosted classroom copy');
+assert.deepEqual([...pressurePhoto.subarray(0, 3)], [0xff, 0xd8, 0xff],
+  'the hosted pressure-sensor asset is a valid JPEG');
+assert.doesNotMatch(html, /HX710B\.h, and HX711\.h/,
+  'the repair prompt does not advertise incompatible pressure-sensor libraries');
+assert.match(compileProxy, /await fetch\(healthUrl/,
+  'the public compiler health route checks the real Fly service');
+assert.match(compileProxy, /backendReady/,
+  'the public compiler health route reports backend readiness honestly');
+
+console.log('T4SG refinement audit passed: focused journey, accessible Arduino monitor, inclusive breath calibration, verified hosted sensor photo, honest compiler health, drift-safe asynchronous sensing, dialog isolation, and stable portfolio writes.');

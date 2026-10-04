@@ -23,6 +23,13 @@ assert.match(breathInstructions, /two consecutive readings return inside the rel
   'one breath cannot chatter into several actions at the trigger edge');
 assert.doesNotMatch(breathInstructions, /150000|Every 20 seconds/,
   'pressure behavior does not depend on a universal threshold or abrupt recalibration');
+assert.match(breathInstructions, /comfortable, repeatable breaths, not maximum effort/,
+  'pressure calibration uses an accessible, repeatable breath rather than maximum effort');
+assert.match(breathInstructions, /recalibrate with their consent and comfortable breath/,
+  'the finished controller is calibrated for its intended user with consent');
+assert.equal(breathPressure.instructions[4],
+  'Test it. Modify the code until the behavior works exactly the way you described it.',
+  'Breath Pressure uses the canonical test-and-modify step');
 
 const project3 = projects.find(project => project.id === 'p3');
 const project3Product = project3?.benchmarks.find(benchmark => benchmark.id === 'p3b4');

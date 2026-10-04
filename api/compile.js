@@ -122,17 +122,42 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-D4SG-Client');
   if (req.method === 'OPTIONS') return res.status(204).end();
 
-  // Lightweight health surface. A GET reports whether the real arduino-cli
-  // service is wired up (COMPILE_URL set) without pinging it, so the client can
-  // pre-warm /tools and surface an honest "compiler is available" signal. This
-  // does NOT touch the POST compile path below.
+  // Health surface. A GET checks the real service rather than treating a set
+  // COMPILE_URL as proof that the compiler and HX710AB library are ready.
   if (req.method === 'GET') {
-    const cliReady = Boolean(process.env.COMPILE_URL);
-    return res.status(200).json({
-      ok: true,
-      cliReady,
-      backend: cliReady ? 'service' : 'wokwi'
-    });
+    if (!process.env.COMPILE_URL) {
+      return res.status(200).json({ ok: true, cliReady: false, backendReady: false, backend: 'wokwi' });
+    }
+    try {
+      const healthUrl = new URL(process.env.COMPILE_URL);
+      healthUrl.pathname = '/health';
+      healthUrl.search = '';
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      let response;
+      try {
+        response = await fetch(healthUrl, { signal: controller.signal });
+      } finally {
+        clearTimeout(timer);
+      }
+      const health = await response.json().catch(() => ({}));
+      const backendReady = response.ok && health.ok === true && health.hx710Ready === true;
+      return res.status(backendReady ? 200 : 503).json({
+        ok: backendReady,
+        cliReady: health.cliReady === true,
+        backendReady,
+        hx710Ready: health.hx710Ready === true,
+        backend: 'service'
+      });
+    } catch (_) {
+      return res.status(503).json({
+        ok: false,
+        cliReady: false,
+        backendReady: false,
+        hx710Ready: false,
+        backend: 'service'
+      });
+    }
   }
 
   if (req.method !== 'POST') { res.setHeader('Allow', 'GET, POST'); return res.status(405).json({ error: 'Method not allowed' }); }
