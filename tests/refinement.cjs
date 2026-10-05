@@ -53,6 +53,8 @@ assert.ok(starterStart >= 0 && starterEnd > starterStart,
 const starterPrompt = html.slice(starterStart, starterEnd);
 assert.match(starterPrompt, /sensor\.request\(\)[\s\S]*sensor\.is_ready\(\)[\s\S]*sensor\.fetch\(\)/,
   'combined controllers use the HX710AB asynchronous API');
+assert.match(starterPrompt, /HX710B sensor\(outPin, sckPin\)[\s\S]*sensor\.begin\(\)[\s\S]*Never write HX710AB sensor; or sensor\.begin\(outPin, sckPin\)/,
+  'the standing prompt gives the exact HX710B constructor and rejects both common API mistakes');
 assert.match(starterPrompt, /Compare the raw reading to the verified puff and sip trigger numbers from my prompt, act once per breath/,
   'combined controllers compare raw readings to the triggers chosen from the student numbers');
 assert.match(starterPrompt, /verify that the puff value is greater than resting and the sip value is less than resting[\s\S]*otherwise stop and ask for a new sensor test/,
@@ -70,6 +72,8 @@ assert.deepEqual([...pressurePhoto.subarray(0, 3)], [0xff, 0xd8, 0xff],
   'the hosted pressure-sensor asset is a valid JPEG');
 assert.doesNotMatch(html, /HX710B\.h, and HX711\.h/,
   'the repair prompt does not advertise incompatible pressure-sensor libraries');
+assert.match(html, /construct it as HX710B sensor\(outPin, sckPin\)[\s\S]*call sensor\.begin\(\) with no pins[\s\S]*Never declare HX710AB sensor; or call sensor\.begin\(outPin, sckPin\)/,
+  'the compiler repair prompt carries the exact HX710B constructor fix');
 assert.match(compileProxy, /await fetch\(healthUrl/,
   'the public compiler health route checks the real Fly service');
 assert.match(compileProxy, /backendReady/,
