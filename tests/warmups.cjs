@@ -19,8 +19,9 @@ warmUps.forEach(w => {
 
 assert.match(html, /class="warmup-hero"/, 'warm-ups use the premium focused hero');
 assert.match(html, /id="warmupDateSelect"/, 'students can browse directly by date');
-assert.match(html, /id="warmupOlder"/, 'students can move to an older warm-up');
-assert.match(html, /id="warmupNewer"/, 'students can move to a newer warm-up');
+assert.match(html, /\.warmup-shell\s*\{[^}]*margin:\s*14px auto 0/, 'the workspace sits cleanly below the hero');
+assert.doesNotMatch(html, /id="warmupOlder"|id="warmupNewer"|class="warmup-footer"/, 'date navigation is not duplicated');
+assert.doesNotMatch(html, /class="warmup-time"|class="warmup-count"/, 'decorative counters and timing badges stay removed');
 assert.match(html, /function enhanceWarmUpMedia\(root\)/, 'multi-video warm-ups use the focused media deck');
 assert.match(html, /\.warmup-media-panel\[hidden\]\s*\{\s*display:\s*none\s*!important/, 'inactive media is removed from layout');
 assert.match(html, /event\.key === 'ArrowRight'/, 'media tabs support keyboard navigation');

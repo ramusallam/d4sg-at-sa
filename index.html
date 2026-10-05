@@ -1814,12 +1814,11 @@
   .warmup-hero {
     position: relative;
     overflow: hidden;
-    min-height: 118px;
-    padding: 17px 30px 31px;
-    border-radius: 20px;
+    min-height: 104px;
+    padding: 20px 30px 22px;
+    border-radius: 16px;
     color: #fff;
     background: linear-gradient(150deg, #4f46e5 0%, #6366f1 100%);
-    box-shadow: 0 16px 34px rgba(79, 70, 229, 0.18);
   }
   .warmup-hero::before {
     content: '';
@@ -1830,33 +1829,24 @@
     pointer-events: none;
   }
   .warmup-hero > * { position: relative; }
-  .warmup-kicker {
-    margin: 0 0 7px;
-    font: 700 10px/1 "Roboto Mono", monospace;
-    letter-spacing: .26em;
-    text-transform: uppercase;
-    color: #e0e7ff;
-  }
   .warmup-title {
     margin: 0;
-    font: 700 clamp(27px, 4vw, 40px)/1.04 "Roboto Serif", Georgia, serif;
+    font: 700 clamp(27px, 4vw, 38px)/1.04 "Roboto Serif", Georgia, serif;
     letter-spacing: -.032em;
   }
-  .warmup-deck { margin: 7px 0 0; max-width: 610px; font-size: 15px; color: #e0e7ff; }
-  .warmup-shell { position: relative; z-index: 2; max-width: 1120px; margin: -26px auto 0; padding: 0 18px; }
+  .warmup-deck { margin: 5px 0 0; max-width: 610px; font-size: 14px; color: #e0e7ff; }
+  .warmup-shell { max-width: 1120px; margin: 14px auto 0; }
   .warmup-card {
     background: var(--bg-1);
     border: 1px solid var(--border);
     border-top: 4px solid var(--accent);
     border-radius: 16px;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-sm);
     padding: 16px 22px 12px;
-    animation: warmupFade .28s ease-out;
   }
-  @keyframes warmupFade { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
   .warmup-card-head {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 18px;
     padding-bottom: 10px;
@@ -1864,24 +1854,11 @@
     border-bottom: 1px solid var(--border);
   }
   .warmup-card-label { min-width: 0; }
-  .warmup-card-label .warmup-kicker { color: var(--accent); margin-bottom: 6px; }
   .warmup-date {
     margin: 0;
     font: 700 clamp(20px, 2.5vw, 28px)/1.1 "Roboto Serif", Georgia, serif;
     letter-spacing: -.025em;
     color: var(--ink-hi);
-  }
-  .warmup-meta { display: flex; align-items: flex-end; gap: 10px; }
-  .warmup-time {
-    white-space: nowrap;
-    font: 700 10px/1 "Roboto Mono", monospace;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--accent);
-    background: var(--accent-soft);
-    border: 1px solid rgba(99,102,241,.28);
-    border-radius: 999px;
-    padding: 10px 12px;
   }
   .warmup-picker { display: grid; gap: 5px; }
   .warmup-picker span {
@@ -1968,32 +1945,6 @@
     align-items: center;
     justify-content: center;
   }
-  .warmup-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: 12px;
-    padding-top: 11px;
-    border-top: 1px solid var(--border);
-  }
-  .warmup-nav-btn {
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 9px 14px;
-    background: #fff;
-    color: var(--ink-hi);
-    font: 700 13px/1 "Inter", sans-serif;
-    cursor: pointer;
-  }
-  .warmup-nav-btn:hover:not(:disabled) { color: var(--accent-hover); border-color: rgba(99,102,241,.35); background: var(--accent-soft); }
-  .warmup-nav-btn:disabled { opacity: .42; cursor: not-allowed; }
-  .warmup-nav-btn svg { width: 16px; height: 16px; }
-  .warmup-count { font: 700 10px/1 "Roboto Mono", monospace; letter-spacing: .14em; color: var(--ink-low); }
   .warmup-empty { font-size: 14px; color: var(--ink-low); font-style: italic; }
   @media (min-width: 801px) {
     .warmup-question.has-media-deck {
@@ -2008,21 +1959,14 @@
     .warmup-question.has-media-deck > ul { grid-column: 2; grid-row: 2; margin-top: 15px; }
   }
   @media (max-width: 700px) {
-    .warmup-hero { min-height: 150px; margin: 0 -8px; padding: 24px 20px 46px; border-radius: 16px; }
-    .warmup-shell { margin-top: -28px; padding: 0; }
+    .warmup-hero { min-height: 104px; margin: 0 -8px; padding: 20px; border-radius: 14px; }
+    .warmup-shell { margin-top: 12px; }
     .warmup-card { padding: 18px 15px 14px; }
     .warmup-card-head { align-items: stretch; flex-direction: column; gap: 13px; }
-    .warmup-meta { align-items: end; justify-content: space-between; }
-    .warmup-picker { flex: 1; }
     .warmup-picker select { width: 100%; max-width: none; }
     .warmup-question { font-size: 15px; }
     .warmup-question > ol, .warmup-question > ul { padding: 13px 14px 13px 34px; }
     .warmup-media-panel { max-width: 100%; }
-    .warmup-footer { position: sticky; bottom: 0; margin: 17px -7px -6px; padding: 10px 7px 6px; background: rgba(255,255,255,.94); backdrop-filter: blur(10px); }
-    .warmup-nav-btn { padding: 9px 11px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .warmup-card { animation: none; }
   }
   .step-section {
     margin-bottom: 28px;
@@ -7790,8 +7734,6 @@
   // entire archive, and consecutive videos become a one-at-a-time media deck.
   const WARMUP_MC_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
   const WARMUP_PLAY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
-  const WARMUP_LEFT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
-  const WARMUP_RIGHT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
   let warmUpSelectedId = '';
 
   function formatWarmUpDate(dateStr) {
@@ -7891,7 +7833,7 @@
     const visible = [...WARM_UPS].sort((a, b) => b.date.localeCompare(a.date));
 
     if (visible.length === 0) {
-      sec.innerHTML = '<div class="warmup-hero"><p class="warmup-kicker">T4SG notebook</p><h2 class="warmup-title">Warm-ups</h2></div><div class="warmup-shell"><div class="warmup-card"><p class="warmup-empty">No warm-ups yet.</p></div></div>';
+      sec.innerHTML = '<div class="warmup-hero"><h2 class="warmup-title">Warm-ups</h2></div><div class="warmup-shell"><div class="warmup-card"><p class="warmup-empty">No warm-ups yet.</p></div></div>';
       app.appendChild(sec);
       return;
     }
@@ -7906,40 +7848,24 @@
 
     sec.innerHTML = `
       <div class="warmup-hero">
-        <p class="warmup-kicker">T4SG notebook</p>
         <h2 class="warmup-title">Warm-ups</h2>
-        <p class="warmup-deck">Open your notebook. Start with the newest prompt.</p>
+        <p class="warmup-deck">Open your notebook.</p>
       </div>
       <div class="warmup-shell">
         <article class="warmup-card" id="warmupFocus" tabindex="-1" aria-live="polite">
           <header class="warmup-card-head">
             <div class="warmup-card-label">
-              <p class="warmup-kicker">Warm-up ${String(selectedIndex + 1).padStart(2, '0')} / ${String(visible.length).padStart(2, '0')}</p>
               <h3 class="warmup-date">${formatWarmUpDate(selected.date)}</h3>
             </div>
-            <div class="warmup-meta">
-              <span class="warmup-time">5-10 min</span>
-              <label class="warmup-picker"><span>Browse dates</span><select id="warmupDateSelect" aria-label="Choose a warm-up date">${dateOptions}</select></label>
-            </div>
+            <label class="warmup-picker"><span>Warm-up date</span><select id="warmupDateSelect" aria-label="Choose a warm-up date">${dateOptions}</select></label>
           </header>
           ${warmUpBodyHTML(selected)}
-          <footer class="warmup-footer">
-            <button type="button" class="warmup-nav-btn" id="warmupOlder" ${selectedIndex === visible.length - 1 ? 'disabled' : ''}>${WARMUP_LEFT_ICON}Older</button>
-            <span class="warmup-count">${String(selectedIndex + 1).padStart(2, '0')} / ${String(visible.length).padStart(2, '0')}</span>
-            <button type="button" class="warmup-nav-btn" id="warmupNewer" ${selectedIndex === 0 ? 'disabled' : ''}>Newer${WARMUP_RIGHT_ICON}</button>
-          </footer>
         </article>
       </div>
     `;
     app.appendChild(sec);
     enhanceWarmUpMedia(sec.querySelector('.warmup-question'));
     sec.querySelector('#warmupDateSelect').addEventListener('change', event => renderWarmUps(event.target.value, true));
-    sec.querySelector('#warmupOlder').addEventListener('click', () => {
-      if (selectedIndex < visible.length - 1) renderWarmUps(visible[selectedIndex + 1].id, true);
-    });
-    sec.querySelector('#warmupNewer').addEventListener('click', () => {
-      if (selectedIndex > 0) renderWarmUps(visible[selectedIndex - 1].id, true);
-    });
     if (moveFocus) requestAnimationFrame(() => document.getElementById('warmupFocus')?.focus({ preventScroll: true }));
   }
 
