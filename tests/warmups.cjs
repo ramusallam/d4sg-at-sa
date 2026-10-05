@@ -17,9 +17,12 @@ warmUps.forEach(w => {
   assert.ok(typeof w.question === 'string' && w.question.trim(), `${w.id} has a question`);
 });
 
-assert.match(html, /class="warmup-hero"/, 'warm-ups use the premium focused hero');
+assert.match(html, /class="project-title">Warm-ups<\/h2>/, 'warm-ups use the shared class-hub page title');
+assert.match(html, /class="project-blurb">Answer in your written notebook\./, 'warm-ups explain the notebook workflow in the shared page style');
+assert.doesNotMatch(html, /warmup-hero|warmup-title|warmup-deck/, 'warm-ups do not use a separate hero treatment');
 assert.match(html, /id="warmupDateSelect"/, 'students can browse directly by date');
-assert.match(html, /\.warmup-shell\s*\{[^}]*margin:\s*14px auto 0/, 'the workspace sits cleanly below the hero');
+assert.match(html, /\.warmup-workspace\s*\{[^}]*width:\s*100%/, 'the workspace aligns with the other hub pages');
+assert.match(html, /\.warmup-card\s*\{[^}]*box-shadow:\s*0 2px 6px rgba\(17, 17, 17, 0\.04\)/, 'the prompt card uses the shared hub card treatment');
 assert.doesNotMatch(html, /id="warmupOlder"|id="warmupNewer"|class="warmup-footer"/, 'date navigation is not duplicated');
 assert.doesNotMatch(html, /class="warmup-time"|class="warmup-count"/, 'decorative counters and timing badges stay removed');
 assert.match(html, /function enhanceWarmUpMedia\(root\)/, 'multi-video warm-ups use the focused media deck');

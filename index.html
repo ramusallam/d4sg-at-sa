@@ -1809,40 +1809,14 @@
   }
 
   /* ============== WARM-UPS page ============== */
-  .warmup-page { margin: 0; }
-  body.view-warmups main { padding-top: 14px; }
-  .warmup-hero {
-    position: relative;
-    overflow: hidden;
-    min-height: 104px;
-    padding: 20px 30px 22px;
-    border-radius: 16px;
-    color: #fff;
-    background: linear-gradient(150deg, #4f46e5 0%, #6366f1 100%);
-  }
-  .warmup-hero::before {
-    content: '';
-    position: absolute;
-    inset: -80%;
-    background: radial-gradient(circle, rgba(255,255,255,.08) 1px, transparent 2px);
-    background-size: 38px 38px;
-    pointer-events: none;
-  }
-  .warmup-hero > * { position: relative; }
-  .warmup-title {
-    margin: 0;
-    font: 700 clamp(27px, 4vw, 38px)/1.04 "Roboto Serif", Georgia, serif;
-    letter-spacing: -.032em;
-  }
-  .warmup-deck { margin: 5px 0 0; max-width: 610px; font-size: 14px; color: #e0e7ff; }
-  .warmup-shell { max-width: 1120px; margin: 14px auto 0; }
+  .warmup-page { margin-bottom: 48px; }
+  .warmup-workspace { width: 100%; }
   .warmup-card {
     background: var(--bg-1);
     border: 1px solid var(--border);
-    border-top: 4px solid var(--accent);
     border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-    padding: 16px 22px 12px;
+    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
+    padding: 18px 20px 16px;
   }
   .warmup-card-head {
     display: flex;
@@ -1856,8 +1830,8 @@
   .warmup-card-label { min-width: 0; }
   .warmup-date {
     margin: 0;
-    font: 700 clamp(20px, 2.5vw, 28px)/1.1 "Roboto Serif", Georgia, serif;
-    letter-spacing: -.025em;
+    font: 700 18px/1.2 "Inter", sans-serif;
+    letter-spacing: -.02em;
     color: var(--ink-hi);
   }
   .warmup-picker { display: grid; gap: 5px; }
@@ -1959,9 +1933,7 @@
     .warmup-question.has-media-deck > ul { grid-column: 2; grid-row: 2; margin-top: 15px; }
   }
   @media (max-width: 700px) {
-    .warmup-hero { min-height: 104px; margin: 0 -8px; padding: 20px; border-radius: 14px; }
-    .warmup-shell { margin-top: 12px; }
-    .warmup-card { padding: 18px 15px 14px; }
+    .warmup-card { padding: 16px 15px 14px; }
     .warmup-card-head { align-items: stretch; flex-direction: column; gap: 13px; }
     .warmup-picker select { width: 100%; max-width: none; }
     .warmup-question { font-size: 15px; }
@@ -7833,7 +7805,7 @@
     const visible = [...WARM_UPS].sort((a, b) => b.date.localeCompare(a.date));
 
     if (visible.length === 0) {
-      sec.innerHTML = '<div class="warmup-hero"><h2 class="warmup-title">Warm-ups</h2></div><div class="warmup-shell"><div class="warmup-card"><p class="warmup-empty">No warm-ups yet.</p></div></div>';
+      sec.innerHTML = '<h2 class="project-title">Warm-ups</h2><p class="project-blurb">Answer in your written notebook. We solve them together in class.</p><div class="warmup-workspace"><div class="warmup-card"><p class="warmup-empty">No warm-ups yet.</p></div></div>';
       app.appendChild(sec);
       return;
     }
@@ -7847,11 +7819,9 @@
     ).join('');
 
     sec.innerHTML = `
-      <div class="warmup-hero">
-        <h2 class="warmup-title">Warm-ups</h2>
-        <p class="warmup-deck">Open your notebook.</p>
-      </div>
-      <div class="warmup-shell">
+      <h2 class="project-title">Warm-ups</h2>
+      <p class="project-blurb">Answer in your written notebook. We solve them together in class.</p>
+      <div class="warmup-workspace">
         <article class="warmup-card" id="warmupFocus" tabindex="-1" aria-live="polite">
           <header class="warmup-card-head">
             <div class="warmup-card-label">
