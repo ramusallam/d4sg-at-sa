@@ -90,10 +90,19 @@ async function compileViaService(sketch, board) {
   const url = process.env.COMPILE_URL;
   const headers = { 'Content-Type': 'application/json' };
   if (process.env.COMPILE_KEY) headers['X-Compile-Key'] = process.env.COMPILE_KEY;
-  const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ sketch, board }) });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 40000);
+  let r;
+  try {
+    r = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ sketch, board }), signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
   const data = await r.json().catch(() => ({}));
   if (!r.ok && !data.stderr) {
-    throw new Error(data.error || ('compile service HTTP ' + r.status));
+    const error = new Error(data.error || ('compile service HTTP ' + r.status));
+    error.status = r.status;
+    throw error;
   }
   return { hex: data.hex || '', stdout: data.stdout || '', stderr: data.stderr || '', board };
 }
@@ -126,7 +135,7 @@ export default async function handler(req, res) {
   // COMPILE_URL as proof that the compiler and HX710AB library are ready.
   if (req.method === 'GET') {
     if (!process.env.COMPILE_URL) {
-      return res.status(200).json({ ok: true, cliReady: false, backendReady: false, backend: 'wokwi' });
+      return res.status(200).json({ ok: true, cliReady: false, hidReady: false, backendReady: false, hx710Ready: false, backend: 'wokwi' });
     }
     try {
       const healthUrl = new URL(process.env.COMPILE_URL);
@@ -141,10 +150,11 @@ export default async function handler(req, res) {
         clearTimeout(timer);
       }
       const health = await response.json().catch(() => ({}));
-      const backendReady = response.ok && health.ok === true && health.hx710Ready === true;
+      const backendReady = response.ok && health.ok === true && health.hidReady === true && health.hx710Ready === true;
       return res.status(backendReady ? 200 : 503).json({
         ok: backendReady,
         cliReady: health.cliReady === true,
+        hidReady: health.hidReady === true,
         backendReady,
         hx710Ready: health.hx710Ready === true,
         backend: 'service'
@@ -153,6 +163,7 @@ export default async function handler(req, res) {
       return res.status(503).json({
         ok: false,
         cliReady: false,
+        hidReady: false,
         backendReady: false,
         hx710Ready: false,
         backend: 'service'
@@ -202,8 +213,10 @@ export default async function handler(req, res) {
     if (result.hex || result.stderr) compileCache.set(hash, { at: Date.now(), result });
     return res.status(200).json(result);
   } catch (err) {
-    return res.status(err.status || 502).json({
-      error: 'Compile service unavailable',
+    const status = err.status || 502;
+    if (status === 503) res.setHeader('Retry-After', '3');
+    return res.status(status).json({
+      error: status === 503 ? String(err.message || 'Compiler is busy. Try again in a moment.') : 'Compile service unavailable',
       detail: String(err.message || err),
       stderr: err.stderr || '',
     });

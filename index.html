@@ -15369,7 +15369,7 @@
     "- Write the shortest, simplest Arduino code that does exactly what I ask. Use only the parts I name plus whatever my existing code already uses. Never add extra parts, extra LEDs, buzzers, modes, or features.",
     "- Switches use the Leonardo's built-in pull-up (INPUT_PULLUP) and do not need resistors. Every external LED needs its own 220-330 ohm current-limiting resistor.",
     "- Use Keyboard.h or Mouse.h when the controller should act as a keyboard or mouse, and press and release keys cleanly so nothing sticks. Add simple debouncing.",
-    "- Wiring recipes: tactile button = one leg to a digital pin, the diagonally opposite leg to GND, pressed reads LOW. Lever microswitch = COM to GND, NO to a digital pin. Sip or puff switch = one wire to a digital pin, one to GND. LED = digital pin to a 220-330 ohm resistor, resistor to the long LED leg, short LED leg to GND; every LED gets its own resistor, and always tell me which leg is which. KY-023 joystick = VCC to 5V, GND to GND, VRx and VRy to analog pins, SW to a digital pin with INPUT_PULLUP. TTP223B touch sensor = GND to GND, VCC to 5V, SIG to a digital pin read with plain digitalRead (HIGH on touch). FC-51 IR sensor = VCC to 5V, GND to GND, OUT to a digital pin read with plain digitalRead (LOW when something is in front), no library. HX710B breath pressure sensor = VCC to 5V, GND to GND, OUT and SCK each to their own digital pin. For it, use only the HX710AB library by Rob Tillaart (#include \"HX710AB.h\", HX710B sensor(outPin, sckPin), sensor.begin()), never another HX710 or HX711 library. In a combined controller, keep the joystick, buttons, and keyboard handling running every loop; never call blocking sensor.read() there. Start a measurement with sensor.request(), then on a later loop use sensor.is_ready() and sensor.fetch(). At startup, average 20 readings with the tube untouched to get the resting value. Measure breath as the change from rest: puff is positive and sip is negative. Use separate puff and sip trigger values plus a smaller shared release band. End a breath only after two consecutive readings return inside that release band, then act exactly once. While idle, slowly move the resting value toward the current reading to follow sensor drift. Never adjust it during a breath. Print the change to the Serial Monitor so I can see my numbers.",
+    "- Wiring recipes: tactile button = one leg to a digital pin, the diagonally opposite leg to GND, pressed reads LOW. Lever microswitch = COM to GND, NO to a digital pin. Sip or puff switch = one wire to a digital pin, one to GND. LED = digital pin to a 220-330 ohm resistor, resistor to the long LED leg, short LED leg to GND; every LED gets its own resistor, and always tell me which leg is which. KY-023 joystick = VCC to 5V, GND to GND, VRx and VRy to analog pins, SW to a digital pin with INPUT_PULLUP. TTP223B touch sensor = GND to GND, VCC to 5V, SIG to a digital pin read with plain digitalRead (HIGH on touch). FC-51 IR sensor = VCC to 5V, GND to GND, OUT to a digital pin read with plain digitalRead (LOW when something is in front), no library. HX710B breath pressure sensor = VCC to 5V, GND to GND, OUT and SCK each to their own digital pin. For it, use only the HX710AB library by Rob Tillaart (#include \"HX710AB.h\", HX710B sensor(outPin, sckPin), sensor.begin()), never another HX710 or HX711 library. In a combined controller, keep the joystick, buttons, and keyboard handling running every loop; never call blocking sensor.read() there. Start a measurement with sensor.request(), then on a later loop use sensor.is_ready() and sensor.fetch(). Collect the 20 startup readings through that same non-blocking pattern with the tube untouched. If a reading is not ready within 1.2 seconds, or fetch() returns 0, print a wiring warning, request a new reading, and do not use that result for calibration or a breath action. Measure breath as the change from rest: puff is positive and sip is negative. Use separate puff and sip trigger values plus a smaller shared release band. End a breath only after two consecutive readings return inside that release band, then act exactly once. While idle, slowly move the resting value toward the current reading to follow sensor drift. Never adjust it during a breath. Print the change to the Serial Monitor so I can see my numbers.",
     "- When I say to add to my existing code, keep every existing pin, behavior, and comment and add only the new part. Never rewire what already works.",
     "- Reply with the full sketch in one code block, then a short Wiring section: one line per connection with the exact pin numbers, in plain language for a beginner. Keep comments short.",
     "Here is what I need:"
@@ -15552,25 +15552,60 @@ const int SCK_PIN = 5;
 
 HX710B sensor(OUT_PIN, SCK_PIN);
 long rest = 0;
+long total = 0;
+int samples = 0;
+bool calibrated = false;
+unsigned long requestStarted = 0;
+unsigned long lastWarning = 0;
+
+void requestReading() {
+  sensor.request();
+  requestStarted = millis();
+}
 
 void setup() {
   Serial.begin(9600);
   sensor.begin();
-  delay(500);
-
   Serial.println("Keep the tube still. Finding zero...");
-  // Average 20 readings with no breath to get the resting value.
-  long total = 0;
-  for (int i = 0; i < 20; i++) {
-    total += sensor.read();
-  }
-  rest = total / 20;
-
-  Serial.println("Ready. Puff = positive. Sip = negative.");
+  requestReading();
 }
 
 void loop() {
-  Serial.println(sensor.read() - rest);
+  if (sensor.is_ready()) {
+    long value = sensor.fetch();
+    requestReading();
+
+    // A zero usually means a loose wire or an unresponsive sensor.
+    if (value == 0) {
+      if (millis() - lastWarning >= 2000) {
+        Serial.println("No sensor reading. Check VCC, GND, OUT, and SCK.");
+        lastWarning = millis();
+      }
+      return;
+    }
+
+    if (!calibrated) {
+      total += value;
+      samples++;
+      if (samples == 20) {
+        rest = total / samples;
+        calibrated = true;
+        Serial.println("Ready. Puff = positive. Sip = negative.");
+      }
+      return;
+    }
+
+    Serial.println(value - rest);
+    return;
+  }
+
+  if (millis() - requestStarted >= 1200) {
+    if (millis() - lastWarning >= 2000) {
+      Serial.println("Sensor timeout. Check OUT on pin 4 and SCK on pin 5.");
+      lastWarning = millis();
+    }
+    requestReading();
+  }
 }
 ` },
   ];
@@ -16304,6 +16339,7 @@ void loop() {
       e.stderr = (data.stderr || '').trimEnd();
       e.isInfra = !e.stderr;            // no compiler output => not the student's code
       e.isRateLimit = r.status === 429;
+      e.isBusy = r.status === 503 && /busy/i.test(e.message);
       throw e;
     }
     return data; // { hex, stdout, stderr, board }
@@ -16366,6 +16402,8 @@ void loop() {
       vibeMonitorLine('[ Compile error: ' + (err.message || err) + ' ]', 'err');
       if (err && err.isRateLimit) {
         vibeMonitorLine("That's a daily compile limit, not a problem with your code. Try again later.", 'info');
+      } else if (err && err.isBusy) {
+        vibeMonitorLine('The class compiler is busy. Your code is safe. Wait a few seconds, then click Upload again.', 'info');
       } else if (!err || err.isInfra) {
         vibeMonitorLine("The compile server is offline or waking up right now. This is NOT a problem with your code. Wait about a minute and try again, or load an example from the Examples menu while you wait.", 'info');
       }

@@ -31,10 +31,16 @@ const breathExampleEnd = html.indexOf('` },', breathExampleStart);
 assert.ok(breathExampleStart >= 0 && breathExampleEnd > breathExampleStart,
   'the HX710B see-it-work example can be isolated for regression checks');
 const breathExample = html.slice(breathExampleStart, breathExampleEnd);
-assert.match(breathExample, /for \(int i = 0; i < 20; i\+\+\)/,
-  'the see-it-work sketch establishes zero from 20 readings');
-assert.match(breathExample, /Serial\.println\(sensor\.read\(\) - rest\)/,
+assert.match(breathExample, /samples == 20/,
+  'the see-it-work sketch establishes zero from 20 valid readings');
+assert.match(breathExample, /Serial\.println\(value - rest\)/,
   'the see-it-work sketch exposes signed pressure change');
+assert.match(breathExample, /sensor\.request\(\)[\s\S]*sensor\.is_ready\(\)[\s\S]*sensor\.fetch\(\)/,
+  'the see-it-work sketch samples without blocking the controller');
+assert.match(breathExample, /value == 0[\s\S]*No sensor reading/,
+  'zero readings are treated as a wiring fault instead of calibration data');
+assert.match(breathExample, /requestStarted >= 1200[\s\S]*Sensor timeout/,
+  'an unresponsive sensor produces a clear timeout instead of hanging');
 assert.doesNotMatch(breathExample, /void loop\(\)[\s\S]*delay\(/,
   'the see-it-work sketch does not throw away quick-breath samples');
 
@@ -49,6 +55,8 @@ assert.match(starterPrompt, /shared release band[\s\S]*two consecutive readings/
   'combined controllers use hysteresis before ending a breath');
 assert.match(starterPrompt, /slowly move the resting value[\s\S]*Never adjust it during a breath/,
   'combined controllers follow drift only while idle');
+assert.match(starterPrompt, /not ready within 1\.2 seconds[\s\S]*fetch\(\) returns 0[\s\S]*do not use that result/,
+  'combined controllers ignore failed pressure reads and keep running');
 
 const pressurePhotoPath = path.join(__dirname, '..', 'parts', 'hx710b-pressure-sensor.jpg');
 const pressurePhoto = fs.readFileSync(pressurePhotoPath);
@@ -62,5 +70,11 @@ assert.match(compileProxy, /await fetch\(healthUrl/,
   'the public compiler health route checks the real Fly service');
 assert.match(compileProxy, /backendReady/,
   'the public compiler health route reports backend readiness honestly');
+assert.match(compileProxy, /health\.hidReady === true[\s\S]*health\.hx710Ready === true/,
+  'the public compiler health route requires both HID and breath-sensor compiles');
+assert.match(compileProxy, /setTimeout\(\(\) => controller\.abort\(\), 40000\)/,
+  'compile proxy calls cannot hang a serverless worker indefinitely');
+assert.match(html, /e\.isBusy = r\.status === 503[\s\S]*The class compiler is busy\. Your code is safe/,
+  'a classroom compile burst gets retry guidance instead of a false outage message');
 
 console.log('T4SG refinement audit passed: focused journey, accessible Arduino monitor, inclusive breath calibration, verified hosted sensor photo, honest compiler health, drift-safe asynchronous sensing, dialog isolation, and stable portfolio writes.');
