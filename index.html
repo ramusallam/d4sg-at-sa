@@ -122,6 +122,7 @@
     font-weight: 600;
     letter-spacing: 2px;
     text-transform: uppercase;
+    white-space: nowrap;
     color: var(--ink-low);
   }
 
@@ -1807,81 +1808,158 @@
     color: var(--ink-hi);
   }
 
-  /* ============== WARM UPS page ============== */
-  /* Mirrors the Inquiry Studio Companion's Warm Ups: newest first, a date
-     chip on every entry, questions only — students answer in their written
-     notebooks. Card language matches the rest of the hub (white card, warm
-     border, indigo accent). */
-  .warmup-col { max-width: 760px; }
+  /* ============== WARM-UPS page ============== */
+  .warmup-page { margin: 0; }
+  body.view-warmups main { padding-top: 14px; }
+  .warmup-hero {
+    position: relative;
+    overflow: hidden;
+    min-height: 118px;
+    padding: 17px 30px 31px;
+    border-radius: 20px;
+    color: #fff;
+    background: linear-gradient(150deg, #4f46e5 0%, #6366f1 100%);
+    box-shadow: 0 16px 34px rgba(79, 70, 229, 0.18);
+  }
+  .warmup-hero::before {
+    content: '';
+    position: absolute;
+    inset: -80%;
+    background: radial-gradient(circle, rgba(255,255,255,.08) 1px, transparent 2px);
+    background-size: 38px 38px;
+    pointer-events: none;
+  }
+  .warmup-hero > * { position: relative; }
+  .warmup-kicker {
+    margin: 0 0 7px;
+    font: 700 10px/1 "Roboto Mono", monospace;
+    letter-spacing: .26em;
+    text-transform: uppercase;
+    color: #e0e7ff;
+  }
+  .warmup-title {
+    margin: 0;
+    font: 700 clamp(27px, 4vw, 40px)/1.04 "Roboto Serif", Georgia, serif;
+    letter-spacing: -.032em;
+  }
+  .warmup-deck { margin: 7px 0 0; max-width: 610px; font-size: 15px; color: #e0e7ff; }
+  .warmup-shell { position: relative; z-index: 2; max-width: 1120px; margin: -26px auto 0; padding: 0 18px; }
   .warmup-card {
     background: var(--bg-1);
     border: 1px solid var(--border);
     border-top: 4px solid var(--accent);
     border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-    padding: 20px 24px 22px;
-    margin-bottom: 16px;
+    box-shadow: var(--shadow-lg);
+    padding: 16px 22px 12px;
+    animation: warmupFade .28s ease-out;
   }
-  .warmup-date-chip {
-    display: inline-block;
-    font-family: "Roboto Mono", monospace;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
+  @keyframes warmupFade { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+  .warmup-card-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .warmup-card-label { min-width: 0; }
+  .warmup-card-label .warmup-kicker { color: var(--accent); margin-bottom: 6px; }
+  .warmup-date {
+    margin: 0;
+    font: 700 clamp(20px, 2.5vw, 28px)/1.1 "Roboto Serif", Georgia, serif;
+    letter-spacing: -.025em;
+    color: var(--ink-hi);
+  }
+  .warmup-meta { display: flex; align-items: flex-end; gap: 10px; }
+  .warmup-time {
+    white-space: nowrap;
+    font: 700 10px/1 "Roboto Mono", monospace;
+    letter-spacing: .12em;
     text-transform: uppercase;
     color: var(--accent);
     background: var(--accent-soft);
-    border: 1px solid rgba(99, 102, 241, 0.30);
-    border-radius: 8px;
-    padding: 4px 10px;
-    margin-bottom: 12px;
+    border: 1px solid rgba(99,102,241,.28);
+    border-radius: 999px;
+    padding: 10px 12px;
   }
-  .warmup-question {
-    font-size: 14px;
-    line-height: 1.65;
+  .warmup-picker { display: grid; gap: 5px; }
+  .warmup-picker span {
+    font: 700 9px/1 "Roboto Mono", monospace;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-low);
+  }
+  .warmup-picker select {
+    min-height: 40px;
+    max-width: 240px;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: #fff;
     color: var(--ink-hi);
+    padding: 8px 34px 8px 11px;
+    font: 600 13px/1.2 "Inter", sans-serif;
   }
-  .warmup-question p { margin: 0 0 10px; }
+  .warmup-question { font-size: 16px; line-height: 1.55; color: var(--ink-hi); }
+  .warmup-question p { margin: 0 0 11px; max-width: 790px; }
   .warmup-question p:last-child { margin-bottom: 0; }
-  .warmup-question ol, .warmup-question ul { margin: 0 0 10px; padding-left: 20px; }
-  .warmup-question li { margin-bottom: 6px; }
-  .warmup-question a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
-  .warmup-question img { max-width: 100%; border-radius: 10px; }
-  .warmup-question pre.warmup-code {
-    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 15px;
-    line-height: 1.6;
-    color: var(--ink-hi);
-    background: var(--bg-2);
+  .warmup-question > ol, .warmup-question > ul {
+    margin: 14px 0 0;
+    padding: 14px 18px 14px 40px;
+    max-width: 790px;
     border: 1px solid var(--border);
     border-left: 4px solid var(--accent);
     border-radius: 12px;
-    padding: 16px 20px;
-    margin: 0 0 12px;
+    background: var(--bg-2);
+  }
+  .warmup-question li { margin-bottom: 7px; }
+  .warmup-question li:last-child { margin-bottom: 0; }
+  .warmup-question a { color: var(--accent-hover); font-weight: 650; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .warmup-question img, .warmup-question svg { max-width: 100%; border-radius: 12px; }
+  .warmup-question > div:has(iframe) { margin-left: 0 !important; margin-right: 0 !important; }
+  .warmup-media-single { max-width: 760px; margin: 16px 0 !important; box-shadow: var(--shadow-md); }
+  .warmup-media-group { margin: 15px 0 17px; }
+  .warmup-media-tabs { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+  .warmup-media-tab {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 13px;
+    background: #fff;
+    color: var(--ink-mid);
+    font: 700 13px/1 "Inter", sans-serif;
+    cursor: pointer;
+  }
+  .warmup-media-tab svg { width: 16px; height: 16px; }
+  .warmup-media-tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .warmup-media-panel { max-width: 430px; }
+  .warmup-media-panel[hidden] { display: none !important; }
+  .warmup-media-panel > div { margin: 0 !important; box-shadow: var(--shadow-md); }
+  .warmup-question pre.warmup-code {
+    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-hi);
+    background: #f8f6f1;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 12px;
+    padding: 15px 18px;
+    margin: 14px 0;
     overflow-x: auto;
     white-space: pre;
   }
-  .warmup-options {
-    list-style: none;
-    padding: 0;
-    margin: 12px 0 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .warmup-options li {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    font-size: 14px;
-    color: var(--ink-hi);
-  }
+  .warmup-options { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 8px; max-width: 790px; }
+  .warmup-options li { display: flex; align-items: flex-start; gap: 10px; color: var(--ink-hi); }
   .warmup-opt-letter {
     flex-shrink: 0;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    border: 1px solid rgba(99, 102, 241, 0.30);
+    border: 1px solid rgba(99,102,241,.30);
     background: var(--accent-soft);
     color: var(--accent);
     font-size: 11px;
@@ -1890,45 +1968,61 @@
     align-items: center;
     justify-content: center;
   }
-  /* Earlier warm-ups collapse into one dropdown card, same details pattern
-     as the Companion. */
-  .warmup-earlier {
-    background: var(--bg-1);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-  }
-  .warmup-earlier summary {
-    list-style: none;
-    cursor: pointer;
-    padding: 16px 24px;
+  .warmup-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    border-radius: 16px;
-  }
-  .warmup-earlier summary::-webkit-details-marker { display: none; }
-  .warmup-earlier-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--ink-mid);
-  }
-  .warmup-earlier summary svg {
-    color: var(--ink-low);
-    transition: transform 0.25s ease;
-  }
-  .warmup-earlier[open] summary svg { transform: rotate(180deg); }
-  .warmup-earlier-item {
-    padding: 18px 24px 20px;
+    margin-top: 12px;
+    padding-top: 11px;
     border-top: 1px solid var(--border);
   }
-  .warmup-empty {
-    font-size: 13px;
-    color: var(--ink-low);
-    font-style: italic;
+  .warmup-nav-btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 14px;
+    background: #fff;
+    color: var(--ink-hi);
+    font: 700 13px/1 "Inter", sans-serif;
+    cursor: pointer;
+  }
+  .warmup-nav-btn:hover:not(:disabled) { color: var(--accent-hover); border-color: rgba(99,102,241,.35); background: var(--accent-soft); }
+  .warmup-nav-btn:disabled { opacity: .42; cursor: not-allowed; }
+  .warmup-nav-btn svg { width: 16px; height: 16px; }
+  .warmup-count { font: 700 10px/1 "Roboto Mono", monospace; letter-spacing: .14em; color: var(--ink-low); }
+  .warmup-empty { font-size: 14px; color: var(--ink-low); font-style: italic; }
+  @media (min-width: 801px) {
+    .warmup-question.has-media-deck {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(285px, .75fr);
+      column-gap: 22px;
+      align-items: start;
+    }
+    .warmup-question.has-media-deck > p:first-child { grid-column: 1 / -1; margin-bottom: 0; }
+    .warmup-question.has-media-deck > .warmup-media-group { grid-column: 1; grid-row: 2; }
+    .warmup-question.has-media-deck > ol,
+    .warmup-question.has-media-deck > ul { grid-column: 2; grid-row: 2; margin-top: 15px; }
+  }
+  @media (max-width: 700px) {
+    .warmup-hero { min-height: 150px; margin: 0 -8px; padding: 24px 20px 46px; border-radius: 16px; }
+    .warmup-shell { margin-top: -28px; padding: 0; }
+    .warmup-card { padding: 18px 15px 14px; }
+    .warmup-card-head { align-items: stretch; flex-direction: column; gap: 13px; }
+    .warmup-meta { align-items: end; justify-content: space-between; }
+    .warmup-picker { flex: 1; }
+    .warmup-picker select { width: 100%; max-width: none; }
+    .warmup-question { font-size: 15px; }
+    .warmup-question > ol, .warmup-question > ul { padding: 13px 14px 13px 34px; }
+    .warmup-media-panel { max-width: 100%; }
+    .warmup-footer { position: sticky; bottom: 0; margin: 17px -7px -6px; padding: 10px 7px 6px; background: rgba(255,255,255,.94); backdrop-filter: blur(10px); }
+    .warmup-nav-btn { padding: 9px 11px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .warmup-card { animation: none; }
   }
   .step-section {
     margin-bottom: 28px;
@@ -7691,12 +7785,14 @@
     });
   }
 
-  // ============== WARM UPS page render ==============
-  // Same functionality and labeling as the Inquiry Studio Companion's Warm
-  // Ups section: newest first, a date chip on every entry, questions only.
-  // The most recent warm-up sits open at the top; everything older collapses
-  // into one "Earlier warm ups" dropdown.
+  // ============== WARM-UPS page render ==============
+  // One warm-up stays in focus. Students can move by date without loading the
+  // entire archive, and consecutive videos become a one-at-a-time media deck.
   const WARMUP_MC_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+  const WARMUP_PLAY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+  const WARMUP_LEFT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
+  const WARMUP_RIGHT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+  let warmUpSelectedId = '';
 
   function formatWarmUpDate(dateStr) {
     const d = new Date(dateStr + 'T00:00:00');
@@ -7714,44 +7810,137 @@
     return html;
   }
 
-  function renderWarmUps() {
+  function enhanceWarmUpMedia(root) {
+    if (!root) return;
+    const children = [...root.children];
+    const groups = [];
+    let run = [];
+    const flush = () => { if (run.length) groups.push(run); run = []; };
+    children.forEach(child => {
+      if (child.querySelector('iframe')) run.push(child);
+      else flush();
+    });
+    flush();
+
+    groups.forEach((media, deckIndex) => {
+      media.forEach(item => {
+        const frame = item.querySelector('iframe');
+        if (frame) frame.loading = 'lazy';
+      });
+      if (media.length === 1) {
+        media[0].classList.add('warmup-media-single');
+        return;
+      }
+
+      root.classList.add('has-media-deck');
+      const group = document.createElement('section');
+      group.className = 'warmup-media-group';
+      group.setAttribute('aria-label', 'Warm-up media');
+      const tabs = document.createElement('div');
+      tabs.className = 'warmup-media-tabs';
+      tabs.setAttribute('role', 'tablist');
+      const panels = document.createElement('div');
+      media[0].parentNode.insertBefore(group, media[0]);
+      group.append(tabs, panels);
+
+      const activate = index => {
+        [...tabs.children].forEach((tab, i) => {
+          const active = i === index;
+          tab.setAttribute('aria-selected', active ? 'true' : 'false');
+          tab.tabIndex = active ? 0 : -1;
+        });
+        [...panels.children].forEach((panel, i) => { panel.hidden = i !== index; });
+      };
+
+      media.forEach((item, index) => {
+        const frame = item.querySelector('iframe');
+        const title = frame && frame.title ? frame.title : `Clip ${index + 1}`;
+        const tab = document.createElement('button');
+        tab.type = 'button';
+        tab.className = 'warmup-media-tab';
+        tab.setAttribute('role', 'tab');
+        tab.setAttribute('aria-controls', `warmup-media-${deckIndex}-${index}`);
+        tab.setAttribute('aria-label', `Show ${title}`);
+        tab.innerHTML = `${WARMUP_PLAY_ICON}<span>Clip ${index + 1}</span>`;
+        const panel = document.createElement('div');
+        panel.id = `warmup-media-${deckIndex}-${index}`;
+        panel.className = 'warmup-media-panel';
+        panel.setAttribute('role', 'tabpanel');
+        panel.appendChild(item);
+        tab.addEventListener('click', () => activate(index));
+        tab.addEventListener('keydown', event => {
+          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+          event.preventDefault();
+          const next = event.key === 'ArrowRight'
+            ? (index + 1) % media.length
+            : (index - 1 + media.length) % media.length;
+          activate(next);
+          tabs.children[next].focus();
+        });
+        tabs.appendChild(tab);
+        panels.appendChild(panel);
+      });
+      activate(0);
+    });
+  }
+
+  function renderWarmUps(selectedId = warmUpSelectedId, moveFocus = false) {
     app.innerHTML = '';
     const sec = document.createElement('section');
-    sec.className = 'project';
+    sec.className = 'project warmup-page';
     const visible = [...WARM_UPS].sort((a, b) => b.date.localeCompare(a.date));
 
-    let body;
     if (visible.length === 0) {
-      body = '<p class="warmup-empty">No warm ups yet.</p>';
-    } else {
-      const [latest, ...earlier] = visible;
-      body = `
-        <div class="warmup-card">
-          <span class="warmup-date-chip">${formatWarmUpDate(latest.date)}</span>
-          ${warmUpBodyHTML(latest)}
-        </div>`;
-      if (earlier.length > 0) {
-        body += `
-          <details class="warmup-earlier">
-            <summary>
-              <span class="warmup-earlier-label">Earlier warm ups</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-            </summary>
-            ${earlier.map(w => `
-              <div class="warmup-earlier-item">
-                <span class="warmup-date-chip">${formatWarmUpDate(w.date)}</span>
-                ${warmUpBodyHTML(w)}
-              </div>`).join('')}
-          </details>`;
-      }
+      sec.innerHTML = '<div class="warmup-hero"><p class="warmup-kicker">T4SG notebook</p><h2 class="warmup-title">Warm-ups</h2></div><div class="warmup-shell"><div class="warmup-card"><p class="warmup-empty">No warm-ups yet.</p></div></div>';
+      app.appendChild(sec);
+      return;
     }
 
+    let selectedIndex = visible.findIndex(w => w.id === selectedId);
+    if (selectedIndex < 0) selectedIndex = 0;
+    const selected = visible[selectedIndex];
+    warmUpSelectedId = selected.id;
+    const dateOptions = visible.map((w, index) =>
+      `<option value="${w.id}"${index === selectedIndex ? ' selected' : ''}>${formatWarmUpDate(w.date)}</option>`
+    ).join('');
+
     sec.innerHTML = `
-      <h2 class="project-title">Warm Ups</h2>
-      <p class="project-blurb">Answer in your written notebook. We solve them together in class.</p>
-      <div class="warmup-col">${body}</div>
+      <div class="warmup-hero">
+        <p class="warmup-kicker">T4SG notebook</p>
+        <h2 class="warmup-title">Warm-ups</h2>
+        <p class="warmup-deck">Open your notebook. Start with the newest prompt.</p>
+      </div>
+      <div class="warmup-shell">
+        <article class="warmup-card" id="warmupFocus" tabindex="-1" aria-live="polite">
+          <header class="warmup-card-head">
+            <div class="warmup-card-label">
+              <p class="warmup-kicker">Warm-up ${String(selectedIndex + 1).padStart(2, '0')} / ${String(visible.length).padStart(2, '0')}</p>
+              <h3 class="warmup-date">${formatWarmUpDate(selected.date)}</h3>
+            </div>
+            <div class="warmup-meta">
+              <span class="warmup-time">5-10 min</span>
+              <label class="warmup-picker"><span>Browse dates</span><select id="warmupDateSelect" aria-label="Choose a warm-up date">${dateOptions}</select></label>
+            </div>
+          </header>
+          ${warmUpBodyHTML(selected)}
+          <footer class="warmup-footer">
+            <button type="button" class="warmup-nav-btn" id="warmupOlder" ${selectedIndex === visible.length - 1 ? 'disabled' : ''}>${WARMUP_LEFT_ICON}Older</button>
+            <span class="warmup-count">${String(selectedIndex + 1).padStart(2, '0')} / ${String(visible.length).padStart(2, '0')}</span>
+            <button type="button" class="warmup-nav-btn" id="warmupNewer" ${selectedIndex === 0 ? 'disabled' : ''}>Newer${WARMUP_RIGHT_ICON}</button>
+          </footer>
+        </article>
+      </div>
     `;
     app.appendChild(sec);
+    enhanceWarmUpMedia(sec.querySelector('.warmup-question'));
+    sec.querySelector('#warmupDateSelect').addEventListener('change', event => renderWarmUps(event.target.value, true));
+    sec.querySelector('#warmupOlder').addEventListener('click', () => {
+      if (selectedIndex < visible.length - 1) renderWarmUps(visible[selectedIndex + 1].id, true);
+    });
+    sec.querySelector('#warmupNewer').addEventListener('click', () => {
+      if (selectedIndex > 0) renderWarmUps(visible[selectedIndex - 1].id, true);
+    });
+    if (moveFocus) requestAnimationFrame(() => document.getElementById('warmupFocus')?.focus({ preventScroll: true }));
   }
 
   // ============== DAY ONE page render ==============
