@@ -46,8 +46,10 @@ assert.equal(breathPressure.instructions[4],
 const project3 = projects.find(project => project.id === 'p3');
 const project3Product = project3?.benchmarks.find(benchmark => benchmark.id === 'p3b4');
 assert.ok(project3Product, 'Project 3 product exists');
-assert.doesNotMatch(JSON.stringify(project3Product), /soft puff|hard puff|soft and hard/i,
-  'Project 3 product language matches the quick-versus-long benchmark model');
+assert.doesNotMatch(JSON.stringify(project3Product), /soft puff|hard puff|quick puff|long puff|quick sip|long sip|quick breath|long breath|breath timing/i,
+  'Project 3 product uses the same puff-versus-sip model as the Breath Pressure benchmark');
+assert.match(JSON.stringify(project3Product), /puff[\s\S]*sip/i,
+  'Project 3 product keeps distinct puff and sip actions');
 
 for (const project of projects) {
   for (const benchmark of project.benchmarks) {
