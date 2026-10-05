@@ -26,6 +26,10 @@ assert.match(breathInstructions, /resting ___, puff ___, sip ___/,
   'the prompt has a blank for each of the three values');
 assert.match(breathInstructions, /halfway between resting and puff[\s\S]*halfway between resting and sip[\s\S]*never overlap/,
   'the prompt chooses triggers inside the student numbers that cannot overlap');
+assert.match(breathInstructions, /Puff is greater than Resting and Sip is less than Resting/,
+  'students verify that all three calibration readings are in the expected order');
+assert.match(breathInstructions, /If not, do not write code; tell me to repeat the sensor test/,
+  'bad calibration data stops code generation instead of producing false triggers');
 assert.match(breathInstructions, /Type the letter e once[\s\S]*the letter q once/,
   'puff and sip each send one key that no earlier benchmark uses');
 assert.match(breathInstructions, /Do not type again until the reading comes back near my resting value/,
@@ -34,8 +38,8 @@ assert.doesNotMatch(breathInstructions, /release band|quick puff|long puff|types
   'the simplified flow has no timing, release band, or universal threshold');
 assert.match(breathInstructions, /comfortable breath, not your hardest/,
   'pressure calibration uses a comfortable breath rather than maximum effort');
-assert.match(breathInstructions, /If another person will use your controller, take these three numbers again with them/,
-  'the finished controller is calibrated with its intended user');
+assert.match(breathInstructions, /If another person will use your controller, repeat these three readings with their consent and their own clean tube/,
+  'the finished controller is calibrated hygienically and consensually with its intended user');
 const usedKeys = projects.flatMap(project => project.benchmarks).filter(b => b.id !== 'p3b5')
   .map(b => JSON.stringify(b.instructions || '')).join(' ');
 assert.doesNotMatch(usedKeys, /(?:letter|the) [eq]\b(?! key)|\b[EQ][- ]key/, 'E and Q are not used by any other benchmark');

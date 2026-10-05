@@ -53,8 +53,10 @@ assert.ok(starterStart >= 0 && starterEnd > starterStart,
 const starterPrompt = html.slice(starterStart, starterEnd);
 assert.match(starterPrompt, /sensor\.request\(\)[\s\S]*sensor\.is_ready\(\)[\s\S]*sensor\.fetch\(\)/,
   'combined controllers use the HX710AB asynchronous API');
-assert.match(starterPrompt, /Compare the raw reading to the puff and sip trigger numbers from my prompt, act once per breath/,
+assert.match(starterPrompt, /Compare the raw reading to the verified puff and sip trigger numbers from my prompt, act once per breath/,
   'combined controllers compare raw readings to the triggers chosen from the student numbers');
+assert.match(starterPrompt, /verify that the puff value is greater than resting and the sip value is less than resting[\s\S]*otherwise stop and ask for a new sensor test/,
+  'the standing prompt refuses to build from reversed or invalid calibration data');
 assert.doesNotMatch(starterPrompt, /release band|20 startup readings|slowly move the resting value/,
   'the starter prompt does not fight the simplified breath prompt');
 assert.match(starterPrompt, /not ready within 1\.2 seconds[\s\S]*fetch\(\) returns 0[\s\S]*do not use that result/,
