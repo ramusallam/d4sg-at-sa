@@ -16028,6 +16028,7 @@ void loop() {
 
     document.getElementById('vibeMonitorClear').addEventListener('click', () => {
       const m = document.getElementById('vibeMonitor');
+      _vibeMonitorPending = '';
       m.innerHTML = '<span class="vibe-monitor-empty">Cleared.</span>';
     });
     // Code / Serial Monitor tabs.
@@ -16259,6 +16260,7 @@ void loop() {
   function vibeMonitorLine(text, kind) {
     const m = document.getElementById('vibeMonitor');
     if (!m) return;
+    vibeFlushMonitor(); // buffered Serial output lands first, in order
     const empty = m.querySelector('.vibe-monitor-empty');
     if (empty) empty.remove();
     const line = document.createElement('div');
@@ -16271,6 +16273,18 @@ void loop() {
     m.appendChild(line);
     m.scrollTop = m.scrollHeight;
     vibeMonitorMarkNew();
+  }
+
+  // Chrome lets a page reopen a rebooted board without asking only when the
+  // board reports a USB serial number, and a Leonardo reports one only when
+  // its sketch includes a USB keyboard, mouse, or joystick. A Serial-only
+  // sketch (a sensor test) has none, so every upload ended with a second
+  // "Watch Serial output" click. Compile those with the keyboard library so
+  // the monitor can open by itself. The include goes at the END so compiler
+  // error line numbers still match the student's code.
+  function vibeWithUsbIdentity(sketch) {
+    if (/^\s*#\s*include\s*[<"](Keyboard|Mouse|Joystick|HID)\.h[>"]/m.test(sketch)) return sketch;
+    return sketch.replace(/\s*$/, '') + '\n#include <Keyboard.h>\n';
   }
 
   async function vibeCompileSketch(sketch) {
@@ -16331,13 +16345,15 @@ void loop() {
     const btn = document.getElementById('vibeUpload');
     btn.disabled = true;
     btn.classList.add('is-active');
+    // A new upload owns the board: stop any reconnect still looking for it.
+    _vibeReconnectRun++;
 
     // 1. Compile.
     let hexText;
     vibeShowTab('monitor');
     vibeMonitorLine('[ Compiling… ]', 'info');
     try {
-      const data = await vibeCompileSketch(sketch);
+      const data = await vibeCompileSketch(vibeWithUsbIdentity(sketch));
       if (data.stdout) vibeMonitorLine(data.stdout.trimEnd(), 'dim');
       if (!data.hex) {
         if (data.stderr) vibeMonitorLine(data.stderr.trimEnd(), 'err');
@@ -16374,9 +16390,9 @@ void loop() {
       // Reopen the serial monitor for sketch output. Always try, even if the
       // student never clicked Connect: the upload already granted the port,
       // and most sketches print the numbers they need to see right away.
-      // The sketch port can take a few seconds to re-enumerate after a
-      // flash, so retry before giving up.
-      setTimeout(() => vibeReconnectSketchPort(15), 1500);
+      // The sketch port takes a second or two to re-enumerate after a
+      // flash, so start looking right away and keep checking.
+      setTimeout(() => vibeReconnectSketchPort(12), 500);
     } catch (err) {
       vibeMonitorLine('[ Upload error: ' + (err.message || err) + ' ]', 'err');
       vibeMonitorLine('Tip: unplug + replug the board and try again. Make sure no other program or browser tab has the port open.', 'dim');
@@ -16756,9 +16772,18 @@ void loop() {
   }
 
   // After upload, the sketch port reappears under the original (sketch) VID/PID.
-  // Try to reopen it for the serial monitor without prompting the user.
-  async function vibeReconnectSketchPort(retries = 0) {
+  // Try to reopen it for the serial monitor without prompting the user. If
+  // Chrome has not been granted this board yet, offer the one-click picker
+  // after about five seconds and keep looking quietly, so the monitor still
+  // opens by itself (and the button goes away) if the board turns up.
+  const VIBE_RECONNECT_POLL_MS = 400;
+  let _vibeReconnectRun = 0;
+  async function vibeReconnectSketchPort(retries = 0, quiet = false, run = _vibeReconnectRun) {
+    if (run !== _vibeReconnectRun) return; // a newer upload took over
     if (_vibeSerialPort) return; // already open (e.g. the student clicked Connect)
+    const again = () => setTimeout(() => vibeReconnectSketchPort(retries - 1, quiet, run), VIBE_RECONNECT_POLL_MS);
+    // The student is in the port picker right now; let that finish first.
+    if (_vibeConnecting) { if (retries > 0) again(); return; }
     try {
       const ports = await navigator.serial.getPorts();
       const sketchCandidates = ports.filter(p => {
@@ -16778,7 +16803,8 @@ void loop() {
       }
       if (!sketchPort && sketchCandidates.length === 1) sketchPort = sketchCandidates[0];
       if (!sketchPort) {
-        if (retries > 0) { setTimeout(() => vibeReconnectSketchPort(retries - 1), 800); return; }
+        if (retries > 0) { again(); return; }
+        if (quiet) return;
         const message = sketchCandidates.length > 1
           ? 'More than one Arduino is available. Click the button below and choose the board you just uploaded.'
           : 'Upload worked. Click the button below and pick your Arduino to watch Serial output.';
@@ -16793,7 +16819,7 @@ void loop() {
         if (monitor && !monitor.querySelector('.vibe-monitor-fix-btn')) {
           const openBtn = document.createElement('button');
           openBtn.type = 'button';
-          openBtn.className = 'vibe-monitor-fix-btn';
+          openBtn.className = 'vibe-monitor-fix-btn vibe-monitor-watch-btn';
           openBtn.textContent = 'Watch Serial output';
           openBtn.addEventListener('click', () => { openBtn.remove(); vibeConnectSerial(true); });
           monitor.appendChild(openBtn);
@@ -16801,12 +16827,14 @@ void loop() {
           if (_vibeMonitorAutoScroll) monitor.scrollTop = monitor.scrollHeight;
         }
         vibeSetStatus('disconnected', message);
+        setTimeout(() => vibeReconnectSketchPort(45, true, run), VIBE_RECONNECT_POLL_MS);
         return;
       }
       const baud = parseInt(document.getElementById('vibeBaudRate').value, 10) || 9600;
       await sketchPort.open({ baudRate: baud });
       _vibeSerialPort = sketchPort;
       _vibeSerialKeepReading = true;
+      document.querySelectorAll('.vibe-monitor-watch-btn').forEach(b => b.remove());
       const btn = document.getElementById('vibeConnect');
       if (btn) {
         btn.classList.remove('is-primary');
@@ -16821,8 +16849,8 @@ void loop() {
       vibeReadLoop();
     } catch (err) {
       // open() fails while the board is still rebooting; wait and try again.
-      if (retries > 0) { setTimeout(() => vibeReconnectSketchPort(retries - 1), 800); return; }
-      vibeMonitorLine('Could not reopen serial monitor - click "Connect Arduino" to reconnect.', 'dim');
+      if (retries > 0) { again(); return; }
+      if (!quiet) vibeMonitorLine('Could not reopen serial monitor - click "Connect Arduino" to reconnect.', 'dim');
     }
   }
 
@@ -16931,13 +16959,72 @@ void loop() {
     }
   }
 
+  // Serial output is collected and painted about 15 times a second, in blocks
+  // of whole lines, and only the newest blocks stay on the page. Painting one
+  // DOM node per reading (the old way) let a sketch that prints in a loop grow
+  // the page without limit until the tab froze and crashed.
+  const VIBE_MONITOR_FLUSH_MS = 66;
+  const VIBE_MONITOR_BLOCK_CHARS = 4000;  // a block is sealed at about this size
+  const VIBE_MONITOR_MAX_BLOCKS = 15;     // about 60,000 characters of history
+  const VIBE_MONITOR_MAX_PENDING = VIBE_MONITOR_BLOCK_CHARS * 4;
+  let _vibeMonitorPending = '';
+  let _vibeMonitorFlushTimer = null;
+
   function vibeAppendMonitor(text) {
+    if (!text) return;
+    _vibeMonitorPending += text;
+    // A flooding sketch sends more than anyone can read. Keep the newest part,
+    // starting at a whole line.
+    if (_vibeMonitorPending.length > VIBE_MONITOR_MAX_PENDING) {
+      _vibeMonitorPending = _vibeMonitorPending.slice(-VIBE_MONITOR_MAX_PENDING);
+      const lineStart = _vibeMonitorPending.indexOf('\n');
+      if (lineStart >= 0) _vibeMonitorPending = _vibeMonitorPending.slice(lineStart + 1);
+    }
+    if (!_vibeMonitorFlushTimer) _vibeMonitorFlushTimer = setTimeout(vibeFlushMonitor, VIBE_MONITOR_FLUSH_MS);
+  }
+
+  function vibeNewMonitorBlock(m, text) {
+    const block = document.createElement('div');
+    block.className = 'vibe-monitor-block';
+    block.appendChild(document.createTextNode(text));
+    m.appendChild(block);
+    return block;
+  }
+
+  function vibeFlushMonitor() {
+    clearTimeout(_vibeMonitorFlushTimer);
+    _vibeMonitorFlushTimer = null;
+    const text = _vibeMonitorPending;
+    _vibeMonitorPending = '';
     const m = document.getElementById('vibeMonitor');
-    if (!m) return;
+    if (!m || !text) return;
     // Clear empty placeholder
     const empty = m.querySelector('.vibe-monitor-empty');
     if (empty) m.innerHTML = '';
-    m.appendChild(document.createTextNode(text));
+    // Keep writing into the newest block while it is still the last thing in
+    // the monitor (a log line or a button in between starts a new one).
+    let block = m.lastChild;
+    if (block && block.nodeType === 1 && block.classList.contains('vibe-monitor-block')) {
+      block.firstChild.appendData(text);
+    } else {
+      block = vibeNewMonitorBlock(m, text);
+    }
+    // Seal a full block at a line break and carry the unfinished line into a
+    // new block, so the browser only ever re-lays-out the newest few lines.
+    while (block.firstChild.length > VIBE_MONITOR_BLOCK_CHARS) {
+      const data = block.firstChild.data;
+      let cut = data.indexOf('\n', VIBE_MONITOR_BLOCK_CHARS) + 1;
+      // No line break yet: wait for one, unless the sketch never sends any.
+      if (!cut) {
+        if (data.length <= VIBE_MONITOR_MAX_PENDING) break;
+        cut = VIBE_MONITOR_BLOCK_CHARS;
+      }
+      if (cut >= data.length) break;
+      block.firstChild.deleteData(cut, data.length - cut);
+      block = vibeNewMonitorBlock(m, data.slice(cut));
+    }
+    const blocks = m.getElementsByClassName('vibe-monitor-block');
+    while (blocks.length > VIBE_MONITOR_MAX_BLOCKS) blocks[0].remove();
     if (_vibeMonitorAutoScroll) {
       m.scrollTop = m.scrollHeight;
     }
