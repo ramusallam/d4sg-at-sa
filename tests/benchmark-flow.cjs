@@ -17,16 +17,28 @@ const breathPressure = projects.flatMap(project => project.benchmarks).find(benc
 assert.ok(breathPressure, 'Breath Pressure benchmark exists');
 assert.equal(breathPressure.instructions.length, 6, 'Breath Pressure follows the six-step checkpoint pattern');
 const breathInstructions = breathPressure.instructions.join(' ');
-assert.match(breathInstructions, /separate puff and sip trigger values/,
-  'pressure thresholds come from each sensor and breathing pattern');
-assert.match(breathInstructions, /two consecutive readings return inside the release band/,
-  'one breath cannot chatter into several actions at the trigger edge');
-assert.doesNotMatch(breathInstructions, /150000|Every 20 seconds/,
-  'pressure behavior does not depend on a universal threshold or abrupt recalibration');
-assert.match(breathInstructions, /comfortable, repeatable breaths, not maximum effort/,
-  'pressure calibration uses an accessible, repeatable breath rather than maximum effort');
-assert.match(breathInstructions, /recalibrate with their consent and comfortable breath/,
-  'the finished controller is calibrated for its intended user with consent');
+// Ramsey, 2026-10-05: calibration is three numbers read off the Serial Monitor
+// (resting, puff, sip). Students enter them in the prompt and the AI picks the
+// two triggers. One key per puff, one per sip, both unused elsewhere in the lab.
+assert.match(breathInstructions, /\*\*Resting:\*\*[\s\S]*\*\*Puff:\*\*[\s\S]*\*\*Sip:\*\*/,
+  'calibration is three values: resting, puff, sip');
+assert.match(breathInstructions, /resting ___, puff ___, sip ___/,
+  'the prompt has a blank for each of the three values');
+assert.match(breathInstructions, /halfway between resting and puff[\s\S]*halfway between resting and sip[\s\S]*never overlap/,
+  'the prompt chooses triggers inside the student numbers that cannot overlap');
+assert.match(breathInstructions, /Type the letter e once[\s\S]*the letter q once/,
+  'puff and sip each send one key that no earlier benchmark uses');
+assert.match(breathInstructions, /Do not type again until the reading comes back near my resting value/,
+  'one breath sends one key');
+assert.doesNotMatch(breathInstructions, /release band|quick puff|long puff|types [1-4]\b|average 20 readings|150000|Every 20 seconds/,
+  'the simplified flow has no timing, release band, or universal threshold');
+assert.match(breathInstructions, /comfortable breath, not your hardest/,
+  'pressure calibration uses a comfortable breath rather than maximum effort');
+assert.match(breathInstructions, /If another person will use your controller, take these three numbers again with them/,
+  'the finished controller is calibrated with its intended user');
+const usedKeys = projects.flatMap(project => project.benchmarks).filter(b => b.id !== 'p3b5')
+  .map(b => JSON.stringify(b.instructions || '')).join(' ');
+assert.doesNotMatch(usedKeys, /(?:letter|the) [eq]\b(?! key)|\b[EQ][- ]key/, 'E and Q are not used by any other benchmark');
 assert.equal(breathPressure.instructions[4],
   'Test it. Modify the code until the behavior works exactly the way you described it.',
   'Breath Pressure uses the canonical test-and-modify step');
@@ -65,4 +77,4 @@ assert.match(html, /Every external LED needs its own 220-330 ohm current-limitin
 assert.doesNotMatch(html, /two LEDs[^}]{0,500}no resistors/,
   'LED benchmark prompts never prohibit current-limiting resistors');
 
-console.log('T4SG benchmark-flow audit passed: six-step pressure flow, student-specific thresholds, one-action breath release, aligned product language, safe LEDs, concise labels, and instruction parity.');
+console.log('T4SG benchmark-flow audit passed: six-step pressure flow, three-number calibration, one key per breath, aligned product language, safe LEDs, concise labels, and instruction parity.');
