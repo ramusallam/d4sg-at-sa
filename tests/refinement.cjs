@@ -37,11 +37,15 @@ assert.match(breathExample, /skipped < 10/,
   'unsteady power-up readings do not become the highest or lowest value');
 assert.doesNotMatch(breathExample, /- rest\b/,
   'the see-it-work sketch shows raw readings, the same numbers the final code compares');
-assert.match(breathExample, /sensor\.request\(\)[\s\S]*sensor\.is_ready\(\)[\s\S]*sensor\.fetch\(\)/,
-  'the see-it-work sketch samples without blocking the controller');
+assert.match(breathExample, /bool readHX710\(long &value\)[\s\S]*digitalRead\(OUT_PIN\) == HIGH[\s\S]*for \(int i = 0; i < 24; i\+\+\)[\s\S]*25th pulse[\s\S]*0xFF000000UL/,
+  'the see-it-work sketch uses the proven signed 24-bit direct reader');
+assert.doesNotMatch(breathExample, /#include\s+["<]HX710AB\.h[">]/,
+  'the canonical breath test does not depend on the library API');
+assert.match(breathExample, /noInterrupts\(\)[\s\S]*digitalWrite\(SCK_PIN, LOW\)[\s\S]*interrupts\(\)/,
+  'the short clock transaction cannot be stretched by an interrupt');
 assert.match(breathExample, /now == 0[\s\S]*No sensor reading/,
   'zero readings are treated as a wiring fault instead of calibration data');
-assert.match(breathExample, /requestStarted >= 1200[\s\S]*Sensor timeout/,
+assert.match(breathExample, /lastReadingAt >= 1200[\s\S]*Sensor timeout/,
   'an unresponsive sensor produces a clear timeout instead of hanging');
 assert.doesNotMatch(breathExample, /void loop\(\)[\s\S]*delay\(/,
   'the see-it-work sketch does not throw away quick-breath samples');
@@ -51,10 +55,8 @@ const starterEnd = html.indexOf('].join("\\n")', starterStart);
 assert.ok(starterStart >= 0 && starterEnd > starterStart,
   'the Arduino starter prompt can be isolated for regression checks');
 const starterPrompt = html.slice(starterStart, starterEnd);
-assert.match(starterPrompt, /use the installed HX710AB library or read the HX710B directly with digital pin timing and no pressure-sensor library/,
-  'combined controllers may use the installed library or the proven direct reader');
-assert.match(starterPrompt, /construct HX710B with both pins and then call begin\(\) with no pins[\s\S]*never declare a pinless HX710AB object or pass pins to begin\(\)/,
-  'the standing prompt prevents both common HX710AB API mistakes');
+assert.match(starterPrompt, /Prefer reading the HX710B directly with digital pin timing and no pressure-sensor library[\s\S]*existing code already uses HX710AB and compiles, preserve it[\s\S]*construct HX710B with both pins and call begin\(\) with no pins/,
+  'the standing prompt prefers direct timing and preserves a valid library fallback');
 assert.match(starterPrompt, /Compare the raw reading to the verified puff and sip trigger numbers from my prompt, act once per breath/,
   'combined controllers compare raw readings to the triggers chosen from the student numbers');
 assert.match(starterPrompt, /verify that the puff value is greater than resting and the sip value is less than resting[\s\S]*otherwise stop and ask for a new sensor test/,
@@ -72,8 +74,8 @@ assert.deepEqual([...pressurePhoto.subarray(0, 3)], [0xff, 0xd8, 0xff],
   'the hosted pressure-sensor asset is a valid JPEG');
 assert.doesNotMatch(html, /HX710B\.h, and HX711\.h/,
   'the repair prompt does not advertise incompatible pressure-sensor libraries');
-assert.match(html, /you may use HX710AB\.h or read it directly with digital pin timing and no pressure-sensor library[\s\S]*Do not add another sensor library[\s\S]*construct HX710B with both pins and call begin\(\) with no pins/,
-  'the compiler repair prompt permits direct timing while preserving the valid library fallback');
+assert.match(html, /prefer reading it directly with digital pin timing and no pressure-sensor library[\s\S]*existing code already uses HX710AB\.h and compiles, preserve it[\s\S]*construct HX710B with both pins and call begin\(\) with no pins[\s\S]*Do not add another sensor library/,
+  'the compiler repair prompt prefers direct timing while preserving the valid library fallback');
 assert.match(compileProxy, /await fetch\(healthUrl/,
   'the public compiler health route checks the real Fly service');
 assert.match(compileProxy, /backendReady/,
@@ -85,4 +87,4 @@ assert.match(compileProxy, /setTimeout\(\(\) => controller\.abort\(\), 40000\)/,
 assert.match(html, /e\.isBusy = r\.status === 503[\s\S]*The class compiler is busy\. Your code is safe/,
   'a classroom compile burst gets retry guidance instead of a false outage message');
 
-console.log('T4SG refinement audit passed: focused journey, accessible Arduino monitor, inclusive breath calibration, verified hosted sensor photo, honest compiler health, simple asynchronous sensing, dialog isolation, and stable portfolio writes.');
+console.log('T4SG refinement audit passed: focused journey, accessible Arduino monitor, inclusive breath calibration, verified hosted sensor photo, honest compiler health, direct nonblocking breath sensing, dialog isolation, and stable portfolio writes.');
