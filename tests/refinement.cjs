@@ -51,18 +51,18 @@ const starterEnd = html.indexOf('].join("\\n")', starterStart);
 assert.ok(starterStart >= 0 && starterEnd > starterStart,
   'the Arduino starter prompt can be isolated for regression checks');
 const starterPrompt = html.slice(starterStart, starterEnd);
-assert.match(starterPrompt, /sensor\.request\(\)[\s\S]*sensor\.is_ready\(\)[\s\S]*sensor\.fetch\(\)/,
-  'combined controllers use the HX710AB asynchronous API');
-assert.match(starterPrompt, /HX710B sensor\(outPin, sckPin\)[\s\S]*sensor\.begin\(\)[\s\S]*Never write HX710AB sensor; or sensor\.begin\(outPin, sckPin\)/,
-  'the standing prompt gives the exact HX710B constructor and rejects both common API mistakes');
+assert.match(starterPrompt, /use the installed HX710AB library or read the HX710B directly with digital pin timing and no pressure-sensor library/,
+  'combined controllers may use the installed library or the proven direct reader');
+assert.match(starterPrompt, /construct HX710B with both pins and then call begin\(\) with no pins[\s\S]*never declare a pinless HX710AB object or pass pins to begin\(\)/,
+  'the standing prompt prevents both common HX710AB API mistakes');
 assert.match(starterPrompt, /Compare the raw reading to the verified puff and sip trigger numbers from my prompt, act once per breath/,
   'combined controllers compare raw readings to the triggers chosen from the student numbers');
 assert.match(starterPrompt, /verify that the puff value is greater than resting and the sip value is less than resting[\s\S]*otherwise stop and ask for a new sensor test/,
   'the standing prompt refuses to build from reversed or invalid calibration data');
 assert.doesNotMatch(starterPrompt, /release band|20 startup readings|slowly move the resting value/,
   'the starter prompt does not fight the simplified breath prompt');
-assert.match(starterPrompt, /not ready within 1\.2 seconds[\s\S]*fetch\(\) returns 0[\s\S]*do not use that result/,
-  'combined controllers ignore failed pressure reads and keep running');
+assert.match(starterPrompt, /Avoid any sensor wait that blocks those controls/,
+  'combined controllers keep existing controls responsive with either sensor-reading method');
 
 const pressurePhotoPath = path.join(__dirname, '..', 'parts', 'hx710b-pressure-sensor.jpg');
 const pressurePhoto = fs.readFileSync(pressurePhotoPath);
@@ -72,8 +72,8 @@ assert.deepEqual([...pressurePhoto.subarray(0, 3)], [0xff, 0xd8, 0xff],
   'the hosted pressure-sensor asset is a valid JPEG');
 assert.doesNotMatch(html, /HX710B\.h, and HX711\.h/,
   'the repair prompt does not advertise incompatible pressure-sensor libraries');
-assert.match(html, /construct it as HX710B sensor\(outPin, sckPin\)[\s\S]*call sensor\.begin\(\) with no pins[\s\S]*Never declare HX710AB sensor; or call sensor\.begin\(outPin, sckPin\)/,
-  'the compiler repair prompt carries the exact HX710B constructor fix');
+assert.match(html, /you may use HX710AB\.h or read it directly with digital pin timing and no pressure-sensor library[\s\S]*Do not add another sensor library[\s\S]*construct HX710B with both pins and call begin\(\) with no pins/,
+  'the compiler repair prompt permits direct timing while preserving the valid library fallback');
 assert.match(compileProxy, /await fetch\(healthUrl/,
   'the public compiler health route checks the real Fly service');
 assert.match(compileProxy, /backendReady/,

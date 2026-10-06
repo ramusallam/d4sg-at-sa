@@ -30,6 +30,10 @@ assert.match(breathInstructions, /Puff is greater than Resting and Sip is less t
   'students verify that all three calibration readings are in the expected order');
 assert.match(breathInstructions, /If not, do not write code; tell me to repeat the sensor test/,
   'bad calibration data stops code generation instead of producing false triggers');
+assert.match(breathInstructions, /use the HX710AB library or read the sensor directly with digital pin timing[\s\S]*Do not add another pressure-sensor library/,
+  'the student prompt permits the proven direct reader without supplying its implementation');
+assert.doesNotMatch(breathInstructions, /for \(int i = 0; i < 24|count = count << 1|0xFF000000/,
+  'the benchmark does not hand students the direct sensor-reading code');
 assert.match(breathInstructions, /Type the letter e once[\s\S]*the letter q once/,
   'puff and sip each send one key that no earlier benchmark uses');
 assert.match(breathInstructions, /Do not type again until the reading comes back near my resting value/,
