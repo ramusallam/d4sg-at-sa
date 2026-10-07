@@ -1036,6 +1036,38 @@
     margin: 0;
     line-height: 1.5;
   }
+  .cp-requirements {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin: 2px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .cp-requirement {
+    min-width: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 13px;
+    box-shadow: 0 1px 2px rgba(28,25,23,0.04);
+  }
+  .cp-requirement-label {
+    display: block;
+    margin-bottom: 3px;
+    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 9.5px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .cp-requirement-text {
+    display: block;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink-mid);
+  }
   .cp-brief-pick {
     font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 10px;
@@ -1055,6 +1087,7 @@
   }
   @media (max-width: 600px) {
     .cp-persona-roster { grid-template-columns: 1fr; }
+    .cp-requirements { grid-template-columns: 1fr; }
   }
   .cp-persona {
     background: var(--bg-2);
@@ -1066,12 +1099,13 @@
     gap: 4px;
   }
   .cp-persona-name { font-weight: 700; font-size: 14px; color: var(--ink-hi); }
-  .cp-persona-cond {
-    font-size: 10px;
+  .cp-persona-context {
+    margin-top: 5px;
+    padding-top: 7px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
     color: var(--ink-low);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin-bottom: 4px;
+    line-height: 1.4;
   }
   .cp-persona-row { font-size: 12.5px; color: var(--ink-mid); line-height: 1.45; }
   .cp-persona-row strong { color: var(--ink-hi); font-weight: 600; }
@@ -6885,9 +6919,9 @@
           points: 2,
           gradeNote: 'Evidence (wiring schematic + code PDF + circuit photo) = 1 pt · Reflection (all 3 questions) = 1 pt',
           instructions: [
-            '**Keep your Joystick and Sip or Puff wiring intact.** Add the HX710B pressure sensor beside them on the same breadboard. Solder its four header pins into separate shiny joints, check that no solder bridges two rings, and have Ramsey inspect it before power. Use your own tubing and never share it.',
-            '**See it work first.** Wire **VCC to 5V, GND to GND, OUT to pin 4, and SCK to pin 5**. In the [Arduino Code Loading Tool](tools#vibe), load **Breath test (HX710B)** from Examples and upload it. The Serial Monitor shows three numbers: **Now**, **Highest**, and **Lowest**. Write down three values. **Resting:** leave the tube alone and write down the Now number (it wiggles a little, so pick a typical one). **Puff:** puff a comfortable breath, not your hardest, and write down Highest. **Sip:** sip a comfortable breath and write down Lowest. Check that Puff is greater than Resting and Sip is less than Resting. If not, upload the test again and repeat. If the order is still wrong, ask Ramsey to check the sensor. If another person will use your controller, repeat these three readings with their consent and their own clean tube. Click **Restore previous code** to bring back your Joystick and Sip or Puff code.',
-            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Joystick and Sip or Puff code from the tool, then this prompt. Fill in the three blanks with your numbers: {{prompt}}Add to my existing code: an HX710B breath pressure sensor with OUT on pin 4 and SCK on pin 5. My raw sensor readings in the Serial Monitor were: resting ___, puff ___, sip ___. First check that puff is greater than resting and sip is less than resting. If not, do not write code; tell me to repeat the sensor test. If they are in the correct order, choose a puff trigger about halfway between resting and puff, and a sip trigger about halfway between resting and sip, so the two triggers can never overlap. Tell me the two trigger numbers you chose. Type the letter e once when the reading passes the puff trigger, and the letter q once when it passes the sip trigger. Do not type again until the reading comes back near my resting value. Keep my Project 2 final product behaviors and the mouse, click, and X-key behaviors I already have and do not change my existing wiring. Prefer reading the HX710B directly with digital pin timing and no pressure-sensor library. If my existing code already uses HX710AB and compiles, preserve it. Do not add another pressure-sensor library. Simplest possible code.{{/prompt}} Paste the full code it gives you back into the [Arduino Code Loading Tool](tools#vibe).',
+            '**Keep your Joystick and Sip or Puff wiring intact.** Mark every used pin on your current schematic and choose two open digital pins for the HX710B pressure sensor. Add it beside the other controls on the same breadboard. Solder its four header pins into separate shiny joints, check that no solder bridges two rings, and have Ramsey inspect it before power. Use your own tubing and never share it.',
+            '**See it work first.** Wire **VCC to 5V, GND to GND, and OUT and SCK to the two open pins you chose**. In the [Arduino Code Loading Tool](tools#vibe), load **Breath test (HX710B)** from Examples. At the top of the example, change **OUT_PIN** and **SCK_PIN** to match your wiring, then upload it. Write down the OUT and SCK pins, then three Serial Monitor values. Use a comfortable breath, not your hardest. **Resting:** a typical Now value with the tube alone. **Puff:** Highest after a comfortable puff. **Sip:** Lowest after a comfortable sip. Check that Puff is greater than Resting and Sip is less than Resting. If not, upload the test again and repeat. If the order is still wrong, ask Ramsey to inspect the sensor. If another person will use your controller, repeat these three readings with their consent and their own clean tube. Click **Restore previous code** to bring back your Joystick and Sip or Puff code.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT in a new tab. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then paste your current Joystick and Sip or Puff code from the tool, then this prompt. Fill in all five blanks: {{prompt}}Add to my existing code: an HX710B breath pressure sensor with OUT on pin ___ and SCK on pin ___. My raw sensor readings were: resting ___, puff ___, sip ___. First check that puff is greater than resting and sip is less than resting. If not, do not write code; tell me to repeat the sensor test. If they are in the correct order, choose a puff trigger about halfway between resting and puff, and a sip trigger about halfway between resting and sip, so the two triggers can never overlap. Tell me the two trigger numbers you chose. Type the letter e once when the reading passes the puff trigger, and the letter q once when it passes the sip trigger. Do not type again until the reading comes back near my resting value. Keep my Project 2 final product behaviors and the mouse, click, and X-key behaviors I already have and do not change my existing wiring. Prefer reading the HX710B directly with digital pin timing and no pressure-sensor library. If my existing code already uses HX710AB and compiles, preserve it. Do not add another pressure-sensor library. Simplest possible code.{{/prompt}} Paste the full code it gives you back into the [Arduino Code Loading Tool](tools#vibe).',
             'Open the [Wiring Schematic Tool](tools#schematic) and add the pressure sensor to your existing schematic on the **breadboard**. Match the OUT and SCK pin numbers in the code.',
             'Test it. Modify the code until the behavior works exactly the way you described it.',
             'Complete **Evidence + Reflection** below. *Evidence* = image of your wiring schematic, PDF of your code, photo of your live circuit.'
@@ -6919,35 +6953,43 @@
           points: 50,
           drop: true,
           brief: {
-            hook: "A person who navigates without hand movement can aim, click, and play when the controls meet their mouth instead of their fingers. A joystick steered with the lips and two tubes that each know a puff from a sip can open a whole screen back up. Now it is your turn.",
-            challenge: "How might we help one specific person access something they want to do using their mouth, chin, and breath? Your available materials: a joystick, two breath pressure sensors (HX710B), a sip or puff switch, a new LED, and an Arduino Leonardo. The breath pressure sensors are the programmable ones - each one reads a puff and a sip as two separate actions, so two sensors give your user four breath actions. The sip or puff switch only knows on or off, and there are not many of them, so it is optional. The minimum build is the joystick with its click, two breath pressure sensors, and one LED, with every one of these used: joystick move, joystick click, and a puff and a sip on each breath sensor. Use more of the kit whenever your user's motion and goal need it. You will 3D-model and print the mount that makes it possible - the housing that holds the joystick and both tubes, secured exactly where their mouth and chin can reach. The standing rule still holds: the build is cumulative. Your Project 2 final product, with your Project 1 final product inside it, stays wired in - code, schematic, and breadboard - even though this product features the mouth and breath controls.",
+            hook: "A person who navigates without hand movement can aim, click, create, and play when the controls meet their mouth instead of their fingers. Your job is to make six distinct actions reliable, reachable, and comfortable.",
+            challenge: "How might we help one specific person control something they care about using their mouth, chin, and breath?",
+            requirements: [
+              { label: 'Joystick', text: 'Move the cursor or game control, and use the joystick click as a separate action.' },
+              { label: 'Four breath actions', text: 'Use two HX710B sensors. Each tube must produce one puff action and one sip action.' },
+              { label: 'Feedback', text: 'Use one new LED to show a useful state or action.' },
+              { label: 'Carry forward', text: 'Keep the complete Project 2 final product wired, coded, and working.' },
+              { label: 'Fit', text: '3D-print a secure mount that positions the joystick and both personal tubes for the user.' },
+              { label: 'Optional', text: 'Add the digital sip or puff switch only if it improves the user\'s control scheme.' }
+            ],
             personas: [
-              { name: 'Elias, 16', condition: 'High cervical spinal cord injury (C1-C2)', motion: 'Precise lip control and steady puffs and sips, and can move his mouth between two tubes', goal: 'Play online chess hands-free (6 actions - joystick moves the cursor, joystick click selects a square, tube 1 puff picks up or drops a piece, tube 1 sip takes back the last move, tube 2 puff flips the board, and tube 2 sip opens the chat).' },
-              { name: 'Priya, 19', condition: 'ALS (amyotrophic lateral sclerosis)', motion: 'Reliable chin movement and comfortable puffs and sips, with less pressure available later in the day', goal: 'Paint in a digital art app (6 actions - joystick moves the brush, joystick click picks a color, tube 1 puff draws, tube 1 sip lifts the pen, tube 2 puff makes the brush bigger, and tube 2 sip makes it smaller). The breath controls must still work when her breath is lighter.' },
-              { name: 'Mateo, 13', condition: 'Spinal muscular atrophy', motion: 'Fine mouth control on a mouthpiece, comfortable puffs, and light sips', goal: 'Play a platform game with friends (6 actions - joystick moves, joystick click pauses, tube 1 puff jumps, tube 1 sip crouches, tube 2 puff attacks, and tube 2 sip switches items), fast enough to keep up mid-level.' },
-              { name: 'Quinn, 22', condition: 'Cerebral palsy with dystonia', motion: 'Steady head and mouth control, with breath pressure that can surge without warning', goal: 'Browse the web and message friends (6 actions - joystick moves the cursor, joystick click clicks, tube 1 puff scrolls down, tube 1 sip scrolls up, tube 2 puff sends a message, and tube 2 sip goes back a page) without accidental double actions.' }
+              { name: 'Elias, 16', context: 'High cervical spinal cord injury (C1-C2)', motion: 'Precise lip control, steady puffs and sips, and reliable movement between two nearby tubes.', goal: 'Play online chess and use the chat without hand movement.', actions: 'Joystick moves; click selects; tube 1 picks up or drops and takes back; tube 2 flips the board and opens chat.' },
+              { name: 'Priya, 19', context: 'ALS (amyotrophic lateral sclerosis)', motion: 'Reliable chin movement and comfortable puffs and sips, with less pressure available later in the day.', goal: 'Paint in a digital art app throughout the day.', actions: 'Joystick moves the brush; click picks a color; tube 1 draws and lifts; tube 2 changes brush size.' },
+              { name: 'Mateo, 13', context: 'Spinal muscular atrophy', motion: 'Fine mouth control, comfortable puffs, and light sips.', goal: 'Play a platform game with friends at a useful pace.', actions: 'Joystick moves; click pauses; tube 1 jumps and crouches; tube 2 attacks and switches items.' },
+              { name: 'Quinn, 22', context: 'Cerebral palsy with dystonia', motion: 'Steady head and mouth control, with occasional breath-pressure surges.', goal: 'Browse the web and message friends without accidental repeat actions.', actions: 'Joystick moves and clicks; tube 1 scrolls; tube 2 sends a message and goes back.' }
             ]
           },
           instructions: [
-            'Open the [Idea Board](tools#idea-board) and sketch your design. **Minimum: the joystick with its click, two breath pressure sensors, and one LED - with a puff action and a sip action on each breath sensor.** The sip or puff switch is optional. **Your Project 2 final product stays wired in either way - part of the build, not the star.** Pick what each action does for your user\'s goal - function first, looks later. Show where their mouth and chin meet the joystick and both tubes, which action each puff and each sip sends, and where the LED sits so they can see it. Sketch the 3D-printed mount that holds the joystick and both tubes securely where they can reach. Prefer paper? Sketch in your notebook, then upload a photo when you turn it in.',
-            '**Add your second breath pressure sensor and test it.** Solder its four header pins the same way as the first and have Ramsey inspect it before power. Unplug your first sensor\'s OUT and SCK wires from pins 4 and 5 and plug the second sensor\'s OUT and SCK into pins 4 and 5 instead. Load **Breath test (HX710B)** from Examples in the [Arduino Code Loading Tool](tools#vibe), upload it, and write down this sensor\'s **resting**, **puff**, and **sip** numbers, just like the Breath Pressure benchmark. Then put your first sensor back on pins 4 and 5, move the second sensor\'s OUT and SCK to two open digital pins (check your schematic for which are free), and write down those two pin numbers. Click **Restore previous code** to bring back your cumulative code. Use your own tubing on both sensors and never share it.',
-            'Open [Gemini](https://gemini.google.com) or ChatGPT. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then your cumulative code from the tool. Write your own prompt for the new behavior. Name (1) every input and the LED you are using, including the two pins for your second breath pressure sensor, (2) the resting, puff, and sip numbers for **each** breath sensor, (3) the exact key or mouse action for joystick move, joystick click, and the puff and the sip on each breath sensor, and (4) when the LED is on or off. End with this guardrail: {{prompt}}Keep every behavior and pin I already have and do not change my existing wiring. For the new behavior, use only the parts I named - nothing extra. Read both breath sensors the same way, each with its own trigger numbers, and act once per puff or sip. Simplest possible code and simplest wiring instructions.{{/prompt}} Example: *"Tube 1 puff clicks once. Tube 2 sip opens the on-screen keyboard once."* Paste the full code it gives you into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
+            'Open the [Idea Board](tools#idea-board) and make an **action map** before you build. Label joystick move, joystick click, tube 1 puff, tube 1 sip, tube 2 puff, tube 2 sip, and the LED state. Show where the user meets each control and sketch the secure 3D-printed mount. Keep the Project 2 final product visible in the drawing. Prefer paper? Sketch in your notebook, then upload a photo when you turn it in.',
+            '**Calibrate the second breath sensor without losing your baseline.** Mark every used pin on your current schematic and choose two open digital pins for sensor 2. Label the sensors and tubes **1** and **2**. Unplug USB before adding the sensor, and have Ramsey inspect its four solder joints before power. Connect sensor 2 to its final VCC, GND, OUT, and SCK locations. Load **Breath test (HX710B)** from Examples in the [Arduino Code Loading Tool](tools#vibe), change **OUT_PIN** and **SCK_PIN** to match sensor 2, and upload it. Record: **Sensor 2 OUT pin, SCK pin, resting, puff, sip.** Confirm puff is greater than resting and sip is less than resting, then click **Restore previous code**. Leave both sensors in their final pins. Use only your own labeled tube, pause between comfortable breaths, and stop if you feel dizzy or uncomfortable.',
+            'Open [Gemini](https://gemini.google.com) or ChatGPT. Paste the **starter prompt** from the [Arduino Code Loading Tool](tools#vibe), then your cumulative code from the tool. Write your own prompt for the new behavior. Include (1) every input and LED, (2) OUT, SCK, resting, puff, and sip for **each** breath sensor, (3) the exact action for joystick move, joystick click, and each puff and sip, and (4) when the LED is on or off. End with this guardrail: {{prompt}}Keep every behavior and pin I already have and do not change my existing wiring. Use only the parts I named. Give each breath sensor its own trigger numbers. Check whether each OUT pin is ready before reading it; never wait for one sensor in a way that pauses the joystick, mouse, keyboard, or other sensor. Act once per puff or sip, then wait for that sensor to return near resting before it can act again. Simplest possible code and simplest wiring instructions.{{/prompt}} Paste the full code into the [Arduino Code Loading Tool](tools#vibe) and click **Upload**.',
             'Open the [Wiring Schematic Tool](tools#schematic) and follow the wiring section at the end of the AI response to update your existing schematic on the **breadboard** with anything new, including the second breath pressure sensor.',
-            'Wire your physical Arduino to match your updated schematic, then upload the new code from the Arduino Code Loading Tool. **Test it.** Every action should fire: joystick move, joystick click, and a puff and a sip on each breath sensor. Modify the code until the behavior works exactly the way you described it.',
+            'Wire your physical Arduino to match your updated schematic, then upload the new code. Test one control at a time first. Next, complete **three clean rounds** of all six required controls: joystick move, joystick click, tube 1 puff, tube 1 sip, tube 2 puff, and tube 2 sip. Finally, alternate 10 breath actions across both tubes. Success means every intended action fires once, with no missed, repeated, or accidental action. Modify the code until it passes.',
             'Design a CAD mount in [Tinkercad](https://www.tinkercad.com) that holds the joystick and both tubes where your user\'s mouth and chin actually reach them. **It must clamp or bolt to a table, wheelchair tray, or mount arm so it cannot shift while your user drives it with their face.** Export the STL.',
-            '3D print your mount and assemble the final product - joystick, both breath pressure sensors, mount, LED, Arduino, plus the sip or puff switch if you used it, **with your Project 2 final product still wired in and still working**. Then **test it like your user would** - use only your mouth, chin, and breath, with your device secured in place, and use your own tubes on both sensors. If it does not work for their motion, redesign and reprint. Success = 10 activations in a row using only your user\'s motion, covering every action, with every puff and sip landing on the right action exactly once. You will show this in your Video slot below - the earlier switches do not need to be featured, but they must be visibly wired in.',
+            '3D print the mount and assemble the final product with both labeled personal tubes and the Project 2 final product still wired and working. Secure the mount, then repeat the six-control test using only your user\'s access method. Ask about reach, comfort, effort, and accidental actions. Change the mount, thresholds, or action map when the test shows a problem. In the Video slot, show all six required controls working; earlier switches only need to remain visibly connected.',
             '**Your final product is what you plug into the hub in Project 4.** Once it works, copy your final code out of the Arduino Code Loading Tool and take a clear photo of your final breadboard. That one board - every input your final products carried across Projects 1-3 - is what the hub is built around.',
             'Submit your work in the **Rubric & Drop** section below - the rubric is your checklist. The [Idea Board](tools#idea-board), [Arduino Code Loading Tool](tools#vibe), [Wiring Schematic Tool](tools#schematic), and [Image Capture Tool](tools#camera) each save straight into the right slot with their **Save to** button.'
           ],
           videoUrl: '',
           links: [],
           rubric: [
-            { label: 'Sketch',  text: 'Upload your sketch of the prototype, made before you built: an Idea Board export or a photo of your notebook page.', points: 6 },
-            { label: 'CAD',     text: 'Upload the STL file(s) for the 3D-printed parts in your final product.', points: 10 },
-            { label: 'Code',    text: 'Upload a PDF of the code used in your final product - your Project 2 final product behaviors still included.', points: 8 },
-            { label: 'Wiring',  text: 'Upload the wiring schematic of your final product, made in the Wiring Schematic Tool on a breadboard, with your Project 2 final product still wired in. This is the wiring diagram the rubric grades. No perfboard yet - that is Project 4.', points: 7 },
-            { label: 'Image',   text: 'Upload a clear photo of your final product.', points: 4 },
-            { label: 'Video',   text: 'Upload a 15-60 second video of your end-user (or a peer using the same access method) using your final product. Earlier switches stay wired in the frame - they do not need to be featured.', points: 10 },
+            { label: 'Sketch',  text: 'Upload your pre-build action map. It must label joystick move, joystick click, both actions on each tube, the LED state, and the secure mount.', points: 6 },
+            { label: 'CAD',     text: 'Upload the STL file(s) for a secure mount that positions the joystick and both tubes for your user.', points: 10 },
+            { label: 'Code',    text: 'Upload a PDF of the final code. It must preserve Project 2, read both breath sensors without blocking the other controls, and use separate calibration values for each sensor.', points: 8 },
+            { label: 'Wiring',  text: 'Upload the final breadboard schematic with both pressure sensors labeled, each OUT and SCK pin shown, one new LED with its resistor, and the Project 2 final product still wired.', points: 7 },
+            { label: 'Image',   text: 'Upload a clear photo showing the complete mounted product, both labeled personal tubes, and the cumulative breadboard.', points: 4 },
+            { label: 'Video',   text: 'Upload a 15-60 second video showing joystick move, joystick click, and a puff and sip on each tube, with each intended action firing once and no accidental repeats.', points: 10 },
             { label: 'Summary', text: 'Write a 4-5 sentence reflection: who your end user is, what you built for them, what failed along the way, and what you changed.', points: 5 }
           ]
         }
@@ -11188,7 +11230,7 @@
     p3b2: ['Add the sip or puff switch', 'Generate the breath-switch code', 'Update the schematic', 'Wire the switch', 'Test the puff action'],
     p3b5: ['Prepare the pressure sensor', 'See the sensor work', 'Generate the pressure code', 'Update the schematic', 'Upload and test'],
     p3b3: ['Add the LED', 'Generate the LED code', 'Update the schematic', 'Wire the LED', 'Test the LED'],
-    p3b4: ['Sketch the hands-free design', 'Add the second breath sensor', 'Write the product prompt', 'Update the schematic', 'Build and test the circuit', 'Design a secure mount', 'Assemble and user-test', 'Save the hub baseline'],
+    p3b4: ['Map the six controls', 'Calibrate sensor 2', 'Write the product prompt', 'Update the schematic', 'Run the six-control test', 'Design a secure mount', 'Assemble and user-test', 'Save the hub baseline'],
     p4b1: ['Count the required ports', 'Plan cables and adapters', 'Sketch the port layout', 'Build the bill of materials'],
     p4b2: ['Preserve the working behavior', 'Verify the breadboard baseline', 'Draw the perfboard layout', 'Choose a connector strategy', 'Solder in stages', 'Test every external port'],
     p4b3: ['Start the enclosure CAD', 'Add the required features', 'Print a thin-wall prototype', 'Print and label the final', 'Optional built-in inputs'],
@@ -11315,12 +11357,19 @@
     if (b.brief) {
       const sec = document.createElement('div');
       sec.className = 'modal-section';
+      const requirementCards = (b.brief.requirements || []).map(r => `
+        <li class="cp-requirement">
+          <span class="cp-requirement-label">${escapeHtml(r.label)}</span>
+          <span class="cp-requirement-text">${escapeHtml(r.text)}</span>
+        </li>
+      `).join('');
       const personaCards = (b.brief.personas || []).map(p => `
         <div class="cp-persona">
           <div class="cp-persona-name">${escapeHtml(p.name)}</div>
-          <div class="cp-persona-cond">${escapeHtml(p.condition)}</div>
-          <div class="cp-persona-row"><strong>Motion:</strong> ${escapeHtml(p.motion)}</div>
           <div class="cp-persona-row"><strong>Goal:</strong> ${escapeHtml(p.goal)}</div>
+          <div class="cp-persona-row"><strong>Reliable motion:</strong> ${escapeHtml(p.motion)}</div>
+          ${p.actions ? `<div class="cp-persona-row"><strong>Action map:</strong> ${escapeHtml(p.actions)}</div>` : ''}
+          <div class="cp-persona-context"><strong>Access context:</strong> ${escapeHtml(p.context || p.condition || '')}</div>
         </div>
       `).join('');
       sec.innerHTML = `
@@ -11328,6 +11377,7 @@
         <div class="cp-brief">
           ${b.brief.hook ? `<p class="cp-brief-hook">${escapeHtml(b.brief.hook)}</p>` : ''}
           ${b.brief.challenge ? `<p class="cp-brief-challenge">${formatStepMarkup(b.brief.challenge, partSeen)}</p>` : ''}
+          ${requirementCards ? `<ul class="cp-requirements" aria-label="Project requirements">${requirementCards}</ul>` : ''}
         </div>
       `;
       modalBody.appendChild(sec);
@@ -15536,7 +15586,9 @@ void loop() {
 ` },
     { id: 'breath-calibration', name: 'Breath test (HX710B)', code:
 `// Breath test for the HX710B breath pressure sensor.
-// Wire: VCC to 5V, GND to GND, OUT to pin 4, SCK to pin 5.
+// Wire VCC to 5V and GND to GND. Choose any two open digital pins
+// for OUT and SCK, then change the two constants below to match.
+// Pins 4 and 5 are examples only.
 // Open the Serial Monitor. It shows three numbers:
 //   Now     = what the sensor reads right now
 //   Highest = the biggest reading so far (a puff)

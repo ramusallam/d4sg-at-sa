@@ -24,6 +24,12 @@ assert.match(breathInstructions, /\*\*Resting:\*\*[\s\S]*\*\*Puff:\*\*[\s\S]*\*\
   'calibration is three values: resting, puff, sip');
 assert.match(breathInstructions, /resting ___, puff ___, sip ___/,
   'the prompt has a blank for each of the three values');
+assert.match(breathInstructions, /OUT on pin ___ and SCK on pin ___/,
+  'the prompt uses pins selected from the student\'s cumulative schematic');
+assert.doesNotMatch(breathInstructions, /OUT on pin 4 and SCK on pin 5|OUT to pin 4, and SCK to pin 5/,
+  'the benchmark does not overwrite earlier wiring with hard-coded pressure-sensor pins');
+assert.match(breathInstructions, /change \*\*OUT_PIN\*\* and \*\*SCK_PIN\*\* to match your wiring/,
+  'the supplied breath test tells students how to use their chosen open pins');
 assert.match(breathInstructions, /halfway between resting and puff[\s\S]*halfway between resting and sip[\s\S]*never overlap/,
   'the prompt chooses triggers inside the student numbers that cannot overlap');
 assert.match(breathInstructions, /Puff is greater than Resting and Sip is less than Resting/,
@@ -58,6 +64,40 @@ assert.doesNotMatch(JSON.stringify(project3Product), /soft puff|hard puff|quick 
   'Project 3 product uses the same puff-versus-sip model as the Breath Pressure benchmark');
 assert.match(JSON.stringify(project3Product), /puff[\s\S]*sip/i,
   'Project 3 product keeps distinct puff and sip actions');
+assert.equal(project3Product.brief.requirements.length, 6,
+  'Project 3 surfaces its six requirement groups before the build steps');
+assert.ok(project3Product.brief.challenge.length < 180,
+  'the Project 3 challenge stays focused instead of burying requirements in prose');
+const requirementText = project3Product.brief.requirements.map(item => `${item.label} ${item.text}`).join(' ');
+assert.match(requirementText, /two HX710B sensors[\s\S]*one puff action and one sip action/i,
+  'the visible requirement map names both sensors and all four breath actions');
+assert.match(requirementText, /Project 2 final product wired, coded, and working/i,
+  'the visible requirement map preserves the cumulative build');
+assert.ok(project3Product.brief.personas.every(persona => persona.context && persona.goal && persona.motion && persona.actions),
+  'Project 3 personas lead with goals and reliable motion, with access context kept secondary');
+const secondSensorStep = project3Product.instructions[1];
+assert.match(secondSensorStep, /Unplug USB before adding the sensor/,
+  'students power down before adding pressure-sensor wiring');
+assert.match(secondSensorStep, /Sensor 2 OUT pin, SCK pin, resting, puff, sip/,
+  'the second sensor has one explicit calibration record');
+assert.match(secondSensorStep, /Leave both sensors in their final pins/,
+  'second-sensor calibration does not dismantle a known-good baseline');
+assert.match(secondSensorStep, /stop if you feel dizzy or uncomfortable/,
+  'breath trials include a clear stop condition');
+const productPromptStep = project3Product.instructions[2];
+assert.match(productPromptStep, /Check whether each OUT pin is ready before reading it[\s\S]*never wait for one sensor/,
+  'two-sensor code is prompted to keep every control responsive');
+assert.match(project3Product.instructions[4], /three clean rounds[\s\S]*alternate 10 breath actions[\s\S]*no missed, repeated, or accidental action/,
+  'the final controller has a concrete six-control reliability test');
+const rubricText = project3Product.rubric.map(item => `${item.label} ${item.text}`).join(' ');
+assert.match(rubricText, /both pressure sensors labeled[\s\S]*each OUT and SCK pin/i,
+  'the wiring rubric grades the new two-sensor requirement');
+assert.match(rubricText, /joystick move[\s\S]*joystick click[\s\S]*puff and sip on each tube/i,
+  'the video rubric grades all six required controls');
+assert.match(html, /aria-label="Project requirements"/,
+  'the requirement map has an accessible list label');
+assert.match(html, /<strong>Goal:<\/strong>[\s\S]*<strong>Reliable motion:<\/strong>[\s\S]*<strong>Access context:<\/strong>/,
+  'persona cards present the person\'s goal and reliable motion before diagnosis context');
 
 for (const project of projects) {
   for (const benchmark of project.benchmarks) {

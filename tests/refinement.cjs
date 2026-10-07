@@ -49,6 +49,8 @@ assert.match(breathExample, /lastReadingAt >= 1200[\s\S]*Sensor timeout/,
   'an unresponsive sensor produces a clear timeout instead of hanging');
 assert.doesNotMatch(breathExample, /void loop\(\)[\s\S]*delay\(/,
   'the see-it-work sketch does not throw away quick-breath samples');
+assert.match(breathExample, /Choose any two open digital pins[\s\S]*Pins 4 and 5 are examples only/,
+  'the example protects cumulative builds from hard-coded pin collisions');
 
 const starterStart = html.indexOf('const VIBE_STARTER_PROMPT');
 const starterEnd = html.indexOf('].join("\\n")', starterStart);
