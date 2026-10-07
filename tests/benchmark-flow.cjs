@@ -99,6 +99,22 @@ assert.match(html, /aria-label="Project requirements"/,
 assert.match(html, /<strong>Goal:<\/strong>[\s\S]*<strong>Reliable motion:<\/strong>[\s\S]*<strong>Access context:<\/strong>/,
   'persona cards present the person\'s goal and reliable motion before diagnosis context');
 
+const productBenchmarks = ['p1b4', 'p2b4', 'p3b4', 'p4b5']
+  .map(id => projects.flatMap(project => project.benchmarks).find(benchmark => benchmark.id === id));
+assert.ok(productBenchmarks.every(Boolean), 'all four project products exist');
+assert.ok(productBenchmarks.every(benchmark => benchmark.brief?.requirements?.length === 6),
+  'every product brief uses the same six-card requirements rhythm');
+assert.ok(productBenchmarks.every(benchmark => benchmark.brief.challenge.length < 180),
+  'every product challenge stays concise and leaves details to the requirement cards');
+const endUserProducts = productBenchmarks.slice(0, 3);
+assert.ok(endUserProducts.every(benchmark => benchmark.brief.personas.length === 4),
+  'Projects 1-3 each offer four end-user directions');
+assert.ok(endUserProducts.every(benchmark => benchmark.brief.personas.every(persona =>
+  persona.context && persona.goal && persona.motion && persona.actions && !persona.condition)),
+  'every end-user card shares the goal-first content structure with access context last');
+assert.match(JSON.stringify(productBenchmarks[3].brief.requirements), /one persona from Projects 1-3/,
+  'Project 4 carries an existing end user forward instead of inventing a disconnected persona');
+
 for (const project of projects) {
   for (const benchmark of project.benchmarks) {
     if (!benchmark.instructions) continue;
@@ -127,4 +143,4 @@ assert.match(html, /Every external LED needs its own 220-330 ohm current-limitin
 assert.doesNotMatch(html, /two LEDs[^}]{0,500}no resistors/,
   'LED benchmark prompts never prohibit current-limiting resistors');
 
-console.log('T4SG benchmark-flow audit passed: six-step pressure flow, three-number calibration, one key per breath, aligned product language, safe LEDs, concise labels, and instruction parity.');
+console.log('T4SG benchmark-flow audit passed: aligned Product briefs and end-user cards, safe breath controls, concise labels, and instruction parity.');

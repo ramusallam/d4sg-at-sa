@@ -6747,12 +6747,20 @@
           drop: true,
           brief: {
             hook: "A switch worth $15 can unlock a one-button rhythm game for a person whose most reliable movement is one wrist. The most important assistive technology in the world is sometimes the simplest. Now it is your turn.",
-            challenge: "How might we help one specific person access something they want to do more independently? Your available materials: a button, a lever, an LED, and an Arduino Leonardo. The minimum build is one switch and one LED - use more of the kit whenever your user's motion and goal need it. The wiring is only half the build. The other half is 3D design: you will model and print a custom mount - the housing that holds the switch itself - shaped and placed so the device fits your user's body and motion, not the other way around.",
+            challenge: "How might we help one specific person access something they care about using a reliable movement?",
+            requirements: [
+              { label: 'Input', text: 'Use the button, lever, or both only when the user\'s motion and goal need them.' },
+              { label: 'Action map', text: 'Assign one exact key, mouse action, or preset phrase to each input.' },
+              { label: 'Feedback', text: 'Use one LED to communicate a useful state or confirm an action.' },
+              { label: 'Fit', text: '3D-print a mount that positions the control where the user\'s reliable motion lands.' },
+              { label: 'Reliability', text: 'Complete 10 intended activations with no missed or accidental triggers.' },
+              { label: 'Carry forward', text: 'Save the final code, schematic, and circuit photo as the Project 2 starting point.' }
+            ],
             personas: [
-              { name: 'Mia, 9',  condition: 'Cerebral palsy',           motion: 'Firm right-forearm sweep, full press',   goal: 'Play Geometry Dash with her brother (1 key, jump).' },
-              { name: 'Leo, 16', condition: 'Cerebral palsy',           motion: 'Strong fist/palm press',                 goal: 'DJ in GarageBand, trigger drum loops (2 keys, kick + snare).' },
-              { name: 'Ava, 14', condition: 'Non-speaking, dyspraxia',  motion: 'Hits large targets reliably',            goal: 'Tell her teacher "I need a break" without speaking (1-2 keys, each types a preset phrase).' },
-              { name: 'Eli, 19', condition: 'C5-C6 spinal cord injury', motion: 'Head/chin press against a mounted pad',  goal: 'Control his audiobook from bed (2 keys, play/pause + skip back; spacebar = play/pause in his audiobook app).' }
+              { name: 'Mia, 9', context: 'Cerebral palsy', motion: 'Firm right-forearm sweep and full press.', goal: 'Play Geometry Dash with her brother.', actions: 'One switch jumps; the LED confirms each activation.' },
+              { name: 'Leo, 16', context: 'Cerebral palsy', motion: 'Strong, reliable fist or palm press.', goal: 'DJ drum loops in GarageBand.', actions: 'Two inputs trigger kick and snare; the LED shows the active beat.' },
+              { name: 'Ava, 14', context: 'Non-speaking and has dyspraxia', motion: 'Consistently reaches and presses large targets.', goal: 'Tell her teacher what she needs without speaking.', actions: 'One or two inputs type preset phrases; the LED confirms the selection.' },
+              { name: 'Eli, 19', context: 'C5-C6 spinal cord injury', motion: 'Reliable head or chin press against a mounted pad.', goal: 'Control his audiobook from bed.', actions: 'Two inputs play or pause and skip back; the LED confirms the command.' }
             ]
           },
           instructions: [
@@ -6842,12 +6850,20 @@
           drop: true,
           brief: {
             hook: "A light fingertip graze can turn a page, send a message, or call for help when the sensor needs no force at all. The right sensor does not wait for a push - it answers the smallest reliable movement a person can make. Now it is your turn.",
-            challenge: "How might we help one specific person access something they want to do using their smallest reliable movement, with no force? Your available materials: a capacitive touch sensor, an FC-51 IR sensor, a new LED, and an Arduino Leonardo. The minimum build is one sensor and one LED - use more of the kit whenever your user's motion and goal need it. Like Project 1, you will 3D-model and print a custom mount - the housing that holds the sensor itself - so the device meets their smallest movement exactly where their body makes it. One standing rule: the build is cumulative. Your Project 1 final product stays wired in - in your code, your schematic, and on your breadboard - even when this product does not feature it.",
+            challenge: "How might we help one specific person access something they care about using their smallest reliable movement?",
+            requirements: [
+              { label: 'No-force input', text: 'Use the touch sensor, IR sensor, or both only when the user needs them.' },
+              { label: 'Action map', text: 'Assign one exact key, mouse action, or preset phrase to each new sensor.' },
+              { label: 'Feedback', text: 'Use one new LED to communicate a useful state or confirm an action.' },
+              { label: 'Carry forward', text: 'Keep the complete Project 1 final product wired, coded, and working.' },
+              { label: 'Fit', text: '3D-print a mount that meets the user\'s smallest reliable movement without force.' },
+              { label: 'Reliability', text: 'Complete 10 intended activations with no missed or accidental triggers.' }
+            ],
             personas: [
-              { name: 'Noa, 12',  condition: 'Spinal muscular atrophy',             motion: 'Rests and lifts a single fingertip, no force',  goal: 'Turn pages in a digital comic with a fingertip touch (1 key, next page).' },
-              { name: 'Kai, 17',  condition: 'High cervical spinal cord injury (C1-C4)', motion: 'Slow, reliable head and cheek movement',     goal: 'Call a caregiver hands-free by moving toward a sensor (1 key - the key types a message into an open chat window with his caregiver).' },
-              { name: 'Remy, 10', condition: 'Rett syndrome',                         motion: 'Sweeps a hand slowly through the air',          goal: 'Skip songs in a playlist by waving near a sensor (1 key - media-skip works in her music app, or a key her player has a shortcut for).' },
-              { name: 'Ari, 20',  condition: 'Advanced muscular dystrophy',           motion: 'Grazes a surface with one fingertip, zero force', goal: 'Answer yes or no in a chat by touching two pads (2 keys, each types a preset word).' }
+              { name: 'Noa, 12', context: 'Spinal muscular atrophy', motion: 'Rests and lifts one fingertip without pressing.', goal: 'Turn pages in a digital comic.', actions: 'A light touch advances the page; the LED confirms the action.' },
+              { name: 'Kai, 17', context: 'High cervical spinal cord injury (C1-C4)', motion: 'Slow, reliable head and cheek movement.', goal: 'Call a caregiver without using his hands.', actions: 'Moving toward the IR sensor types a preset message; the LED confirms it was sent.' },
+              { name: 'Remy, 10', context: 'Rett syndrome', motion: 'Slow, reliable hand sweep through the air.', goal: 'Skip songs in a playlist.', actions: 'A wave near the IR sensor skips a song; the LED confirms the action.' },
+              { name: 'Ari, 20', context: 'Advanced muscular dystrophy', motion: 'Light fingertip graze without a press.', goal: 'Answer yes or no in a chat.', actions: 'Two touch targets type yes and no; the LED confirms each choice.' }
             ]
           },
           instructions: [
@@ -7074,6 +7090,18 @@
           title: 'Product',
           points: 50,
           drop: true,
+          brief: {
+            hook: "A useful adaptive controller is more than one successful input. It is a dependable system that lets a person connect the control that fits today, change what it does, and keep creating tomorrow.",
+            challenge: "How might we make the cumulative controller easy to connect, remap, and use as one dependable system?",
+            requirements: [
+              { label: 'Cumulative core', text: 'Keep every final behavior from Projects 1-3 working in the hub.' },
+              { label: 'Connections', text: 'Use clearly labeled 3.5mm and JST-XH ports for the external controls.' },
+              { label: 'Permanent build', text: 'Move the circuit from the breadboard to organized, reliable perfboard.' },
+              { label: 'Enclosure', text: '3D-print a durable case with secure ports, USB access, labels, and a QR area.' },
+              { label: 'Live remap', text: 'Use the web app and QR code to change each port\'s action without rewriting code.' },
+              { label: 'User validation', text: 'Test the full connection and remap flow with one persona from Projects 1-3.' }
+            ]
+          },
           instructions: 'Submit your final product for Project 4 by following the rubric below. This is the integrated hub you grew across all four projects - sketch, perfboard, enclosure, remap app, and a testing session with your end-user (or a peer using the same access method) - adopt one persona from Projects 1-3 as the hub\'s end-user.',
           videoUrl: '',
           links: [],
