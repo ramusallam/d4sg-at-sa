@@ -8096,7 +8096,7 @@
   // `team: true` lets the submitter add teammates from the roster.
   // Shape: { id, date: 'YYYY-MM-DD' ('' = unscheduled), title,
   //          challenge: '<p>HTML</p>', shortUrl (optional embed),
-  //          hints: ['text', ...], minutes: Number, materials: ['item', ...],
+  //          hints: ['text', ...], materials: ['item', ...],
   //          deliverable: '<p>HTML</p>', award: '<p>HTML</p>', winner: '',
   //          drop: true, team: true, points, rubric: [Code, Wiring, Video] }
   // Section sub-lines are Ramsey's words; blank ones do not render.
@@ -8107,6 +8107,7 @@
     deliverable: '',
     award:       ''
   };
+  const HACKATHON_MINUTES = 60;
   const HACKATHON_POINTS = 5;
   const HACKATHON_POINTS_LINE = `${HACKATHON_POINTS} pts for submitting all three. Nothing for less.`;
   const HACKATHON_JUDGING = 'Earned by a working build, shown in your video, code, and wiring diagram.';
@@ -8127,7 +8128,6 @@
         'Your first prompt must ask for code that prints the LDR reading to the Serial Monitor, so you can find your threshold and change it.',
         'The LDR wiring is the hard part. Ask for clear, step-by-step wiring instructions for the LDR, and for the Serial Monitor readout.'
       ],
-      minutes: 45,
       materials: ['Arduino Leonardo', 'Servo motor', 'LDR photoresistor', '10K ohm resistor', 'Breadboard', 'Misc. wires', 'Masking tape', 'External battery source, if needed'],
       deliverable: '<p>It jumps over at least one cactus on its own. Three things: your code, your wiring diagram, and a video of the success.</p>',
       award: '<p>One homework pass: full credit awarded.</p>',
@@ -8143,7 +8143,7 @@
   let hackathonSelectedId = '';
 
   function findHackathonById(id) { return HACKATHONS.find(h => h.id === id) || null; }
-  function hackathonTimerKey(id) { return `d4sg-hack-timer-end-${id}`; }
+  function hackathonTimerKey(id) { return `d4sg-hack-timer-end-${HACKATHON_MINUTES}-${id}`; }
 
   function hackathonSectionHTML(key, label, bodyHTML) {
     const sub = HACKATHON_SUBS[key] ? `<small>${escapeHtml(HACKATHON_SUBS[key])}</small>` : '';
@@ -8177,9 +8177,9 @@
       ? `<div class="hack-hints"><span class="hack-hints-label">Hints</span><ol>${h.hints.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ol></div>`
       : '';
     const materials = `<ul>${(h.materials || []).map(m => `<li>${escapeHtml(m)}</li>`).join('')}</ul>`;
-    const time = `<div class="hack-time"><span>${h.minutes} minutes to build.</span>
+    const time = `<div class="hack-time"><span>${HACKATHON_MINUTES} minutes to build.</span>
         <div class="hack-timer" id="hackTimer" role="timer" aria-label="Build timer">
-          <span class="hack-timer-readout" id="hackTimerReadout">${h.minutes}:00</span>
+          <span class="hack-timer-readout" id="hackTimerReadout">${HACKATHON_MINUTES}:00</span>
           <button type="button" class="hack-timer-btn" id="hackTimerBtn">Start</button>
         </div></div>`;
     const deliverable = `${h.deliverable}<p class="hack-judge">${HACKATHON_POINTS_LINE}</p>
@@ -8225,7 +8225,7 @@
     function paintTimer() {
       const endAt = Number(localStorage.getItem(key) || 0);
       if (!endAt) {
-        readout.textContent = `${h.minutes}:00`;
+        readout.textContent = `${HACKATHON_MINUTES}:00`;
         timerBtn.textContent = 'Start';
         timerEl.classList.remove('is-low', 'is-critical', 'is-done');
         return;
@@ -8249,7 +8249,7 @@
         localStorage.removeItem(key);
         if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
       } else {
-        localStorage.setItem(key, String(Date.now() + h.minutes * 60000));
+        localStorage.setItem(key, String(Date.now() + HACKATHON_MINUTES * 60000));
         startTicking();
       }
       paintTimer();

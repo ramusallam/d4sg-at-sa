@@ -6,6 +6,12 @@ const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const compileProxy = fs.readFileSync(path.join(__dirname, '..', 'api', 'compile.js'), 'utf8');
 
 assert.match(html, /function setupBenchmarkJourney\(b\)/, 'benchmarks use the focused journey');
+assert.match(html, /const HACKATHON_MINUTES = 60;/,
+  'every hackathon uses the shared 60-minute duration');
+assert.doesNotMatch(html, /\n\s+minutes:\s*\d+,/,
+  'individual hackathons cannot silently override the shared duration');
+assert.match(html, /d4sg-hack-timer-end-\$\{HACKATHON_MINUTES\}-\$\{id\}/,
+  'a duration change starts a fresh persisted timer instead of reviving an older countdown');
 assert.match(html, /t4sg-benchmark-page:\$\{b\.id\}/, 'journey position is saved per benchmark');
 assert.match(html, /\.cp-step\[hidden\][\s\S]*display:\s*none\s*!important/, 'inactive instructions are removed from layout');
 assert.match(html, /grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\)/, 'all five mobile destinations fit without sideways scrolling');
