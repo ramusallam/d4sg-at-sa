@@ -8642,18 +8642,18 @@ void loop() {
     sec.innerHTML = `
       <button class="schem-back" id="agBack" aria-label="Back to Tools"><span class="schem-back-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></span> Back to Tools</button>
       <h2 class="project-title">Antigravity + Arduino</h2>
-      <p class="project-blurb">A second way to load code onto your board. You describe what you want. An agent on your laptop writes the code, uploads it, reads what the board says back, and fixes its own mistakes. Either lane is fine. Pick the one you like.</p>
+      <p class="project-blurb">A second way to vibe code your board, for any project or benchmark. You describe what you want. An agent on your laptop writes the code, uploads it, reads what the board says back, and fixes its own mistakes. Either lane is fine. Pick the one you like.</p>
       <div class="warmup-workspace">
         <article class="hack-card">
           ${section('What this is', `<p><strong>The browser tool</strong> is a copy machine. You ask Gemini for code, paste it into the tool, click Upload, and if it fails you carry the error back to Gemini yourself.</p>
             <p><strong>Antigravity</strong> is an agent. It is an AI that can run programs on your laptop, not just write text. It has the compiler, the upload tool, and the serial monitor, and your board is plugged into it. So it does the whole loop on its own: write, compile, upload, watch the board, adjust, upload again. You stay in plain English the whole time.</p>
             <p>That is what agentic coding means. You say what should happen. The agent works the tools until it does, and shows you its work as it goes.</p>`)}
-          ${section('What it is like', `<p>A real exchange from the Dino robot build:</p>
+          ${section('What it is like', `<p>A typical exchange while building your controller:</p>
             <ul>
-              <li><strong>You:</strong> "The servo taps too late. The cactus gets there first."</li>
-              <li><strong>Agent:</strong> reads your sketch, uploads it, watches the serial numbers for five seconds. "I saw 812 on white screen and 390 when the cactus passed. Your threshold was 500, so the tap waited until the cactus was half under the sensor. I set it to 740 and made the tap hold for 200 ms. Uploaded. Try it."</li>
-              <li><strong>You:</strong> test it. "Better. Now it jumps twice sometimes."</li>
-              <li><strong>Agent:</strong> fixes, uploads, explains in one sentence.</li>
+              <li><strong>You:</strong> "The W key sticks. When I let go of the button it keeps typing w."</li>
+              <li><strong>Agent:</strong> reads your sketch, uploads it, watches the serial output. "Your code pressed the key every loop but only released it once. I now release on the loop where the button goes up, and I added a 15 ms debounce. Uploaded. Try it."</li>
+              <li><strong>You:</strong> test it. "Fixed. Now add a lever on pin 3 that presses A."</li>
+              <li><strong>Agent:</strong> adds it, uploads, and ends with the wiring: lever COM to GND, NO to pin 3.</li>
             </ul>
             <p>You never opened a terminal. You also never stopped understanding what changed, because the agent tells you every time.</p>`)}
           ${section('Why it is better', `<ul>
