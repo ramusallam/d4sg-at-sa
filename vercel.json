@@ -30,6 +30,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/hackathons",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/hackathons/",
+      "destination": "/index.html"
+    },
+    {
       "source": "/hw",
       "destination": "/index.html"
     },

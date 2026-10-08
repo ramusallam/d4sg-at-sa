@@ -959,7 +959,7 @@
     }
   }
 
-  /* ===== Tool file switch (Project / Warm-up) ===== */
+  /* ===== Tool file switch (Project / Misc. Files) ===== */
   .tool-file {
     display: flex;
     align-items: center;
@@ -988,8 +988,6 @@
   .tool-file-btn:hover { color: var(--ink-hi); }
   .tool-file-btn[aria-checked="true"] { background: var(--accent); color: #fff; }
   .tool-file-btn[data-file="warmup"][aria-checked="true"] { background: #d97706; }
-  .tool-file-note { font-size: 12.5px; color: #92400e; }
-  .tool-file:not(.is-warmup) .tool-file-note { display: none; }
 
   /* ===== Saved-state pill near Submit ===== */
   .pf-saved-pill {
@@ -1544,12 +1542,13 @@
     color: var(--accent);
     background: var(--accent-soft);
   }
-  /* All four nav pills always visible: Projects / Warm-ups / Tools / Homework.
+  /* All five nav pills always visible: Projects / Warm-ups / Hackathons / Tools / Homework.
      The pill for the current view fills indigo so the student sees where
      they are. No layout jumps as they navigate. */
-  .nav-to-home, .nav-to-warmups, .nav-to-hw, .nav-to-tools { display: inline-flex; }
+  .nav-to-home, .nav-to-warmups, .nav-to-hackathons, .nav-to-hw, .nav-to-tools { display: inline-flex; }
   body.view-home .nav-to-home,
   body.view-warmups .nav-to-warmups,
+  body.view-hackathons .nav-to-hackathons,
   body.view-hw .nav-to-hw,
   body.view-tools .nav-to-tools {
     background: var(--accent);
@@ -1558,6 +1557,7 @@
   }
   body.view-home .nav-to-home:hover,
   body.view-warmups .nav-to-warmups:hover,
+  body.view-hackathons .nav-to-hackathons:hover,
   body.view-hw .nav-to-hw:hover,
   body.view-tools .nav-to-tools:hover {
     background: var(--accent-hover);
@@ -1974,6 +1974,187 @@
     .warmup-question > ol, .warmup-question > ul { padding: 13px 14px 13px 34px; }
     .warmup-media-panel { max-width: 100%; }
   }
+  /* Hackathons: one off-flow period, five fixed sections on one card.
+     Same card language as the warm-up card; the timer rides inside the
+     Time Allowed section. */
+  .hack-page { margin-bottom: 48px; }
+  .hack-card {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 2px 6px rgba(17, 17, 17, 0.04);
+    padding: 20px 22px 18px;
+  }
+  .hack-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 14px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hack-eyebrow {
+    margin: 0 0 4px;
+    font: 700 10px/1 "Roboto Mono", monospace;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .hack-title {
+    margin: 0;
+    font: 700 22px/1.15 "Inter", sans-serif;
+    letter-spacing: -.02em;
+    color: var(--ink-hi);
+  }
+  .hack-section {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 18px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .hack-section:last-child { border-bottom: 0; padding-bottom: 4px; }
+  .hack-label {
+    font: 700 11px/1.3 "Inter", sans-serif;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-hi);
+    margin: 0;
+    padding-top: 2px;
+  }
+  .hack-label small {
+    display: block;
+    margin-top: 4px;
+    font: 500 12px/1.4 "Inter", sans-serif;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink-low);
+  }
+  .hack-body { font-size: 15px; line-height: 1.55; color: var(--ink-hi); min-width: 0; }
+  .hack-body p { margin: 0 0 8px; max-width: 720px; }
+  .hack-body p:last-child { margin-bottom: 0; }
+  .hack-body ul { margin: 0; padding-left: 20px; max-width: 720px; }
+  .hack-body li { margin-bottom: 4px; }
+  .hack-time { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .hack-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 6px 6px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: var(--bg-2);
+  }
+  .hack-timer-readout {
+    font: 700 20px/1 "Roboto Mono", monospace;
+    letter-spacing: .02em;
+    color: var(--ink-hi);
+    min-width: 64px;
+    font-variant-numeric: tabular-nums;
+  }
+  .hack-timer.is-low .hack-timer-readout { color: #B45309; }
+  .hack-timer.is-critical .hack-timer-readout { color: #B91C1C; animation: dayonePulse 0.9s ease-in-out infinite; }
+  .hack-timer.is-done .hack-timer-readout { color: #B91C1C; }
+  @media (prefers-reduced-motion: reduce) { .hack-timer.is-critical .hack-timer-readout { animation: none; } }
+  .hack-timer-btn {
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font: 600 12.5px/1 "Inter", sans-serif;
+    cursor: pointer;
+  }
+  .hack-timer-btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .hack-winner {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font: 600 13px/1 "Inter", sans-serif;
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+  }
+  .hack-judge { margin-top: 8px; font-size: 13px; color: var(--ink-mid); }
+  .hack-body .gallery-grid { margin-top: 14px; }
+  .hack-empty { color: var(--ink-mid); font-size: 14px; }
+  @media (max-width: 640px) {
+    .hack-section { grid-template-columns: 1fr; gap: 8px; }
+  }
+  .hack-video {
+    margin-top: 14px;
+    max-width: 320px;
+    aspect-ratio: 9 / 16;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #000;
+  }
+  .hack-video iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .hack-hints {
+    margin-top: 14px;
+    padding: 12px 16px 12px 14px;
+    max-width: 720px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 12px;
+    background: var(--bg-2);
+  }
+  .hack-hints-label {
+    display: block;
+    font: 700 10px/1 "Roboto Mono", monospace;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-low);
+    margin-bottom: 8px;
+  }
+  .hack-hints ol { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.5; }
+  .hack-hints li { margin-bottom: 5px; }
+  .hack-hints li:last-child { margin-bottom: 0; }
+  .hack-drop-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px 16px;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    font: 600 13.5px/1 "Inter", sans-serif;
+    cursor: pointer;
+  }
+  .hack-drop-btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  /* Hackathon teams: teammates picked from the roster under the name picker. */
+  .pf-team { margin-top: 12px; }
+  .pf-team-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .pf-team-chips:empty { display: none; }
+  .pf-team-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px 5px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-2);
+    font: 600 12.5px/1 "Inter", sans-serif;
+    color: var(--ink-hi);
+  }
+  .pf-team-chip button {
+    display: inline-flex;
+    border: 0;
+    background: transparent;
+    color: var(--ink-low);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .pf-team-chip button:hover { color: var(--ink-hi); }
+  .pf-row-team { margin-left: 8px; font-size: 12px; font-weight: 500; color: var(--ink-mid); }
   .step-section {
     margin-bottom: 28px;
   }
@@ -2783,6 +2964,9 @@
   .pf-rubric--readonly .pf-rubric-head,
   .pf-rubric--readonly .pf-rubric-row { grid-template-columns: 1.7fr 1fr 1fr 1fr; }
   .pf-rubric--readonly .pf-rubric-row > .prc:last-child { border-right: none; }
+  /* Hackathon variant: all-or-nothing, so one Credit column instead of three levels. */
+  .pf-rubric--hack .pf-rubric-head,
+  .pf-rubric--hack .pf-rubric-row { grid-template-columns: 1.7fr 1.2fr 122px; }
   @media (max-width: 620px) {
     .pf-rubric--readonly .pf-rubric-row { grid-template-columns: 1fr 1fr; }
     .pf-rubric--readonly .pf-rubric-row > .prc-crit { grid-column: 1 / -1; }
@@ -6328,6 +6512,7 @@
     <div class="header-meta">
       <a href="/" class="nav-link nav-to-home">Projects</a>
       <a href="/warm-ups" class="nav-link nav-to-warmups">Warm-ups</a>
+      <a href="/hackathons" class="nav-link nav-to-hackathons">Hackathons</a>
       <a href="/tools" class="nav-link nav-to-tools">Tools</a>
       <a href="/hw" class="nav-link nav-to-hw">Homework</a>
       <details class="course-menu">
@@ -7900,6 +8085,183 @@
     if (moveFocus) requestAnimationFrame(() => document.getElementById('warmupFocus')?.focus({ preventScroll: true }));
   }
 
+  // ============== HACKATHONS ==============
+  // Off-flow days: one class period, one build, one award. Every hackathon
+  // has the same five sections in the same order. Add an entry here (via
+  // Claude) the morning of; the page sorts by date, newest first, and one
+  // hackathon is in focus at a time.
+  // Each entry is also benchmark-shaped (drop + rubric) so the Deliverable
+  // reuses the Product "Rubric & Drop" panel untouched: Code and Wiring land
+  // from the tools' Save to benchmark, Video takes an upload or a link.
+  // `team: true` lets the submitter add teammates from the roster.
+  // Shape: { id, date: 'YYYY-MM-DD' ('' = unscheduled), title,
+  //          challenge: '<p>HTML</p>', shortUrl (optional embed),
+  //          hints: ['text', ...], minutes: Number, materials: ['item', ...],
+  //          deliverable: '<p>HTML</p>', award: '<p>HTML</p>', winner: '',
+  //          drop: true, team: true, points, rubric: [Code, Wiring, Video] }
+  // Section sub-lines are Ramsey's words; blank ones do not render.
+  const HACKATHON_SUBS = {
+    challenge:   '',
+    time:        '',
+    materials:   '',
+    deliverable: '',
+    award:       ''
+  };
+  const HACKATHON_POINTS = 5;
+  const HACKATHON_POINTS_LINE = `${HACKATHON_POINTS} pts for submitting all three. Nothing for less.`;
+  const HACKATHON_JUDGING = 'Earned by a working build, shown in your video, code, and wiring diagram.';
+  const HACKATHON_RUBRIC = [
+    { label: 'Code',   text: 'Save the code from the Arduino Code Loading Tool.', points: 0 },
+    { label: 'Wiring', text: 'Save the wiring schematic from the Wiring Schematic Tool.', points: 0 },
+    { label: 'Video',  text: 'Upload a short video of it working, or drop a link.', points: 0 }
+  ];
+  const HACKATHONS = [
+    {
+      id: 'hack-chrome-dino-robot',
+      date: '2026-10-09',
+      title: 'Chrome Dino Robot',
+      challenge: '<p>Watch the short. Recreate it. A light sensor watches the screen and a servo presses the spacebar when a cactus comes.</p>',
+      shortUrl: 'https://www.youtube.com/embed/kqzgUa51DdM',
+      hints: [
+        'LDR means light dependent resistor: the photoresistor. It is the light sensor taped to the screen in the video.',
+        'Your first prompt must ask for code that prints the LDR reading to the Serial Monitor, so you can find your threshold and change it.',
+        'The LDR wiring is the hard part. Ask for clear, step-by-step wiring instructions for the LDR, and for the Serial Monitor readout.'
+      ],
+      minutes: 45,
+      materials: ['Arduino Leonardo', 'Servo motor', 'LDR photoresistor', '10K ohm resistor', 'Breadboard', 'Misc. wires', 'Masking tape', 'External battery source, if needed'],
+      deliverable: '<p>It jumps over at least one cactus on its own. Three things: your code, your wiring diagram, and a video of the success.</p>',
+      award: '<p>One homework pass: full credit awarded.</p>',
+      winner: '',
+      drop: true,
+      team: true,
+      hackathon: true,
+      points: HACKATHON_POINTS,
+      instructions: [],
+      rubric: HACKATHON_RUBRIC
+    }
+  ];
+  let hackathonSelectedId = '';
+
+  function findHackathonById(id) { return HACKATHONS.find(h => h.id === id) || null; }
+  function hackathonTimerKey(id) { return `d4sg-hack-timer-end-${id}`; }
+
+  function hackathonSectionHTML(key, label, bodyHTML) {
+    const sub = HACKATHON_SUBS[key] ? `<small>${escapeHtml(HACKATHON_SUBS[key])}</small>` : '';
+    return `<div class="hack-section"><h3 class="hack-label">${label}${sub}</h3><div class="hack-body">${bodyHTML}</div></div>`;
+  }
+
+  function renderHackathons(selectedId = hackathonSelectedId, moveFocus = false) {
+    app.innerHTML = '';
+    const sec = document.createElement('section');
+    sec.className = 'project hack-page';
+    const visible = [...HACKATHONS].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+    if (visible.length === 0) {
+      sec.innerHTML = '<h2 class="project-title">Hackathons</h2><p class="project-blurb">One period. Build it, demo it, win it.</p><div class="hack-card"><p class="hack-empty">No hackathons yet.</p></div>';
+      app.appendChild(sec);
+      return;
+    }
+
+    let selectedIndex = visible.findIndex(h => h.id === selectedId);
+    if (selectedIndex < 0) selectedIndex = 0;
+    const h = visible[selectedIndex];
+    hackathonSelectedId = h.id;
+    const dateLabel = x => x.date ? formatWarmUpDate(x.date) : 'Unscheduled';
+    const picker = visible.length > 1
+      ? `<label class="warmup-picker"><span>Hackathon</span><select id="hackSelect" aria-label="Choose a hackathon">${visible.map((x, i) => `<option value="${x.id}"${i === selectedIndex ? ' selected' : ''}>${escapeHtml(x.title)} (${dateLabel(x)})</option>`).join('')}</select></label>`
+      : '';
+    const video = h.shortUrl
+      ? `<div class="hack-video"><iframe src="${escapeHtml(h.shortUrl)}" title="${escapeHtml(h.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`
+      : '';
+    const hints = (h.hints && h.hints.length)
+      ? `<div class="hack-hints"><span class="hack-hints-label">Hints</span><ol>${h.hints.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ol></div>`
+      : '';
+    const materials = `<ul>${(h.materials || []).map(m => `<li>${escapeHtml(m)}</li>`).join('')}</ul>`;
+    const time = `<div class="hack-time"><span>${h.minutes} minutes to build.</span>
+        <div class="hack-timer" id="hackTimer" role="timer" aria-label="Build timer">
+          <span class="hack-timer-readout" id="hackTimerReadout">${h.minutes}:00</span>
+          <button type="button" class="hack-timer-btn" id="hackTimerBtn">Start</button>
+        </div></div>`;
+    const deliverable = `${h.deliverable}<p class="hack-judge">${HACKATHON_POINTS_LINE}</p>
+        <button type="button" class="hack-drop-btn" id="hackDropBtn">Open the drop <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></button>`;
+    const award = `${h.award}<p class="hack-judge">${HACKATHON_JUDGING}</p>` +
+      (h.winner ? `<span class="hack-winner"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M7 6H4a3 3 0 003 3M17 6h3a3 3 0 01-3 3"/></svg>${h.winner.includes(',') ? 'Winners' : 'Winner'}: ${escapeHtml(h.winner)}</span>` : '');
+
+    sec.innerHTML = `
+      <h2 class="project-title">Hackathons</h2>
+      <p class="project-blurb">One period. Build it, demo it, win it.</p>
+      <div class="warmup-workspace">
+        <article class="hack-card" id="hackFocus" tabindex="-1" aria-live="polite">
+          <header class="hack-head">
+            <div>
+              <p class="hack-eyebrow">${dateLabel(h)}</p>
+              <h3 class="hack-title">${escapeHtml(h.title)}</h3>
+            </div>
+            ${picker}
+          </header>
+          ${hackathonSectionHTML('challenge', 'Challenge', h.challenge + video + hints)}
+          ${hackathonSectionHTML('time', 'Time Allowed', time)}
+          ${hackathonSectionHTML('materials', 'Materials', materials)}
+          ${hackathonSectionHTML('deliverable', 'Deliverable', deliverable)}
+          ${hackathonSectionHTML('award', 'Award', award)}
+        </article>
+      </div>
+    `;
+    app.appendChild(sec);
+    const select = sec.querySelector('#hackSelect');
+    if (select) select.addEventListener('change', e => renderHackathons(e.target.value, true));
+    sec.querySelector('#hackDropBtn').addEventListener('click', () => {
+      history.pushState({}, '', '/hackathons?b=' + encodeURIComponent(h.id));
+      openModal(h);
+    });
+    if (moveFocus) requestAnimationFrame(() => document.getElementById('hackFocus')?.focus({ preventScroll: true }));
+
+    // ---- Build timer, per hackathon, persists across reloads ----
+    const key = hackathonTimerKey(h.id);
+    const timerEl = sec.querySelector('#hackTimer');
+    const readout = sec.querySelector('#hackTimerReadout');
+    const timerBtn = sec.querySelector('#hackTimerBtn');
+    let timerInterval = null;
+    function paintTimer() {
+      const endAt = Number(localStorage.getItem(key) || 0);
+      if (!endAt) {
+        readout.textContent = `${h.minutes}:00`;
+        timerBtn.textContent = 'Start';
+        timerEl.classList.remove('is-low', 'is-critical', 'is-done');
+        return;
+      }
+      const left = Math.max(0, endAt - Date.now());
+      const m = Math.floor(left / 60000);
+      const s = Math.floor((left % 60000) / 1000);
+      readout.textContent = left > 0 ? `${m}:${String(s).padStart(2, '0')}` : 'Time';
+      timerBtn.textContent = 'Reset';
+      timerEl.classList.toggle('is-low', left > 0 && left <= 5 * 60000);
+      timerEl.classList.toggle('is-critical', left > 0 && left <= 60000);
+      timerEl.classList.toggle('is-done', left === 0);
+      if (left === 0 && timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    }
+    function startTicking() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(paintTimer, 1000);
+    }
+    timerBtn.addEventListener('click', () => {
+      if (Number(localStorage.getItem(key) || 0)) {
+        localStorage.removeItem(key);
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      } else {
+        localStorage.setItem(key, String(Date.now() + h.minutes * 60000));
+        startTicking();
+      }
+      paintTimer();
+    });
+    if (Number(localStorage.getItem(key) || 0)) startTicking();
+    paintTimer();
+
+    setViewTeardown(() => {
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    });
+  }
+
   // ============== DAY ONE page render ==============
   function renderDayOne() {
     app.innerHTML = '';
@@ -8459,11 +8821,12 @@
   // with embedded <circle data-pin> endpoints; wires are SVG paths from
   // pin coord to pin coord.
 
-  // ----- Tool files: Project vs Warm-up -----
+  // ----- Tool files: Project vs Misc. Files -----
   // Each student has two files in the Wiring Schematic and Arduino Code Loading Tools:
-  // their running Project (cumulative across the project chain) and a Warm-up
-  // scratch file, so a warm-up never means wiping project work. The choice is
-  // shared by both tools for this tab; warm-up links open with ?file=warmup.
+  // their running Project (cumulative across the project chain) and a Misc. Files
+  // scratch file (warm-ups, hackathons, anything off-flow), so scratch work never
+  // means wiping project work. The storage key stays 'warmup' for old saves; the
+  // choice is shared by both tools for this tab; scratch links open with ?file=warmup.
   const TOOL_FILE_KEY = 'd4sg-tool-file-v1';
   function toolFile() {
     try { return sessionStorage.getItem(TOOL_FILE_KEY) === 'warmup' ? 'warmup' : 'project'; } catch (_) { return 'project'; }
@@ -8486,10 +8849,9 @@
     wrap.className = 'tool-file';
     wrap.innerHTML = `
       <div class="tool-file-seg" role="radiogroup" aria-label="Which file">
-        <button type="button" class="tool-file-btn" role="radio" data-file="project">Project file</button>
-        <button type="button" class="tool-file-btn" role="radio" data-file="warmup">Warm-up file</button>
+        <button type="button" class="tool-file-btn" role="radio" data-file="project">Project</button>
+        <button type="button" class="tool-file-btn" role="radio" data-file="warmup">Misc. Files</button>
       </div>
-      <span class="tool-file-note">Each student's project and warm-up files stay separate.</span>
     `;
     const paint = () => {
       const f = toolFile();
@@ -10930,6 +11292,30 @@
       pop.appendChild(sec);
     });
 
+    // Hackathons: the drop has Code and Wiring slots, so only the code and
+    // schematic tools can save into one.
+    if ((kind === 'vibe' || kind === 'schematic') && typeof HACKATHONS !== 'undefined' && HACKATHONS.length) {
+      const sec = document.createElement('div');
+      sec.className = 'save-to-section';
+      const eye = document.createElement('span');
+      eye.className = 'save-to-eyebrow';
+      eye.textContent = 'Hackathons';
+      sec.appendChild(eye);
+      HACKATHONS.forEach(h => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'save-to-item is-portfolio';
+        const slotLabel = kind === 'vibe' ? 'Code slot' : 'Wiring slot';
+        item.innerHTML = `<span class="save-to-arrow"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg></span>${escapeHtml(h.title)} (${slotLabel})`;
+        item.addEventListener('click', async () => {
+          closeSaveToPop();
+          await handleSaveToPick({ kind, buildBlob, project: null, benchmark: h, panelType: 'portfolio' });
+        });
+        sec.appendChild(item);
+      });
+      pop.appendChild(sec);
+    }
+
     document.body.appendChild(pop);
 
     function reposition() {
@@ -11087,7 +11473,7 @@
         if (b.id === id) return b;
       }
     }
-    return null;
+    return (typeof findHackathonById === 'function' && findHackathonById(id)) || null;
   }
 
   // ---- Benchmark → tool round-trip ----
@@ -11360,6 +11746,7 @@
     _focusStudent = null; // reset per open; set only by the gallery's student-jump dropdown
     currentBenchmark = b;
     modalEyebrow.textContent = b.id === 'instructable' ? 'Final Project'
+      : b.hackathon ? 'Hackathon'
       : b.summaryPrompt ? 'Video'
       : 'Benchmark';
     modalTitle.textContent = b.title;
@@ -11567,7 +11954,9 @@
       const total = b.rubric.reduce((s, r) => s + r.points, 0);
       const rubricSec = document.createElement('div');
       rubricSec.className = 'modal-section';
-      rubricSec.innerHTML = `<h3>${badge()}Rubric &amp; Drop · ${total} pts total</h3>`;
+      rubricSec.innerHTML = b.hackathon
+        ? `<h3>${badge()}Drop · ${b.points} pts for all three, nothing for less</h3>`
+        : `<h3>${badge()}Rubric &amp; Drop · ${total} pts total</h3>`;
       rubricSec.appendChild(parts.gridWrap);
       modalBody.appendChild(rubricSec);
     } else {
@@ -12532,9 +12921,11 @@
     panel.innerHTML = `
       <div class="pf-viewbanner" data-pf-viewbanner></div>
       <div class="pf-drop-sub" style="margin:0 0 10px;">This is a work in progress. Everything you add saves automatically, so leave and come back anytime. Submit sends it to Ramsey for grading, and you can still add or replace work after that.</div>
-      <div class="pf-rubric" data-pf-slots>
+      <div class="pf-rubric${bench && bench.hackathon ? ' pf-rubric--hack' : ''}" data-pf-slots>
         <div class="pf-rubric-head">
-          <span>Criterion</span><span>Emerging</span><span>Developing</span><span>Mastered</span><span>Your work</span>
+          ${bench && bench.hackathon
+            ? '<span>Criterion</span><span>Credit</span><span>Your work</span>'
+            : '<span>Criterion</span><span>Emerging</span><span>Developing</span><span>Mastered</span><span>Your work</span>'}
         </div>
       </div>
       <div class="pf-viewonly" data-pf-viewonly></div>
@@ -12560,10 +12951,12 @@
     const submittedByName = new Map(); // norm(name) -> { studentName, slots }
     let snapshotLoaded = false; // guards hydration from clearing tiles pre-load
 
+    let paintTeam = () => {};
+    let _teamUnsub = null;
     const picker = renderNamePicker({
       initial: localStorage.getItem(LAST_PICK_KEY) || '',
       remember: false, // view-only picks must not change this device's student; applyMode/claim/submit set it
-      onChange: (n) => { if (n) ensureRosterEntry(n); applyMode(n); }
+      onChange: (n) => { if (n) ensureRosterEntry(n); applyMode(n); paintTeam(); }
     });
     nameWrap.appendChild(picker.element);
     // Compat shim so existing code that reads `nameInput.value` keeps working.
@@ -12583,6 +12976,38 @@
     }
     const state = cached.state;
     const pendingFiles = cached.pendingFiles;
+
+    // Hackathon teams: the submitter adds teammates from the roster. They ride
+    // on the doc as `team`, so one submission covers the whole group.
+    if (bench && bench.team) {
+      if (!Array.isArray(cached.team)) cached.team = [];
+      const teamWrap = document.createElement('div');
+      teamWrap.className = 'pf-team';
+      teamWrap.innerHTML = `
+        <label class="name-picker-label">Teammates</label>
+        <div class="pf-team-chips" data-team-chips></div>
+        <select class="name-picker-select" data-team-select aria-label="Add a teammate"></select>
+      `;
+      nameWrap.appendChild(teamWrap);
+      const chips = teamWrap.querySelector('[data-team-chips]');
+      const sel = teamWrap.querySelector('[data-team-select]');
+      let rosterNames = [];
+      paintTeam = () => {
+        chips.innerHTML = cached.team.map(n => `<span class="pf-team-chip">${escapeHtml(n)}<button type="button" data-team-remove="${escapeHtml(n)}" aria-label="Remove ${escapeHtml(n)}">${ICON_X}</button></span>`).join('');
+        const taken = new Set([norm(nameInput.value), ...cached.team.map(norm)]);
+        sel.innerHTML = ['<option value="">Add a teammate…</option>']
+          .concat(rosterNames.filter(n => !taken.has(norm(n))).map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`))
+          .join('');
+      };
+      _teamUnsub = subscribeRoster(names => { rosterNames = names; paintTeam(); });
+      sel.addEventListener('change', () => { if (sel.value) { cached.team.push(sel.value); paintTeam(); } });
+      chips.addEventListener('click', e => {
+        const b = e.target.closest('[data-team-remove]');
+        if (!b) return;
+        cached.team = cached.team.filter(n => n !== b.dataset.teamRemove);
+        paintTeam();
+      });
+    }
     let openSlotKey = null;
     // Shared-device guard: if the claimed identity changed since this draft
     // was started, the old student's in-progress work must not ride along.
@@ -12736,7 +13161,8 @@
     const slotMountByKey = {};
     rubric.forEach((r) => {
       const key = (r.label || '').toLowerCase();
-      let levels = PF_RUBRIC_LEVELS[r.label];
+      // Hackathons are all-or-nothing: one "Required" cell instead of levels.
+      let levels = bench && bench.hackathon ? [] : PF_RUBRIC_LEVELS[r.label];
       if (!levels) {
         console.warn('No PF_RUBRIC_LEVELS entry for label:', r.label);
         levels = [{ name: 'Full credit', points: r.points || 0, desc: r.text || '' }];
@@ -12749,7 +13175,11 @@
           <span class="prc-name">${escapeHtml(r.label || '')}</span>
           <span class="prc-text">${escapeHtml(r.text || '')}</span>
         </div>
-        ${levels.map((l) => `
+        ${bench && bench.hackathon ? `
+          <div class="prc prc-lvl">
+            <span class="prc-pts">Required</span>
+          </div>
+        ` : levels.map((l) => `
           <div class="prc prc-lvl">
             <span class="prc-pts">${l.points} pts</span>
             <span class="prc-desc">${escapeHtml(l.desc)}</span>
@@ -12762,6 +13192,8 @@
     });
 
     SLOT_DEFS.forEach((def, defIdx) => {
+      // A rubric names its own slots (a hackathon has three); the rest stay out.
+      if (rubric.length && !slotMountByKey[def.key]) return;
       const slot = document.createElement('div');
       slot.className = 'pf-slot';
       slot.dataset.slot = def.key;
@@ -13354,7 +13786,8 @@
           nameSlug: nameSlug(name),
           createdAt: serverTimestamp(),
           deleted: false,
-          slots: filledSlots
+          slots: filledSlots,
+          ...(bench && bench.team ? { team: cached.team || [] } : {})
         }, { merge: true });
 
         // Keep the work visible after submit: each slot WRITTEN this round
@@ -13484,6 +13917,7 @@
       const who = norm(nameInput.value || ownerName);
       if (!who) return;
       const entry = submittedByName.get(who);
+      if (bench && bench.team && entry && entry.team && entry.team.length && !cached.team.length) { cached.team = [...entry.team]; paintTeam(); }
       SLOT_DEFS.forEach(d => {
         const sub = entry && entry.slots ? entry.slots[d.key] : null;
         const cur = state[d.key];
@@ -13545,7 +13979,7 @@
           const data = d.data() || {};
           if (data.deleted) return;
           const nm = (data.studentName || '').trim();
-          if (nm) submittedByName.set(norm(nm), { studentName: nm, slots: data.slots || {} });
+          if (nm) submittedByName.set(norm(nm), { studentName: nm, slots: data.slots || {}, team: Array.isArray(data.team) ? data.team : [] });
         });
         if (panel.classList.contains('is-viewonly')) applyMode(nameInput.value);
         else hydrateFromSubmitted();
@@ -13553,6 +13987,7 @@
     } catch (_) {}
     panel._cleanup = () => {
       try { picker.destroy(); } catch (_) {}
+      if (_teamUnsub) { try { _teamUnsub(); } catch (_) {} _teamUnsub = null; }
       if (_pfUnsub) { try { _pfUnsub(); } catch (_) {} }
       document.removeEventListener('t4sg-checks-changed', _onChecksChanged);
     };
@@ -14739,7 +15174,7 @@
         : `<button class="pf-row-delete" data-pf-row-delete aria-label="Delete portfolio">${ICON_X}</button>`;
       row.innerHTML = `
         <div class="pf-row-head" data-pf-row-head>
-          <span class="pf-row-name">${escapeHtml(item.studentName || 'Unnamed')}</span>
+          <span class="pf-row-name">${escapeHtml(item.studentName || 'Unnamed')}${Array.isArray(item.team) && item.team.length ? `<span class="pf-row-team">with ${escapeHtml(item.team.join(', '))}</span>` : ''}</span>
           ${deleteBtnHtml}
           <span class="pf-row-caret"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
         </div>
@@ -15940,19 +16375,6 @@ void loop() {
       <button class="schem-back" id="vibeBack" aria-label="Back to Tools"><span class="schem-back-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></span> Back to Tools</button>
       <h2 class="project-title">Arduino Code Loading Tool</h2>
       <div data-vibe-identity></div>
-      <p class="vibe-intro">Write your code with <a href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT</a> or <a href="https://gemini.google.com" target="_blank" rel="noopener">Gemini</a>, paste it into the editor below, and click <strong>Upload</strong> to load it onto your Arduino. Start every new chat with the starter prompt so the AI knows your board and your parts.</p>
-      <div class="copy-prompt vibe-starter" id="vibeStarter">
-        <div class="vibe-starter-head">
-          <div class="vibe-starter-lead">
-            <span class="vibe-starter-title">Starter prompt for ChatGPT or Gemini</span>
-            <span class="vibe-starter-sub">Paste this at the start of every session you work with an AI on your code.</span>
-          </div>
-          <button type="button" class="copy-prompt-btn" data-copy-target="vibeStarter" aria-label="Copy the starter prompt">Copy starter prompt</button>
-          <button type="button" class="vibe-starter-toggle" id="vibeStarterToggle" aria-expanded="false">Show</button>
-        </div>
-        <div class="copy-prompt-text" id="vibeStarterText"></div>
-      </div>
-
       <div class="vibe-wrap">
         <div class="vibe-panel vibe-right">
           <div class="vibe-panel-header">
@@ -16203,17 +16625,6 @@ void loop() {
         libsAdd.appendChild(b);
       });
     }
-
-    // Starter prompt card: fill the text + wire the Show/Hide toggle.
-    const starterText = document.getElementById('vibeStarterText');
-    if (starterText) starterText.textContent = VIBE_STARTER_PROMPT;
-    const starterToggle = document.getElementById('vibeStarterToggle');
-    if (starterToggle) starterToggle.addEventListener('click', () => {
-      const card = document.getElementById('vibeStarter');
-      const open = card.classList.toggle('is-open');
-      starterToggle.textContent = open ? 'Hide' : 'Show';
-      starterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
 
     // Bootstrap editor
     const fallback = document.getElementById('vibeEditorFallback');
@@ -18532,10 +18943,13 @@ void loop() {
     // left: Back button, top nav, or an in-modal tool link.
     if (_viewTeardown) { try { _viewTeardown(); } catch (_) {} _viewTeardown = null; }
     const r = (path || '').replace(/\/+$/, '');
-    document.body.classList.remove('view-home', 'view-hw', 'view-cad', 'view-tools', 'view-syllabus', 'view-exhibit', 'view-dayone', 'view-warmups');
+    document.body.classList.remove('view-home', 'view-hw', 'view-cad', 'view-tools', 'view-syllabus', 'view-exhibit', 'view-dayone', 'view-warmups', 'view-hackathons');
     if (r === '/warm-ups') {
       document.body.classList.add('view-warmups');
       renderWarmUps();
+    } else if (r === '/hackathons') {
+      document.body.classList.add('view-hackathons');
+      renderHackathons();
     } else if (r === '/day-one') {
       document.body.classList.add('view-dayone');
       renderDayOne();
@@ -18659,7 +19073,7 @@ void loop() {
   // first, which read as "it opens the home page, then opens the benchmark."
   const benchDeepLink = urlParams.get('b');
   if (benchDeepLink) {
-    const bench = PROJECTS.flatMap(p => p.benchmarks || []).find(x => x.id === benchDeepLink);
+    const bench = findBenchmarkById(benchDeepLink);
     const hw = !bench && HOMEWORK.find(w => w.id === benchDeepLink);
     // No open animation on a work-tab load: the modal should already be there
     // at first paint, not fade in over the home list. closeModal clears this
