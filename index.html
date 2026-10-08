@@ -2121,6 +2121,37 @@
     .hack-challenge-support.has-video { grid-template-columns: 1fr; gap: 16px; }
     .hack-hints { padding-top: 0; }
   }
+  .hack-code { margin-top: 18px; max-width: 790px; }
+  .hack-code-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .hack-code-head .hack-hints-label { margin-bottom: 0; }
+  .hack-code-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--ink-hi);
+    font: 600 12px/1 "Inter", system-ui, sans-serif;
+    cursor: pointer;
+  }
+  .hack-code-copy:hover { border-color: var(--accent); color: var(--accent); }
+  .hack-code-copy svg { width: 14px; height: 14px; }
+  .hack-code pre {
+    font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-hi);
+    background: #f8f6f1;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 12px;
+    padding: 15px 18px;
+    margin: 0;
+    overflow-x: auto;
+    white-space: pre;
+  }
   .hack-drop-btn {
     display: inline-flex;
     align-items: center;
@@ -8131,9 +8162,40 @@
       shortUrl: 'https://www.youtube.com/embed/kqzgUa51DdM',
       hints: [
         'LDR means light dependent resistor: the photoresistor. It is the light sensor taped to the screen in the video.',
-        'Your first prompt must ask for code that prints the LDR reading to the Serial Monitor, so you can find your threshold and change it.',
-        'The LDR wiring is the hard part. Ask for clear, step-by-step wiring instructions for the LDR, and for the Serial Monitor readout.'
+        'Copy the starter code below into the Misc. Files tab of the Arduino Code Loading Tool. Upload it, then open the Serial Monitor at 115200.',
+        'Watch the number with the sensor on white screen, then with a cactus under it. Set threshold between those two numbers.',
+        'Rest the servo arm a hair above the spacebar. Change pressAngle one or two degrees at a time until it just taps the key.',
+        'Wiring is in the comments at the top of the code. Ask the AI for step-by-step LDR wiring if you get stuck.'
       ],
+      code: `// Chrome Dino Robot. Arduino Leonardo.
+// Wiring:
+//   LDR: one leg to 5V, other leg to A0.
+//   10K resistor: from A0 to GND.
+//   Servo: brown to GND, red to 5V, orange to pin 9.
+#include <Servo.h>
+
+Servo servo;
+int ldrPin = A0;
+int threshold = 500;   // set this from the Serial Monitor
+int restAngle = 90;    // arm just above the spacebar
+int pressAngle = 80;   // arm just touching the spacebar
+
+void setup() {
+  servo.attach(9);
+  servo.write(restAngle);
+  Serial.begin(115200);
+}
+
+void loop() {
+  int light = analogRead(ldrPin);
+  Serial.println(light);
+  if (light < threshold) {
+    servo.write(pressAngle);   // cactus is here: tap
+  } else {
+    servo.write(restAngle);    // screen is white: lift
+  }
+}
+`,
       materials: ['Arduino Leonardo', 'Servo motor', 'LDR photoresistor', '10K ohm resistor', 'Breadboard', 'Misc. wires', 'Masking tape', 'External battery source, if needed'],
       deliverable: '<p>It jumps over at least one cactus on its own. Three things: your code, your wiring diagram, and a video of the success.</p>',
       award: '<p>One homework pass: full credit awarded.</p>',
@@ -8185,6 +8247,9 @@
     const challengeSupport = (video || hints)
       ? `<div class="hack-challenge-support${video ? ' has-video' : ''}">${video}${hints}</div>`
       : '';
+    const code = h.code
+      ? `<div class="hack-code"><div class="hack-code-head"><span class="hack-hints-label">Starter code</span><button type="button" class="hack-code-copy" id="hackCodeCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button></div><pre>${escapeHtml(h.code)}</pre></div>`
+      : '';
     const materials = `<ul>${(h.materials || []).map(m => `<li>${escapeHtml(m)}</li>`).join('')}</ul>`;
     const time = `<div class="hack-time"><span>${HACKATHON_MINUTES} minutes to build.</span>
         <div class="hack-timer" id="hackTimer" role="timer" aria-label="Build timer">
@@ -8208,7 +8273,7 @@
             </div>
             ${picker}
           </header>
-          ${hackathonSectionHTML('challenge', 'Challenge', h.challenge + challengeSupport)}
+          ${hackathonSectionHTML('challenge', 'Challenge', h.challenge + challengeSupport + code)}
           ${hackathonSectionHTML('time', 'Time Allowed', time)}
           ${hackathonSectionHTML('materials', 'Materials', materials)}
           ${hackathonSectionHTML('deliverable', 'Deliverable', deliverable)}
@@ -8219,6 +8284,12 @@
     app.appendChild(sec);
     const select = sec.querySelector('#hackSelect');
     if (select) select.addEventListener('change', e => renderHackathons(e.target.value, true));
+    const copyBtn = sec.querySelector('#hackCodeCopy');
+    if (copyBtn) copyBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(h.code); copyBtn.textContent = 'Copied'; }
+      catch (_) { copyBtn.textContent = 'Select and copy'; }
+      setTimeout(() => renderHackathons(h.id), 1500);
+    });
     sec.querySelector('#hackDropBtn').addEventListener('click', () => {
       history.pushState({}, '', '/hackathons?b=' + encodeURIComponent(h.id));
       openModal(h);
