@@ -2036,6 +2036,11 @@
   .hack-body p:last-child { margin-bottom: 0; }
   .hack-body ul { margin: 0; padding-left: 20px; max-width: 720px; }
   .hack-body ol { margin: 0; padding-left: 22px; max-width: 720px; }
+  .hack-body .ag-steps { padding-left: 0; max-width: 720px; }
+  .hack-body .ag-steps .cp-evstep { cursor: pointer; padding: 10px 0; }
+  .hack-body .ag-steps .cp-evstep-main { font-size: 14px; color: var(--ink-hi); }
+  .hack-body .ag-steps .cp-evstep-main code { font-size: 12.5px; }
+  .ag-steps-help { font-size: 12.5px; color: var(--ink-mid); margin: 0 0 6px; }
   .hack-body ol li { margin-bottom: 8px; }
   .hack-body code { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 13px; background: #f1efe9; padding: 1px 5px; border-radius: 5px; }
   .hack-body li { margin-bottom: 4px; }
@@ -8634,65 +8639,58 @@ void loop() {
   // students open in Antigravity IDE. arduino-cli, the cores, and the
   // libraries all install inside that folder; the agent follows the rules
   // and skills shipped in it. The zip is built from Class Apps/t4sg-arduino-starter.
+  const AG_STEPS_KEY = 'd4sg-ag-steps-v1';
   function renderAntigravityGuide() {
     app.innerHTML = '';
     const sec = document.createElement('section');
     sec.className = 'project hack-page';
     const section = (label, body) => `<div class="hack-section"><h3 class="hack-label">${label}</h3><div class="hack-body">${body}</div></div>`;
+    const check = '<span class="cp-evstep-check" aria-hidden="true"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"/></svg></span>';
+    let done = {};
+    try { done = JSON.parse(localStorage.getItem(AG_STEPS_KEY) || '{}') || {}; } catch (_) {}
+    const steps = (group, items) => `<ol class="cp-evflow ag-steps" data-ag-group="${group}">${items.map((t, i) => {
+      const key = group + '-' + i;
+      return `<li class="cp-evstep${done[key] ? ' is-done' : ''}" data-ag-key="${key}" role="button" tabindex="0" aria-pressed="${done[key] ? 'true' : 'false'}" title="Click when done">
+        <span class="cp-evstep-num"><span class="cp-evstep-n">${i + 1}</span>${check}</span>
+        <div class="cp-evstep-main">${formatStepMarkup(t)}<span class="cp-evstep-done-tag">Done</span></div>
+      </li>`;
+    }).join('')}</ol>`;
+
+    const SETUP = [
+      '**Install Antigravity IDE.** Open [antigravity.google/download](https://antigravity.google/download). Two downloads are offered. Pick **Antigravity IDE**, not Antigravity 2.0. Open the file, drag Antigravity to Applications, open it, and sign in with your school Google account.',
+      '**Download the starter folder:** [arduino-starter.zip](/arduino-starter.zip). In Downloads, double-click it. Drag the `t4sg-arduino-starter` folder to your Desktop and rename it with your name, for example `arduino-maya`.',
+      '**Open the folder in Antigravity.** File, then Open Folder, then pick your folder. If it asks whether you trust the folder, click Yes.',
+      '**Type `/setup` in the agent chat** (the panel on the right side of the window) and press Enter. Each time a gray box asks permission to run a command, click **Run**. The first time takes a few minutes. It ends with `SETUP COMPLETE`.',
+      '**Plug in your board and type `/check`.** The agent finds the board, uploads a test, and reads what it says. When the board blinks and the agent reports "hello from the board", you are set.'
+    ];
+    const DAILY = [
+      '**Plug in your board and open Antigravity.** Your folder is under File, then Open Recent.',
+      '**Say what you want, one thing at a time.** Name the parts and pins if you know them. "A button on pin 4 presses the space bar." If you already have code, paste it and say "start from this."',
+      '**Click Run when it asks.** The agent writes the sketch, compiles it, uploads it, and watches the serial output for five seconds. Every reply ends with what the sketch does now and the wiring, one line per connection.',
+      '**Wire it from that list, then test it on the real thing.**',
+      '**Describe what happened, not "fix it."** "The LED stays on." "It types w forever." "Nothing prints." The agent can only fix what it knows about. Repeat until it works.',
+      '**Before you move on, ask "explain this loop to me in three sentences"** and check the answer against your wiring. That is your notebook entry. If you cannot explain it, you are not done.'
+    ];
+
     sec.innerHTML = `
       <button class="schem-back" id="agBack" aria-label="Back to Tools"><span class="schem-back-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></span> Back to Tools</button>
       <h2 class="project-title">Antigravity + Arduino</h2>
-      <p class="project-blurb">A second way to vibe code your board, for any project or benchmark. You describe what you want. An agent on your laptop writes the code, uploads it, reads what the board says back, and fixes its own mistakes. Either lane is fine. Pick the one you like.</p>
+      <p class="project-blurb">Vibe coding with the Arduino upload built into the same window. No Gemini tab, no copy and paste. You say what you want, and an agent on your laptop writes the code, uploads it, and tests it on your board. Use this or the Arduino Code Loading Tool. Either is fine.</p>
       <div class="warmup-workspace">
         <article class="hack-card">
-          ${section('What this is', `<p><strong>The browser tool</strong> is a copy machine. You ask Gemini for code, paste it into the tool, click Upload, and if it fails you carry the error back to Gemini yourself.</p>
-            <p><strong>Antigravity</strong> is an agent. It is an AI that can run programs on your laptop, not just write text. It has the compiler, the upload tool, and the serial monitor, and your board is plugged into it. So it does the whole loop on its own: write, compile, upload, watch the board, adjust, upload again. You stay in plain English the whole time.</p>
-            <p>That is what agentic coding means. You say what should happen. The agent works the tools until it does, and shows you its work as it goes.</p>`)}
-          ${section('What it is like', `<p>A typical exchange while building your controller:</p>
-            <ul>
-              <li><strong>You:</strong> "The W key sticks. When I let go of the button it keeps typing w."</li>
-              <li><strong>Agent:</strong> reads your sketch, uploads it, watches the serial output. "Your code pressed the key every loop but only released it once. I now release on the loop where the button goes up, and I added a 15 ms debounce. Uploaded. Try it."</li>
-              <li><strong>You:</strong> test it. "Fixed. Now add a lever on pin 3 that presses A."</li>
-              <li><strong>Agent:</strong> adds it, uploads, and ends with the wiring: lever COM to GND, NO to pin 3.</li>
+          ${section('Why', `<ul>
+              <li><strong>Everything is in one window.</strong> The AI, the compiler, the upload, and the serial monitor. Your board is plugged into the agent, not into a tab you copy from.</li>
+              <li><strong>The agent sees the real error.</strong> Compiler errors and serial numbers go straight to it. It fixes its own mistakes and tells you what changed.</li>
+              <li><strong>Loops take seconds.</strong> A change, an upload, and a test take about fifteen seconds. You try ten ideas in the time one paste takes.</li>
+              <li><strong>Any board, any library.</strong> The real Arduino tools live inside your folder. Nothing else on your laptop changes.</li>
             </ul>
-            <p>You never opened a terminal. You also never stopped understanding what changed, because the agent tells you every time.</p>`)}
-          ${section('Why it is better', `<ul>
-              <li><strong>The agent sees the real error.</strong> Compiler errors and serial numbers go straight to it. No copying, no guessing.</li>
-              <li><strong>Faster loops.</strong> A change, an upload, and a test take about fifteen seconds. You iterate ten times in the time one paste-and-pray takes.</li>
-              <li><strong>Any board, any library.</strong> The real Arduino tools live in your folder, so a RedBoard or a new sensor is no problem.</li>
-              <li><strong>It is how engineers work now.</strong> Describing, testing, and reading what the machine did is the skill. Typing every line is not.</li>
-            </ul>
-            <p><strong>When the browser tool is still better:</strong> nothing to install, and you read every line of code because you have to. Use it when you want that. And it is always where you turn work in.</p>`)}
-          ${section('Get the folder', `<p>Everything installs inside this one folder. Nothing else on your laptop changes.</p>
-            <a class="hack-drop-btn" href="/arduino-starter.zip" download>Download the starter folder <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="M6 10l6 6 6-6"/><path d="M4 20h16"/></svg></a>`)}
-          ${section('Setup, once', `<ol>
-            <li><strong>Install Antigravity IDE.</strong> Go to antigravity.google/download. Two downloads are offered. Pick <strong>Antigravity IDE</strong>, not Antigravity 2.0. Open the file you downloaded and drag Antigravity to Applications. Open it. Sign in with your school Google account.</li>
-            <li><strong>Unzip the folder.</strong> Click the download button above. In your Downloads, double-click <code>arduino-starter.zip</code>. Drag the <code>t4sg-arduino-starter</code> folder to your Desktop. Rename it with your name, for example <code>arduino-maya</code>.</li>
-            <li><strong>Open the folder in Antigravity.</strong> In Antigravity: File, then Open Folder, then pick your folder on the Desktop. If it asks whether you trust the folder, click Yes.</li>
-            <li><strong>Find the agent chat.</strong> It is the panel on the right side of the window. If you do not see it, look for the chat icon in the top right.</li>
-            <li><strong>Type <code>/setup</code> and press Enter.</strong> The agent installs the Arduino tools into your folder. Each time a gray box asks permission to run a command, click <strong>Run</strong>. Do not close the window. The first time takes a few minutes. It ends with <code>SETUP COMPLETE</code>.</li>
-            <li><strong>Plug in your board and type <code>/check</code>.</strong> The agent finds the board, uploads a test, and reads what it says. If the board blinks and the agent reports "hello from the board", you are set. If not, see When it breaks below.</li>
-          </ol>`)}
-          ${section('Every build day', `<ol>
-            <li><strong>Plug in your board.</strong> Open Antigravity. Your folder is under File, Open Recent.</li>
-            <li><strong>Say what you want, one thing at a time.</strong> Name the parts and the pins if you know them. "A button on pin 4 presses the space bar." If you already have code, paste it and say "start from this."</li>
-            <li><strong>Click Run when it asks.</strong> The agent writes the sketch, compiles it, uploads it, and watches the serial output for five seconds. Read what it tells you. Every reply ends with one sentence on what the sketch does now and the wiring, one line per connection.</li>
-            <li><strong>Wire it from that list.</strong> Then test it on the real thing.</li>
-            <li><strong>Describe what happened, not "fix it."</strong> "The LED stays on." "It jumps too late." "Nothing prints." The agent can only fix what it knows about.</li>
-            <li><strong>Repeat</strong> until it works.</li>
-            <li><strong>Before you move on,</strong> type "explain this loop to me in three sentences" and check the answer against your wiring. That is your notebook entry. If you cannot explain it, you are not done.</li>
-          </ol>`)}
-          ${section('The rules it follows', `<p>Your folder ships with rules the agent reads every time. You never have to repeat them.</p>
-            <ul>
-              <li>Shortest, simplest code that does exactly what you asked. No extra parts, no extra features.</li>
-              <li>Leonardo unless you say RedBoard. Keyboard and mouse sketches start with a three-second pause so a runaway board can still be reflashed.</li>
-              <li>After every change it compiles, uploads, and reads the serial output. It never leaves you guessing whether the upload happened.</li>
-              <li>It installs nothing outside your folder and runs nothing unrelated to your sketch.</li>
-            </ul>`)}
+            <p>The Arduino Code Loading Tool is still where you turn work in, and it is still a fine way to build.</p>`)}
+          ${section('Set up, once', `<p class="ag-steps-help">Click a step when it is done. Your progress saves on this laptop.</p>${steps('setup', SETUP)}`)}
+          ${section('Every build day', steps('daily', DAILY))}
           ${section('When it breaks', `<ul>
             <li><strong>Board not found:</strong> unplug it, plug it back in, say "try again."</li>
             <li><strong>Upload hangs or fails:</strong> double-tap the RESET button on the board, then say "upload again."</li>
-            <li><strong>The board is typing everywhere:</strong> hold RESET, then say "upload." The three-second pause at the top of keyboard sketches gives the upload time to land.</li>
+            <li><strong>The board is typing everywhere:</strong> hold RESET, then say "upload." Every keyboard sketch starts with a three-second pause so the upload has time to land.</li>
             <li><strong>Setup fails on a certificate or TLS error:</strong> the school network blocked the download. Switch to a phone hotspot and type <code>/setup</code> again.</li>
             <li><strong>Anything else:</strong> ask "what went wrong?" and read the answer before clicking Run again.</li>
           </ul>`)}
@@ -8702,6 +8700,18 @@ void loop() {
     `;
     app.appendChild(sec);
     wireToolBackButton(document.getElementById('agBack'));
+    sec.querySelectorAll('.cp-evstep[data-ag-key]').forEach(li => {
+      const toggle = () => {
+        const key = li.dataset.agKey;
+        const now = !li.classList.contains('is-done');
+        li.classList.toggle('is-done', now);
+        li.setAttribute('aria-pressed', now ? 'true' : 'false');
+        if (now) done[key] = 1; else delete done[key];
+        try { localStorage.setItem(AG_STEPS_KEY, JSON.stringify(done)); } catch (_) {}
+      };
+      li.addEventListener('click', (e) => { if (e.target.closest('a')) return; toggle(); });
+      li.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+    });
   }
 
   // ============== IMAGE CAPTURE TOOL ==============
