@@ -168,4 +168,68 @@ assert.doesNotMatch(html, /m\.appendChild\(document\.createTextNode\(text\)\);/,
   assert.match(html, /btn\.classList\.add\('is-active'\);\s*\/\/[^\n]*\n\s*_vibeReconnectRun\+\+;/, 'each upload starts a fresh reconnect run');
 }
 
-console.log('T4SG Serial Monitor checks passed: bounded output, intact lines, single paint per batch, flood safe, monitor opens after upload.');
+// ---------- 7. RedBoard / Uno upload keeps one serial read pending ----------
+// The original timeout raced reader.read() against a timer. When the timer won,
+// the abandoned read stayed alive and consumed the next Optiboot reply. This
+// mock drops the first sync response, then answers the retry. It also rejects
+// concurrent reads so the exact race cannot return unnoticed.
+;(async () => {
+  const code = slice('  async function stk500WriteFlash(port, hexBytes, log) {', '  // ---- Web Serial AVR109');
+  const stk500WriteFlash = new Function(code + '\nreturn stk500WriteFlash;')();
+  let pendingRead = null;
+  let closed = false;
+  let syncCount = 0;
+  let programPages = 0;
+  const enqueue = (bytes) => {
+    assert.ok(pendingRead, 'the single reader pump is waiting before a reply arrives');
+    const resolve = pendingRead;
+    pendingRead = null;
+    resolve({ value: new Uint8Array(bytes), done: false });
+  };
+  const reader = {
+    read() {
+      assert.equal(pendingRead, null, 'only one serial read is pending');
+      if (closed) return Promise.resolve({ value: undefined, done: true });
+      return new Promise(resolve => { pendingRead = resolve; });
+    },
+    cancel() {
+      closed = true;
+      if (pendingRead) {
+        const resolve = pendingRead;
+        pendingRead = null;
+        resolve({ value: undefined, done: true });
+      }
+      return Promise.resolve();
+    },
+    releaseLock() {}
+  };
+  const writer = {
+    async write(raw) {
+      const bytes = Array.from(raw);
+      if (bytes[0] === 0x30) {
+        syncCount += 1;
+        if (syncCount > 1) setTimeout(() => enqueue([0x14, 0x10]), 0);
+      } else if (bytes[0] === 0x75) {
+        setTimeout(() => enqueue([0x14, 0x1e, 0x95, 0x0f, 0x10]), 0);
+      } else {
+        if (bytes[0] === 0x64) programPages += 1;
+        setTimeout(() => enqueue([0x14, 0x10]), 0);
+      }
+    },
+    releaseLock() {}
+  };
+  const port = {
+    readable: { getReader: () => reader },
+    writable: { getWriter: () => writer }
+  };
+  const logs = [];
+  await stk500WriteFlash(port, new Uint8Array([1, 2, 3, 4]), (line) => logs.push(line));
+  assert.equal(syncCount, 2, 'the flasher retries after one missed bootloader reply');
+  assert.equal(programPages, 1, 'the sketch is written after the retry syncs');
+  assert.ok(logs.some(line => /flashed 4 bytes/.test(line)), 'the Uno flash reaches completion');
+})().then(() => {
+  console.log('T4SG Serial Monitor checks passed: bounded output, intact lines, single paint per batch, flood safe, monitor opens after upload, Uno retry is race-free.');
+}).catch((err) => {
+  console.error(err);
+  process.exitCode = 1;
+});
