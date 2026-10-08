@@ -16135,6 +16135,42 @@ void loop() {
   delay(15);
 }
 ` },
+    { id: 'dino-robot', name: 'Dino robot (LDR + servo)', code:
+`// Chrome Dino Robot. RedBoard (Uno) or Arduino Leonardo.
+// Wiring:
+//   LDR: one leg to 5V, other leg to A0.
+//   10K resistor: from A0 to GND.
+//   Servo: brown to GND, red to 5V, orange to pin 9.
+#include <Servo.h>
+
+Servo servo;
+int ldrPin = A0;
+int threshold = 700;   // just under the white-screen number
+int restAngle = 110;   // arm raised above the spacebar
+int pressAngle = 70;   // arm swept down through the spacebar
+int tapMs = 200;       // how long to hold the key (a full jump)
+
+unsigned long pressUntil = 0;
+
+void setup() {
+  servo.attach(9);
+  servo.write(restAngle);
+  Serial.begin(115200);
+}
+
+void loop() {
+  int light = analogRead(ldrPin);
+  Serial.println(light);
+  if (light < threshold) {
+    pressUntil = millis() + tapMs;   // cactus seen: start a tap
+  }
+  if (millis() < pressUntil) {
+    servo.write(pressAngle);
+  } else {
+    servo.write(restAngle);
+  }
+}
+` },
     { id: 'breath-calibration', name: 'Breath test (HX710B)', code:
 `// Breath test for the HX710B breath pressure sensor.
 // Wire VCC to 5V and GND to GND. Choose any two open digital pins
