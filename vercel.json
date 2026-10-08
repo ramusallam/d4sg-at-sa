@@ -116,6 +116,14 @@
     {
       "source": "/tools/camera/",
       "destination": "/index.html"
+    },
+    {
+      "source": "/tools/antigravity",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tools/antigravity/",
+      "destination": "/index.html"
     }
   ]
 }

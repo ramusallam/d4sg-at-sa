@@ -8565,9 +8565,16 @@ void loop() {
       <h2 class="project-title">Tools</h2>
       <div class="tools-grid">
         <div class="tool-card" id="toolCardVibe">
+          <p class="tool-card-eyebrow">Load code: in the browser</p>
           <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg></span><h3 class="tool-card-title">Arduino Code Loading Tool</h3></div>
-          <p class="tool-card-blurb">Paste code from ChatGPT or Gemini, then upload it to your Arduino.</p>
+          <p class="tool-card-blurb">Paste code from ChatGPT or Gemini, then upload it to your Arduino. Nothing to install.</p>
           <div class="tool-card-footer">Open</div>
+        </div>
+        <div class="tool-card" id="toolCardAntigravity">
+          <p class="tool-card-eyebrow">Load code: with Antigravity</p>
+          <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 10l2 2-2 2M12 14h3"/></svg></span><h3 class="tool-card-title">Antigravity + Arduino</h3></div>
+          <p class="tool-card-blurb">Open the starter folder in Antigravity IDE and build with the agent, right on your board.</p>
+          <div class="tool-card-footer">Open the guide</div>
         </div>
         <div class="tool-card" id="toolCardSchematic">
           <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 12h5a3 3 0 003-3V8M15 15v-3a3 3 0 013-3"/></svg></span><h3 class="tool-card-title">Wiring Schematic</h3></div>
@@ -8601,6 +8608,10 @@ void loop() {
       history.pushState({}, '', '/tools/vibe');
       applyRoute('/tools/vibe');
     });
+    sec.querySelector('#toolCardAntigravity').addEventListener('click', () => {
+      history.pushState({}, '', '/tools/antigravity');
+      applyRoute('/tools/antigravity');
+    });
     sec.querySelector('#toolCardIdea').addEventListener('click', () => {
       history.pushState({}, '', '/tools/idea-board');
       applyRoute('/tools/idea-board');
@@ -8613,6 +8624,52 @@ void loop() {
       history.pushState({}, '', '/cad');
       applyRoute('/cad');
     });
+  }
+
+  // ============== ANTIGRAVITY + ARDUINO GUIDE ==============
+  // The second lane for loading code: a downloadable starter folder that
+  // students open in Antigravity IDE. arduino-cli, the cores, and the
+  // libraries all install inside that folder; the agent follows the rules
+  // and skills shipped in it. The zip is built from Class Apps/t4sg-arduino-starter.
+  function renderAntigravityGuide() {
+    app.innerHTML = '';
+    const sec = document.createElement('section');
+    sec.className = 'project hack-page';
+    const section = (label, body) => `<div class="hack-section"><h3 class="hack-label">${label}</h3><div class="hack-body">${body}</div></div>`;
+    sec.innerHTML = `
+      <button class="schem-back" id="agBack" aria-label="Back to Tools"><span class="schem-back-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></span> Back to Tools</button>
+      <h2 class="project-title">Antigravity + Arduino</h2>
+      <p class="project-blurb">A second way to load code. Open one folder in Antigravity IDE, say what you want, and the agent writes, uploads, and tests it on your board. Either lane is fine. Pick the one you like.</p>
+      <div class="warmup-workspace">
+        <article class="hack-card">
+          ${section('Get the folder', `<p>Everything installs inside this one folder. Nothing else on your laptop changes.</p>
+            <a class="hack-drop-btn" href="/arduino-starter.zip" download>Download the starter folder <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="M6 10l6 6 6-6"/><path d="M4 20h16"/></svg></a>`)}
+          ${section('Setup, once', `<ol>
+            <li>Install Antigravity IDE from antigravity.google/download. Pick <strong>Antigravity IDE</strong>, not Antigravity 2.0. Sign in with your school Google account.</li>
+            <li>Unzip the folder onto your Desktop. Rename it with your name, for example <code>arduino-maya</code>.</li>
+            <li>In Antigravity: File, Open Folder, pick your folder.</li>
+            <li>In the agent chat, type <code>/setup</code> and press Enter. When it asks to run a command, click Run. A few minutes the first time, never again.</li>
+            <li>Plug in your board. Type <code>/check</code>. If the board blinks and the agent reports "hello from the board", you are set.</li>
+          </ol>`)}
+          ${section('Every build day', `<ol>
+            <li>Plug in your board. Open your folder in Antigravity.</li>
+            <li>Say what you want in plain words. "A button on pin 4 presses the space bar." Paste code if you already have some.</li>
+            <li>The agent writes the sketch, compiles it, uploads it, and watches the serial output for five seconds. It tells you what it saw.</li>
+            <li>Test it on the real thing. Say what is wrong, in plain words. Repeat until it works.</li>
+            <li>Before you move on, ask "explain this loop to me in three sentences" and check it against your wiring. That is your notebook entry.</li>
+          </ol>`)}
+          ${section('When it breaks', `<ul>
+            <li><strong>Board not found:</strong> unplug it, plug it back in, say "try again".</li>
+            <li><strong>Upload hangs:</strong> double-tap the RESET button on the board, then say "upload again".</li>
+            <li><strong>The board is typing everywhere:</strong> hold RESET, then upload. Every keyboard sketch starts with a three-second pause for exactly this reason.</li>
+            <li><strong>Anything else:</strong> ask "what went wrong?" and read the answer before clicking Run again.</li>
+          </ul>`)}
+          ${section('Turning it in', `<p>Same as always. Copy the finished code into the Arduino Code Loading Tool and click Save to benchmark. Draw the wiring in the Wiring Schematic Tool. Drop your video.</p>`)}
+        </article>
+      </div>
+    `;
+    app.appendChild(sec);
+    wireToolBackButton(document.getElementById('agBack'));
   }
 
   // ============== IMAGE CAPTURE TOOL ==============
@@ -19308,6 +19365,9 @@ void loop() {
     } else if (r === '/tools/camera') {
       document.body.classList.add('view-tools');
       initImageCaptureTool();
+    } else if (r === '/tools/antigravity') {
+      document.body.classList.add('view-tools');
+      renderAntigravityGuide();
     } else if (r === '/tools') {
       document.body.classList.add('view-tools');
       renderTools();
