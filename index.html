@@ -8162,12 +8162,12 @@
       shortUrl: 'https://www.youtube.com/embed/kqzgUa51DdM',
       hints: [
         'LDR means light dependent resistor: the photoresistor. It is the light sensor taped to the screen in the video.',
-        'Copy the starter code below into the Misc. Files tab of the Arduino Code Loading Tool. Upload it, then open the Serial Monitor at 115200.',
+        'Copy the starter code below into the Misc. Files tab of the Arduino Code Loading Tool. Set the board picker next to Connect to RedBoard (Uno). Upload it, then open the Serial Monitor at 115200.',
         'Watch the number with the sensor on white screen, then with a cactus under it. Set threshold between those two numbers.',
         'Rest the servo arm a hair above the spacebar. Change pressAngle one or two degrees at a time until it just taps the key.',
         'Wiring is in the comments at the top of the code. Ask the AI for step-by-step LDR wiring if you get stuck.'
       ],
-      code: `// Chrome Dino Robot. Arduino Leonardo.
+      code: `// Chrome Dino Robot. RedBoard (Uno) or Arduino Leonardo.
 // Wiring:
 //   LDR: one leg to 5V, other leg to A0.
 //   10K resistor: from A0 to GND.
@@ -8196,7 +8196,7 @@ void loop() {
   }
 }
 `,
-      materials: ['Arduino Leonardo', 'Servo motor', 'LDR photoresistor', '10K ohm resistor', 'Breadboard', 'Misc. wires', 'Masking tape', 'External battery source, if needed'],
+      materials: ['SparkFun RedBoard (Uno)', 'Servo motor', 'LDR photoresistor', '10K ohm resistor', 'Breadboard', 'Misc. wires', 'Masking tape', 'External battery source, if needed'],
       deliverable: '<p>It jumps over at least one cactus on its own. Three things: your code, your wiring diagram, and a video of the success.</p>',
       award: '<p>One homework pass: full credit awarded.</p>',
       winner: '',
@@ -16471,6 +16471,12 @@ void loop() {
                 </button>
               </div>
               <div class="vibe-toolbar-group">
+                <select class="vibe-example-select" id="vibeBoard" title="Which board is plugged in" aria-label="Board">
+                  <option value="leonardo" selected>Leonardo</option>
+                  <option value="uno">RedBoard (Uno)</option>
+                </select>
+              </div>
+              <div class="vibe-toolbar-group">
                 <button class="vibe-tool-btn" id="vibeConnect" title="Connect Arduino" aria-label="Connect Arduino">
                   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V4M15 7V4"/><path d="M6 11h12v3a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4z"/><path d="M12 18v3"/></svg>
                 </button>
@@ -16534,7 +16540,7 @@ void loop() {
           </div>
           <div class="vibe-status" id="vibeStatus" role="status" aria-live="polite">
             <span class="vibe-status-dot"></span>
-            <span class="vibe-status-text">Disconnected. Click Connect Arduino and pick your Leonardo or Micro.</span>
+            <span class="vibe-status-text">Disconnected. Click Connect Arduino and pick your board.</span>
           </div>
         </div>
       </div>
@@ -16580,6 +16586,21 @@ void loop() {
 
     // Curated example sketches — a guaranteed-good fallback that works even if
     // the AI or the compile server is down, so a class is never dead-ended.
+    // Board picker: Leonardo (32u4, USB keyboard/mouse) or RedBoard (Uno,
+    // 328P, plain serial). Sticks per laptop.
+    const vibeBoardSel = document.getElementById('vibeBoard');
+    if (vibeBoardSel) {
+      vibeBoardSel.value = vibeBoard();
+      vibeBoardSel.addEventListener('change', () => {
+        try { localStorage.setItem(VIBE_BOARD_KEY, vibeBoardSel.value); } catch (_) {}
+        vibeApplyBoardUI();
+        schemToast(vibeBoardSel.value === 'uno'
+          ? 'RedBoard (Uno): no Keyboard.h or Mouse.h on this board.'
+          : 'Leonardo selected.');
+      });
+      vibeApplyBoardUI();
+    }
+
     const vibeExamplesSel = document.getElementById('vibeExamples');
     if (vibeExamplesSel) {
       VIBE_EXAMPLES.forEach((ex) => {
@@ -16701,6 +16722,7 @@ void loop() {
         const b = document.createElement('button');
         b.textContent = `+ ${lib}`;
         b.dataset.lib = lib;
+        if (/^(Keyboard|Mouse|Joystick)\.h$/.test(lib)) b.dataset.hid = '1';
         b.addEventListener('click', () => vibeAddLibrary(lib));
         libsAdd.appendChild(b);
       });
@@ -16870,8 +16892,9 @@ void loop() {
     0x2A03, // Arduino (.org)
     0x1B4F, // SparkFun (Pro Micro 32u4)
     0x16C0, // PJRC/Teensy + some 32u4 clones
-    0x1A86, // QinHeng (CH34x) clones
+    0x1A86, // QinHeng (CH34x) clones + SparkFun RedBoard Qwiic
     0x239A, // Adafruit (32u4 boards)
+    0x0403, // FTDI (SparkFun RedBoard, Uno-compatible)
   ]);
   const isArduinoVid = (info) => !!(info && ARDUINO_USB_VIDS.has(info.usbVendorId));
   // Picker filters for requestPort — one entry per known vendor.
@@ -16902,15 +16925,28 @@ void loop() {
   // the monitor can open by itself. The include goes at the END so compiler
   // error line numbers still match the student's code.
   function vibeWithUsbIdentity(sketch) {
+    if (vibeBoard() === 'uno') return sketch; // a 328P has no USB identity to add
     if (/^\s*#\s*include\s*[<"](Keyboard|Mouse|Joystick|HID)\.h[>"]/m.test(sketch)) return sketch;
     return sketch.replace(/\s*$/, '') + '\n#include <Keyboard.h>\n';
+  }
+
+  const VIBE_BOARD_KEY = 'd4sg-vibe-board-v1';
+  function vibeBoard() {
+    let v = '';
+    try { v = localStorage.getItem(VIBE_BOARD_KEY) || ''; } catch (_) {}
+    return v === 'uno' ? 'uno' : 'leonardo';
+  }
+  function vibeBoardLabel() { return vibeBoard() === 'uno' ? 'RedBoard (Uno)' : 'Leonardo'; }
+  function vibeApplyBoardUI() {
+    const uno = vibeBoard() === 'uno';
+    document.querySelectorAll('#vibeLibsAdd button[data-hid]').forEach(b => { b.hidden = uno; });
   }
 
   async function vibeCompileSketch(sketch) {
     const r = await fetch('/api/compile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-D4SG-Client': 'd4sg-at-sa' },
-      body: JSON.stringify({ sketch, board: 'leonardo', student: (typeof vibeSlug === 'function' ? vibeSlug() : '') })
+      body: JSON.stringify({ sketch, board: vibeBoard(), student: (typeof vibeSlug === 'function' ? vibeSlug() : '') })
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) {
@@ -17002,12 +17038,13 @@ void loop() {
       }
     }
 
-    vibeMonitorLine('[ ✓ Compiled. Resetting board into bootloader… ]', 'info');
+    vibeMonitorLine('[ ✓ Compiled for ' + vibeBoardLabel() + '. Resetting board into bootloader… ]', 'info');
 
     // 2. Flash.
     try {
       const hexBytes = parseIntelHex(hexText);
-      await vibeFlashHexToArduino(hexBytes);
+      if (vibeBoard() === 'uno') await vibeFlashHexToUno(hexBytes);
+      else await vibeFlashHexToArduino(hexBytes);
       vibeMonitorLine('[ ✓ Upload complete ]', 'ok');
       // Reopen the serial monitor for sketch output. Always try, even if the
       // student never clicked Connect: the upload already granted the port,
@@ -17017,7 +17054,7 @@ void loop() {
       setTimeout(() => vibeReconnectSketchPort(12), 500);
     } catch (err) {
       vibeMonitorLine('[ Upload error: ' + (err.message || err) + ' ]', 'err');
-      vibeMonitorLine('Tip: unplug + replug the board and try again. Make sure no other program or browser tab has the port open.', 'dim');
+      vibeMonitorLine('Tip: unplug + replug the board and try again. Make sure no other program or browser tab has the port open, and that the board picker next to Connect matches the board on your desk.', 'dim');
     } finally {
       btn.disabled = false;
       btn.classList.remove('is-active');
@@ -17055,6 +17092,135 @@ void loop() {
     buf.fill(0xFF);
     for (const rec of recs) buf.set(rec.data, rec.addr);
     return buf;
+  }
+
+  // ---- Web Serial STK500v1 (Optiboot) flash: RedBoard / Uno ----
+  // A 328P board has a USB-serial chip (FTDI or CH340) in front of the chip,
+  // so there is no second "bootloader" port. Pulsing DTR resets the board,
+  // Optiboot listens for about a second, and we talk STK500v1 to it on the
+  // same port at 115200.
+  async function vibeFlashHexToUno(hexBytes) {
+    let port = _vibeSerialPort;
+    if (port) {
+      await vibeDisconnectSerial();
+    } else {
+      const granted = (await navigator.serial.getPorts()).filter(p => isArduinoVid(p.getInfo() || {}));
+      if (granted.length === 1) {
+        port = granted[0];
+      } else {
+        try {
+          port = await navigator.serial.requestPort({ filters: ARDUINO_PORT_FILTERS });
+        } catch (_) {
+          throw new Error('No board selected.');
+        }
+      }
+    }
+    _vibeUploadPort = port;
+    _vibeUploadPortInfo = port.getInfo ? (port.getInfo() || {}) : {};
+
+    try {
+      await port.open({ baudRate: 115200 });
+    } catch (err) {
+      const msg = String(err);
+      if (!msg.includes('already open')) throw new Error('Could not open the board: ' + (err.message || err));
+      try { await port.close(); await port.open({ baudRate: 115200 }); }
+      catch (err2) { throw new Error('Could not open the board: ' + (err2.message || err2)); }
+    }
+    try {
+      // Auto-reset: DTR low then high. Optiboot comes up right after.
+      try {
+        await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+        await new Promise(r => setTimeout(r, 60));
+        await port.setSignals({ dataTerminalReady: true, requestToSend: true });
+      } catch (_) {}
+      await new Promise(r => setTimeout(r, 280));
+      await stk500WriteFlash(port, hexBytes, (msg, kind) => vibeMonitorLine(msg, kind));
+    } finally {
+      try { await port.close(); } catch (_) {}
+    }
+  }
+
+  async function stk500WriteFlash(port, hexBytes, log) {
+    const writer = port.writable.getWriter();
+    const reader = port.readable.getReader();
+    let leftover = new Uint8Array(0);
+    const INSYNC = 0x14, OK = 0x10, EOP = 0x20;
+
+    const writeBytes = async (arr) => { await writer.write(arr instanceof Uint8Array ? arr : new Uint8Array(arr)); };
+    const readN = async (n, timeoutMs) => {
+      const out = new Uint8Array(n);
+      let read = 0;
+      if (leftover.length) {
+        const take = Math.min(n, leftover.length);
+        out.set(leftover.subarray(0, take), 0);
+        leftover = leftover.slice(take);
+        read = take;
+      }
+      const deadline = Date.now() + timeoutMs;
+      while (read < n) {
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) return null;
+        const result = await Promise.race([
+          reader.read(),
+          new Promise((res) => setTimeout(() => res({ value: null, done: false }), remaining))
+        ]);
+        if (result.done) throw new Error('serial stream closed');
+        if (!result.value) return null;
+        const v = result.value;
+        const need = n - read;
+        if (v.length <= need) { out.set(v, read); read += v.length; }
+        else { out.set(v.subarray(0, need), read); leftover = v.slice(need); read = n; }
+      }
+      return out;
+    };
+    const drain = async () => { leftover = new Uint8Array(0); while (await readN(1, 60)) { /* discard */ } };
+    const cmd = async (bytes, replyLen, timeoutMs = 1500) => {
+      await writeBytes(bytes);
+      const r = await readN(2 + replyLen, timeoutMs);
+      if (!r) throw new Error('the board stopped answering');
+      if (r[0] !== INSYNC || r[r.length - 1] !== OK) throw new Error('bad reply 0x' + r[0].toString(16) + ' 0x' + r[r.length - 1].toString(16));
+      return r.subarray(1, 1 + replyLen);
+    };
+
+    try {
+      // Sync. Optiboot only listens for about a second after reset.
+      let synced = false;
+      for (let i = 0; i < 12 && !synced; i++) {
+        await drain();
+        await writeBytes([0x30, EOP]);
+        const r = await readN(2, 220);
+        synced = !!(r && r[0] === INSYNC && r[1] === OK);
+      }
+      if (!synced) throw new Error('Board did not answer. Check the board picker next to Connect, press RESET on the board, then click Upload again right away.');
+      const sig = await cmd([0x75, EOP], 3);
+      const sigHex = Array.from(sig, b => b.toString(16).padStart(2, '0')).join(' ');
+      log('optiboot, chip ' + sigHex, 'dim');
+      if (!(sig[0] === 0x1E && sig[1] === 0x95 && sig[2] === 0x0F)) {
+        throw new Error('This is not an Uno-class chip (signature ' + sigHex + '). Pick the right board next to Connect.');
+      }
+      await cmd([0x50, EOP], 0); // enter programming mode
+
+      const PAGE = 128;
+      const total = Math.ceil(hexBytes.length / PAGE);
+      for (let i = 0; i < total; i++) {
+        const addr = i * PAGE;
+        const page = new Uint8Array(PAGE).fill(0xFF);
+        page.set(hexBytes.subarray(addr, Math.min(addr + PAGE, hexBytes.length)));
+        const word = addr >> 1;
+        await cmd([0x55, word & 0xFF, (word >> 8) & 0xFF, EOP], 0);
+        const frame = new Uint8Array(5 + PAGE);
+        frame.set([0x64, (PAGE >> 8) & 0xFF, PAGE & 0xFF, 0x46], 0);
+        frame.set(page, 4);
+        frame[4 + PAGE] = EOP;
+        await cmd(frame, 0, 3000);
+        if (i % 8 === 0 || i === total - 1) log('writing ' + Math.round(((i + 1) / total) * 100) + '%', 'dim');
+      }
+      await cmd([0x51, EOP], 0); // leave programming mode
+      log('flashed ' + hexBytes.length + ' bytes', 'ok');
+    } finally {
+      try { reader.releaseLock(); } catch (_) {}
+      try { writer.releaseLock(); } catch (_) {}
+    }
   }
 
   // ---- Web Serial AVR109 (Caterina) flash ----
@@ -17513,7 +17679,7 @@ void loop() {
         vibeAppendMonitor('[ connection error: ' + (err.message || err) + ' ]\n');
         vibeSetStatus('disconnected', 'Could not connect: the board is busy. Close other tabs or apps using the Arduino, unplug it, plug it back in, then click Connect Arduino.');
       } else {
-        vibeSetStatus('disconnected', 'No board picked. Click Connect Arduino, select the Arduino Leonardo in the list, then click Connect.');
+        vibeSetStatus('disconnected', 'No board picked. Click Connect Arduino, select your board in the list, then click Connect.');
       }
     } finally {
       _vibeConnecting = false;
@@ -17571,7 +17737,7 @@ void loop() {
       vibeSetTooltip(btn, 'Connect Arduino');
     }
     vibeAppendMonitor('[ disconnected ]\n');
-    vibeSetStatus('disconnected', 'Disconnected. Click Connect Arduino and pick your Leonardo or Micro.');
+    vibeSetStatus('disconnected', 'Disconnected. Click Connect Arduino and pick your board.');
     vibeMonitorSetSendEnabled(false);
   }
 
