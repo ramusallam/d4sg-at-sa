@@ -8215,7 +8215,7 @@
         'Zoom the game in (Cmd or Ctrl and plus) so it fills the screen. Tape the sensor 2 to 4 cm to the right of the dino, further as the game speeds up. The sensor has to see the cactus before the dino does.',
         'Threshold: read the white-screen number, then the cactus number. Set threshold just under the white number, about a quarter of the way down. Closer to white means an earlier trigger.',
         'The arm swings 40 degrees down through the spacebar. If it does not hit, lower pressAngle. If it hits too hard or jams, raise it. Tape the servo down so it cannot rock.',
-        'Wiring is in the comments at the top of the code. Ask the AI for step-by-step LDR wiring if you get stuck.'
+        'Wiring is in the comments at the top of the code. The Wiring Schematic Tool has every part you need: the RedBoard, the servo, the LDR, and the 10K resistor. Ask the AI for step-by-step LDR wiring if you get stuck.'
       ],
 
       code: `// Chrome Dino Robot. RedBoard (Uno) or Arduino Leonardo.
@@ -9188,6 +9188,53 @@ void loop() {
       pinLabels: true
     },
 
+    redboard: {
+      group: 'boards',
+      label: 'SparkFun RedBoard (Uno)',
+      // Same footprint and header layout as the Leonardo so a schematic drawn
+      // on one reads the same on the other. Red PCB, Uno pinout.
+      w: 13, h: 8,
+      pins: [
+        { name: 'D13', gx: 1.2, gy: 0 }, { name: 'D12', gx: 2.0, gy: 0 },
+        { name: 'D11', gx: 2.8, gy: 0 }, { name: 'D10', gx: 3.6, gy: 0 },
+        { name: 'D9',  gx: 4.4, gy: 0 }, { name: 'D8',  gx: 5.2, gy: 0 },
+        { name: 'D7',  gx: 6.4, gy: 0 }, { name: 'D6',  gx: 7.2, gy: 0 },
+        { name: 'D5',  gx: 8.0, gy: 0 }, { name: 'D4',  gx: 8.8, gy: 0 },
+        { name: 'D3',  gx: 9.6, gy: 0 }, { name: 'D2',  gx: 10.4, gy: 0 },
+        { name: 'RST', gx: 1.2, gy: 8 }, { name: '3V3', gx: 2.0, gy: 8 },
+        { name: '5V',  gx: 2.8, gy: 8 }, { name: 'GND', gx: 3.6, gy: 8 },
+        { name: 'GND2',gx: 4.4, gy: 8 }, { name: 'VIN', gx: 5.2, gy: 8 },
+        { name: 'A0',  gx: 6.4, gy: 8 }, { name: 'A1',  gx: 7.2, gy: 8 },
+        { name: 'A2',  gx: 8.0, gy: 8 }, { name: 'A3',  gx: 8.8, gy: 8 },
+        { name: 'A4',  gx: 9.6, gy: 8 }, { name: 'A5',  gx: 10.4, gy: 8 }
+      ],
+      svg: function() {
+        const W = 13 * SCHEM_GRID_PITCH;
+        const H = 8 * SCHEM_GRID_PITCH;
+        return `
+          <!-- PCB body (SparkFun red) -->
+          <rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="#C8102E" stroke="#6b0a19" stroke-width="1.5"/>
+          <!-- Header strips, top + bottom -->
+          <rect x="${W*0.07}" y="${-3}" width="${W*0.86}" height="6" fill="#1a1a1a"/>
+          <rect x="${W*0.07}" y="${H-3}" width="${W*0.86}" height="6" fill="#1a1a1a"/>
+          <!-- USB connector (left side, top) -->
+          <rect x="${-11}" y="${H*0.14}" width="12" height="${H*0.22}" rx="1.5" fill="#cfd5dc" stroke="#374151" stroke-width="0.8"/>
+          <rect x="${-8}" y="${H*0.18}" width="7" height="${H*0.14}" fill="#1f2937"/>
+          <!-- Barrel jack (left side, bottom) -->
+          <rect x="${-12}" y="${H*0.60}" width="13" height="${H*0.28}" rx="1.5" fill="#1a1a1a"/>
+          <circle cx="${-5.5}" cy="${H*0.74}" r="2.4" fill="#9ca3af"/>
+          <!-- ATmega328P chip -->
+          <rect x="${W*0.44}" y="${H*0.38}" width="${W*0.16}" height="${H*0.28}" rx="1" fill="#161616"/>
+          <circle cx="${W*0.453}" cy="${H*0.40}" r="1" fill="#3a3a3a"/>
+          <!-- Crystal -->
+          <rect x="${W*0.34}" y="${H*0.44}" width="${W*0.05}" height="${H*0.16}" rx="1" fill="#cfd5dc"/>
+          <!-- Silkscreen -->
+          <text x="${W*0.52}" y="${H*0.85}" text-anchor="middle" font-size="10" fill="white" font-family="system-ui, sans-serif" font-weight="700" letter-spacing="0.5">SPARKFUN REDBOARD</text>
+        `;
+      },
+      pinLabels: true
+    },
+
     micro: {
       group: 'boards',
       label: 'Arduino Micro',
@@ -9635,6 +9682,118 @@ void loop() {
         `;
       },
       pinLabels: false
+    },
+
+    // Hackathon parts (Chrome Dino Robot, 2026-10-09): SG90 servo, LDR
+    // photoresistor, and the 10K pull-down resistor the LDR divider needs.
+    servo: {
+      group: 'components',
+      label: 'Servo (SG90)',
+      // 3 wide x 3 tall. Three wire tails land on adjacent pads, in the same
+      // order as the real SG90 lead: brown GND, red 5V, orange signal.
+      w: 3, h: 3,
+      pins: [
+        { name: 'GND', gx: 0.5, gy: 3 },
+        { name: '5V',  gx: 1.5, gy: 3 },
+        { name: 'SIG', gx: 2.5, gy: 3 }
+      ],
+      svg: function() {
+        const W = 3 * SCHEM_GRID_PITCH;
+        const H = 3 * SCHEM_GRID_PITCH;
+        const bodyT = H * 0.30;
+        const bodyB = H * 0.76;
+        const g = SCHEM_GRID_PITCH;
+        return `
+          <!-- Mounting tabs -->
+          <rect x="${W*0.04}" y="${bodyT + (bodyB-bodyT)*0.30}" width="${W*0.92}" height="${(bodyB-bodyT)*0.22}" rx="1.5" fill="#1e3a8a"/>
+          <circle cx="${W*0.09}" cy="${bodyT + (bodyB-bodyT)*0.41}" r="1.4" fill="#93c5fd"/>
+          <circle cx="${W*0.91}" cy="${bodyT + (bodyB-bodyT)*0.41}" r="1.4" fill="#93c5fd"/>
+          <!-- Blue body -->
+          <rect x="${W*0.16}" y="${bodyT}" width="${W*0.68}" height="${bodyB-bodyT}" rx="3" fill="#2563eb" stroke="#1e3a8a" stroke-width="1.2"/>
+          <!-- Output shaft + horn (single arm, white) -->
+          <circle cx="${W*0.36}" cy="${bodyT}" r="${W*0.13}" fill="#2563eb" stroke="#1e3a8a" stroke-width="1.2"/>
+          <path d="M ${W*0.36} ${bodyT} L ${W*0.86} ${H*0.06}" stroke="#64748b" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M ${W*0.36} ${bodyT} L ${W*0.86} ${H*0.06}" stroke="#f1f5f9" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="${W*0.36}" cy="${bodyT}" r="${W*0.07}" fill="#f8fafc" stroke="#94a3b8" stroke-width="0.8"/>
+          <text x="${W*0.50}" y="${bodyB - 4}" text-anchor="middle" font-size="6" fill="#dbeafe" font-family="system-ui, sans-serif" font-weight="700">SG90</text>
+          <!-- Wire tails: brown, red, orange -->
+          <line x1="${0.5*g}" y1="${bodyB}" x2="${0.5*g}" y2="${H}" stroke="#78350f" stroke-width="2.4"/>
+          <line x1="${1.5*g}" y1="${bodyB}" x2="${1.5*g}" y2="${H}" stroke="#dc2626" stroke-width="2.4"/>
+          <line x1="${2.5*g}" y1="${bodyB}" x2="${2.5*g}" y2="${H}" stroke="#f97316" stroke-width="2.4"/>
+        `;
+      },
+      pinLabels: true,
+      hint: 'Brown to GND, red to 5V, orange to the signal pin (pin 9 in the starter code). Tape the body down so it cannot rock.'
+    },
+
+    ldr: {
+      group: 'components',
+      label: 'LDR photoresistor',
+      // Same 2 x 3 footprint as the LED. Two equal legs, no polarity.
+      w: 2, h: 3,
+      pins: [
+        { name: '1', gx: 0.5, gy: 3 },
+        { name: '2', gx: 1.5, gy: 3 }
+      ],
+      svg: function() {
+        const W = 2 * SCHEM_GRID_PITCH;
+        const H = 3 * SCHEM_GRID_PITCH;
+        const cx = W * 0.5;
+        const cy = H * 0.30;
+        const r  = W * 0.44;
+        const legTop = cy + r * 0.9;
+        const leftX = 0.5 * SCHEM_GRID_PITCH;
+        const rightX = 1.5 * SCHEM_GRID_PITCH;
+        // Serpentine CdS track across the face of the disc.
+        const t = r * 0.62;
+        const track = `M ${cx - t} ${cy - t*0.75} h ${2*t} v ${t*0.5} h ${-2*t} v ${t*0.5} h ${2*t} v ${t*0.5} h ${-2*t}`;
+        return `
+          <!-- Disc -->
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="#f5d0a9" stroke="#9a3412" stroke-width="1.3"/>
+          <!-- Light-sensitive track -->
+          <path d="${track}" fill="none" stroke="#9a3412" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Legs (equal length, no + or -) -->
+          <line x1="${leftX}" y1="${legTop}" x2="${leftX}" y2="${H}" stroke="#6b7280" stroke-width="2"/>
+          <line x1="${rightX}" y1="${legTop}" x2="${rightX}" y2="${H}" stroke="#6b7280" stroke-width="2"/>
+        `;
+      },
+      pinLabels: false,
+      hint: 'Light sensor, no polarity. One leg to 5V, the other to A0. The 10K resistor goes from A0 to GND.'
+    },
+
+    resistor10k: {
+      group: 'components',
+      label: '10K ohm resistor',
+      // Same axial footprint as the 220 ohm part. Bands: brown black orange gold.
+      w: 5, h: 1,
+      pins: [
+        { name: 'L', gx: 0.5, gy: 0.5 },
+        { name: 'R', gx: 4.5, gy: 0.5 }
+      ],
+      svg: function() {
+        const W = 5 * SCHEM_GRID_PITCH;
+        const H = 1 * SCHEM_GRID_PITCH;
+        const cy = H * 0.5;
+        const leftPin = 0.5 * SCHEM_GRID_PITCH;
+        const rightPin = 4.5 * SCHEM_GRID_PITCH;
+        const bodyL = 1.4 * SCHEM_GRID_PITCH;
+        const bodyR = 3.6 * SCHEM_GRID_PITCH;
+        const bodyW = bodyR - bodyL;
+        return `
+          <!-- Leads -->
+          <line x1="${leftPin}" y1="${cy}" x2="${bodyL}" y2="${cy}" stroke="#6b7280" stroke-width="2"/>
+          <line x1="${bodyR}" y1="${cy}" x2="${rightPin}" y2="${cy}" stroke="#6b7280" stroke-width="2"/>
+          <!-- Tan body -->
+          <rect x="${bodyL}" y="${H*0.18}" width="${bodyW}" height="${H*0.64}" rx="5" fill="#e9c89a" stroke="#7c5018" stroke-width="1"/>
+          <!-- Color bands: 1 (brown) 0 (black) x1000 (orange) tolerance (gold) -->
+          <rect x="${bodyL + bodyW * 0.16}" y="${H*0.18}" width="3" height="${H*0.64}" fill="#7c2d12"/>
+          <rect x="${bodyL + bodyW * 0.34}" y="${H*0.18}" width="3" height="${H*0.64}" fill="#111111"/>
+          <rect x="${bodyL + bodyW * 0.52}" y="${H*0.18}" width="3" height="${H*0.64}" fill="#f97316"/>
+          <rect x="${bodyL + bodyW * 0.78}" y="${H*0.18}" width="3" height="${H*0.64}" fill="#d4a851"/>
+        `;
+      },
+      pinLabels: false,
+      hint: 'Pull-down for the LDR: one end on the LDR leg that goes to A0, the other end to GND. No polarity.'
     },
 
     // Project 4 hub parts: panel-mount 3.5mm jack + JST-XH header, so the
@@ -18292,6 +18451,9 @@ void loop() {
     { key: 'jst',        re: /\bJST-XH(?: headers?| male plugs?)?\b|\bJST headers?\b/g,                url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Balancer_Buchse_XH.JPG/960px-Balancer_Buchse_XH.JPG' },
     // Photo-only rows (no `re`): parts that appear in the tool palettes but
     // never by name in benchmark text, so they only get the palette photo icon.
+    { key: 'redboard',   re: /\bSparkFun RedBoard(?: \(Uno\))?\b|\bRedBoard\b/g,                           url: 'https://upload.wikimedia.org/wikipedia/commons/3/37/SparkFun_RedBoard_Plus_%2851307898724%29.jpg' },
+    { key: 'servo',      re: /\bSG90(?: micro)?(?: servo)?\b|\bservo(?: motor)?\b/gi,                     url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Tower_Pro_SG90_micro_servo_motor.jpg/960px-Tower_Pro_SG90_micro_servo_motor.jpg' },
+    { key: 'ldr',        re: /\bLDR photoresistor\b|\bphotoresistor\b|\bLDR\b/g,                            url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/25mm_light-dependent_resistor_%28LDR%29_%281%29.jpg/960px-25mm_light-dependent_resistor_%28LDR%29_%281%29.jpg' },
     { key: 'micro',      url: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Arduino_Micro.jpg' },
     { key: 'resistor',   url: 'https://upload.wikimedia.org/wikipedia/commons/9/9b/220_ohms_5%25_axial_resistor.jpg' },
     { key: 'tof',        url: 'https://cdn-shop.adafruit.com/970x728/3317-06.jpg' },
@@ -18304,7 +18466,8 @@ void loop() {
     microswitch: 'lever', lever: 'lever', tactile: 'button', button: 'button', joystick: 'joystick',
     irsensor: 'ir', ir: 'ir', sippuff: 'sippuff', sipPuff: 'sippuff', captouch: 'touch', touch: 'touch',
     tofsensor: 'tof', rgbsensor: 'rgb', led: 'led', resistor: 'resistor', jack35: 'jack', jack: 'jack',
-    jstxh: 'jst', jst: 'jst', pressure: 'pressure'
+    jstxh: 'jst', jst: 'jst', pressure: 'pressure',
+    redboard: 'redboard', servo: 'servo', ldr: 'ldr', resistor10k: 'resistor'
   };
   function partPhotoUrl(toolKey) {
     const k = PART_PHOTO_BY_TOOL_KEY[toolKey];
