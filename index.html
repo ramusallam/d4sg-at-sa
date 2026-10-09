@@ -2041,6 +2041,46 @@
   .hack-body .ag-steps .cp-evstep-main { font-size: 14px; color: var(--ink-hi); }
   .hack-body .ag-steps .cp-evstep-main code { font-size: 12.5px; }
   .ag-steps-help { font-size: 12.5px; color: var(--ink-mid); margin: 0 0 6px; }
+  .ag-lanes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    max-width: 720px;
+  }
+  .ag-lane {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-2);
+    padding: 13px 14px;
+  }
+  .ag-lane.is-featured { border-color: rgba(99, 102, 241, 0.35); background: var(--accent-soft); }
+  .ag-lane strong { display: block; margin-bottom: 4px; font-size: 14px; }
+  .ag-lane p { font-size: 13px; line-height: 1.45; color: var(--ink-mid); }
+  .ag-board-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    max-width: 720px;
+  }
+  .ag-board {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 12px;
+    background: #fff;
+  }
+  .ag-board strong { display: block; font-size: 13px; margin-bottom: 3px; }
+  .ag-board span { display: block; color: var(--ink-mid); font-size: 12px; line-height: 1.45; }
+  .ag-callout {
+    max-width: 720px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    background: var(--accent-soft);
+    color: var(--ink-mid);
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
   .hack-body ol li { margin-bottom: 8px; }
   .hack-body code { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 13px; background: #f1efe9; padding: 1px 5px; border-radius: 5px; }
   .hack-body li { margin-bottom: 4px; }
@@ -2092,6 +2132,7 @@
   .hack-empty { color: var(--ink-mid); font-size: 14px; }
   @media (max-width: 640px) {
     .hack-section { grid-template-columns: 1fr; gap: 8px; }
+    .ag-lanes, .ag-board-grid { grid-template-columns: 1fr; }
   }
   .hack-video {
     max-width: 320px;
@@ -8581,7 +8622,7 @@ void loop() {
         <div class="tool-card" id="toolCardAntigravity">
           <p class="tool-card-eyebrow">Load code: with Antigravity</p>
           <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 10l2 2-2 2M12 14h3"/></svg></span><h3 class="tool-card-title">Antigravity + Arduino</h3></div>
-          <p class="tool-card-blurb">Open the starter folder in Antigravity IDE and build with the agent, right on your board.</p>
+          <p class="tool-card-blurb">Build, compile, and upload in one workspace. Best for longer Arduino or ESP32 projects.</p>
           <div class="tool-card-footer">Open the guide</div>
         </div>
         <div class="tool-card" id="toolCardSchematic">
@@ -8657,44 +8698,56 @@ void loop() {
     }).join('')}</ol>`;
 
     const SETUP = [
-      '**Install Antigravity IDE.** Open [antigravity.google/download](https://antigravity.google/download). Two downloads are offered. Pick **Antigravity IDE**, not Antigravity 2.0. Open the file, drag Antigravity to Applications, open it, and sign in with your school Google account.',
+      '**Install Antigravity IDE.** Open [antigravity.google/download](https://antigravity.google/download) and choose **Antigravity IDE**. Open the installer, launch the IDE, and sign in with the Google account approved for class. During first-run setup, choose **Review-driven development** so you approve commands before they run.',
       '**Download the starter folder:** [arduino-starter.zip](/arduino-starter.zip). In Downloads, double-click it. Drag the t4sg-arduino-starter folder to your Desktop and rename it with your name, for example arduino-maya.',
       '**Open the folder in Antigravity.** File, then Open Folder, then pick your folder. If it asks whether you trust the folder, click Yes.',
-      '**Type /setup in the agent chat** (the panel on the right side of the window) and press Enter. Each time a gray box asks permission to run a command, click **Run**. The first time takes a few minutes. It ends with SETUP COMPLETE.',
-      '**Plug in your board and type /check.** The agent finds the board, uploads a test, and reads what it says. When the board blinks and the agent reports "hello from the board", you are set.'
+      '**Run the setup for your board.** In the agent panel, type `/setup` for a Leonardo or RedBoard/Uno. Type `/setup-esp32` for an ESP32. Review each command, then click **Run**. The ESP32 core is a large first-time download and can take several minutes. Setup ends with SETUP COMPLETE.',
+      '**Plug in your board and type /check.** Tell the agent the exact board name printed on it. The agent finds the port, compiles, uploads a test, and reads the serial output. When it reports "hello from the board", you are set.'
     ];
     const DAILY = [
       '**Plug in your board and open Antigravity.** Your folder is under File, then Open Recent.',
-      '**Say what you want, one thing at a time.** Name the parts and pins if you know them. "A button on pin 4 presses the space bar." If you already have code, paste it and say "start from this."',
-      '**Click Run when it asks.** The agent writes the sketch, compiles it, uploads it, and watches the serial output for five seconds. Every reply ends with what the sketch does now and the wiring, one line per connection.',
+      '**Say what you want, one behavior at a time.** Include the exact board, parts, pins, and what must stay unchanged. If you already have code, paste it and say "start from this."',
+      '**Review before Run.** Predict which part of the code should change and what the board should do. Check the proposed file and commands, then approve them.',
+      '**Compile, upload, and observe.** The agent runs the toolchain and watches five seconds of serial output. Read its short summary and exact wiring list.',
       '**Wire it from that list, then test it on the real thing.**',
       '**Describe what happened, not "fix it."** "The LED stays on." "It types w forever." "Nothing prints." The agent can only fix what it knows about. Repeat until it works.',
-      '**Before you move on, ask "explain this loop to me in three sentences"** and check the answer against your wiring. That is your notebook entry. If you cannot explain it, you are not done.'
+      '**Before you move on, ask "explain this loop to me in three sentences"** and check the answer against your wiring. That is your notebook entry. If the explanation and wiring do not match, ask one more question before moving on.'
     ];
 
     sec.innerHTML = `
       <button class="schem-back" id="agBack" aria-label="Back to Tools"><span class="schem-back-arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></span> Back to Tools</button>
       <h2 class="project-title">Antigravity + Arduino</h2>
-      <p class="project-blurb">Vibe coding with the Arduino upload built into the same window. No Gemini tab, no copy and paste. You say what you want, and an agent on your laptop writes the code, uploads it, and tests it on your board. Use this or the Arduino Code Loading Tool. Either is fine.</p>
+      <p class="project-blurb">A second coding lane for longer build loops. The editor, agent, compiler, upload, and serial output stay together, while you still review every change and test the physical result.</p>
       <div class="warmup-workspace">
         <article class="hack-card">
-          ${section('Why', `<ul>
-              <li><strong>Everything is in one window.</strong> The AI, the compiler, the upload, and the serial monitor. Your board is plugged into the agent, not into a tab you copy from.</li>
-              <li><strong>The agent sees the real error.</strong> Compiler errors and serial numbers go straight to it. It fixes its own mistakes and tells you what changed.</li>
-              <li><strong>Loops take seconds.</strong> A change, an upload, and a test take about fifteen seconds. You try ten ideas in the time one paste takes.</li>
-              <li><strong>Any board, any library.</strong> The real Arduino tools live inside your folder. Nothing else on your laptop changes.</li>
-            </ul>
-            <p>The Arduino Code Loading Tool is still where you turn work in, and it is still a fine way to build.</p>`)}
+          ${section('Choose a lane', `<div class="ag-lanes">
+              <div class="ag-lane"><strong>Browser loading tool</strong><p>Fastest first upload. No install. Best for Leonardo and RedBoard/Uno work with short code changes.</p></div>
+              <div class="ag-lane is-featured"><strong>Antigravity workspace</strong><p>Best when you expect many edits, serial tuning, extra libraries, or an ESP32 toolchain.</p></div>
+            </div>`)}
+          ${section('Pick your board', `<div class="ag-board-grid">
+              <div class="ag-board"><strong>Leonardo</strong><span>Class default. Keyboard and mouse projects work. Run <code>/setup</code>.</span></div>
+              <div class="ag-board"><strong>RedBoard or Uno</strong><span>Runs sensors, LEDs, and motors. It cannot act as a USB keyboard or mouse. Run <code>/setup</code>.</span></div>
+              <div class="ag-board"><strong>ESP32</strong><span>Use its exact model name. Run <code>/setup-esp32</code>. Upload from Antigravity, not the browser tool.</span></div>
+            </div>
+            <div class="ag-callout"><strong>ESP32 USB note:</strong> "ESP32" names a family, not one board. Classic ESP32 and C3 boards cannot act as a USB keyboard. S2 and S3 boards can, but only with the correct board profile and USB settings. The agent must identify the exact board before it writes HID code.</div>`)}
+          ${section('Know the window', `<ul>
+            <li><strong>Files on the left:</strong> your working code is <code>sketch/sketch.ino</code>.</li>
+            <li><strong>Editor in the center:</strong> inspect the actual code and any highlighted change.</li>
+            <li><strong>Agent on the right:</strong> describe the next behavior, use slash commands, and review its plan.</li>
+            <li><strong>Terminal at the bottom:</strong> this is where compile, upload, and serial evidence appears.</li>
+          </ul>`)}
           ${section('Set up, once', `<p class="ag-steps-help">Click a step when it is done. Your progress saves on this laptop.</p>${steps('setup', SETUP)}`)}
-          ${section('Every build day', steps('daily', DAILY))}
+          ${section('Build loop', steps('daily', DAILY))}
+          ${section('Prompt recipe', `<p>Give the agent four things: <strong>board, parts and pins, exact behavior, and what must stay unchanged.</strong></p><p><code>Leonardo. Button on pin 4. While held, hold the space bar; release it when the button is released. Keep my LED and its pin unchanged. Compile, upload, and show me the serial result.</code></p>`)}
           ${section('When it breaks', `<ul>
             <li><strong>Board not found:</strong> unplug it, plug it back in, say "try again."</li>
-            <li><strong>Upload hangs or fails:</strong> double-tap the RESET button on the board, then say "upload again."</li>
-            <li><strong>The board is typing everywhere:</strong> hold RESET, then say "upload." Every keyboard sketch starts with a three-second pause so the upload has time to land.</li>
-            <li><strong>Setup fails on a certificate or TLS error:</strong> the school network blocked the download. Switch to a phone hotspot and type <code>/setup</code> again.</li>
-            <li><strong>Anything else:</strong> ask "what went wrong?" and read the answer before clicking Run again.</li>
+            <li><strong>Compile fails:</strong> ask the agent to explain the first error in one sentence, then repair only that error.</li>
+            <li><strong>Leonardo or Uno upload fails:</strong> double-tap RESET, then say "upload again."</li>
+            <li><strong>ESP32 upload fails:</strong> give the agent the exact model printed on the board. Use BOOT or RESET only when the board instructions or agent call for it.</li>
+            <li><strong>The board is typing everywhere:</strong> hold RESET, then ask the agent to upload. Leonardo keyboard sketches start with a three-second safety pause.</li>
+            <li><strong>Setup download is blocked:</strong> stop and tell Ramsey. Change networks only if he asks you to.</li>
           </ul>`)}
-          ${section('Turning it in', `<p>Same as always. Copy the finished code into the Arduino Code Loading Tool and click Save to benchmark. Draw the wiring in the Wiring Schematic Tool. Drop your video.</p>`)}
+          ${section('Turn it in', `<p>Copy the finished code into the Arduino Code Loading Tool and click Save to benchmark. For ESP32 code, use Save to benchmark but do not press Upload in the browser tool. Draw the wiring in the Wiring Schematic Tool, then add the required photo or video.</p>`)}
         </article>
       </div>
     `;
