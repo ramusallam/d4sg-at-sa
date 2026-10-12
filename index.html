@@ -6939,28 +6939,61 @@
     }
     applyRoute(new URL(href, location.origin).pathname);
   }
+  function syncTeacherUrl(on) {
+    const url = new URL(location.href);
+    if (on) url.searchParams.set('admin', '1');
+    else url.searchParams.delete('admin');
+    const href = `${url.pathname}${url.search}${url.hash}`;
+    if (location.pathname + location.search + location.hash !== href) {
+      history.replaceState(history.state, '', href);
+    }
+  }
+  function repaintRouteAfterAuthChange() {
+    // A benchmark opens immediately from ?b= in its dedicated work tab. Google
+    // auth can resolve a moment later; repainting the route must not close that
+    // benchmark and strand the teacher on the Projects list.
+    const before = new URL(location.href);
+    const benchmarkId = before.searchParams.get('b');
+    const archiveId = before.searchParams.get('archive');
+    applyRoute(location.pathname);
+    if (!benchmarkId && !archiveId) return;
+
+    const restored = new URL(location.href);
+    if (benchmarkId) restored.searchParams.set('b', benchmarkId);
+    if (archiveId) restored.searchParams.set('archive', archiveId);
+    if (isAdmin) restored.searchParams.set('admin', '1');
+    history.replaceState(history.state, '', `${restored.pathname}${restored.search}${restored.hash}`);
+
+    if (benchmarkId) {
+      const bench = findBenchmarkById(benchmarkId);
+      const hw = !bench && HOMEWORK.find(w => w.id === benchmarkId);
+      if (bench) openModal(bench);
+      else if (hw) openHomeworkModal(hw);
+    } else if (archiveId && isAdmin) {
+      setTimeout(() => openArchiveDetail(archiveId, null), 0);
+    }
+  }
   onAuthStateChanged(auth, async (user) => {
     const prevTeacher = isAdmin;
     currentUser = user || null;
     if (!user) {
       currentStudent = null;
       setTeacherMode(false);
+      syncTeacherUrl(false);
       setLastPick('');
     } else if (isTeacherUser(user)) {
       currentStudent = null;
       // A verified teacher account always gets the class-wide view. Reflect
       // that state in the URL so reload, Back, and every internal route keep it.
       setTeacherMode(true);
-      const teacherHref = appRouteHref(location.pathname + location.search + location.hash);
-      if (location.pathname + location.search + location.hash !== teacherHref) {
-        history.replaceState(history.state, '', teacherHref);
-      }
+      syncTeacherUrl(true);
     } else {
       const r = await rosterFor(user.email);
       if (!r || !user.emailVerified) {
         // Not on the roster: drop the session before anything reads it.
         currentStudent = null;
         setTeacherMode(false);
+        syncTeacherUrl(false);
         setLastPick('');
         await signOutUser();
         authNotice(r
@@ -6970,6 +7003,7 @@
       }
       currentStudent = { name: r.name, email: String(user.email || '').toLowerCase() };
       setTeacherMode(false);
+      syncTeacherUrl(false);
       setLastPick(r.name);
     }
     authResolved = true;
@@ -6979,7 +7013,7 @@
     // admin controls), so repaint the current view when it flips. Student
     // sign-in is handled in place by every picker's onChange.
     if (prevTeacher !== isAdmin) {
-      try { applyRoute(location.pathname); } catch (e) { console.warn(e); }
+      try { repaintRouteAfterAuthChange(); } catch (e) { console.warn(e); }
     }
   });
 
@@ -15525,6 +15559,10 @@ void loop() {
     if (unsubscribePortfolios) unsubscribePortfolios();
     const grid = document.getElementById('pfGallery');
     if (!grid) return;
+    if (!isAdmin) {
+      grid.innerHTML = `<div class="pf-gallery-empty">Teacher sign-in required.</div>`;
+      return;
+    }
     const q = query(collection(db, 'portfolios'), where('benchmarkId', '==', b.id));
     unsubscribePortfolios = onSnapshot(q, (snap) => {
       const raw = [];
@@ -15583,6 +15621,10 @@ void loop() {
     _pfGalleryPage = PF_PAGE_SIZE; // reset paginator on every benchmark open
     const grid = document.getElementById('pfGallery');
     if (!grid) return;
+    if (!isAdmin) {
+      grid.innerHTML = `<div class="pf-gallery-empty">Teacher sign-in required.</div>`;
+      return;
+    }
     const q = query(collection(db, 'portfolios'), where('benchmarkId', '==', benchmarkId));
     unsubscribePortfolios = onSnapshot(q, (snap) => {
       const raw = [];

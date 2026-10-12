@@ -60,9 +60,12 @@ const artifactWrites = [...html.matchAll(/addDoc\(collection\(db, 'artifacts'\),
 assert.equal(artifactWrites.length, 4, 'all four legacy artifact write paths are covered');
 artifactWrites.forEach(([, body], i) => assert.match(body, /studentName: name,\s*nameSlug: nameSlug\(name\)/, `artifact write ${i + 1} stores its owner slug`));
 assert.match(html, /isTeacherUser\(user\)[\s\S]*?setTeacherMode\(true\)/, 'a verified teacher account always opens the class-wide view');
-assert.match(html, /const teacherHref = appRouteHref\(location\.pathname \+ location\.search \+ location\.hash\)/, 'teacher sign-in stamps the teacher URL state');
+assert.match(html, /function syncTeacherUrl\(on\)[\s\S]*?if \(on\) url\.searchParams\.set\('admin', '1'\);[\s\S]*?else url\.searchParams\.delete\('admin'\)/, 'teacher URL state is added for teachers and removed for students');
+assert.match(html, /if \(!user\)[\s\S]*?setTeacherMode\(false\);[\s\S]*?syncTeacherUrl\(false\)/, 'signing out clears the teacher URL state');
+assert.match(html, /currentStudent = \{ name: r\.name,[\s\S]*?setTeacherMode\(false\);[\s\S]*?syncTeacherUrl\(false\)/, 'student sign-in clears any stale teacher URL state');
 assert.doesNotMatch(html, /setTeacherMode\(wantsAdmin\)/, 'teacher visibility never depends on entering through a special URL');
-assert.match(html, /if \(prevTeacher !== isAdmin\)[\s\S]*?applyRoute\(location\.pathname\)/, 'initial teacher sign-in repaints the current page with class-wide data');
+assert.match(html, /if \(prevTeacher !== isAdmin\)[\s\S]*?repaintRouteAfterAuthChange\(\)/, 'initial teacher sign-in repaints the current page with class-wide data');
+assert.match(html, /function repaintRouteAfterAuthChange\(\)[\s\S]*?const benchmarkId = before\.searchParams\.get\('b'\)[\s\S]*?applyRoute\(location\.pathname\)[\s\S]*?restored\.searchParams\.set\('b', benchmarkId\)[\s\S]*?openModal\(bench\)/, 'auth repaint restores an open Product or benchmark deep link');
 assert.match(html, /function appRouteHref\(path\)[\s\S]*?url\.searchParams\.set\('admin', '1'\)/, 'teacher routes preserve the admin flag');
 assert.match(html, /const routeHref = appRouteHref\(href\)/, 'top navigation preserves teacher mode');
 assert.match(html, /navigateApp\('\/cad'\)/, 'CAD navigation preserves teacher mode');
@@ -74,5 +77,7 @@ assert.match(html, /if \(!benchmarkId \|\| !isAdmin\) return; \/\/ class-wide co
 assert.equal((html.match(/watchScopedWork\('portfolios'/g) || []).length, 3, 'every student panel reads portfolios through the scoped watcher');
 assert.equal((html.match(/watchScopedWork\('artifacts'/g) || []).length, 1, 'the homework gallery reads artifacts through the scoped watcher');
 assert.doesNotMatch(html, /const _pfq = query\(collection\(db, 'portfolios'\), where\('benchmarkId'/, 'no panel queries the whole class directly');
+assert.match(html, /function subscribeVideoSummaries\(b\)[\s\S]*?if \(!isAdmin\)/, 'the class summary listener has a teacher-mode guard');
+assert.match(html, /function subscribePortfolios\(benchmarkId\)[\s\S]*?if \(!isAdmin\)/, 'the class portfolio listener has a teacher-mode guard');
 
 console.log('T4SG security audit passed: school Google sign-in, roster stamped into page and rules, owner-only reads and writes, teacher-only class views, and no client admin secret.');
