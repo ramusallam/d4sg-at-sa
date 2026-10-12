@@ -142,5 +142,9 @@ assert.match(html, /Every external LED needs its own 220-330 ohm current-limitin
   'starter prompt protects every external LED with a current-limiting resistor');
 assert.doesNotMatch(html, /two LEDs[^}]{0,500}no resistors/,
   'LED benchmark prompts never prohibit current-limiting resistors');
+assert.match(html, /function openBenchmarkTab\(b\)[\s\S]*?history\.pushState\(\{\}, '', href\)[\s\S]*?openModal\(b\)/,
+  'benchmark and Product cards open a stable same-tab modal with a restorable URL');
+assert.doesNotMatch(html, /a\.target = WORK_TAB_NAME|BroadcastChannel\('d4sg-worktab-nav'\)/,
+  'benchmark cards do not depend on a popup or named work tab');
 
 console.log('T4SG benchmark-flow audit passed: aligned Product briefs and end-user cards, safe breath controls, concise labels, and instruction parity.');
