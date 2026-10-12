@@ -6923,9 +6923,9 @@
     isAdmin = on;
     document.body.classList.toggle('is-admin', on);
   }
-  // Teacher mode is deliberately URL-scoped, but it must survive navigation
-  // inside the same teacher tab. Normal student routes stay clean, while an
-  // authenticated teacher keeps ?admin=1 through every in-app route.
+  // Teacher mode follows a verified teacher account and is reflected in the
+  // URL. Normal student routes stay clean, while an authenticated teacher
+  // keeps ?admin=1 through every in-app route.
   function appRouteHref(path) {
     const url = new URL(path, location.origin);
     if (isAdmin && url.origin === location.origin) url.searchParams.set('admin', '1');
@@ -6940,7 +6940,6 @@
     applyRoute(new URL(href, location.origin).pathname);
   }
   onAuthStateChanged(auth, async (user) => {
-    const wasResolved = authResolved;
     const prevTeacher = isAdmin;
     currentUser = user || null;
     if (!user) {
@@ -6949,9 +6948,13 @@
       setLastPick('');
     } else if (isTeacherUser(user)) {
       currentStudent = null;
-      // Teacher controls are URL-scoped. A teacher session on the public URL
-      // never turns that tab into an unlocked student view.
-      setTeacherMode(wantsAdmin);
+      // A verified teacher account always gets the class-wide view. Reflect
+      // that state in the URL so reload, Back, and every internal route keep it.
+      setTeacherMode(true);
+      const teacherHref = appRouteHref(location.pathname + location.search + location.hash);
+      if (location.pathname + location.search + location.hash !== teacherHref) {
+        history.replaceState(history.state, '', teacherHref);
+      }
     } else {
       const r = await rosterFor(user.email);
       if (!r || !user.emailVerified) {
@@ -6975,7 +6978,7 @@
     // Teacher mode changes what a view renders (class submissions, counts,
     // admin controls), so repaint the current view when it flips. Student
     // sign-in is handled in place by every picker's onChange.
-    if (wasResolved && prevTeacher !== isAdmin) {
+    if (prevTeacher !== isAdmin) {
       try { applyRoute(location.pathname); } catch (e) { console.warn(e); }
     }
   });

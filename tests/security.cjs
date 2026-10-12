@@ -59,7 +59,10 @@ assert.match(html, /portfolios\/\$\{nameSlug\(name\)\}__\$\{benchmarkId\}\//, 'n
 const artifactWrites = [...html.matchAll(/addDoc\(collection\(db, 'artifacts'\), \{([\s\S]*?)\n\s*\}\);/g)];
 assert.equal(artifactWrites.length, 4, 'all four legacy artifact write paths are covered');
 artifactWrites.forEach(([, body], i) => assert.match(body, /studentName: name,\s*nameSlug: nameSlug\(name\)/, `artifact write ${i + 1} stores its owner slug`));
-assert.match(html, /setTeacherMode\(wantsAdmin\)/, 'teacher controls remain scoped to the admin URL');
+assert.match(html, /isTeacherUser\(user\)[\s\S]*?setTeacherMode\(true\)/, 'a verified teacher account always opens the class-wide view');
+assert.match(html, /const teacherHref = appRouteHref\(location\.pathname \+ location\.search \+ location\.hash\)/, 'teacher sign-in stamps the teacher URL state');
+assert.doesNotMatch(html, /setTeacherMode\(wantsAdmin\)/, 'teacher visibility never depends on entering through a special URL');
+assert.match(html, /if \(prevTeacher !== isAdmin\)[\s\S]*?applyRoute\(location\.pathname\)/, 'initial teacher sign-in repaints the current page with class-wide data');
 assert.match(html, /function appRouteHref\(path\)[\s\S]*?url\.searchParams\.set\('admin', '1'\)/, 'teacher routes preserve the admin flag');
 assert.match(html, /const routeHref = appRouteHref\(href\)/, 'top navigation preserves teacher mode');
 assert.match(html, /navigateApp\('\/cad'\)/, 'CAD navigation preserves teacher mode');
