@@ -6923,6 +6923,22 @@
     isAdmin = on;
     document.body.classList.toggle('is-admin', on);
   }
+  // Teacher mode is deliberately URL-scoped, but it must survive navigation
+  // inside the same teacher tab. Normal student routes stay clean, while an
+  // authenticated teacher keeps ?admin=1 through every in-app route.
+  function appRouteHref(path) {
+    const url = new URL(path, location.origin);
+    if (isAdmin && url.origin === location.origin) url.searchParams.set('admin', '1');
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
+
+  function navigateApp(path, state = {}) {
+    const href = appRouteHref(path);
+    if (location.pathname + location.search + location.hash !== href) {
+      history.pushState(state, '', href);
+    }
+    applyRoute(new URL(href, location.origin).pathname);
+  }
   onAuthStateChanged(auth, async (user) => {
     const wasResolved = authResolved;
     const prevTeacher = isAdmin;
@@ -7955,8 +7971,7 @@
       </div>
     `;
     dayoneBanner.addEventListener('click', () => {
-      history.pushState({}, '', '/day-one');
-      applyRoute('/day-one');
+      navigateApp('/day-one');
     });
     makeKeyActivatable(dayoneBanner, 'link');
     app.appendChild(dayoneBanner);
@@ -8504,7 +8519,7 @@ void loop() {
       setTimeout(() => renderHackathons(h.id), 1500);
     });
     sec.querySelector('#hackDropBtn').addEventListener('click', () => {
-      history.pushState({}, '', '/hackathons?b=' + encodeURIComponent(h.id));
+      history.pushState({}, '', appRouteHref('/hackathons?b=' + encodeURIComponent(h.id)));
       openModal(h);
     });
     if (moveFocus) requestAnimationFrame(() => document.getElementById('hackFocus')?.focus({ preventScroll: true }));
@@ -8806,28 +8821,22 @@ void loop() {
     app.appendChild(sec);
     sec.querySelectorAll('.tool-card').forEach(card => makeKeyActivatable(card, 'link'));
     sec.querySelector('#toolCardSchematic').addEventListener('click', () => {
-      history.pushState({}, '', '/tools/schematic');
-      applyRoute('/tools/schematic');
+      navigateApp('/tools/schematic');
     });
     sec.querySelector('#toolCardVibe').addEventListener('click', () => {
-      history.pushState({}, '', '/tools/vibe');
-      applyRoute('/tools/vibe');
+      navigateApp('/tools/vibe');
     });
     sec.querySelector('#toolCardAntigravity').addEventListener('click', () => {
-      history.pushState({}, '', '/tools/antigravity');
-      applyRoute('/tools/antigravity');
+      navigateApp('/tools/antigravity');
     });
     sec.querySelector('#toolCardIdea').addEventListener('click', () => {
-      history.pushState({}, '', '/tools/idea-board');
-      applyRoute('/tools/idea-board');
+      navigateApp('/tools/idea-board');
     });
     sec.querySelector('#toolCardCamera').addEventListener('click', () => {
-      history.pushState({}, '', '/tools/camera');
-      applyRoute('/tools/camera');
+      navigateApp('/tools/camera');
     });
     sec.querySelector('#toolCardCad').addEventListener('click', () => {
-      history.pushState({}, '', '/cad');
-      applyRoute('/cad');
+      navigateApp('/cad');
     });
   }
 
@@ -12053,12 +12062,11 @@ void loop() {
     }
     btn.addEventListener('click', () => {
       if (bench) {
-        history.pushState({}, '', '/?b=' + encodeURIComponent(bench.id));
+        history.pushState({}, '', appRouteHref('/?b=' + encodeURIComponent(bench.id)));
         applyRoute('/');
         openModal(bench);
       } else {
-        history.pushState({}, '', '/tools');
-        applyRoute('/tools');
+        navigateApp('/tools');
       }
     });
   }
@@ -12581,8 +12589,7 @@ void loop() {
           // Push the tool URL BEFORE closing the modal: applyRoute closes it
           // itself, and closing it early would strip ?b= from the history
           // entry the browser Back button needs to return to.
-          history.pushState({ fromBench: b.id }, '', path);
-          applyRoute(path);
+          navigateApp(path, { fromBench: b.id });
         } else {
           closeModal();
         }
@@ -19849,8 +19856,9 @@ void loop() {
     if (menu) menu.removeAttribute('open');
     // Compare path + query so navigating Home from /?b=... actually clears
     // the ?b= deep link instead of leaving a URL that reopens the benchmark.
-    if (location.pathname + location.search !== href) history.pushState({}, '', href);
-    applyRoute(href);
+    const routeHref = appRouteHref(href);
+    if (location.pathname + location.search !== routeHref) history.pushState({}, '', routeHref);
+    applyRoute(new URL(routeHref, location.origin).pathname);
   });
   window.addEventListener('popstate', () => {
     applyRoute(location.pathname);

@@ -60,6 +60,10 @@ const artifactWrites = [...html.matchAll(/addDoc\(collection\(db, 'artifacts'\),
 assert.equal(artifactWrites.length, 4, 'all four legacy artifact write paths are covered');
 artifactWrites.forEach(([, body], i) => assert.match(body, /studentName: name,\s*nameSlug: nameSlug\(name\)/, `artifact write ${i + 1} stores its owner slug`));
 assert.match(html, /setTeacherMode\(wantsAdmin\)/, 'teacher controls remain scoped to the admin URL');
+assert.match(html, /function appRouteHref\(path\)[\s\S]*?url\.searchParams\.set\('admin', '1'\)/, 'teacher routes preserve the admin flag');
+assert.match(html, /const routeHref = appRouteHref\(href\)/, 'top navigation preserves teacher mode');
+assert.match(html, /navigateApp\('\/cad'\)/, 'CAD navigation preserves teacher mode');
+assert.doesNotMatch(html, /history\.pushState\(\{\}, '', '\/cad'\)/, 'CAD navigation never drops teacher mode');
 
 // The page only ever asks for class-wide work as the teacher.
 assert.match(html, /if \(isAdmin && !isVideoSummary && !isInstructable\) \{/, 'Class submissions is a teacher-only section');
