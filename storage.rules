@@ -2,6 +2,51 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    function isTeacher() {
+      return request.auth != null &&
+             request.auth.token.email is string &&
+             request.auth.token.email_verified == true &&
+             request.auth.token.email.lower() in ['ramsey.musallam@gmail.com', 'ramsey.musallam@sonomaacademy.org'];
+    }
+    // GENERATED from roster.json by scripts/gen-roster.mjs. Do not edit here.
+    function roster() {
+      return {
+        "alexa.torres@sonomaacademy.org": { "name": "Alexa", "slug": "alexa" },
+        "aurora.martinez@sonomaacademy.org": { "name": "Aurora", "slug": "aurora" },
+        "carina.flocco@sonomaacademy.org": { "name": "Carina", "slug": "carina" },
+        "carter.mcginty@sonomaacademy.org": { "name": "Carter", "slug": "carter" },
+        "dana.meyer@sonomaacademy.org": { "name": "Dana", "slug": "dana" },
+        "dylan.castro@sonomaacademy.org": { "name": "Dylan", "slug": "dylan" },
+        "franchesca.cohen@sonomaacademy.org": { "name": "Franchesca", "slug": "franchesca" },
+        "gabriel.halstad@sonomaacademy.org": { "name": "Gabe", "slug": "gabe" },
+        "henry.park@sonomaacademy.org": { "name": "Henry", "slug": "henry" },
+        "isabella.rossi@sonomaacademy.org": { "name": "Isabella", "slug": "isabella" },
+        "kai.fabricant@sonomaacademy.org": { "name": "Kai", "slug": "kai" },
+        "katie.caffrey@sonomaacademy.org": { "name": "Katie", "slug": "katie" },
+        "oona.hudson@sonomaacademy.org": { "name": "Oona", "slug": "oona" },
+        "peter.hansen@sonomaacademy.org": { "name": "Peter", "slug": "peter" },
+        "riley.musallam@sonomaacademy.org": { "name": "Riley", "slug": "riley" },
+        "ryan.kimbel@sonomaacademy.org": { "name": "Ryan", "slug": "ryan" },
+        "gregory.goode@sonomaacademy.org": { "name": "Weston", "slug": "weston" },
+        "winter.holder@sonomaacademy.org": { "name": "Winter", "slug": "winter" },
+      };
+    }
+    // END GENERATED ROSTER
+    function isStudent() {
+      return request.auth != null &&
+             request.auth.token.email is string &&
+             request.auth.token.email_verified == true &&
+             request.auth.token.email.lower() in roster();
+    }
+    function mySlug() {
+      return roster()[request.auth.token.email.lower()].slug;
+    }
+    function ownsScope(ownerScope) {
+      return isStudent() && ownerScope.matches('^' + mySlug() + '__.*');
+    }
+    function canAccess(ownerScope) {
+      return isTeacher() || ownsScope(ownerScope);
+    }
     // Client deletes are denied everywhere. Previously the `request.resource == null`
     // branch (a delete has a null incoming resource) silently permitted deleteObject;
     // dropping it denies client deletes while still allowing uploads, which always
@@ -11,11 +56,12 @@ service firebase.storage {
     // is carried forward into the promoted /portfolios entry), so this is compatible.
 
     // Legacy artifacts path (homework uploads still write here).
-    match /artifacts/{file=**} {
-      allow read: if true;
+    match /artifacts/{ownerScope}/{file=**} {
+      allow read: if canAccess(ownerScope);
       // Cap uploads at 50MB; allow image, video, and STL types.
       // STL files come in many content types (some browsers send octet-stream).
-      allow write: if request.resource != null
+      allow write: if canAccess(ownerScope)
+                   && request.resource != null
                    && request.resource.size < 50 * 1024 * 1024
                    && (request.resource.contentType.matches('image/.*')
                        || request.resource.contentType.matches('video/.*')
@@ -29,9 +75,10 @@ service firebase.storage {
     // HEIC to JPEG before upload, but the rule stays broad so a slow-to-update
     // cached client never hits a silent wall again), any video (iPhone .mov is
     // video/quicktime), PDF, STL CAD files.
-    match /portfolios/{benchmarkId}/{file=**} {
-      allow read: if true;
-      allow write: if request.resource != null
+    match /portfolios/{ownerScope}/{file=**} {
+      allow read: if canAccess(ownerScope);
+      allow write: if canAccess(ownerScope)
+                   && request.resource != null
                    && request.resource.size < 100 * 1024 * 1024
                    && (
                         request.resource.contentType.matches('image/.*')
@@ -57,8 +104,9 @@ service firebase.storage {
     // Same file-type allowlist + 100MB cap as portfolios. The Firestore draft doc is
     // soft-cleared on Submit; the file URL persists in the promoted /portfolios entry.
     match /drafts/{draftId}/{file=**} {
-      allow read: if true;
-      allow write: if request.resource != null
+      allow read: if canAccess(draftId);
+      allow write: if canAccess(draftId)
+                   && request.resource != null
                    && request.resource.size < 100 * 1024 * 1024
                    && (
                         request.resource.contentType.matches('image/.*')

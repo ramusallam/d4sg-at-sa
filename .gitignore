@@ -1,1 +1,4 @@
 .vercel
+backups/
+firestore-debug.log
+roster.json

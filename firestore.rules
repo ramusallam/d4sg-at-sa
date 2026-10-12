@@ -2,17 +2,69 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Students never sign in. Teacher-only maintenance uses Google sign-in,
-    // and Firebase rules enforce the identity even if someone copies the UI.
+    // Identity model (2026-10-11): students sign in with their sonomaacademy.org
+    // Google account; the roster below maps that email to the first name the
+    // app has always stored as studentName / nameSlug, so nothing in the data
+    // moved. A student can only read and write work under their own name. The
+    // teacher (Google sign-in with the gmail below) reads and maintains all of it.
     function isTeacher() {
       return request.auth != null &&
-             request.auth.token.email == 'ramsey.musallam@gmail.com';
+             request.auth.token.email is string &&
+             request.auth.token.email_verified == true &&
+             request.auth.token.email.lower() in ['ramsey.musallam@gmail.com', 'ramsey.musallam@sonomaacademy.org'];
+    }
+    // GENERATED from roster.json by scripts/gen-roster.mjs. Do not edit here.
+    function roster() {
+      return {
+        "alexa.torres@sonomaacademy.org": { "name": "Alexa", "slug": "alexa" },
+        "aurora.martinez@sonomaacademy.org": { "name": "Aurora", "slug": "aurora" },
+        "carina.flocco@sonomaacademy.org": { "name": "Carina", "slug": "carina" },
+        "carter.mcginty@sonomaacademy.org": { "name": "Carter", "slug": "carter" },
+        "dana.meyer@sonomaacademy.org": { "name": "Dana", "slug": "dana" },
+        "dylan.castro@sonomaacademy.org": { "name": "Dylan", "slug": "dylan" },
+        "franchesca.cohen@sonomaacademy.org": { "name": "Franchesca", "slug": "franchesca" },
+        "gabriel.halstad@sonomaacademy.org": { "name": "Gabe", "slug": "gabe" },
+        "henry.park@sonomaacademy.org": { "name": "Henry", "slug": "henry" },
+        "isabella.rossi@sonomaacademy.org": { "name": "Isabella", "slug": "isabella" },
+        "kai.fabricant@sonomaacademy.org": { "name": "Kai", "slug": "kai" },
+        "katie.caffrey@sonomaacademy.org": { "name": "Katie", "slug": "katie" },
+        "oona.hudson@sonomaacademy.org": { "name": "Oona", "slug": "oona" },
+        "peter.hansen@sonomaacademy.org": { "name": "Peter", "slug": "peter" },
+        "riley.musallam@sonomaacademy.org": { "name": "Riley", "slug": "riley" },
+        "ryan.kimbel@sonomaacademy.org": { "name": "Ryan", "slug": "ryan" },
+        "gregory.goode@sonomaacademy.org": { "name": "Weston", "slug": "weston" },
+        "winter.holder@sonomaacademy.org": { "name": "Winter", "slug": "winter" },
+      };
+    }
+    // END GENERATED ROSTER
+    function userEmail() {
+      return request.auth.token.email.lower();
+    }
+    function isStudent() {
+      return request.auth != null &&
+             request.auth.token.email is string &&
+             request.auth.token.email_verified == true &&
+             userEmail() in roster();
+    }
+    function myName() { return roster()[userEmail()].name; }
+    function mySlug() { return roster()[userEmail()].slug; }
+    // Existing docs are keyed by name. Older homework artifacts carry only
+    // studentName, so ownership accepts either field.
+    function owns(data) {
+      return isStudent() &&
+             (data.nameSlug == mySlug() || data.studentName == myName());
+    }
+    function writesAsSelf(data) {
+      return isStudent() &&
+             data.studentName == myName() &&
+             data.nameSlug == mySlug();
     }
 
     // Legacy artifacts (homework still uses this; benchmark portfolios moved to /portfolios).
     match /artifacts/{artifactId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['benchmarkId','studentName','description','createdAt']) &&
+      allow read: if isTeacher() || owns(resource.data);
+      allow create: if (isTeacher() || writesAsSelf(request.resource.data)) &&
+                       request.resource.data.keys().hasAll(['benchmarkId','studentName','description','createdAt']) &&
                        request.resource.data.studentName is string &&
                        request.resource.data.studentName.size() > 0 &&
                        request.resource.data.studentName.size() <= 80 &&
@@ -30,8 +82,9 @@ service cloud.firestore {
     // Portfolios: per-benchmark student submissions with up to 5 slots
     // (image, video, code, cad, summary). Slots are file/link/text refs.
     match /portfolios/{portfolioId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['benchmarkId','studentName','createdAt','slots']) &&
+      allow read: if isTeacher() || owns(resource.data);
+      allow create: if (isTeacher() || writesAsSelf(request.resource.data)) &&
+                       request.resource.data.keys().hasAll(['benchmarkId','studentName','createdAt','slots']) &&
                        request.resource.data.benchmarkId is string &&
                        request.resource.data.benchmarkId.size() <= 40 &&
                        request.resource.data.studentName is string &&
@@ -39,14 +92,16 @@ service cloud.firestore {
                        request.resource.data.studentName.size() <= 80 &&
                        request.resource.data.slots is map &&
                        request.resource.data.createdAt == request.time;
-      // Hard delete denied. Students may keep revising the stable document;
-      // teacher-only maintenance may soft-remove or restore it.
+      // Hard delete denied. Students may keep revising their own stable
+      // document; teacher-only maintenance may soft-remove or restore it.
       allow delete: if false;
       allow update: if request.resource.data.slots is map &&
                        request.resource.data.benchmarkId == resource.data.benchmarkId &&
                        request.resource.data.studentName == resource.data.studentName &&
                        (isTeacher() ||
-                        (request.resource.data.slots.size() >= resource.data.slots.size() &&
+                        (owns(resource.data) &&
+                         request.resource.data.nameSlug == mySlug() &&
+                         request.resource.data.slots.size() >= resource.data.slots.size() &&
                          (!('deleted' in request.resource.data) ||
                           request.resource.data.deleted == false)));
     }
@@ -89,23 +144,25 @@ service cloud.firestore {
                        request.resource.data.deleted == true;
     }
 
-    // Class roster: students self-identify on first add. Honor-code class
-    // means anyone can read/write; the slug-doc-id ensures we don't dupe.
+    // Legacy self-added roster. The roster now lives in roster.json and
+    // students never write here; kept readable for the teacher's history.
     match /students/{studentSlug} {
-      allow read: if true;
-      allow create, update: if request.resource.data.name is string &&
-                                request.resource.data.name.size() > 0 &&
-                                request.resource.data.name.size() <= 80;
+      allow read: if isTeacher();
+      allow create, update: if isTeacher() &&
+                               request.resource.data.name is string &&
+                               request.resource.data.name.size() > 0 &&
+                               request.resource.data.name.size() <= 80;
       allow delete: if false;
     }
 
     // Per-student per-benchmark drafts. Doc id = `${nameSlug}__${benchmarkId}`.
     // Auto-save target for evidence uploads + reflection text. Promoted to
-    // /portfolios on Submit and soft-cleared here (deleted:true). Permissive by
-    // design, but never hard-deleted so nothing is lost mid-session.
+    // /portfolios on Submit and soft-cleared here (deleted:true). Never
+    // hard-deleted so nothing is lost mid-session.
     match /drafts/{draftId} {
-      allow read: if true;
-      allow create, update: if request.resource.data.studentName is string &&
+      allow read: if isTeacher() || (isStudent() && draftId.matches('^' + mySlug() + '__.*'));
+      allow create, update: if (isTeacher() || (writesAsSelf(request.resource.data) && draftId.matches('^' + mySlug() + '__.*'))) &&
+                               request.resource.data.studentName is string &&
                                request.resource.data.studentName.size() > 0 &&
                                request.resource.data.studentName.size() <= 80 &&
                                request.resource.data.benchmarkId is string &&

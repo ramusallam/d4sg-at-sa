@@ -2901,6 +2901,48 @@
     gap: 10px;
   }
   body.is-admin .admin-bar { display: inline-flex; }
+  /* ===== Sign-in chip in the header ===== */
+  .auth-chip { display: inline-flex; align-items: center; gap: 6px; }
+  .auth-chip .auth-signin { cursor: pointer; font-family: inherit; }
+  .auth-who {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 12px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent);
+    font-size: 12px; font-weight: 700; letter-spacing: .3px;
+  }
+  .auth-btn {
+    min-height: 44px; background: none; border: none; padding: 6px 4px; cursor: pointer;
+    color: var(--ink-mid); font: 600 12px/1 "Inter", sans-serif; text-decoration: underline; text-underline-offset: 3px;
+  }
+  .auth-btn:hover { color: var(--ink-hi); }
+  /* ===== Signed-in / sign-in states of the name picker ===== */
+  .name-picker-signed {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    min-height: 44px; padding: 8px 12px 8px 14px;
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+  }
+  .name-picker-who { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-hi); font-size: 15px; }
+  .name-picker-who svg { color: var(--accent); }
+  .name-picker-link {
+    min-height: 44px; background: none; border: none; padding: 6px 4px; cursor: pointer;
+    color: var(--ink-mid); font: 600 12px/1 "Inter", sans-serif; text-decoration: underline; text-underline-offset: 3px;
+  }
+  .name-picker-link:hover { color: var(--ink-hi); }
+  .name-picker-signin {
+    display: inline-flex; align-items: center; gap: 10px;
+    min-height: 44px; padding: 0 16px; width: 100%;
+    background: white; border: 1px solid var(--border-strong); border-radius: 10px;
+    color: var(--ink-hi); font: 700 14px/1.2 "Inter", sans-serif; cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .name-picker-signin:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .auth-btn:focus-visible, .name-picker-link:focus-visible, .name-picker-signin:focus-visible {
+    outline: 3px solid var(--accent); outline-offset: 3px;
+  }
+  .name-picker-wait { min-height: 44px; display: flex; align-items: center; padding: 0 14px; color: var(--ink-mid); font-size: 14px; }
+  .identity-strip-picker .name-picker-signed,
+  .identity-strip-picker .name-picker-signin,
+  .identity-strip-picker .name-picker-wait { min-height: 38px; padding-top: 0; padding-bottom: 0; font-size: 14px; }
   .teacher-gate {
     position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center;
     padding: 24px; background: rgba(28,25,23,.52); backdrop-filter: blur(8px);
@@ -6615,6 +6657,7 @@
           </a>
         </div>
       </details>
+      <span class="auth-chip" id="authChip"></span>
       <span class="admin-bar">
         <span class="admin-tag">Admin</span>
         <button class="archive-btn" id="archivesViewBtn">Archives</button>
@@ -6680,7 +6723,7 @@
     getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject
   } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js';
   import {
-    getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut
+    getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut
   } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
 
   const firebaseConfig = {
@@ -6699,7 +6742,8 @@
   // ============== ADMIN MODE ==============
   const urlParams = new URLSearchParams(location.search);
   const wantsAdmin = urlParams.has('admin');
-  const TEACHER_EMAIL = 'ramsey.musallam@gmail.com';
+  // Both of Ramsey's Google accounts open teacher mode (mirrored in firestore.rules).
+  const TEACHER_EMAILS = ['ramsey.musallam@gmail.com', 'ramsey.musallam@sonomaacademy.org'];
   let isAdmin = false;
 
   function authUserOnce() {
@@ -6710,7 +6754,7 @@
   }
 
   function isTeacherUser(user) {
-    return !!user && String(user.email || '').toLowerCase() === TEACHER_EMAIL;
+    return !!user && user.emailVerified && TEACHER_EMAILS.includes(String(user.email || '').toLowerCase());
   }
 
   async function establishTeacherMode() {
@@ -6727,7 +6771,7 @@
       <div class="teacher-gate-card">
         <div class="eyebrow">Teacher tools</div>
         <h2 id="teacherGateTitle">Sign in to continue</h2>
-        <p>Student work remains open. Archives and curation require your teacher Google account.</p>
+        <p>Archives and curation require your teacher Google account.</p>
         <div class="teacher-gate-actions">
           <button type="button" data-teacher-signin>Sign in with Google</button>
           <a href="${location.pathname}${location.hash || ''}">View student site</a>
@@ -6766,33 +6810,38 @@
     if (isAdmin) document.body.classList.add('is-admin');
   }
 
-  // ============== CLASS ROSTER ==============
-  // Hardcoded seed list. The live dropdown unions this with any names added
-  // through the "+ I'm new — add me" flow (stored in the `students` Firestore
-  // collection). Tell Claude "add Carla F." to grow this list.
-  const ROSTER = [
-    'Alexa',
-    'Aurora',
-    'Carina',
-    'Carter',
-    'Dana',
-    'Dylan',
-    'Franchesca',
-    'Gabe',
-    'Henry',
-    'Isabella',
-    'Kai',
-    'Katie',
-    'Oona',
-    'Peter',
-    'Riley',
-    'Ryan',
-    'Weston',
-    'Winter',
-  ];
+  // ============== CLASS ROSTER + STUDENT SIGN-IN ==============
+  // Students sign in with their sonomaacademy.org Google account. The roster
+  // maps that email to the first name the app has always stored as
+  // studentName / nameSlug, so work saved before sign-in existed stays attached
+  // to the same student. To add or remove a student: edit roster.json, run
+  // `node scripts/gen-roster.mjs`, deploy the Firestore rules, then the site.
+  const ROSTER = [ // GENERATED from roster.json by scripts/gen-roster.mjs. Do not edit here.
+    { name: "Alexa", h: "151cd1b8e3a9b886eabd7487c7cab77dfe223fd331b6c8513fab65f3b932248c" },
+    { name: "Aurora", h: "411da735c3271c7c5f7dddbba8e77d12e852284b2a34c2bc9e0c6f7115d30af6" },
+    { name: "Carina", h: "4b8891d293eb90c271ce8c61939fffd945437801a95b2ad87d4cd208e55f1574" },
+    { name: "Carter", h: "0fa8d4bc8ac1d24bc180fcdb8b4632a6ec49a32946467b7522b5d2aaaae94d88" },
+    { name: "Dana", h: "a1e7418824c5b3eb89e12a267c28ac5bccf093f38b1685f9efd39a332f3d358c" },
+    { name: "Dylan", h: "2294f25cbf11b7f1ca3cdb5dfa727bf642ff82dcaa1afb9bee42c8f4932af346" },
+    { name: "Franchesca", h: "19fb9ed6af6a21a9e539becc504732e1c422ba4bb23fb4d69b14de5b990db8d2" },
+    { name: "Gabe", h: "3337aa30521344c38468a75380cef1a3f2d4b97b3733b242dc39cd86145fdce7" },
+    { name: "Henry", h: "48438b0fe83b9fe25f13e08aa0db6cecd5bd689a0b2c98b30ce5cc34ce12bffb" },
+    { name: "Isabella", h: "9d993a14c4524056578cc9d1fc03f3ac2677b8576e07bf7b042fc844d92e108b" },
+    { name: "Kai", h: "7bcdf36af2c0453d800001ab153a4d271f5cf98902870921d5db85b11747434f" },
+    { name: "Katie", h: "f17ab6ded643e7725fd13881463ec37d343d6e10b81504973eedd014123c69fe" },
+    { name: "Oona", h: "68db66bddc10872594614e7647db5c21392ca58275923575341e9df0ec45e1ba" },
+    { name: "Peter", h: "0d5dd275e566a9f9171a51e7e380b3d85d76df6bb806dcad674eecbf6e5c7a20" },
+    { name: "Riley", h: "7d0ec9ee44696f47f86aaa4293b26a7f6f351567ebd15cf37514f70254dc4008" },
+    { name: "Ryan", h: "6076f81942678f14599fd3e00c6ba128af90fd61228078fb728dba8d56d22ab6" },
+    { name: "Weston", h: "88b35d95e24f866b151ec7bf3dbeb794a49cad6a4e8eb5f1d235296fb2577f66" },
+    { name: "Winter", h: "04b34b5bb719d3bcfb83296b76492fa2f8f55fb95dbe56c1091f896fe98dc70d" },
+  ]; // END GENERATED ROSTER
+  const ROSTER_NAMES = ROSTER.map(r => r.name);
+  const SCHOOL_DOMAIN = 'sonomaacademy.org';
   const LAST_PICK_KEY = 'd4sg-last-pick-v1';
-  // Every write to this device's student goes through here. A same-tab write
-  // fires no storage event, so the home checkmarks are re-pointed explicitly.
+  // The "current student" every save surface reads. Set by sign-in for
+  // students, by the roster dropdown for the teacher. A same-tab write fires
+  // no storage event, so the home checkmarks are re-pointed explicitly.
   function setLastPick(name) {
     const n = String(name || '').trim();
     try {
@@ -6809,55 +6858,159 @@
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
   }
-  // Live roster: ROSTER ∪ any names ever added through the picker.
-  // Subscribes once on load; subsequent reads use _liveRoster.
-  let _liveRoster = [...ROSTER];
+  // Roster subscription kept for the teacher's pickers and hackathon teams.
+  let _liveRoster = [...ROSTER_NAMES];
   const _rosterSubs = new Set();
   function subscribeRoster(cb) {
     _rosterSubs.add(cb);
     cb(_liveRoster);
     return () => _rosterSubs.delete(cb);
   }
-  function _setLiveRoster(names) {
-    const byKey = new Map();
-    [...ROSTER, ...names].forEach(n => {
-      const k = String(n).trim().toLowerCase();
-      if (k && !byKey.has(k)) byKey.set(k, String(n).trim());
-    });
-    const merged = Array.from(byKey.values()).sort((a, b) =>
-      a.localeCompare(b, undefined, { sensitivity: 'base' })
-    );
-    _liveRoster = merged;
-    // A remembered last pick that's no longer on the roster (retired seed
-    // names, purged test students) must not resurrect through pickers.
-    try {
-      const stored = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
-      if (stored && !merged.some(n => n.toLowerCase() === stored.toLowerCase())) {
-        setLastPick('');
-      }
-    } catch (_) {}
-    _rosterSubs.forEach(cb => { try { cb(_liveRoster); } catch (e) {} });
+  // Students no longer add themselves; the roster is fixed above. Kept as a
+  // no-op so the save surfaces that call it stay unchanged.
+  async function ensureRosterEntry() {}
+
+  // The roster carries a SHA-256 of each school email, never the address.
+  async function rosterFor(email) {
+    const e = String(email || '').trim().toLowerCase();
+    if (!e || !crypto.subtle) return null;
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(e));
+    const h = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return ROSTER.find(r => r.h === h) || null;
   }
-  onSnapshot(collection(db, 'students'), (snap) => {
-    const fromFirestore = [];
-    snap.forEach(d => {
-      const v = d.data();
-      if (v && !v.deleted && typeof v.name === 'string' && v.name.trim()) fromFirestore.push(v.name.trim());
-    });
-    _setLiveRoster(fromFirestore);
-  });
-  async function ensureRosterEntry(name) {
-    const slug = nameSlug(name);
-    if (!slug) return;
+
+  let currentUser = null;     // Firebase user, or null when signed out
+  let currentStudent = null;  // { name, email } when a roster student is signed in
+  let authResolved = false;   // true once Firebase has reported the first auth state
+  const _authSubs = new Set();
+  function authState() {
+    return { user: currentUser, student: currentStudent, teacher: isAdmin, resolved: authResolved };
+  }
+  // Fires on every sign-in / sign-out after the first state is known.
+  function subscribeAuth(cb) {
+    _authSubs.add(cb);
+    if (authResolved) { try { cb(authState()); } catch (e) { console.warn(e); } }
+    return () => _authSubs.delete(cb);
+  }
+  function notifyAuth() {
+    _authSubs.forEach(cb => { try { cb(authState()); } catch (e) { console.warn(e); } });
+  }
+  function authNotice(msg) {
+    try { schemToast(msg, 6000); } catch (_) { alert(msg); }
+  }
+  async function signInStudent() {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ hd: SCHOOL_DOMAIN, prompt: 'select_account' });
     try {
-      await setDoc(
-        doc(db, 'students', slug),
-        { name: name.trim(), joinedAt: serverTimestamp() },
-        { merge: true }
-      );
-    } catch (e) {
-      console.warn('roster add failed', e);
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      const code = err && err.code;
+      if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
+        try { await signInWithRedirect(auth, provider); } catch (_) {}
+        return;
+      }
+      if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
+        console.warn('sign-in failed', err);
+        authNotice('Sign-in did not finish. Try again.');
+      }
     }
+  }
+  async function signOutUser() {
+    try { await signOut(auth); } catch (_) {}
+  }
+  function setTeacherMode(on) {
+    if (on === isAdmin) return;
+    isAdmin = on;
+    document.body.classList.toggle('is-admin', on);
+  }
+  onAuthStateChanged(auth, async (user) => {
+    const wasResolved = authResolved;
+    const prevTeacher = isAdmin;
+    currentUser = user || null;
+    if (!user) {
+      currentStudent = null;
+      setTeacherMode(false);
+      setLastPick('');
+    } else if (isTeacherUser(user)) {
+      currentStudent = null;
+      // Teacher controls are URL-scoped. A teacher session on the public URL
+      // never turns that tab into an unlocked student view.
+      setTeacherMode(wantsAdmin);
+    } else {
+      const r = await rosterFor(user.email);
+      if (!r || !user.emailVerified) {
+        // Not on the roster: drop the session before anything reads it.
+        currentStudent = null;
+        setTeacherMode(false);
+        setLastPick('');
+        await signOutUser();
+        authNotice(r
+          ? 'That Google account is not verified. Use your school account.'
+          : `${user.email || 'That account'} is not on the T4SG roster. Use your ${SCHOOL_DOMAIN} account, or ask Ramsey to add you.`);
+        return;
+      }
+      currentStudent = { name: r.name, email: String(user.email || '').toLowerCase() };
+      setTeacherMode(false);
+      setLastPick(r.name);
+    }
+    authResolved = true;
+    renderHeaderAuth();
+    notifyAuth();
+    // Teacher mode changes what a view renders (class submissions, counts,
+    // admin controls), so repaint the current view when it flips. Student
+    // sign-in is handled in place by every picker's onChange.
+    if (wasResolved && prevTeacher !== isAdmin) {
+      try { applyRoute(location.pathname); } catch (e) { console.warn(e); }
+    }
+  });
+
+  // Header chip: who is signed in, with sign in / sign out.
+  function renderHeaderAuth() {
+    const el = document.getElementById('authChip');
+    if (!el) return;
+    if (isAdmin && currentUser) {
+      el.innerHTML = `<span class="auth-who" title="${escapeHtml(currentUser.email || '')}">${ICON_USER}<span>Ramsey</span></span><button type="button" class="auth-btn" data-auth-out>Sign out</button>`;
+    } else if (isTeacherUser(currentUser)) {
+      el.innerHTML = `<a class="nav-link auth-signin" href="${location.pathname}?admin${location.hash || ''}">${ICON_USER}<span>Teacher view</span></a><button type="button" class="auth-btn" data-auth-out>Sign out</button>`;
+    } else if (currentStudent) {
+      el.innerHTML = `<span class="auth-who" title="${escapeHtml(currentStudent.email)}">${ICON_USER}<span>${escapeHtml(currentStudent.name)}</span></span><button type="button" class="auth-btn" data-auth-out>Sign out</button>`;
+    } else {
+      el.innerHTML = `<button type="button" class="nav-link auth-signin" data-auth-in>${ICON_USER}<span>Sign in</span></button>`;
+    }
+    const out = el.querySelector('[data-auth-out]');
+    if (out) out.addEventListener('click', signOutUser);
+    const inn = el.querySelector('[data-auth-in]');
+    if (inn) inn.addEventListener('click', signInStudent);
+  }
+  const ICON_USER = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+
+  // Who may read which portfolios / homework artifacts: the teacher sees the
+  // class, a student sees only their own, a signed-out visitor sees nothing.
+  // Returns null when there is nothing to query. Mirrors firestore.rules.
+  function scopedWorkQuery(colName, benchmarkId) {
+    if (isAdmin) return query(collection(db, colName), where('benchmarkId', '==', benchmarkId));
+    if (currentStudent) {
+      const field = colName === 'artifacts' ? 'studentName' : 'nameSlug';
+      const value = colName === 'artifacts' ? currentStudent.name : nameSlug(currentStudent.name);
+      return query(collection(db, colName), where('benchmarkId', '==', benchmarkId), where(field, '==', value));
+    }
+    return null;
+  }
+  // Live listener that follows sign-in state: re-subscribes whenever the
+  // signed-in identity changes, calls onEmpty when nobody is signed in.
+  function watchScopedWork(colName, benchmarkId, onSnap, onErr, onEmpty) {
+    let unsub = null;
+    const stop = () => { if (unsub) { try { unsub(); } catch (_) {} unsub = null; } };
+    const unsubAuth = subscribeAuth(() => {
+      stop();
+      const q = scopedWorkQuery(colName, benchmarkId);
+      if (!q) { if (typeof onEmpty === 'function') onEmpty(); return; }
+      unsub = onSnapshot(q, onSnap, (err) => {
+        console.warn(`${colName} listener failed`, err);
+        if (typeof onErr === 'function') onErr(err);
+      });
+    });
+    return () => { unsubAuth(); stop(); };
   }
 
   // Lightweight identity strip for the Tool views (Arduino Code Loading, Schematic).
@@ -7957,7 +8110,7 @@
   //      while a different benchmark is open; refreshCountBadge() is called
   //      after every submit/delete to re-pull the affected benchmark.
   async function refreshCountBadge(benchmarkId) {
-    if (!benchmarkId) return;
+    if (!benchmarkId || !isAdmin) return; // class-wide counts are a teacher view
     const isHw = benchmarkId.startsWith('hw-');
     const colName = isHw ? 'artifacts' : 'portfolios';
     try {
@@ -8026,7 +8179,7 @@
     sec.className = 'project';
     sec.innerHTML = `
       <h2 class="project-title">CAD Submissions</h2>
-      <p class="project-blurb">Pick your name, then submit a <strong>public CAD link</strong> or attach an STL file.</p>
+      <p class="project-blurb">Sign in, then submit a <strong>public CAD link</strong> or attach an STL file.</p>
       <div class="gallery-grid" id="galleryGrid"></div>
     `;
     app.appendChild(sec);
@@ -8438,7 +8591,7 @@ void loop() {
         </div>
         <div class="step-section" style="margin-bottom:0;">
           <h3>Drop it below</h3>
-          <p>Pick your name, paste your link, finish the sentence. Homework works the same way all semester.</p>
+          <p>Sign in, paste your link, finish the sentence. Homework works the same way all semester.</p>
           <div class="gallery-grid" id="galleryGrid"></div>
         </div>
       </div>
@@ -12384,7 +12537,7 @@ void loop() {
     // (Product) show every student's submitted work below the panel — expand a
     // row to see one person, jump bar to find a name fast. Video panels use the
     // summary board instead; the Instructable drop stays name-picker only.
-    if (!isVideoSummary && !isInstructable) {
+    if (isAdmin && !isVideoSummary && !isInstructable) {
       const gallerySec = document.createElement('div');
       gallerySec.className = 'modal-section';
       gallerySec.innerHTML = `
@@ -12541,21 +12694,19 @@ void loop() {
     if (unsubscribeGallery) unsubscribeGallery();
     const grid = document.getElementById('galleryGrid');
     if (!grid) return;
-    const q = query(
-      collection(db, 'artifacts'),
-      where('benchmarkId', '==', benchmarkId)
-    );
-    unsubscribeGallery = onSnapshot(q, (snap) => {
+    unsubscribeGallery = watchScopedWork('artifacts', benchmarkId, (snap) => {
       const items = [];
       snap.forEach(d => { const data = d.data(); if (data.deleted) return; items.push({ id: d.id, ...data }); });
       // newest first
       items.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       // Update the count badge from the live snapshot for free (no extra read).
-      updateCountBadge(benchmarkId, items.length);
+      if (isAdmin) updateCountBadge(benchmarkId, items.length);
       debouncedRenderGallery(grid, benchmarkId, items, opts);
     }, (err) => {
       console.error('gallery subscribe error', err);
       grid.innerHTML = `<div class="gallery-empty">Could not load gallery.</div>`;
+    }, () => {
+      grid.innerHTML = `<div class="gallery-empty">Sign in to see what you have turned in.</div>`;
     });
   }
 
@@ -13019,7 +13170,7 @@ void loop() {
     submitBtn.addEventListener('click', async () => {
       const name = picker.getName().trim();
       let link = linkInput.value.trim();
-      if (!name) { setErr('Pick your name first.'); return; }
+      if (!name) { setErr('Sign in first.'); return; }
       if (link && !/^https?:\/\//i.test(link)) {
         if (/^[\w-]+(\.[\w-]+)+([\/?#]|$)/.test(link)) { link = 'https://' + link; linkInput.value = link; }
         else { setErr('That does not look like a link. Copy it from your browser address bar.'); return; }
@@ -13033,7 +13184,7 @@ void loop() {
         if (stlFile) {
           statusEl.textContent = 'Uploading STL…';
           const ext = (stlFile.name.match(/\.[a-z0-9]+$/i) || ['.stl'])[0];
-          const path = `artifacts/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+          const path = `artifacts/${nameSlug(name)}__${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
           const ref = storageRef(storage, path);
           const ct = stlFile.type || 'model/stl';
           const task = uploadBytesResumable(ref, stlFile, { contentType: ct });
@@ -13050,6 +13201,7 @@ void loop() {
           await addDoc(collection(db, 'artifacts'), {
             benchmarkId,
             studentName: name,
+            nameSlug: nameSlug(name),
             description: '',
             type: 'link',
             linkUrl: link,
@@ -13065,6 +13217,7 @@ void loop() {
           await addDoc(collection(db, 'artifacts'), {
             benchmarkId,
             studentName: name,
+            nameSlug: nameSlug(name),
             description: '',
             ...fileFields,
             createdAt: serverTimestamp()
@@ -13100,6 +13253,7 @@ void loop() {
     await addDoc(collection(db, 'artifacts'), {
       benchmarkId,
       studentName: name,
+      nameSlug: nameSlug(name),
       description: desc,
       type: 'link',
       linkUrl: link,
@@ -13114,7 +13268,7 @@ void loop() {
   function uploadArtifact({ benchmarkId, name, desc, file, onProgress }) {
     return new Promise((resolve, reject) => {
       const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0];
-      const path = `artifacts/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+      const path = `artifacts/${nameSlug(name)}__${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
       const ref = storageRef(storage, path);
       const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
       const task = uploadBytesResumable(ref, file, { contentType: ct });
@@ -13127,6 +13281,7 @@ void loop() {
             await addDoc(collection(db, 'artifacts'), {
               benchmarkId,
               studentName: name,
+              nameSlug: nameSlug(name),
               description: desc,
               fileUrl: url,
               filePath: path,
@@ -13931,7 +14086,7 @@ void loop() {
         setStatus('');
         renderBody();
         if (currentSaveName()) uploadDraftFileForSlot(def.key);
-        else setStatus('Pick your name above so your work saves as you go.');
+        else setStatus('Sign in above so your work saves as you go.');
         // Soft warning for files >50MB (still under the 100MB hard cap).
         if (file.size > 50 * 1024 * 1024) {
           const inner = bodyInner;
@@ -14082,7 +14237,7 @@ void loop() {
     async function doSubmit() {
       if (_isSubmitting) return; // hard double-submit guard
       const name = nameInput.value.trim();
-      if (!name) { setStatus('Please enter your name.', true); return; }
+      if (!name) { setStatus('Sign in first.', true); return; }
       const anyDirty = Object.values(state).some(v => v && !v._submitted);
       if (!anyDirty) { setStatus('Add or change at least one slot before submitting.', true); return; }
       _isSubmitting = true;
@@ -14131,7 +14286,7 @@ void loop() {
           setStatus(`Uploading ${def.label}…`);
           try {
             const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0];
-            const path = `portfolios/${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${def.key}${ext}`;
+            const path = `portfolios/${nameSlug(name)}__${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${def.key}${ext}`;
             const ref = storageRef(storage, path);
             const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
             const task = uploadBytesResumable(ref, file, { contentType: ct });
@@ -14293,7 +14448,7 @@ void loop() {
         refreshTile(slotKey);
         refreshSubmit();
         if (currentSaveName()) uploadDraftFileForSlot(slotKey);
-        else setStatus('Pick your name above so your work saves as you go.');
+        else setStatus('Sign in above so your work saves as you go.');
         // Refresh the source slot's body too if it's open (rare, but safe).
         const srcSlot = slotsEl.querySelector(`.pf-slot[data-slot="${slotKey}"]`);
         if (srcSlot && srcSlot._renderBody && srcSlot.classList.contains('is-open')) {
@@ -14373,8 +14528,7 @@ void loop() {
     // (replaces the old public "Class portfolios" gallery).
     let _pfUnsub = null;
     try {
-      const _pfq = query(collection(db, 'portfolios'), where('benchmarkId', '==', benchmarkId));
-      _pfUnsub = onSnapshot(_pfq, (snap) => {
+      _pfUnsub = watchScopedWork('portfolios', benchmarkId, (snap) => {
         snapshotLoaded = true;
         submittedByName.clear();
         snap.forEach(d => {
@@ -14385,7 +14539,7 @@ void loop() {
         });
         if (panel.classList.contains('is-viewonly')) applyMode(nameInput.value);
         else hydrateFromSubmitted();
-      });
+      }, null, () => { snapshotLoaded = false; submittedByName.clear(); });
     } catch (_) {}
     panel._cleanup = () => {
       try { picker.destroy(); } catch (_) {}
@@ -14519,7 +14673,7 @@ void loop() {
           pendingFiles = [];
           textarea.value = '';
           renderPreviews();
-          setStatus('Pick your name to load or save a draft.');
+          setStatus('Sign in to load or save a draft.');
           return;
         }
         ensureRosterEntry(newName);
@@ -14650,7 +14804,7 @@ void loop() {
     async function handleFiles(files) {
       const name = getCurrentName();
       if (!name) {
-        setStatus('Pick your name first.', true);
+        setStatus('Sign in first.', true);
         return;
       }
       const arr = Array.from(files || []);
@@ -14860,7 +15014,7 @@ void loop() {
           }, 80);
         } else {
           _queuedArtifact = synth;
-          setStatus('Pick your name above to attach this file.', true);
+          setStatus('Sign in above to attach this file.', true);
           // Focus the name picker so they don't have to find it.
           setTimeout(() => {
             const sel = panel.querySelector('[data-name-select]');
@@ -15035,7 +15189,7 @@ void loop() {
     async function handleProofFile(file) {
       if (!file || !/^image\//.test(file.type || '')) { setStatus('Add a JPG or PNG screenshot.', true); return; }
       const name = nameInput.value.trim();
-      if (!name) { setStatus('Pick your name first.', true); return; }
+      if (!name) { setStatus('Sign in first.', true); return; }
       if (norm(name) !== norm(ownerName)) return;
       try { file = await normalizeImageFile(file); }
       catch (err) { setStatus(err.message, true); return; }
@@ -15122,7 +15276,7 @@ void loop() {
       if (isSubmitting) return;
       const name = nameInput.value.trim();
       const url = linkInput.value.trim();
-      if (!name) { setStatus('Please enter your name.', true); return; }
+      if (!name) { setStatus('Sign in first.', true); return; }
       if (!/^https?:\/\//i.test(url)) { setStatus('Instructable link must start with http:// or https://', true); return; }
 
       isSubmitting = true;
@@ -15167,8 +15321,7 @@ void loop() {
     // Live-load submissions so picking a name shows that person's link + proof.
     let _instUnsub = null;
     try {
-      const _iq = query(collection(db, 'portfolios'), where('benchmarkId', '==', benchmarkId));
-      _instUnsub = onSnapshot(_iq, (snap) => {
+      _instUnsub = watchScopedWork('portfolios', benchmarkId, (snap) => {
         submittedByName.clear();
         snap.forEach(d => {
           const data = d.data() || {};
@@ -15181,7 +15334,7 @@ void loop() {
         });
         renderSubmitted(nameInput.value);
         prefillOwn();
-      });
+      }, null, () => { submittedByName.clear(); });
     } catch (_) {}
     panel._cleanup = () => { try { picker.destroy(); } catch (_) {} if (_instUnsub) { try { _instUnsub(); } catch (_) {} } };
 
@@ -15309,7 +15462,7 @@ void loop() {
     saveBtn.addEventListener('click', async () => {
       const n = getName();
       const text = textarea.value.trim();
-      if (!n) { schemToast('Pick your name first.'); return; }
+      if (!n) { schemToast('Sign in first.'); return; }
       if (!text) { schemToast('Write a short summary first.'); return; }
       saveBtn.disabled = true;
       saveBtn.textContent = 'Saving...';
@@ -15336,8 +15489,7 @@ void loop() {
     // Live-load saved summaries so picking a name shows that person's work.
     let _vsUnsub = null;
     try {
-      const _vsq = query(collection(db, 'portfolios'), where('benchmarkId', '==', b.id));
-      _vsUnsub = onSnapshot(_vsq, (snap) => {
+      _vsUnsub = watchScopedWork('portfolios', b.id, (snap) => {
         submittedByName.clear();
         snap.forEach(d => {
           const data = d.data() || {};
@@ -15348,7 +15500,7 @@ void loop() {
         });
         renderSubmitted(getName());
         prefillFromSaved(getName());
-      });
+      }, null, () => { submittedByName.clear(); });
     } catch (_) {}
     panel._cleanup = () => { try { picker.destroy(); } catch (_) {} if (_vsUnsub) { try { _vsUnsub(); } catch (_) {} } };
 
@@ -18305,56 +18457,97 @@ void loop() {
   }
 
   // ============== NAME PICKER ==============
-  // Mobile-first roster picker. Native <select> for the wheel-spinner UX on
-  // iOS, an inline "+ I'm new — add me" fallback that grows the live roster.
-  // Returns { element, getName(), setName(name), destroy() }.
+  // Identity surface on every save panel. Students see who they are signed in
+  // as (or a sign-in button); the teacher gets the roster dropdown so any
+  // student's work can be opened. Returns { element, getName(), setName(name), destroy() }.
+  // onChange fires only on later identity changes, never during construction.
   function renderNamePicker(opts = {}) {
     const wrap = document.createElement('div');
     wrap.className = 'name-picker';
-    wrap.innerHTML = `
-      <label class="name-picker-label">${escapeHtml(opts.label || "Who's adding this?")}</label>
-      <select class="name-picker-select" data-name-select aria-label="Pick your name"></select>
-    `;
-    const select = wrap.querySelector('[data-name-select]');
-
-    let currentName = opts.initial || localStorage.getItem(LAST_PICK_KEY) || '';
     const remember = opts.remember !== false;
+    const label = escapeHtml(opts.label === undefined ? 'Saving as' : opts.label);
+    let currentName = '';
+    let mode = null;          // 'teacher' | 'student' | 'out' | null
+    let unsubRoster = () => {};
+    let painted = false;
 
-    function rebuildOptions(names) {
-      const seen = new Set(names.map(n => n.toLowerCase()));
-      // If the current pick isn't in the live roster yet (just added, not
-      // round-tripped through Firestore), keep it visible.
-      if (currentName && !seen.has(currentName.toLowerCase())) {
-        names = [...names, currentName].sort((a, b) =>
-          a.localeCompare(b, undefined, { sensitivity: 'base' })
-        );
-      }
-      const opts = [`<option value="">Pick your name…</option>`];
-      for (const n of names) {
-        const sel = (n === currentName) ? ' selected' : '';
-        opts.push(`<option value="${escapeHtml(n)}"${sel}>${escapeHtml(n)}</option>`);
-      }
-      select.innerHTML = opts.join('');
+    function fire(next) {
+      const changed = next !== currentName;
+      currentName = next;
+      if (painted && changed && typeof opts.onChange === 'function') opts.onChange(currentName);
     }
 
-    const unsub = subscribeRoster(rebuildOptions);
+    function paintTeacher() {
+      wrap.innerHTML = `
+        <label class="name-picker-label">${escapeHtml(opts.label || 'Open work as')}</label>
+        <select class="name-picker-select" data-name-select aria-label="Pick a student"></select>
+      `;
+      const select = wrap.querySelector('[data-name-select]');
+      let name = opts.initial || localStorage.getItem(LAST_PICK_KEY) || '';
+      if (name && !_liveRoster.some(n => n.toLowerCase() === name.toLowerCase())) name = '';
+      const rebuild = (names) => {
+        const html = [`<option value="">Pick a student…</option>`];
+        for (const n of names) html.push(`<option value="${escapeHtml(n)}"${n === currentName ? ' selected' : ''}>${escapeHtml(n)}</option>`);
+        select.innerHTML = html.join('');
+      };
+      currentName = name;
+      unsubRoster = subscribeRoster(rebuild);
+      select.addEventListener('change', () => {
+        currentName = select.value;
+        if (currentName && remember) setLastPick(currentName);
+        if (typeof opts.onChange === 'function') opts.onChange(currentName);
+      });
+      wrap._rebuild = () => rebuild(_liveRoster);
+    }
 
-    select.addEventListener('change', () => {
-      currentName = select.value;
-      if (currentName && remember) setLastPick(currentName);
-      if (typeof opts.onChange === 'function') opts.onChange(currentName);
-    });
+    function paint(state) {
+      unsubRoster(); unsubRoster = () => {};
+      wrap._rebuild = null;
+      if (state.teacher) {
+        mode = 'teacher';
+        const prev = currentName;
+        paintTeacher();
+        if (painted && prev !== currentName && typeof opts.onChange === 'function') opts.onChange(currentName);
+      } else if (state.student) {
+        mode = 'student';
+        wrap.innerHTML = `
+          <label class="name-picker-label">${label}</label>
+          <div class="name-picker-signed">
+            <span class="name-picker-who">${ICON_USER}<strong>${escapeHtml(state.student.name)}</strong></span>
+            <button type="button" class="name-picker-link" data-signout>Sign out</button>
+          </div>`;
+        wrap.querySelector('[data-signout]').addEventListener('click', signOutUser);
+        fire(state.student.name);
+      } else {
+        mode = 'out';
+        wrap.innerHTML = `
+          <label class="name-picker-label">${label}</label>
+          <button type="button" class="name-picker-signin" data-signin>${ICON_USER}<span>Sign in with your school Google account</span></button>`;
+        wrap.querySelector('[data-signin]').addEventListener('click', signInStudent);
+        fire('');
+      }
+      painted = true;
+    }
+
+    if (!authResolved) {
+      wrap.innerHTML = `<label class="name-picker-label">${label}</label><div class="name-picker-wait">Checking sign-in…</div>`;
+      // Hold the remembered name so a save surface built before auth settles
+      // reads the same student it will be told about a moment later.
+      currentName = opts.initial || '';
+    }
+    const unsubAuth = subscribeAuth(paint);
+    if (!authResolved) painted = true;
 
     return {
       element: wrap,
       getName: () => currentName,
       setName: (n) => {
+        if (mode !== 'teacher') return; // a signed-in student's name is fixed by their account
         currentName = n || '';
         if (currentName && remember) setLastPick(currentName);
-        // Trigger rebuild so the new selection actually shows in the <select>.
-        rebuildOptions(_liveRoster);
+        if (wrap._rebuild) wrap._rebuild();
       },
-      destroy: () => { unsub(); }
+      destroy: () => { unsubAuth(); unsubRoster(); }
     };
   }
 
