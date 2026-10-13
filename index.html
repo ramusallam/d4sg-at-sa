@@ -3668,6 +3668,8 @@
   .pf-char-count.is-warn { color: #d97706; }
   .pf-char-count.is-over { color: #ef4444; font-weight: 600; }
 
+  .pf-filled-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .pf-drop.pf-drop--more { min-height: 72px; }
   .pf-filled-preview {
     display: flex;
     align-items: center;
@@ -13390,6 +13392,17 @@ void loop() {
     { key: 'video',   label: 'Video',   icon: ICON_VIDEO,   accept: 'video/*',                                                       exts: 'MP4, MOV',  fileTypes: 'video', allowFile: true,  allowLink: true  },
     { key: 'summary', label: 'Summary', icon: ICON_SUMMARY, accept: '',                                                              exts: 'Text only', fileTypes: 'text', allowFile: false, allowLink: false }
   ];
+  // Every file slot holds a LIST of entries (two STLs, a PDF per part, a link
+  // plus a file). The doc keeps the list under the plural key and mirrors the
+  // first entry under the singular key so older readers and scripts still work.
+  const SLOT_LIST_KEYS = { sketch: 'sketches', cad: 'cads', code: 'codes', wiring: 'wirings', image: 'images', video: 'videos' };
+  const PF_MAX_PER_SLOT = 12;
+  function slotEntryList(slots, key) {
+    const s = slots || {};
+    const lk = SLOT_LIST_KEYS[key];
+    if (lk && Array.isArray(s[lk]) && s[lk].length) return s[lk].filter(e => e && typeof e === 'object');
+    return (s[key] && typeof s[key] === 'object') ? [s[key]] : [];
+  }
 
   // Traditional analytic rubric: three performance levels per criterion, keyed
   // by the portfolio rubric's criterion label. Emerging is roughly half
@@ -13518,14 +13531,19 @@ void loop() {
   // tool "Save to" round trip, which closes and reopens the modal - by
   // living at module scope instead of inside the rebuilt panel closure.
   // Keyed by benchmark; File objects ride along so submit can still upload.
-  const _pfDrafts = new Map(); // benchmarkId -> { owner, state, pendingFiles }
+  const _pfDrafts = new Map(); // benchmarkId -> { owner, state }
 
-  // Warn before the tab closes while portfolio work is still local-only.
-  // pendingFiles empties as each file finishes its draft upload, so anything
-  // left in it (no name picked yet, upload in flight or failed) would be lost.
+  // Warn before the tab closes while portfolio work is still local-only. An
+  // entry drops its File (_file) as soon as its draft upload lands, so any
+  // entry still carrying one (no name picked yet, upload in flight or failed)
+  // would be lost.
   window.addEventListener('beforeunload', (e) => {
     let unsaved = false;
-    _pfDrafts.forEach(d => { if (Object.keys(d.pendingFiles).length) unsaved = true; });
+    _pfDrafts.forEach(d => {
+      Object.values(d.state || {}).forEach(v => {
+        (Array.isArray(v) ? v : (v ? [v] : [])).forEach(e => { if (e && e._file) unsaved = true; });
+      });
+    });
     if (!unsaved) return;
     e.preventDefault();
     e.returnValue = '';
@@ -13590,20 +13608,27 @@ void loop() {
     // Compat shim so existing code that reads `nameInput.value` keeps working.
     const nameInput = { get value() { return picker.getName(); }, set value(v) { picker.setName(v); } };
 
-    // In-memory slot state: { image: {...}, video: {...}, ... } or null.
+    // In-memory slot state. A file slot holds an ARRAY of entries (or null);
+    // Summary holds one text object. Each entry: { mode: 'file'|'link', url,
+    // fileName, contentType, filePath } plus session flags (_submitted,
+    // _savedDraft, _localPreview, _uploading, _file = the File still to upload).
     // Comes from the module-level draft cache so nothing is lost when the
     // modal closes: every rebuild reuses the SAME objects.
     let cached = _pfDrafts.get(benchmarkId);
     if (!cached) {
       cached = {
         owner: norm(ownerName),
-        state: { sketch: null, cad: null, code: null, wiring: null, image: null, video: null, summary: null },
-        pendingFiles: {} // { slotKey: File }, uploaded at submit time
+        state: { sketch: null, cad: null, code: null, wiring: null, image: null, video: null, summary: null }
       };
       _pfDrafts.set(benchmarkId, cached);
     }
     const state = cached.state;
-    const pendingFiles = cached.pendingFiles;
+    const entriesOf = (key) => { const v = state[key]; return !v ? [] : (Array.isArray(v) ? v : [v]); };
+    const slotDirty = (key) => entriesOf(key).some(e => !e._submitted);
+    const anyDirtySlot = () => SLOT_DEFS.some(d => slotDirty(d.key));
+    const revokeLocal = (e) => { if (e && e._localPreview && e.url) { try { URL.revokeObjectURL(e.url); } catch (_) {} } };
+    const setEntries = (key, list) => { state[key] = (list && list.length) ? list : null; };
+    const labelOf = (key) => (SLOT_DEFS.find(d => d.key === key) || {}).label || key;
 
     // Hackathon teams: the submitter adds teammates from the roster. They ride
     // on the doc as `team`, so one submission covers the whole group.
@@ -13646,10 +13671,8 @@ void loop() {
       if (!cached.owner) { cached.owner = norm(n); return; }
       cached.owner = norm(n);
       SLOT_DEFS.forEach(d => {
-        const cur = state[d.key];
-        if (cur?._localPreview && cur.url) { try { URL.revokeObjectURL(cur.url); } catch (_) {} }
+        entriesOf(d.key).forEach(revokeLocal);
         state[d.key] = null;
-        delete pendingFiles[d.key];
         refreshTile(d.key);
       });
       refreshSubmit();
@@ -13671,32 +13694,43 @@ void loop() {
         savedPill._t = setTimeout(() => savedPill.classList.remove('is-visible'), 1800);
       }
     }
-    // The durable shape for a slot's draft entry, or null to clear it. A
-    // local-only preview (file not uploaded yet) has nothing durable to save.
+    // The durable shape of one entry (what the draft and the submitted doc store).
+    function durableEntry(e) {
+      if (e.mode === 'link') return { mode: 'link', url: e.url || '' };
+      const out = { mode: 'file', url: e.url, fileName: e.fileName || '', contentType: e.contentType || '' };
+      if (e.filePath) out.filePath = e.filePath;
+      return out;
+    }
+    // The durable shape for a slot's draft, or null to clear it. A file slot
+    // saves its unsubmitted entries that are already in Storage; an entry
+    // whose upload is still running has nothing durable yet (undefined =
+    // skip, the upload completion persists it).
     function draftShapeOf(key) {
-      const cur = state[key];
-      if (!cur || cur._submitted) return null;
-      if (cur.mode === 'text') return { mode: 'text', text: cur.text || '' };
-      if (cur.mode === 'link') return { mode: 'link', url: cur.url || '' };
-      if (cur.mode === 'file' && !cur._localPreview) {
-        return { mode: 'file', url: cur.url, fileName: cur.fileName || '', contentType: cur.contentType || '', filePath: cur.filePath || '' };
+      if (key === 'summary') {
+        const cur = state.summary;
+        if (!cur || cur._submitted) return null;
+        return { mode: 'text', text: cur.text || '' };
       }
-      return undefined; // local preview: skip, the upload completion persists it
+      const pending = entriesOf(key).filter(e => !e._submitted);
+      const durable = pending.filter(e => !e._localPreview).map(durableEntry);
+      if (durable.length) return durable;
+      return pending.length ? undefined : null;
     }
     function persistDraftSlot(key) {
       const name = currentSaveName();
       if (!name) return;
       const shape = draftShapeOf(key);
       if (shape === undefined) return;
-      const cur = state[key];
+      const saving = key === 'summary'
+        ? (state.summary && !state.summary._submitted ? [state.summary] : [])
+        : entriesOf(key).filter(e => !e._submitted && !e._localPreview);
       showSaved('Saving…', 'saving');
       saveDraft(name, benchmarkId, { pfSlots: { [key]: shape } }).then(ok => {
         if (ok) {
           showSaved('Saved');
-          if (cur && state[key] === cur && !cur._submitted) {
-            cur._savedDraft = true;
-            refreshTile(key);
-          }
+          let changed = false;
+          saving.forEach(e => { if (entriesOf(key).includes(e) && !e._submitted) { e._savedDraft = true; changed = true; } });
+          if (changed) refreshTile(key);
         }
         else {
           savedPill.classList.remove('is-visible');
@@ -13706,14 +13740,12 @@ void loop() {
     }
     const persistDraftSummary = debounce(() => persistDraftSlot('summary'), 600);
     // Upload a just-added file to the draft Storage path right away, then
-    // swap the slot's local blob preview for the durable remote copy.
-    async function uploadDraftFileForSlot(key) {
-      const file = pendingFiles[key];
-      const cur = state[key];
+    // swap the entry's local blob preview for the durable remote copy.
+    async function uploadDraftEntry(key, entry) {
+      const file = entry && entry._file;
       const name = currentSaveName();
-      if (!file || !cur || !cur._localPreview || cur._uploading || !name) return;
-      const def = SLOT_DEFS.find(d => d.key === key);
-      cur._uploading = true;
+      if (!file || !entry._localPreview || entry._uploading || !name) return;
+      entry._uploading = true;
       refreshTile(key);
       showSaved('Saving…', 'saving');
       try {
@@ -13724,12 +13756,12 @@ void loop() {
         const task = uploadBytesResumable(ref, file, { contentType: ct });
         await new Promise((resolve, reject) => { task.on('state_changed', null, reject, resolve); });
         const url = await getDownloadURL(task.snapshot.ref);
-        // The slot may have been cleared or replaced mid-upload; only commit
-        // the remote copy if this file is still the one in the slot.
-        if (pendingFiles[key] !== file || state[key] !== cur) return;
-        const prevUrl = cur.url;
-        delete pendingFiles[key];
-        Object.assign(cur, { url, filePath: path, _localPreview: false, _uploading: false });
+        // The entry may have been removed mid-upload; only commit the remote
+        // copy if it is still in the slot.
+        if (!entriesOf(key).includes(entry)) return;
+        const prevUrl = entry.url;
+        delete entry._file;
+        Object.assign(entry, { url, filePath: path, _localPreview: false, _uploading: false });
         try { URL.revokeObjectURL(prevUrl); } catch (_) {}
         refreshTile(key);
         const openEl = slotsEl.querySelector(`.pf-slot[data-slot="${key}"].is-open`);
@@ -13737,26 +13769,97 @@ void loop() {
         persistDraftSlot(key);
       } catch (err) {
         console.warn('draft upload failed', err);
-        if (state[key] === cur) cur._uploading = false;
+        entry._uploading = false;
         savedPill.classList.remove('is-visible');
         refreshTile(key);
-        setStatus(`${def ? def.label : key} is not saved yet. It will still upload when you press Submit.`, true);
+        setStatus(`${labelOf(key)} is not saved yet. It will still upload when you press Submit.`, true);
       }
     }
+    function uploadDraftFilesForSlot(key) {
+      entriesOf(key).forEach(e => { if (e._localPreview && e._file && !e._uploading && !e._submitted) uploadDraftEntry(key, e); });
+    }
     // Once a name is available, push any work that piled up before it was
-    // picked: upload local files, persist text and link slots.
+    // picked: upload local files, persist text and link entries.
     function flushDraftForName() {
       if (!currentSaveName()) return;
       SLOT_DEFS.forEach(d => {
-        const cur = state[d.key];
-        if (!cur || cur._submitted) return;
-        if (cur._localPreview) uploadDraftFileForSlot(d.key);
-        else if (cur.mode === 'text' || cur.mode === 'link') persistDraftSlot(d.key);
+        if (!slotDirty(d.key)) return;
+        uploadDraftFilesForSlot(d.key);
+        if (draftShapeOf(d.key)) persistDraftSlot(d.key);
       });
     }
-    // Load this student's saved draft and fill any slot they haven't touched
-    // this session. Draft beats submitted for a slot: the draft copy is newer
-    // unsubmitted work (promoted slots are cleared from the draft on Submit).
+    // Add one entry to a file slot. An entry with the same file name (a
+    // re-saved schematic, the same STL dropped twice) or the same link
+    // replaces its earlier copy so the slot never shows duplicates; anything
+    // else is appended.
+    function addEntry(key, entry) {
+      const cur = entriesOf(key);
+      const same = cur.findIndex(e => entry.mode === 'link'
+        ? (e.mode === 'link' && e.url === entry.url)
+        : (e.mode === 'file' && e.fileName && e.fileName === entry.fileName));
+      const next = cur.slice();
+      if (same >= 0) { revokeLocal(next[same]); next[same] = entry; }
+      else if (next.length >= PF_MAX_PER_SLOT) {
+        setStatus(`${labelOf(key)} holds up to ${PF_MAX_PER_SLOT} items. Remove one first.`, true);
+        return false;
+      }
+      else next.push(entry);
+      setEntries(key, next);
+      refreshTile(key);
+      refreshSubmit();
+      if (entry.mode === 'link') persistDraftSlot(key);
+      return true;
+    }
+    function addFileEntry(key, file) {
+      const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
+      const entry = { mode: 'file', url: URL.createObjectURL(file), fileName: file.name, contentType: ct, _localPreview: true, _file: file };
+      if (!addEntry(key, entry)) { revokeLocal(entry); return false; }
+      setStatus('');
+      if (currentSaveName()) uploadDraftEntry(key, entry);
+      else setStatus('Sign in above so your work saves as you go.');
+      return true;
+    }
+    // Rewrite the submitted entries of one slot on the student's server doc
+    // (list under the plural key, first entry under the singular key).
+    async function writeSubmittedList(key, list) {
+      try {
+        const who = (nameInput.value || ownerName || '').trim();
+        const entry = submittedByName.get(norm(who));
+        if (entry) {
+          const patch = { [key]: list[0] || null };
+          const lk = SLOT_LIST_KEYS[key];
+          if (lk) patch[lk] = list;
+          await setDoc(doc(db, 'portfolios', `${benchmarkId}__${nameSlug(entry.studentName || who)}`),
+            { slots: patch }, { merge: true });
+        }
+        // No server doc (admin-archived, or stale local flag): treat the
+        // local change as the whole job.
+        return true;
+      } catch (err) {
+        console.error('slot remove failed', err);
+        setStatus('Could not remove it. Check wifi and try again.', true);
+        return false;
+      }
+    }
+    // Remove one entry. A submitted entry comes off the server doc right away;
+    // a draft entry just leaves the list and the draft re-saves.
+    async function removeEntry(key, entry) {
+      const cur = entriesOf(key);
+      if (!cur.includes(entry)) return;
+      if (entry._submitted) {
+        if (!confirm(`Remove this ${labelOf(key)} item from your submission?`)) return;
+        const remaining = cur.filter(e => e !== entry && e._submitted).map(durableEntry);
+        if (!(await writeSubmittedList(key, remaining))) return;
+      }
+      revokeLocal(entry);
+      setEntries(key, cur.filter(e => e !== entry));
+      refreshTile(key);
+      refreshSubmit();
+      persistDraftSlot(key);
+    }
+    // Load this student's saved draft: unsubmitted work that sits alongside
+    // whatever they already submitted. In-session entries win; a saved entry
+    // is only added when its URL is not already in the slot.
     async function hydrateDraft(name) {
       const n = (name || '').trim();
       if (!n) return;
@@ -13769,9 +13872,17 @@ void loop() {
       SLOT_DEFS.forEach(d => {
         const saved = slots[d.key];
         if (!saved || typeof saved !== 'object') return;
-        const cur = state[d.key];
-        if (cur && !cur._submitted) return; // in-session work wins
-        state[d.key] = { ...saved, _savedDraft: true };
+        if (d.key === 'summary') {
+          const cur = state.summary;
+          if (Array.isArray(saved) || (cur && !cur._submitted)) return; // in-session work wins
+          state.summary = { ...saved, _savedDraft: true };
+        } else {
+          const list = (Array.isArray(saved) ? saved : [saved]).filter(e => e && typeof e === 'object' && e.url);
+          const cur = entriesOf(d.key);
+          const add = list.filter(e => !cur.some(c => c.url === e.url)).map(e => ({ ...e, _savedDraft: true }));
+          if (!add.length) return;
+          setEntries(d.key, cur.concat(add));
+        }
         refreshTile(d.key);
         any = true;
       });
@@ -13894,7 +14005,7 @@ void loop() {
           if (!files || !files.length) return;
           e.preventDefault();
           openSlot(def.key);
-          handleFileForSlot(def, files[0]);
+          Array.from(files).forEach(f => handleFileForSlot(def, f));
         });
       }
       collapseBtn.addEventListener('click', (e) => {
@@ -13937,10 +14048,11 @@ void loop() {
           return;
         }
 
-        // File slot UI
-        const filled = state[def.key];
-        let previewHtml = '';
-        if (filled) {
+        // File slot UI: every entry already in the slot, then the drop zone
+        // (and link row) to add more.
+        const entries = entriesOf(def.key);
+        const RENAME_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>';
+        const previewHtml = entries.map((filled, idx) => {
           let thumb = '';
           if (filled.mode === 'link') {
             thumb = ICON_LINK;
@@ -13954,61 +14066,66 @@ void loop() {
           const title = filled.mode === 'link'
             ? (filled.url || 'Link')
             : (filled.fileName || 'File');
-          const meta = filled.mode === 'link'
-            ? (getDomain(filled.url) || 'External link')
-            : (filled.contentType || '');
+          const stateWord = filled._submitted ? 'Submitted' : (filled._uploading ? 'Uploading…' : (filled._savedDraft && !filled._localPreview ? 'Saved' : ''));
+          const meta = [filled.mode === 'link' ? (getDomain(filled.url) || 'External link') : (filled.contentType || ''), stateWord].filter(Boolean).join(' · ');
           const isFileMode = filled.mode === 'file';
-          previewHtml = `
-            <div class="pf-filled-preview">
+          return `
+            <div class="pf-filled-preview" data-pf-entry="${idx}">
               <div class="pf-fp-thumb" data-pf-enlarge role="button" tabindex="0" title="Click to enlarge">${thumb}</div>
               <div class="pf-fp-info">
                 <div class="pf-fp-title" data-pf-title>${escapeHtml(title)}</div>
                 <div class="pf-fp-meta">${escapeHtml(meta)}</div>
               </div>
               <div class="pf-fp-actions">
-                ${isFileMode ? `<button type="button" class="pf-fp-btn" data-pf-rename aria-label="Rename"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button>` : ''}
+                ${isFileMode ? `<button type="button" class="pf-fp-btn" data-pf-rename aria-label="Rename">${RENAME_ICON}</button>` : ''}
                 <button type="button" class="pf-fp-btn pf-fp-remove" data-pf-clear aria-label="Remove" title="Remove">${ICON_X}</button>
               </div>
             </div>
           `;
-        }
+        }).join('');
 
-        const dropHtml = def.allowFile ? `
-          <div class="pf-drop" data-pf-drop>
-            <div class="pf-drop-text">Drop a file or click to upload</div>
-            <div class="pf-drop-sub">${def.exts} · up to 100MB</div>
-            <input type="file" data-pf-file accept="${def.accept}" style="display:none;" />
+        const full = entries.length >= PF_MAX_PER_SLOT;
+        const dropHtml = (def.allowFile && !full) ? `
+          <div class="pf-drop${entries.length ? ' pf-drop--more' : ''}" data-pf-drop>
+            <div class="pf-drop-text">${entries.length ? 'Add another file' : 'Drop files or click to upload'}</div>
+            <div class="pf-drop-sub">${def.exts} · up to 100MB each</div>
+            <input type="file" data-pf-file accept="${def.accept}" multiple style="display:none;" />
           </div>
         ` : '';
-        const linkHtml = def.allowLink ? `
+        const linkHtml = (def.allowLink && !full) ? `
           <div class="pf-link-row">
             <span class="pf-link-label">${def.allowFile ? 'Or link' : 'Public URL'}</span>
             <span class="pf-link-input-wrap">
-              <input type="url" data-pf-link placeholder="https://…" value="${filled?.mode === 'link' ? escapeHtml(filled.url) : ''}" />
+              <input type="url" data-pf-link placeholder="https://…" />
               <span class="pf-link-check" data-pf-link-check></span>
             </span>
           </div>
         ` : '';
-        bodyInner.innerHTML = `${previewHtml}${dropHtml}${linkHtml}`;
+        bodyInner.innerHTML = `${previewHtml ? `<div class="pf-filled-list">${previewHtml}</div>` : ''}${dropHtml}${linkHtml}`;
 
         const dropZone = bodyInner.querySelector('[data-pf-drop]');
         const fileInput = bodyInner.querySelector('[data-pf-file]');
         const linkInput = bodyInner.querySelector('[data-pf-link]');
         const linkCheck = bodyInner.querySelector('[data-pf-link-check]');
-        const clearBtn = bodyInner.querySelector('[data-pf-clear]');
+        const entryAt = (el) => {
+          const wrap = el.closest('[data-pf-entry]');
+          return wrap ? (entriesOf(def.key)[Number(wrap.dataset.pfEntry)] || null) : null;
+        };
 
-        if (clearBtn) clearBtn.addEventListener('click', async (e) => {
+        bodyInner.querySelectorAll('[data-pf-clear]').forEach((btn) => btn.addEventListener('click', async (e) => {
           e.stopPropagation();
-          await clearSlot(def.key);
+          const entry = entryAt(btn);
+          if (!entry) return;
+          await removeEntry(def.key, entry);
           renderBody();
-        });
+        }));
 
-        // Click the thumbnail to enlarge (image/video in the lightbox; PDFs and
+        // Click a thumbnail to enlarge (image/video in the lightbox; PDFs and
         // links open in a new tab).
         bodyInner.querySelectorAll('[data-pf-enlarge]').forEach((el) => {
           const enlarge = (e) => {
             e.stopPropagation();
-            const f = state[def.key];
+            const f = entryAt(el);
             if (!f) return;
             if (f.mode === 'file') openPortfolioLightbox(f, nameInput.value || '', def.label);
             else if (f.mode === 'link' && f.url) window.open(f.url, '_blank', 'noopener');
@@ -14017,12 +14134,12 @@ void loop() {
           el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); enlarge(e); } });
         });
 
-        // Rename the uploaded file (display name only; persists on submit).
-        const renameBtn = bodyInner.querySelector('[data-pf-rename]');
-        if (renameBtn) renameBtn.addEventListener('click', (e) => {
+        // Rename an uploaded file (display name only; persists on submit).
+        bodyInner.querySelectorAll('[data-pf-rename]').forEach((renameBtn) => renameBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          const titleEl = bodyInner.querySelector('[data-pf-title]');
-          const cur = state[def.key];
+          const cur = entryAt(renameBtn);
+          const wrap = renameBtn.closest('[data-pf-entry]');
+          const titleEl = wrap ? wrap.querySelector('[data-pf-title]') : null;
           if (!titleEl || !cur) return;
           const orig = cur.fileName || '';
           const input = document.createElement('input');
@@ -14036,11 +14153,11 @@ void loop() {
             if (done) return;
             done = true;
             let v = input.value.trim();
-            if (v && state[def.key]) {
+            if (v && entriesOf(def.key).includes(cur)) {
               const ext = (orig.match(/\.[a-z0-9]+$/i) || [''])[0];
               if (ext && !v.toLowerCase().endsWith(ext.toLowerCase())) v += ext;
-              state[def.key].fileName = v;
-              if (!state[def.key]._submitted) persistDraftSlot(def.key);
+              cur.fileName = v;
+              if (!cur._submitted) persistDraftSlot(def.key);
             }
             refreshTile(def.key);
             renderBody();
@@ -14050,13 +14167,12 @@ void loop() {
             if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
             else if (e.key === 'Escape') { input.value = orig; input.blur(); }
           });
-        });
+        }));
 
         if (dropZone && fileInput) {
           dropZone.addEventListener('click', () => fileInput.click());
           fileInput.addEventListener('change', () => {
-            const f = fileInput.files[0];
-            if (f) handleFileForSlot(def, f);
+            Array.from(fileInput.files || []).forEach(f => handleFileForSlot(def, f));
           });
 
           ['dragenter', 'dragover'].forEach(ev => dropZone.addEventListener(ev, (e) => {
@@ -14069,8 +14185,7 @@ void loop() {
           }));
           dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
-            const files = e.dataTransfer.files;
-            if (files && files.length) handleFileForSlot(def, files[0]);
+            Array.from((e.dataTransfer && e.dataTransfer.files) || []).forEach(f => handleFileForSlot(def, f));
           });
         }
 
@@ -14089,14 +14204,9 @@ void loop() {
               return;
             }
           }
-          // Clear pending file, set link
-          delete pendingFiles[def.key];
-          state[def.key] = { mode: 'link', url: v };
-          refreshTile(def.key);
-          refreshSubmit();
+          if (!addEntry(def.key, { mode: 'link', url: v })) return;
           setStatus('');
           renderBody();
-          persistDraftSlot(def.key);
         };
         const updateLinkCheck = () => {
           if (!linkCheck) return;
@@ -14140,24 +14250,8 @@ void loop() {
           try { file = await normalizeImageFile(file); }
           catch (err) { setStatus(err.message, true); return; }
         }
-        pendingFiles[def.key] = file;
-        // Local object URL for instant preview; the draft upload below swaps
-        // it for the durable remote copy.
-        const objUrl = URL.createObjectURL(file);
-        const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
-        state[def.key] = {
-          mode: 'file',
-          url: objUrl,
-          fileName: file.name,
-          contentType: ct,
-          _localPreview: true
-        };
-        refreshTile(def.key);
-        refreshSubmit();
-        setStatus('');
+        if (!addFileEntry(def.key, file)) return;
         renderBody();
-        if (currentSaveName()) uploadDraftFileForSlot(def.key);
-        else setStatus('Sign in above so your work saves as you go.');
         // Soft warning for files >50MB (still under the 100MB hard cap).
         if (file.size > 50 * 1024 * 1024) {
           const inner = bodyInner;
@@ -14198,71 +14292,67 @@ void loop() {
     function refreshTile(key) {
       const slot = slotsEl.querySelector(`.pf-slot[data-slot="${key}"]`);
       if (!slot) return;
-      const filled = state[key];
+      const list = entriesOf(key);
       const tile = slot.querySelector('[data-pf-tile]');
       const iconEl = tile.querySelector('.pf-slot-icon');
       const labelEl = tile.querySelector('.pf-slot-label');
       const statusEl = tile.querySelector('.pf-slot-status');
       const def = SLOT_DEFS.find(d => d.key === key);
+      labelEl.textContent = def.label;
 
-      if (filled) {
-        slot.classList.add('is-filled');
-        slot.classList.toggle('is-submitted', !!filled._submitted);
-        if (filled.mode === 'text') {
-          const wordCount = filled.text.trim().split(/\s+/).filter(Boolean).length;
-          statusEl.textContent = wordCount === 1 ? '1 word written' : `${wordCount} words written`;
-          iconEl.innerHTML = def.icon;
-        } else if (filled.mode === 'link') {
-          statusEl.textContent = `Link · ${getDomain(filled.url) || 'external'}`;
-          iconEl.innerHTML = def.icon;
-        } else {
-          // File: show filename truncated, swap icon for a tiny thumb if image/video
-          statusEl.textContent = filled.fileName || 'File';
-          if ((filled.contentType || '').startsWith('image/')) {
-            iconEl.innerHTML = `<div class="pf-slot-thumb"><img src="${filled.url}" alt="" /></div>`;
-          } else if ((filled.contentType || '').startsWith('video/')) {
-            iconEl.innerHTML = `<div class="pf-slot-thumb"><video src="${filled.url}" muted></video></div>`;
-          } else {
-            iconEl.innerHTML = def.icon;
-          }
-        }
-        if (filled._submitted) statusEl.textContent = 'Submitted · ' + statusEl.textContent;
-        else if (filled._uploading) statusEl.textContent = 'Uploading…';
-        else if (filled._savedDraft && !filled._localPreview) statusEl.textContent = 'Saved · ' + statusEl.textContent;
-        labelEl.textContent = def.label;
-      } else {
+      if (!list.length) {
         slot.classList.remove('is-filled', 'is-submitted');
         iconEl.innerHTML = def.icon;
         statusEl.textContent = '+ Add';
-        labelEl.textContent = def.label;
+        return;
       }
-    }
-
-    async function clearSlot(key) {
-      const filled = state[key];
-      if (!filled) return;
-      if (filled._submitted) {
-        const def = SLOT_DEFS.find(d => d.key === key);
-        if (!confirm(`Remove your submitted ${def ? def.label : key} from this portfolio?`)) return;
-        try {
-          const who = (nameInput.value || ownerName || '').trim();
-          const entry = submittedByName.get(norm(who));
-          if (entry) {
-            await setDoc(doc(db, 'portfolios', `${benchmarkId}__${nameSlug(entry.studentName || who)}`),
-              { slots: { [key]: null } }, { merge: true });
-          }
-          // No server doc (admin-archived, or stale local flag): treat the
-          // local clear as the whole job.
-        } catch (err) {
-          console.error('slot remove failed', err);
-          setStatus('Could not remove it. Check wifi and try again.', true);
-          return;
+      slot.classList.add('is-filled');
+      const allSubmitted = list.every(e => e._submitted);
+      slot.classList.toggle('is-submitted', allSubmitted);
+      const first = list[0];
+      let text;
+      if (first.mode === 'text') {
+        const wordCount = first.text.trim().split(/\s+/).filter(Boolean).length;
+        text = wordCount === 1 ? '1 word written' : `${wordCount} words written`;
+        iconEl.innerHTML = def.icon;
+      } else if (list.length > 1) {
+        // Several entries: count them, thumb the first image if there is one.
+        const files = list.filter(e => e.mode === 'file').length;
+        const links = list.length - files;
+        text = [files ? `${files} file${files === 1 ? '' : 's'}` : '', links ? `${links} link${links === 1 ? '' : 's'}` : ''].filter(Boolean).join(' + ');
+        const img = list.find(e => (e.contentType || '').startsWith('image/'));
+        iconEl.innerHTML = img ? `<div class="pf-slot-thumb"><img src="${img.url}" alt="" /></div>` : def.icon;
+      } else if (first.mode === 'link') {
+        text = `Link · ${getDomain(first.url) || 'external'}`;
+        iconEl.innerHTML = def.icon;
+      } else {
+        // One file: show its name, swap the icon for a tiny thumb if image/video
+        text = first.fileName || 'File';
+        if ((first.contentType || '').startsWith('image/')) {
+          iconEl.innerHTML = `<div class="pf-slot-thumb"><img src="${first.url}" alt="" /></div>`;
+        } else if ((first.contentType || '').startsWith('video/')) {
+          iconEl.innerHTML = `<div class="pf-slot-thumb"><video src="${first.url}" muted></video></div>`;
+        } else {
+          iconEl.innerHTML = def.icon;
         }
       }
-      if (filled._localPreview && filled.url) {
-        try { URL.revokeObjectURL(filled.url); } catch (_) {}
+      if (allSubmitted) text = 'Submitted · ' + text;
+      else if (list.some(e => e._uploading)) text = 'Uploading…';
+      else if (list.filter(e => !e._submitted).every(e => e._savedDraft && !e._localPreview)) text = 'Saved · ' + text;
+      statusEl.textContent = text;
+    }
+
+    // The tile's X clears the whole slot (every entry). The body's per-entry
+    // X removes just one.
+    async function clearSlot(key) {
+      const cur = entriesOf(key);
+      if (!cur.length) return;
+      if (cur.some(e => e._submitted)) {
+        const what = cur.length > 1 ? `${labelOf(key)} items` : labelOf(key);
+        if (!confirm(`Remove your submitted ${what} from this portfolio?`)) return;
+        if (!(await writeSubmittedList(key, []))) return;
       }
-      delete pendingFiles[key];
+      cur.forEach(revokeLocal);
       state[key] = null;
       refreshTile(key);
       refreshSubmit();
@@ -14276,7 +14366,7 @@ void loop() {
       const name = nameInput.value.trim();
       // Only new or changed work arms the button - already-submitted slots
       // are safe on the server and do not need resubmitting by themselves.
-      const anyNew = Object.values(state).some(v => v && !v._submitted);
+      const anyNew = anyDirtySlot();
       submitBtn.disabled = !(name && anyNew);
     }
     const _onChecksChanged = () => refreshSubmit();
@@ -14309,7 +14399,7 @@ void loop() {
       if (_isSubmitting) return; // hard double-submit guard
       const name = nameInput.value.trim();
       if (!name) { setStatus('Sign in first.', true); return; }
-      const anyDirty = Object.values(state).some(v => v && !v._submitted);
+      const anyDirty = anyDirtySlot();
       if (!anyDirty) { setStatus('Add or change at least one slot before submitting.', true); return; }
       _isSubmitting = true;
       submitBtn.disabled = true;
@@ -14327,65 +14417,58 @@ void loop() {
         const uploadedPaths = []; // track for rollback if doc-write fails
 
         for (const def of SLOT_DEFS) {
-          const cur = state[def.key];
-          if (!cur) continue;
-          // Already-submitted slots are safe on the server; writing them again
+          const list = entriesOf(def.key);
+          if (!list.length) continue;
+          // Slots with nothing new are safe on the server; writing them again
           // from this session's copy could clobber a newer version saved from
           // another tab or device. Only DIRTY slots are written - the merge
           // write leaves everything else untouched.
-          if (cur._submitted) continue;
-          if (cur.mode === 'text') {
-            finalSlots[def.key] = { mode: 'text', text: cur.text };
+          if (!slotDirty(def.key)) continue;
+          if (def.key === 'summary') {
+            finalSlots.summary = { mode: 'text', text: list[0].text };
             continue;
           }
-          if (cur.mode === 'link') {
-            finalSlots[def.key] = { mode: 'link', url: cur.url };
-            continue;
+          // File slot: every entry rides along. Already-uploaded ones (hydrated
+          // from a prior submit or the draft) pass through unchanged, filePath
+          // included; files still local upload one at a time.
+          const out = [];
+          let failed = false;
+          for (let i = 0; i < list.length; i++) {
+            const cur = list[i];
+            const nth = list.length > 1 ? ` ${i + 1} of ${list.length}` : '';
+            if (cur.mode === 'link') { out.push({ mode: 'link', url: cur.url }); continue; }
+            const file = cur._file;
+            if (!file) { out.push(durableEntry(cur)); continue; }
+            setStatus(`Uploading ${def.label}${nth}…`);
+            try {
+              const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0];
+              const path = `portfolios/${nameSlug(name)}__${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${def.key}${ext}`;
+              const ref = storageRef(storage, path);
+              const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
+              const task = uploadBytesResumable(ref, file, { contentType: ct });
+              await new Promise((resolve, reject) => {
+                task.on('state_changed',
+                  (snap) => {
+                    const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+                    setStatus(`Uploading ${def.label}${nth}… ${pct}%`);
+                  },
+                  reject,
+                  resolve
+                );
+              });
+              const url = await getDownloadURL(task.snapshot.ref);
+              uploadedPaths.push(path);
+              out.push({ mode: 'file', url, fileName: cur.fileName || file.name, contentType: ct, filePath: path });
+            } catch (perSlotErr) {
+              console.error(`upload failed for ${def.key}`, perSlotErr);
+              failed = true;
+              break;
+            }
           }
-          // File: upload
-          const file = pendingFiles[def.key];
-          if (!file) {
-            // Already uploaded (hydrated from a prior submit): carry it
-            // through unchanged, filePath included, so a resubmit never
-            // strips fields off a slot that is already on the server.
-            finalSlots[def.key] = {
-              mode: 'file', url: cur.url, fileName: cur.fileName || '', contentType: cur.contentType || '',
-              ...(cur.filePath ? { filePath: cur.filePath } : {})
-            };
-            continue;
-          }
-          setStatus(`Uploading ${def.label}…`);
-          try {
-            const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0];
-            const path = `portfolios/${nameSlug(name)}__${benchmarkId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${def.key}${ext}`;
-            const ref = storageRef(storage, path);
-            const ct = file.type || (isStlFile(file) ? 'model/stl' : 'application/octet-stream');
-            const task = uploadBytesResumable(ref, file, { contentType: ct });
-            await new Promise((resolve, reject) => {
-              task.on('state_changed',
-                (snap) => {
-                  const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-                  setStatus(`Uploading ${def.label}… ${pct}%`);
-                },
-                reject,
-                resolve
-              );
-            });
-            const url = await getDownloadURL(task.snapshot.ref);
-            uploadedPaths.push(path);
-            finalSlots[def.key] = {
-              mode: 'file',
-              url,
-              fileName: file.name,
-              contentType: ct,
-              filePath: path
-            };
-          } catch (perSlotErr) {
-            console.error(`upload failed for ${def.key}`, perSlotErr);
-            failedSlots.push(def);
-            // Leave state[def.key] intact so the student can retry without
-            // re-attaching the file.
-          }
+          // A failed upload leaves the whole slot in state, untouched, so the
+          // student can retry without re-attaching anything.
+          if (failed) { failedSlots.push(def); continue; }
+          finalSlots[def.key] = out;
         }
 
         const anySucceeded = Object.values(finalSlots).some(v => v !== null);
@@ -14401,8 +14484,19 @@ void loop() {
         // portfolio across multiple gallery rows. Only filled slots are
         // written, so a later session adds slots without nulling earlier
         // ones; deleted:false makes a genuine resubmit visible again.
+        // A file slot writes its list under the plural key and its first
+        // entry under the singular key (older readers, scripts, exhibits).
         const filledSlots = {};
-        Object.keys(finalSlots).forEach(k => { if (finalSlots[k]) filledSlots[k] = finalSlots[k]; });
+        Object.keys(finalSlots).forEach(k => {
+          const v = finalSlots[k];
+          if (!v) return;
+          if (Array.isArray(v)) {
+            filledSlots[k] = v[0] || null;
+            if (SLOT_LIST_KEYS[k]) filledSlots[SLOT_LIST_KEYS[k]] = v;
+          } else {
+            filledSlots[k] = v;
+          }
+        });
         // If this student already has a doc, reuse its EXACT stored name -
         // the update rule requires studentName to match, so a case or
         // whitespace difference from the picker would be permission-denied.
@@ -14425,13 +14519,11 @@ void loop() {
         // failed slots stay untouched so the student can retry.
         for (const def of SLOT_DEFS) {
           if (failedSlots.find(f => f.key === def.key)) continue; // preserve
-          if (!finalSlots[def.key]) continue; // not written this round
-          const cur = state[def.key];
-          if (cur?._localPreview && cur.url) {
-            try { URL.revokeObjectURL(cur.url); } catch (_) {}
-          }
-          state[def.key] = { ...finalSlots[def.key], _submitted: true };
-          delete pendingFiles[def.key];
+          const written = finalSlots[def.key];
+          if (!written) continue; // not written this round
+          entriesOf(def.key).forEach(revokeLocal);
+          if (Array.isArray(written)) setEntries(def.key, written.map(e => ({ ...e, _submitted: true })));
+          else state[def.key] = { ...written, _submitted: true };
           refreshTile(def.key);
         }
         if (openSlotKey && !failedSlots.find(f => f.key === openSlotKey)) {
@@ -14443,7 +14535,7 @@ void loop() {
         // Promoted slots leave the draft so a stale draft copy never shadows
         // the submitted version on the next visit.
         const promotedNulls = {};
-        Object.keys(filledSlots).forEach(k => { promotedNulls[k] = null; });
+        Object.keys(finalSlots).forEach(k => { if (finalSlots[k]) promotedNulls[k] = null; });
         if (Object.keys(promotedNulls).length) {
           saveDraft(writeName, benchmarkId, { pfSlots: promotedNulls });
         }
@@ -14497,29 +14589,15 @@ void loop() {
         window._pendingArtifact.benchmarkId === benchmarkId) {
       const pa = window._pendingArtifact;
       window._pendingArtifact = null;
-      const slotKey = pa.slotKey; // 'wiring' or 'code'
-      // Replacing an existing local preview? Release its blob URL first.
-      const prior = state[slotKey];
-      if (prior?._localPreview && prior.url) { try { URL.revokeObjectURL(prior.url); } catch (_) {} }
-      // Build a synthetic File from the Blob and seed slot state.
+      const slotKey = pa.slotKey; // 'sketch', 'code', 'wiring', or 'image'
       const synthFile = new File([pa.blob], pa.fileName, { type: pa.contentType });
-      pendingFiles[slotKey] = synthFile;
-      const objUrl = URL.createObjectURL(synthFile);
-      state[slotKey] = {
-        mode: 'file',
-        url: objUrl,
-        fileName: pa.fileName,
-        contentType: pa.contentType,
-        _localPreview: true
-      };
       // Defer DOM-touching work until after this builder returns and the panel
       // is mounted. refreshTile / openSlot / scrollIntoView all rely on it
       // being attached.
       setTimeout(() => {
-        refreshTile(slotKey);
-        refreshSubmit();
-        if (currentSaveName()) uploadDraftFileForSlot(slotKey);
-        else setStatus('Sign in above so your work saves as you go.');
+        // One more entry in the slot (a re-saved file with the same name
+        // replaces its earlier copy); the draft upload starts right away.
+        addFileEntry(slotKey, synthFile);
         // Refresh the source slot's body too if it's open (rare, but safe).
         const srcSlot = slotsEl.querySelector(`.pf-slot[data-slot="${slotKey}"]`);
         if (srcSlot && srcSlot._renderBody && srcSlot.classList.contains('is-open')) {
@@ -14547,17 +14625,31 @@ void loop() {
       const entry = submittedByName.get(who);
       if (bench && bench.team && entry && entry.team && entry.team.length && !cached.team.length) { cached.team = [...entry.team]; paintTeam(); }
       SLOT_DEFS.forEach(d => {
-        const sub = entry && entry.slots ? entry.slots[d.key] : null;
-        const cur = state[d.key];
-        if (!sub || typeof sub !== 'object') {
-          // Clear a stale submitted tile ONLY once the live snapshot has
-          // actually loaded - before that (first paint, dead wifi) an empty
-          // map just means "not loaded yet", not "deleted on the server".
-          if (snapshotLoaded && cur && cur._submitted) { state[d.key] = null; refreshTile(d.key); }
+        const subList = entry ? slotEntryList(entry.slots, d.key) : [];
+        if (d.key === 'summary') {
+          const sub = subList[0] || null;
+          const cur = state.summary;
+          if (!sub) {
+            // Clear a stale submitted tile ONLY once the live snapshot has
+            // actually loaded - before that (first paint, dead wifi) an empty
+            // map just means "not loaded yet", not "deleted on the server".
+            if (snapshotLoaded && cur && cur._submitted) { state.summary = null; refreshTile(d.key); }
+            return;
+          }
+          if (cur && !cur._submitted) return; // local edit wins
+          state.summary = { ...sub, _submitted: true };
+          refreshTile(d.key);
           return;
         }
-        if (cur && !cur._submitted) return; // local edit wins
-        state[d.key] = { ...sub, _submitted: true };
+        if (!subList.length && !snapshotLoaded) return; // not loaded yet, not deleted
+        // Submitted entries come from the server; unsubmitted local entries
+        // ride along after them. A server entry the student is replacing
+        // locally (same URL or same file name) steps aside.
+        const local = entriesOf(d.key).filter(e => !e._submitted);
+        const submitted = subList
+          .filter(s => !local.some(l => l.url === s.url || (l.mode === 'file' && s.mode === 'file' && l.fileName && l.fileName === s.fileName)))
+          .map(s => ({ ...s, _submitted: true }));
+        setEntries(d.key, submitted.concat(local));
         refreshTile(d.key);
       });
       refreshSubmit();
@@ -14576,7 +14668,7 @@ void loop() {
         // text/link not yet saved to the draft) needs a confirm. Saved drafts
         // reload for that student on any device, so switching is harmless.
         const dirty = cached.owner && cached.owner !== norm(n) &&
-          Object.values(state).some(v => v && !v._submitted && !v._savedDraft);
+          SLOT_DEFS.some(d => entriesOf(d.key).some(v => !v._submitted && !v._savedDraft));
         if (dirty && !confirm('This device has unsaved work from another name. Switch to ' + n + ' and clear it?')) {
           nameInput.value = ownerName;
           return;
@@ -14960,9 +15052,10 @@ void loop() {
         } : null;
         const imgs = Array.isArray(s.images) && s.images.length ? s.images : (s.image ? [s.image] : []);
         const cads = Array.isArray(s.cads) && s.cads.length ? s.cads : (s.cad ? [s.cad] : []);
+        const codes = (Array.isArray(s.codes) && s.codes.length ? s.codes : (s.code ? [s.code] : [])).filter(c => c && c.mode !== 'link');
         const files = [
           ...imgs.map(x => toFile(x, 'image')),
-          toFile(s.code && s.code.mode !== 'link' ? s.code : null, 'pdf'),
+          ...codes.map(x => toFile(x, 'pdf')),
           ...cads.map(x => toFile(x, 'stl'))
         ].filter(Boolean);
         const reflection = (s.summary && s.summary.text) || '';
@@ -15115,10 +15208,10 @@ void loop() {
       try {
         const uploadedImages = [];
         const uploadedStls = [];
-        let uploadedCode = null;
+        const uploadedCodes = [];
         for (const p of usable) {
           const slot = { mode: 'file', url: p.url, fileName: p.fileName, contentType: p.contentType, filePath: p.filePath };
-          if (p.kind === 'pdf') uploadedCode = slot;
+          if (p.kind === 'pdf') uploadedCodes.push(slot);
           else if (p.kind === 'stl') uploadedStls.push(slot);
           else uploadedImages.push(slot);
         }
@@ -15137,7 +15230,7 @@ void loop() {
         const slots = {
           summary: { mode: 'text', text: text.slice(0, 1500) },
           image: uploadedImages[0] || null, images: uploadedImages,
-          code: uploadedCode,
+          code: uploadedCodes[0] || null, codes: uploadedCodes,
           cad: uploadedStls[0] || null, cads: uploadedStls
         };
         await setDoc(pfRef, {
@@ -15906,21 +15999,11 @@ void loop() {
     const readOnly = !!opts.readOnly;
     body.innerHTML = '';
     const slots = item.slots || {};
-    // Checkpoint submissions carry EVERY image in slots.images and every STL in
-    // slots.cads; slots.image / slots.cad hold only the first (legacy readers).
-    // Render the full arrays so no upload is ever invisible — a student's
-    // schematic, code image, and circuit photo must all show.
-    const imageList = (Array.isArray(slots.images) && slots.images.length)
-      ? slots.images
-      : (slots.image ? [slots.image] : []);
-    const cadList = (Array.isArray(slots.cads) && slots.cads.length)
-      ? slots.cads
-      : (slots.cad ? [slots.cad] : []);
+    // Every slot can hold several entries (two STLs, a PDF per part, a link
+    // plus a file). slotEntryList reads the plural list when present and falls
+    // back to the single legacy value, so nothing uploaded is ever invisible.
     SLOT_DEFS.forEach(def => {
-      let entries;
-      if (def.key === 'image') entries = imageList;
-      else if (def.key === 'cad') entries = cadList;
-      else entries = slots[def.key] ? [slots[def.key]] : [];
+      const entries = slotEntryList(slots, def.key);
       entries.forEach((data, idx) => {
         const tile = document.createElement('div');
         tile.className = 'pf-view-tile';
@@ -16123,10 +16206,9 @@ void loop() {
   async function deletePortfolioSlot(item, slotKey, slotIndex) {
     try {
       const slots = { ...(item.slots || {}) };
-      // Multi-entry slots (checkpoint image/cad arrays): remove ONLY the one
-      // entry the teacher clicked, and keep the legacy single-value key in
-      // sync with whatever remains.
-      const arrKey = slotKey === 'image' ? 'images' : slotKey === 'cad' ? 'cads' : null;
+      // Multi-entry slots: remove ONLY the one entry the teacher clicked, and
+      // keep the legacy single-value key in sync with whatever remains.
+      const arrKey = SLOT_LIST_KEYS[slotKey] || null;
       if (arrKey && Array.isArray(slots[arrKey]) && slots[arrKey].length) {
         const arr = slots[arrKey].slice();
         arr.splice(typeof slotIndex === 'number' ? slotIndex : 0, 1);
