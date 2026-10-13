@@ -17,6 +17,20 @@ warmUps.forEach(w => {
   assert.ok(typeof w.question === 'string' && w.question.trim(), `${w.id} has a question`);
 });
 
+const oct20 = warmUps.find(w => w.id === 'wu-2026-10-20');
+assert.ok(oct20, 'the October 20 Stephen Hawking warm-up is present');
+assert.match(oct20.question, /movie scene first, then the real story/,
+  'the warm-up gives the intended viewing order');
+assert.match(oct20.question, /Write 2 to 3 sentences/,
+  'the warm-up gives students a concrete notebook task');
+assert.match(oct20.question, /innovations that let Stephen Hawking communicate/,
+  'the first prompt focuses on the communication innovations');
+assert.match(oct20.question, /your own assistive technology work/,
+  'the second prompt connects the clips to the student project');
+const oct20Videos = [...oct20.question.matchAll(/youtube\.com\/embed\/([^"?]+)/g)].map(m => m[1]);
+assert.deepEqual(oct20Videos, ['EWWPUbNvP_Y', '7npnWX0dJQM'],
+  'the movie clip appears before the real Stephen Hawking explainer');
+
 assert.match(html, /class="project-title">Warm-ups<\/h2>/, 'warm-ups use the shared class-hub page title');
 assert.match(html, /class="project-blurb">Answer in your written notebook\./, 'warm-ups explain the notebook workflow in the shared page style');
 assert.doesNotMatch(html, /warmup-hero|warmup-title|warmup-deck/, 'warm-ups do not use a separate hero treatment');
