@@ -8808,6 +8808,12 @@ void loop() {
           <p class="tool-card-blurb">Photograph a circuit or finished device.</p>
           <div class="tool-card-footer">Open</div>
         </div>
+        <div class="tool-card" id="toolCardHeadServo">
+          <p class="tool-card-eyebrow">Demo: face tracking</p>
+          <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg></span><h3 class="tool-card-title">Head Servo</h3></div>
+          <p class="tool-card-blurb">Turn your head on camera and a servo on your Arduino follows. Sketch and wiring included.</p>
+          <div class="tool-card-footer">Open in a new tab</div>
+        </div>
         <div class="tool-card" id="toolCardCad">
           <div class="tool-card-head"><span class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9"/></svg></span><h3 class="tool-card-title">CAD Submissions</h3></div>
           <p class="tool-card-blurb">Submit a public CAD link or an STL file.</p>
@@ -8834,6 +8840,9 @@ void loop() {
     });
     sec.querySelector('#toolCardCad').addEventListener('click', () => {
       navigateApp('/cad');
+    });
+    sec.querySelector('#toolCardHeadServo').addEventListener('click', () => {
+      window.open('https://head-servo.vercel.app', '_blank', 'noopener');
     });
   }
 
