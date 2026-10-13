@@ -13406,6 +13406,21 @@ void loop() {
   // first entry under the singular key so older readers and scripts still work.
   const SLOT_LIST_KEYS = { sketch: 'sketches', cad: 'cads', code: 'codes', wiring: 'wirings', image: 'images', video: 'videos' };
   const PF_MAX_PER_SLOT = 12;
+  // Firestore writes for one draft slot must stay in order. Without this,
+  // two uploads that finish close together can race: a stale one-file save
+  // may land after the newer two-file save and make the second file vanish
+  // when the student reloads. Separate keys let different students and slots
+  // save independently while preserving order within one slot.
+  const _pfDraftSaveChains = new Map();
+  function enqueuePfDraftSave(queueKey, task) {
+    const previous = _pfDraftSaveChains.get(queueKey) || Promise.resolve();
+    const next = previous.catch(() => {}).then(task);
+    _pfDraftSaveChains.set(queueKey, next);
+    next.finally(() => {
+      if (_pfDraftSaveChains.get(queueKey) === next) _pfDraftSaveChains.delete(queueKey);
+    });
+    return next;
+  }
   function slotEntryList(slots, key) {
     const s = slots || {};
     const lk = SLOT_LIST_KEYS[key];
@@ -13603,7 +13618,7 @@ void loop() {
     // work is visible without a public gallery and can't be accidentally changed.
     const norm = (s) => (s || '').trim().toLowerCase();
     let ownerName = (localStorage.getItem(LAST_PICK_KEY) || '').trim();
-    const submittedByName = new Map(); // norm(name) -> { studentName, slots }
+    const submittedByName = new Map(); // norm(name) -> { studentName, slots, ids[] }
     let snapshotLoaded = false; // guards hydration from clearing tiles pre-load
 
     let paintTeam = () => {};
@@ -13733,17 +13748,20 @@ void loop() {
       const saving = key === 'summary'
         ? (state.summary && !state.summary._submitted ? [state.summary] : [])
         : entriesOf(key).filter(e => !e._submitted && !e._localPreview);
+      const queueKey = `${norm(name)}::${benchmarkId}::${key}`;
       showSaved('Saving…', 'saving');
-      saveDraft(name, benchmarkId, { pfSlots: { [key]: shape } }).then(ok => {
+      enqueuePfDraftSave(queueKey, () => saveDraft(name, benchmarkId, { pfSlots: { [key]: shape } })).then(ok => {
         if (ok) {
-          showSaved('Saved');
+          if (norm(currentSaveName()) === norm(name)) showSaved('Saved');
           let changed = false;
           saving.forEach(e => { if (entriesOf(key).includes(e) && !e._submitted) { e._savedDraft = true; changed = true; } });
           if (changed) refreshTile(key);
         }
         else {
-          savedPill.classList.remove('is-visible');
-          setStatus('Draft not saved. Check your wifi and try again.', true);
+          if (norm(currentSaveName()) === norm(name)) {
+            savedPill.classList.remove('is-visible');
+            setStatus('Draft not saved. Check your wifi and try again.', true);
+          }
         }
       });
     }
@@ -13838,8 +13856,14 @@ void loop() {
           const patch = { [key]: list[0] || null };
           const lk = SLOT_LIST_KEYS[key];
           if (lk) patch[lk] = list;
-          await setDoc(doc(db, 'portfolios', `${benchmarkId}__${nameSlug(entry.studentName || who)}`),
-            { slots: patch }, { merge: true });
+          // Legacy submissions may still sit under random document ids. Update
+          // every document behind the collapsed student row so an older copy
+          // cannot refill the removed item, and never accidentally create an
+          // incomplete stable-id document that the security rules reject.
+          const ids = (entry.ids && entry.ids.length)
+            ? entry.ids
+            : [entry.id || `${benchmarkId}__${nameSlug(entry.studentName || who)}`];
+          await Promise.all(ids.map(id => setDoc(doc(db, 'portfolios', id), { slots: patch }, { merge: true })));
         }
         // No server doc (admin-archived, or stale local flag): treat the
         // local change as the whole job.
@@ -14251,7 +14275,7 @@ void loop() {
           setStatus(`That file type is not accepted for ${def.label}. Allowed: ${def.exts}.`, true);
           return;
         }
-        if (file.size > PORTFOLIO_MAX_FILE) {
+        if (file.size >= PORTFOLIO_MAX_FILE) {
           setStatus('File too large (100MB max).', true);
           return;
         }
@@ -14703,11 +14727,21 @@ void loop() {
       _pfUnsub = watchScopedWork('portfolios', benchmarkId, (snap) => {
         snapshotLoaded = true;
         submittedByName.clear();
+        const raw = [];
         snap.forEach(d => {
           const data = d.data() || {};
           if (data.deleted) return;
+          raw.push({ id: d.id, ...data });
+        });
+        collapsePortfolioItems(raw).forEach(data => {
           const nm = (data.studentName || '').trim();
-          if (nm) submittedByName.set(norm(nm), { studentName: nm, slots: data.slots || {}, team: Array.isArray(data.team) ? data.team : [] });
+          if (nm) submittedByName.set(norm(nm), {
+            id: data.id,
+            ids: (data.ids && data.ids.length) ? data.ids : [data.id],
+            studentName: nm,
+            slots: data.slots || {},
+            team: Array.isArray(data.team) ? data.team : []
+          });
         });
         if (panel.classList.contains('is-viewonly')) applyMode(nameInput.value);
         else hydrateFromSubmitted();
@@ -15000,7 +15034,7 @@ void loop() {
           setStatus(`"${f.name}" is not a supported type. Upload a photo, PDF, or STL.`, true);
           continue;
         }
-        if (f.size > PORTFOLIO_MAX_FILE) {
+        if (f.size >= PORTFOLIO_MAX_FILE) {
           setStatus(`"${f.name}" is too large (100MB max).`, true);
           continue;
         }

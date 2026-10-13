@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 
@@ -16,5 +17,45 @@ assert.match(html, /code: uploadedCodes\[0\] \|\| null, codes: uploadedCodes,/, 
 assert.match(html, /const entries = slotEntryList\(slots, def\.key\);/, 'the teacher view renders every entry of every slot');
 assert.match(html, /const arrKey = SLOT_LIST_KEYS\[slotKey\] \|\| null;/, 'teacher slot delete removes one entry from any list slot');
 assert.doesNotMatch(html, /pendingFiles\[def\.key\]/, 'the Product panel no longer keeps one pending file per slot');
+assert.match(html, /collapsePortfolioItems\(raw\)\.forEach\(data => \{/,
+  'the Product editor collapses legacy duplicate documents before hydrating a student');
+assert.match(html, /Promise\.all\(ids\.map\(id => setDoc\(doc\(db, 'portfolios', id\)/,
+  'removing one submitted item updates every legacy document behind the collapsed row');
 
-console.log('T4SG multi-slot audit passed: list keys, multi-select pickers, plural writes with singular mirrors, full teacher view.');
+// Behavioral check: same-slot draft writes execute in the order queued, even
+// when the first write takes longer. This protects the newest multi-file list
+// from being overwritten by an older partial list.
+const queueSource = html.match(/const _pfDraftSaveChains = new Map\(\);\n([\s\S]*?)\n  function slotEntryList/);
+assert.ok(queueSource, 'the ordered draft-save queue can be isolated');
+const context = { Promise, Map };
+vm.createContext(context);
+vm.runInContext(`const _pfDraftSaveChains = new Map();\n${queueSource[1]}\nthis.enqueuePfDraftSave = enqueuePfDraftSave;`, context);
+
+async function checkOrderedSaves() {
+  const events = [];
+  let active = 0;
+  let maxActive = 0;
+  const first = context.enqueuePfDraftSave('riley::p1b4::cad', async () => {
+    active += 1;
+    maxActive = Math.max(maxActive, active);
+    events.push('first:start');
+    await new Promise(resolve => setTimeout(resolve, 15));
+    events.push('first:end');
+    active -= 1;
+  });
+  const second = context.enqueuePfDraftSave('riley::p1b4::cad', async () => {
+    active += 1;
+    maxActive = Math.max(maxActive, active);
+    events.push('second:start');
+    events.push('second:end');
+    active -= 1;
+  });
+  await Promise.all([first, second]);
+  assert.deepEqual(events, ['first:start', 'first:end', 'second:start', 'second:end'],
+    'same-student same-slot saves stay ordered');
+  assert.equal(maxActive, 1, 'same-slot saves never overlap');
+}
+
+checkOrderedSaves().then(() => {
+  console.log('T4SG multi-slot audit passed: list keys, multi-select pickers, plural writes, full teacher view, and ordered draft saves.');
+}).catch(err => { console.error(err); process.exitCode = 1; });
