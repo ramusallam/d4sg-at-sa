@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 
@@ -19,6 +20,27 @@ assert.match(html, /const visiblePinName = pin\.label \|\| pin\.name/,
 
 assert.match(html, /function placeComponent\(type\)[\s\S]*const occupied = _schemState\.components\.map[\s\S]*if \(isOpen\(x, y\)\) return placeComponentAt/,
   'palette-added parts search for an open grid area instead of piling up by type');
+
+const boundsStart = html.indexOf('function _schemComponentPlacementBounds(c)');
+const boundsEnd = html.indexOf('\n  function placeComponent(type)', boundsStart);
+assert.ok(boundsStart >= 0 && boundsEnd > boundsStart,
+  'the component placement-bounds helper can be isolated for behavior checks');
+const placementBounds = vm.runInNewContext(
+  `(${html.slice(boundsStart, boundsEnd)})`,
+  { SCHEM_COMPONENTS: { wide: { w: 6, h: 2 } } }
+);
+const plainBounds = JSON.parse(JSON.stringify(
+  placementBounds({ type: 'wide', x: 10, y: 5, rotation: 0 })
+));
+const rotatedBounds = JSON.parse(JSON.stringify(
+  placementBounds({ type: 'wide', x: 10, y: 5, rotation: 90 })
+));
+assert.deepEqual(plainBounds, { x: 10, y: 5, w: 6, h: 2 },
+  'unrotated parts keep their authored placement bounds');
+assert.deepEqual(rotatedBounds, { x: 12, y: 3, w: 2, h: 6 },
+  'quarter-turned parts swap dimensions around their visual center');
+assert.match(html, /const occupied = _schemState\.components\.map\(_schemComponentPlacementBounds\)/,
+  'open-area placement checks the visual bounds of rotated parts');
 assert.match(html, /const contentLayers = \[[\s\S]*schemLayerComponents[\s\S]*schemLayerWires[\s\S]*getBBox\(\)/,
   'schematic exports measure the actual circuit content');
 assert.match(html, /clone\.setAttribute\('viewBox', `\$\{exportBox\.x\}/,

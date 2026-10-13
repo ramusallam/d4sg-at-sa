@@ -11418,6 +11418,22 @@ void loop() {
     _schemState.wires.forEach(w => drawWire(w));
   }
 
+  function _schemComponentPlacementBounds(c) {
+    const cDef = SCHEM_COMPONENTS[c.type] || { w: 1, h: 1 };
+    const w = c.cols || cDef.w;
+    const h = c.rows || cDef.h;
+    const rot = ((c.rotation || 0) % 360 + 360) % 360;
+    if (rot === 90 || rot === 270) {
+      return {
+        x: c.x + (w - h) / 2,
+        y: c.y + (h - w) / 2,
+        w: h,
+        h: w
+      };
+    }
+    return { x: c.x, y: c.y, w, h };
+  }
+
   function placeComponent(type) {
     const def = SCHEM_COMPONENTS[type];
     if (!def) return;
@@ -11429,15 +11445,7 @@ void loop() {
     const h = def.h;
     const maxX = Math.max(0, _schemState.gridCols - w);
     const maxY = Math.max(0, _schemState.gridRows - h);
-    const occupied = _schemState.components.map(c => {
-      const cDef = SCHEM_COMPONENTS[c.type] || { w: 1, h: 1 };
-      return {
-        x: c.x,
-        y: c.y,
-        w: c.cols || cDef.w,
-        h: c.rows || cDef.h
-      };
-    });
+    const occupied = _schemState.components.map(_schemComponentPlacementBounds);
     const isOpen = (x, y) => !occupied.some(r =>
       x < r.x + r.w + gap && x + w + gap > r.x &&
       y < r.y + r.h + gap && y + h + gap > r.y
