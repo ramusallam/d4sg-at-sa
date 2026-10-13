@@ -9351,8 +9351,8 @@ void loop() {
     redboard: {
       group: 'boards',
       label: 'SparkFun RedBoard (Uno)',
-      // Same footprint and header layout as the Leonardo so a schematic drawn
-      // on one reads the same on the other. Red PCB, Uno pinout.
+      // Red PCB with the classroom-relevant Uno pinout. Internal pin ids stay
+      // unique even when the physical board prints the same label twice.
       w: 13, h: 8,
       pins: [
         { name: 'D13', gx: 1.2, gy: 0 }, { name: 'D12', gx: 2.0, gy: 0 },
@@ -9361,9 +9361,10 @@ void loop() {
         { name: 'D7',  gx: 6.4, gy: 0 }, { name: 'D6',  gx: 7.2, gy: 0 },
         { name: 'D5',  gx: 8.0, gy: 0 }, { name: 'D4',  gx: 8.8, gy: 0 },
         { name: 'D3',  gx: 9.6, gy: 0 }, { name: 'D2',  gx: 10.4, gy: 0 },
+        { name: 'D1',  gx: 11.2, gy: 0 }, { name: 'D0',  gx: 12.0, gy: 0 },
         { name: 'RST', gx: 1.2, gy: 8 }, { name: '3V3', gx: 2.0, gy: 8 },
         { name: '5V',  gx: 2.8, gy: 8 }, { name: 'GND', gx: 3.6, gy: 8 },
-        { name: 'GND2',gx: 4.4, gy: 8 }, { name: 'VIN', gx: 5.2, gy: 8 },
+        { name: 'GND2', label: 'GND', gx: 4.4, gy: 8 }, { name: 'VIN', gx: 5.2, gy: 8 },
         { name: 'A0',  gx: 6.4, gy: 8 }, { name: 'A1',  gx: 7.2, gy: 8 },
         { name: 'A2',  gx: 8.0, gy: 8 }, { name: 'A3',  gx: 8.8, gy: 8 },
         { name: 'A4',  gx: 9.6, gy: 8 }, { name: 'A5',  gx: 10.4, gy: 8 }
@@ -10939,6 +10940,7 @@ void loop() {
       pinCircle.setAttribute('data-pin', pinId);
       pinG.appendChild(pinCircle);
 
+      const visiblePinName = pin.label || pin.name;
       if (def.pinLabels) {
         const lbl = document.createElementNS(svgNS, 'text');
         lbl.setAttribute('x', px);
@@ -10951,7 +10953,7 @@ void loop() {
         lbl.setAttribute('font-family', 'system-ui, sans-serif');
         lbl.setAttribute('font-weight', '600');
         lbl.setAttribute('pointer-events', 'none');
-        lbl.textContent = pin.name;
+        lbl.textContent = visiblePinName;
         pinG.appendChild(lbl);
       }
 
@@ -10968,7 +10970,7 @@ void loop() {
         e.stopPropagation();
         _schemWireDragStartPin(pinId, e);
       });
-      _attachPinTooltipHandlers(pinCircle, pin.name);
+      _attachPinTooltipHandlers(pinCircle, visiblePinName);
 
       g.appendChild(pinG);
     });
@@ -11419,13 +11421,41 @@ void loop() {
   function placeComponent(type) {
     const def = SCHEM_COMPONENTS[type];
     if (!def) return;
-    // Drop in middle of canvas, offset slightly per existing count to avoid overlap.
-    const count = _schemState.components.filter(c => c.type === type).length;
-    const baseX = Math.max(0, Math.floor(_schemState.gridCols / 2 - def.w / 2));
-    const baseY = Math.max(0, Math.floor(_schemState.gridRows / 2 - def.h / 2));
-    const x = baseX + (count % 4);
-    const y = baseY + Math.floor(count / 4);
-    return placeComponentAt(type, x, y);
+    // Stage palette-added parts in the first open grid area. Checking every
+    // existing component, not just others of the same type, keeps a fresh
+    // Arduino, breadboard, and sensor set from landing in one overlapping pile.
+    const gap = 1;
+    const w = def.w;
+    const h = def.h;
+    const maxX = Math.max(0, _schemState.gridCols - w);
+    const maxY = Math.max(0, _schemState.gridRows - h);
+    const occupied = _schemState.components.map(c => {
+      const cDef = SCHEM_COMPONENTS[c.type] || { w: 1, h: 1 };
+      return {
+        x: c.x,
+        y: c.y,
+        w: c.cols || cDef.w,
+        h: c.rows || cDef.h
+      };
+    });
+    const isOpen = (x, y) => !occupied.some(r =>
+      x < r.x + r.w + gap && x + w + gap > r.x &&
+      y < r.y + r.h + gap && y + h + gap > r.y
+    );
+    const startX = maxX > 1 ? 1 : 0;
+    const startY = maxY > 1 ? 1 : 0;
+    for (let y = startY; y <= maxY; y++) {
+      for (let x = startX; x <= maxX; x++) {
+        if (isOpen(x, y)) return placeComponentAt(type, x, y);
+      }
+    }
+    // A densely packed canvas can still accept a part. Use the center as the
+    // predictable fallback, then let the student drag it into the exact spot.
+    return placeComponentAt(
+      type,
+      Math.max(0, Math.floor(_schemState.gridCols / 2 - w / 2)),
+      Math.max(0, Math.floor(_schemState.gridRows / 2 - h / 2))
+    );
   }
 
   function placeComponentAt(type, gx, gy) {
@@ -11982,27 +12012,58 @@ void loop() {
     if (!_schemSvg) { cb(null, new Error('no svg')); return; }
     try {
       const serializer = new XMLSerializer();
+      const fullView = _schemSvg.viewBox.baseVal;
+      let exportBox = {
+        x: fullView.x,
+        y: fullView.y,
+        width: fullView.width || _schemSvg.clientWidth,
+        height: fullView.height || _schemSvg.clientHeight
+      };
+      const contentLayers = [
+        _schemSvg.querySelector('#schemLayerComponents'),
+        _schemSvg.querySelector('#schemLayerWires')
+      ].filter(layer => layer && layer.childNodes.length);
+      if (contentLayers.length) {
+        const boxes = contentLayers.map(layer => layer.getBBox()).filter(box => box.width || box.height);
+        if (boxes.length) {
+          const pad = 24;
+          const minX = Math.min(...boxes.map(box => box.x));
+          const minY = Math.min(...boxes.map(box => box.y));
+          const maxX = Math.max(...boxes.map(box => box.x + box.width));
+          const maxY = Math.max(...boxes.map(box => box.y + box.height));
+          const right = Math.min(fullView.x + fullView.width, maxX + pad);
+          const bottom = Math.min(fullView.y + fullView.height, maxY + pad);
+          exportBox = {
+            x: Math.max(fullView.x, minX - pad),
+            y: Math.max(fullView.y, minY - pad),
+            width: 1,
+            height: 1
+          };
+          exportBox.width = Math.max(1, right - exportBox.x);
+          exportBox.height = Math.max(1, bottom - exportBox.y);
+        }
+      }
       const clone = _schemSvg.cloneNode(true);
       clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       // Strip transient UI (wire delete X, selection halo, pin tooltip, wire
       // preview) so saved artifacts show only the actual schematic.
-      clone.querySelectorAll('.schem-wire-x, .schem-selection-halo, .schem-pin-tooltip, #schemWirePreview, .schem-pin.is-pending')
+      clone.querySelectorAll('.schem-wire-x, .schem-selection-halo, .schem-pin-tooltip, .schem-rotate-handle, .schem-move-handle, .schem-resize-handle, #schemWirePreview, .schem-pin.is-pending')
         .forEach(el => {
           if (el.classList && el.classList.contains('schem-pin')) el.classList.remove('is-pending');
           else if (el.parentNode) el.parentNode.removeChild(el);
         });
-      // Export at native resolution regardless of the on-screen zoom.
-      if (_schemBaseW) {
-        clone.setAttribute('width', _schemBaseW);
-        clone.setAttribute('height', _schemBaseH);
-      }
+      // Crop to the actual circuit, then export at native resolution regardless
+      // of the on-screen zoom. This keeps saved diagrams readable in a drop slot.
+      clone.setAttribute('viewBox', `${exportBox.x} ${exportBox.y} ${exportBox.width} ${exportBox.height}`);
+      clone.setAttribute('width', exportBox.width);
+      clone.setAttribute('height', exportBox.height);
       const svgStr = serializer.serializeToString(clone);
       const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
       const img = new Image();
       img.onload = () => {
-        const w = _schemSvg.viewBox.baseVal.width || _schemSvg.clientWidth;
-        const h = _schemSvg.viewBox.baseVal.height || _schemSvg.clientHeight;
+        const w = exportBox.width;
+        const h = exportBox.height;
         const scale = 2;
         const canvas = document.createElement('canvas');
         canvas.width = w * scale;
@@ -18662,6 +18723,7 @@ void loop() {
     { key: 'ldr',        re: /\bLDR photoresistor\b|\bphotoresistor\b|\bLDR\b/g,                            url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/25mm_light-dependent_resistor_%28LDR%29_%281%29.jpg/960px-25mm_light-dependent_resistor_%28LDR%29_%281%29.jpg' },
     { key: 'micro',      url: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Arduino_Micro.jpg' },
     { key: 'resistor',   url: 'https://upload.wikimedia.org/wikipedia/commons/9/9b/220_ohms_5%25_axial_resistor.jpg' },
+    { key: 'resistor10k',url: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Ceramic_Composition_Resistor_10k.png?width=960' },
     { key: 'tof',        url: 'https://cdn-shop.adafruit.com/970x728/3317-06.jpg' },
     { key: 'rgb',        url: 'https://cdn-shop.adafruit.com/970x728/1334-00.jpg' }
   ];
@@ -18673,7 +18735,7 @@ void loop() {
     irsensor: 'ir', ir: 'ir', sippuff: 'sippuff', sipPuff: 'sippuff', captouch: 'touch', touch: 'touch',
     tofsensor: 'tof', rgbsensor: 'rgb', led: 'led', resistor: 'resistor', jack35: 'jack', jack: 'jack',
     jstxh: 'jst', jst: 'jst', pressure: 'pressure',
-    redboard: 'redboard', servo: 'servo', ldr: 'ldr', resistor10k: 'resistor'
+    redboard: 'redboard', servo: 'servo', ldr: 'ldr', resistor10k: 'resistor10k'
   };
   function partPhotoUrl(toolKey) {
     const k = PART_PHOTO_BY_TOOL_KEY[toolKey];
