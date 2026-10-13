@@ -23,10 +23,9 @@ assert.match(oct20.question, /movie scene first, then the real story/,
   'the warm-up gives the intended viewing order');
 assert.match(oct20.question, /Write 2 to 3 sentences/,
   'the warm-up gives students a concrete notebook task');
-assert.match(oct20.question, /innovations that let Stephen Hawking communicate/,
-  'the first prompt focuses on the communication innovations');
-assert.match(oct20.question, /your own assistive technology work/,
-  'the second prompt connects the clips to the student project');
+assert.match(oct20.question, /ideas that come up for your current project, the class in general, or anything else/,
+  'the single open prompt invites ideas about the project, the class, or anything else');
+assert.doesNotMatch(oct20.question, /<ol>/, 'a single ask is a plain paragraph, not a numbered list');
 const oct20Videos = [...oct20.question.matchAll(/youtube\.com\/embed\/([^"?]+)/g)].map(m => m[1]);
 assert.deepEqual(oct20Videos, ['EWWPUbNvP_Y', '7npnWX0dJQM'],
   'the movie clip appears before the real Stephen Hawking explainer');
